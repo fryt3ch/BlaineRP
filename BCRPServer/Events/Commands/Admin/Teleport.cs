@@ -123,7 +123,7 @@ namespace BCRPServer.Events.Commands
                 return;
 
             if (dim == 0)
-                dim = Settings.MAIN_DIMENSION;
+                dim = Settings.CurrentProfile.Game.MainDimension;
 
             var tData = pData;
 

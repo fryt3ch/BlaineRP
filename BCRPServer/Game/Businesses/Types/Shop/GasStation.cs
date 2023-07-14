@@ -29,7 +29,7 @@ namespace BCRPServer.Game.Businesses
 
         public static string GetGasBuyIdByFuelType(Data.Vehicles.Vehicle.FuelTypes fType) => fType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
 
-        public bool IsPlayerNearGasolinesPosition(PlayerData pData) => pData.Player.Dimension == Settings.MAIN_DIMENSION && pData.Player.Position.DistanceTo(GasolinesPosition.Position) <= GasolinesPosition.RotationZ + 2.5f;
+        public bool IsPlayerNearGasolinesPosition(PlayerData pData) => pData.Player.Dimension == Settings.CurrentProfile.Game.MainDimension && pData.Player.Position.DistanceTo(GasolinesPosition.Position) <= GasolinesPosition.RotationZ + 2.5f;
 
         public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {

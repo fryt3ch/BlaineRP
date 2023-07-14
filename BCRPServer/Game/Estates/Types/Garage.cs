@@ -165,7 +165,7 @@ namespace BCRPServer.Game.Estates
                     lines.Add($"new GarageRoot({x.Id}, {x.EnterPosition.Position.ToCSharpStr()}, {x.EnterPositionVehicle.ToCSharpStr()});");
                 }
 
-                Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "GROOTS_TO_REPLACE", lines);
+                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "GROOTS_TO_REPLACE", lines);
             }
 
             public Utils.Vector4 GetNextVehicleExit()
@@ -180,9 +180,9 @@ namespace BCRPServer.Game.Estates
                 return VehicleExitPositions[nextId];
             }
 
-            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Settings.CurrentProfile.Game.MainDimension && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
-            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
+            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Settings.CurrentProfile.Game.MainDimension && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
 
             public static GarageRoot Get(uint id) => All.GetValueOrDefault(id);
         }
@@ -255,7 +255,7 @@ namespace BCRPServer.Game.Estates
 
             this.ClassType = GetClass(this);
 
-            this.Dimension = (uint)(Id + Settings.GARAGE_DIMENSION_BASE);
+            this.Dimension = (uint)(Id + Settings.CurrentProfile.Game.GarageDimensionBaseOffset);
 
             All.Add(Id, this);
         }
@@ -275,7 +275,7 @@ namespace BCRPServer.Game.Estates
                 lines.Add($"new Garage({x.Id}, {x.Root.Id}, Garage.Types.{x.StyleData.Type.ToString()}, {x.Variation}, Garage.ClassTypes.{x.ClassType.ToString()}, {x.Tax}, {x.Price});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "GARAGES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "GARAGES_TO_REPLACE", lines);
         }
 
         public static Garage Get(uint id) => All.GetValueOrDefault(id);
@@ -527,7 +527,7 @@ namespace BCRPServer.Game.Estates
             {
                 var pos = Root.EnterPosition;
 
-                Utils.TeleportPlayers(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, true, players);
             }
             else
             {

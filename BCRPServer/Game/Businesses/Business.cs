@@ -204,7 +204,7 @@ namespace BCRPServer.Game.Businesses
 
         public bool IsPlayerNearInteractPosition(PlayerData pData)
         {
-            return PositionInteract != null && pData.Player.Dimension == Settings.MAIN_DIMENSION && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
+            return PositionInteract != null && pData.Player.Dimension == Settings.CurrentProfile.Game.MainDimension && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
         }
 
         public static Utils.Vector4 GetNextExitProperty(IEnterable enterable)

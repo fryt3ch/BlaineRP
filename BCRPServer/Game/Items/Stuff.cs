@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using static BCRPServer.Game.Items.Inventory;
@@ -770,7 +771,7 @@ namespace BCRPServer.Game.Items
                 lines.Add($"Craft.AllReceipts.Add(new Craft.Receipt(new Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_ITEMS_DATA_PATH, "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Data\Items\Items.cs", "TO_REPLACE", lines);
 
             return counter;
         }

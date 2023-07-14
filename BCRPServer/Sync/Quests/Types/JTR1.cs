@@ -15,7 +15,7 @@ namespace BCRPServer.Sync.Quests.Types
                 {
                     var player = pData.Player;
 
-                    if (player.Dimension != Settings.MAIN_DIMENSION || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                    if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                         return 0;
 
                     var job = pData.CurrentJob as Game.Jobs.Trucker;

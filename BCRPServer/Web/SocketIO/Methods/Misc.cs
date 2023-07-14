@@ -11,7 +11,25 @@ namespace BCRPServer.Web.SocketIO.Methods
     {
         public static async Task SqlTransactionLocalDbSend(CancellationToken ct, List<string> list)
         {
-            var res = await Service.Connection.TriggerProc(ct, "Stuff::SqlTransactionLocalDb", new { list });
+            var resp = await Service.Connection.TriggerProc(ct, "Db::LocalTransactions", new { list });
+
+            if (resp == null)
+                throw new Web.SocketIO.Exceptions.SocketIOResultException(255);
+
+            var data = JObject.Parse(resp.GetValue(0).GetRawText());
+
+            var result = Convert.ToByte(data.GetValue("status"));
+
+            if (result == 1)
+            {
+                return;
+            }
+            else
+            {
+                var errorMsg = (string)data.GetValue("error");
+
+                throw new Web.SocketIO.Exceptions.SocketIOResultException(result, resp, errorMsg);
+            }
         }
 
         public static async Task<AccountData.GlobalBan> GetPlayerGlobalBan(CancellationToken ct, string hwid, ulong scid)

@@ -202,7 +202,7 @@ namespace BCRPServer.Events.Players.Misc
             if (pData.IsFrozen)
                 return;
 
-            if (pData.Player.Dimension != Settings.DEMORGAN_DIMENSION)
+            if (pData.Player.Dimension != Settings.CurrentProfile.Game.DemorganDimension)
                 return;
 
             Utils.Demorgan.SetToDemorgan(pData, true);
@@ -254,7 +254,7 @@ namespace BCRPServer.Events.Players.Misc
             if (estAgency == null || posId < 0 || posId >= estAgency.Positions.Length)
                 return null;
 
-            if (player.Dimension != Settings.MAIN_DIMENSION || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
+            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
                 return null;
 
             return $"{estAgency.HouseGPSPrice}";
@@ -278,7 +278,7 @@ namespace BCRPServer.Events.Players.Misc
             if (estAgency == null || posId < 0 || posId >= estAgency.Positions.Length)
                 return false;
 
-            if (player.Dimension != Settings.MAIN_DIMENSION || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
+            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
                 return false;
 
             if (gpsType == 0)

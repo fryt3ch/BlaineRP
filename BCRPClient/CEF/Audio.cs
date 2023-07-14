@@ -155,17 +155,17 @@ namespace BCRPClient.CEF
 
         private static Dictionary<TrackTypes, string> Urls { get; set; } = new Dictionary<TrackTypes, string>()
         {
-            { TrackTypes.Auth1, "http://fishbotserver.ddns.net:1234/audio/auth_1.mp3" },
-            { TrackTypes.Auth2, "http://fishbotserver.ddns.net:1234/audio/auth_2.mp3" },
-            { TrackTypes.Auth3, "http://fishbotserver.ddns.net:1234/audio/auth_3.mp3" },
-            { TrackTypes.Auth4, "http://fishbotserver.ddns.net:1234/audio/auth_4.mp3" },
-            { TrackTypes.Auth5, "http://fishbotserver.ddns.net:1234/audio/auth_5.mp3" },
-            { TrackTypes.Auth6, "http://fishbotserver.ddns.net:1234/audio/auth_6.mp3" },
-            { TrackTypes.Auth7, "http://fishbotserver.ddns.net:1234/audio/auth_7.mp3" },
-            { TrackTypes.Auth8, "http://fishbotserver.ddns.net:1234/audio/auth_8.mp3" },
+            { TrackTypes.Auth1, "https://files.blaine-rp.ru/audio/auth_1.mp3" },
+            { TrackTypes.Auth2, "https://files.blaine-rp.ru/audio/auth_2.mp3" },
+            { TrackTypes.Auth3, "https://files.blaine-rp.ru/audio/auth_3.mp3" },
+            { TrackTypes.Auth4, "https://files.blaine-rp.ru/audio/auth_4.mp3" },
+            { TrackTypes.Auth5, "https://files.blaine-rp.ru/audio/auth_5.mp3" },
+            { TrackTypes.Auth6, "https://files.blaine-rp.ru/audio/auth_6.mp3" },
+            { TrackTypes.Auth7, "https://files.blaine-rp.ru/audio/auth_7.mp3" },
+            { TrackTypes.Auth8, "https://files.blaine-rp.ru/audio/auth_8.mp3" },
 
-            { TrackTypes.Error0, "http://fishbotserver.ddns.net:1234/audio/error_0.wav" },
-            { TrackTypes.Success0, "http://fishbotserver.ddns.net:1234/audio/success_0.mp3" },
+            { TrackTypes.Error0, "https://files.blaine-rp.ru/audio/sfx/error_0.wav" },
+            { TrackTypes.Success0, "https://files.blaine-rp.ru/audio/sfx/success_0.mp3" },
 
             { TrackTypes.RadioRetroFM, "https://retro.hostingradio.ru:8014/retro320.mp3" }, // https://retro.hostingradio.ru:8043/retro256.mp3
             { TrackTypes.RadioEuropaPlus, "https://ep256.hostingradio.ru:8052/europaplus256.mp3" },

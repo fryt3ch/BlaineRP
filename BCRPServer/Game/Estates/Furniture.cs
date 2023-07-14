@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace BCRPServer.Game.Estates
@@ -827,7 +828,7 @@ namespace BCRPServer.Game.Estates
                     lines.Add($"new Furniture(\"{x.Key}\", Types.{x.Value.Type}, \"{x.Value.Name}\", {x.Value.Model});");
                 }
 
-                Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_FURNITURE_DATA_PATH, "TO_REPLACE_FURN_LIST", lines);
+                Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Data\Furniture.cs", "TO_REPLACE_FURN_LIST", lines);
 
 /*                lines.Clear();
 

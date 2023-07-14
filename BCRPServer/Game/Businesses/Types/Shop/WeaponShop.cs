@@ -97,7 +97,7 @@ namespace BCRPServer.Game.Businesses
 
         public bool IsPlayerNearShootingRangeEnterPosition(Player player)
         {
-            return player.Dimension == Settings.MAIN_DIMENSION && Vector3.Distance(player.Position, PositionShootingRangeEnter.Position) <= 10f;
+            return player.Dimension == Settings.CurrentProfile.Game.MainDimension && Vector3.Distance(player.Position, PositionShootingRangeEnter.Position) <= 10f;
         }
 
         public bool TryBuyShootingRange(PlayerData pData)

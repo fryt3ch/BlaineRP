@@ -42,63 +42,64 @@ namespace BCRPServer.Events.Players
 
             string confirmationHash;
 
-            var cts = new CancellationTokenSource(2_500);
-
-            try
+            using (var cts = new CancellationTokenSource(2_500))
             {
-                confirmationHash = await Web.SocketIO.Methods.Account.Add(cts.Token, scid, hwid, login, password, mail, ip);
-            }
-            catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
-            {
-                NAPI.Task.Run(() =>
+                try
                 {
-                    if (player?.Exists != true)
-                        return;
-
-                    tData.BlockRemoteCalls = false;
-
-                    var msg = ioEx.Message;
-
-                    if (msg == "SCIDExists")
-                    {
-                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_SCIDEXISTS_0"));
-                    }
-                    else if (msg == "MailExists")
-                    {
-                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_MAILEXISTS_0"));
-                    }
-                    else if (msg == "LoginExists")
-                    {
-                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_LOGINEXISTS_0"));
-                    }
-                    else if (msg == "ConfirmSendTimeout")
-                    {
-                        TimeSpan nextSendTryTime;
-
-                        if (ioEx.Data["NextSendTryTime"] is TimeSpan ioExDataT)
-                            nextSendTryTime = ioExDataT;
-                        else
-                            nextSendTryTime = TimeSpan.Zero;
-
-                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_REGCONFIRM_SENT_E_0", nextSendTryTime.GetBeautyString()));
-                    }
-                });
-
-                return;
-            }
-            catch (Exception ex)
-            {
-                NAPI.Task.Run(() =>
+                    confirmationHash = await Web.SocketIO.Methods.Account.Add(cts.Token, scid, hwid, login, password, mail, ip);
+                }
+                catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
                 {
-                    if (player?.Exists != true)
-                        return;
+                    NAPI.Task.Run(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
 
-                    tData.BlockRemoteCalls = false;
+                        tData.BlockRemoteCalls = false;
 
-                    player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
-                });
+                        var msg = ioEx.Message;
 
-                return;
+                        if (msg == "SCIDExists")
+                        {
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_SCIDEXISTS_0"));
+                        }
+                        else if (msg == "MailExists")
+                        {
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_MAILEXISTS_0"));
+                        }
+                        else if (msg == "LoginExists")
+                        {
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_LOGINEXISTS_0"));
+                        }
+                        else if (msg == "ConfirmSendTimeout")
+                        {
+                            TimeSpan nextSendTryTime;
+
+                            if (ioEx.Data["NextSendTryTime"] is TimeSpan ioExDataT)
+                                nextSendTryTime = ioExDataT;
+                            else
+                                nextSendTryTime = TimeSpan.Zero;
+
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_REGCONFIRM_SENT_E_0", nextSendTryTime.GetBeautyString()));
+                        }
+                    });
+
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    NAPI.Task.Run(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        tData.BlockRemoteCalls = false;
+
+                        player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
+                    });
+
+                    return;
+                }
             }
 
             NAPI.Task.Run(() =>
@@ -152,55 +153,56 @@ namespace BCRPServer.Events.Players
 
             AccountData aData;
 
-            var cts = new CancellationTokenSource(2_500);
-
-            try
+            using (var cts = new CancellationTokenSource(2_500))
             {
-                aData = await Web.SocketIO.Methods.Account.Login(cts.Token, scid, login, password, ip);
-            }
-            catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
-            {
-                NAPI.Task.Run(() =>
+                try
                 {
-                    if (player?.Exists != true)
-                        return;
-
-                    tData.BlockRemoteCalls = false;
-
-                    var message = ioEx.Message;
-
-                    if (message == "WrongLogin")
+                    aData = await Web.SocketIO.Methods.Account.Login(cts.Token, scid, login, password, ip);
+                }
+                catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
+                {
+                    NAPI.Task.Run(() =>
                     {
-                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGLOGIN_0", tData.LoginAttempts));
-                    }
-                    else if (message == "WrongPassword")
-                    {
-                        if (isPasswordToken)
-                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGTOKEN_0", tData.LoginAttempts));
+                        if (player?.Exists != true)
+                            return;
+
+                        tData.BlockRemoteCalls = false;
+
+                        var message = ioEx.Message;
+
+                        if (message == "WrongLogin")
+                        {
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGLOGIN_0", tData.LoginAttempts));
+                        }
+                        else if (message == "WrongPassword")
+                        {
+                            if (isPasswordToken)
+                                player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGTOKEN_0", tData.LoginAttempts));
+                            else
+                                player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGPASSWORD_0", tData.LoginAttempts));
+                        }
                         else
-                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGPASSWORD_0", tData.LoginAttempts));
-                    }
-                    else
-                    {
-                        player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", message ?? ""));
-                    }
-                });
+                        {
+                            player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", message ?? ""));
+                        }
+                    });
 
-                return;
-            }
-            catch (Exception ex)
-            {
-                NAPI.Task.Run(() =>
+                    return;
+                }
+                catch (Exception ex)
                 {
-                    if (player?.Exists != true)
-                        return;
+                    NAPI.Task.Run(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
 
-                    tData.BlockRemoteCalls = false;
+                        tData.BlockRemoteCalls = false;
 
-                    player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
-                });
+                        player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
+                    });
 
-                return;
+                    return;
+                }
             }
 
             NAPI.Task.Run(() =>
@@ -317,7 +319,7 @@ namespace BCRPServer.Events.Players
                     {
                         var pos = Utils.Demorgan.GetNextPos();
 
-                        data.LastData.Dimension = Settings.DEMORGAN_DIMENSION;
+                        data.LastData.Dimension = Settings.CurrentProfile.Game.DemorganDimension;
                         data.LastData.Position.Position = pos;
                     }
                     else if (activePunishment.Type == Sync.Punishment.Types.Arrest)
@@ -332,7 +334,7 @@ namespace BCRPServer.Events.Players
                         var pos = fData.GetNextArrestCellPosition();
 
                         data.LastData.Position.Position = pos;
-                        data.LastData.Dimension = Settings.MAIN_DIMENSION;
+                        data.LastData.Dimension = Settings.CurrentProfile.Game.MainDimension;
                     }
 
                     tData.Delete();
@@ -403,7 +405,7 @@ namespace BCRPServer.Events.Players
                 else if (sType == TempData.StartPlaceTypes.SpawnBlaineCounty)
                 {
                     tData.PositionToSpawn = new Utils.Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
-                    tData.DimensionToSpawn = Settings.MAIN_DIMENSION;
+                    tData.DimensionToSpawn = Settings.CurrentProfile.Game.MainDimension;
 
                     player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
@@ -419,7 +421,7 @@ namespace BCRPServer.Events.Players
                             return false;
 
                         tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
-                        tData.DimensionToSpawn = Settings.MAIN_DIMENSION;
+                        tData.DimensionToSpawn = Settings.CurrentProfile.Game.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }
@@ -438,7 +440,7 @@ namespace BCRPServer.Events.Players
                             return false;
 
                         tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
-                        tData.DimensionToSpawn = Settings.MAIN_DIMENSION;
+                        tData.DimensionToSpawn = Settings.CurrentProfile.Game.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }

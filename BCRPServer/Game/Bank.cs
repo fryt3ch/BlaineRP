@@ -159,14 +159,14 @@ namespace BCRPServer.Game
             foreach (var x in Banks)
                 lines.Add($"new Bank({x.Key}, new Utils.Vector4[] {{ {string.Join(", ", x.Value.Select(x => x.ToCSharpStr()))} }});");
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BANKS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "BANKS_TO_REPLACE", lines);
 
             lines = new List<string>();
 
             foreach (var x in ATMs)
                 lines.Add($"new ATM({x.Key}, {x.Value.ToCSharpStr()});");
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "ATM_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "ATM_TO_REPLACE", lines);
         }
 
         public static Utils.Vector4[] GetBankData(int id) => Banks.GetValueOrDefault(id);
@@ -177,7 +177,7 @@ namespace BCRPServer.Game
         {
             var bData = GetBankData(id);
 
-            if (bData == null || player.Dimension != Settings.MAIN_DIMENSION)
+            if (bData == null || player.Dimension != Settings.CurrentProfile.Game.MainDimension)
                 return false;
 
             foreach (var x in bData)
@@ -193,7 +193,7 @@ namespace BCRPServer.Game
         {
             var atmData = GetAtmData(id);
 
-            if (atmData == null || player.Dimension != Settings.MAIN_DIMENSION)
+            if (atmData == null || player.Dimension != Settings.CurrentProfile.Game.MainDimension)
                 return false;
 
             return player.Position.DistanceTo(atmData.Position) <= (atmData.RotationZ + 5f);

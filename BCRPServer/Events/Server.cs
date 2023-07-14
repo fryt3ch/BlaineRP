@@ -22,23 +22,25 @@ namespace BCRPServer.Events
 
         public static byte PayDayX { get; set; } = 1;
 
-        private static Timer PayDayTimer { get; set; }
+        private static Timer _payDayTimer;
 
-        public enum ServerTypes : byte
-        {
-            Sandy = 0,
-        }
-
-        public static ServerTypes ServerType { get; } = ServerTypes.Sandy;
 
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
+            var currentDir = Directory.GetCurrentDirectory();
+
+            Settings.SetProfile(Properties.SettingsProfile.GetDefault());
+
+            Properties.SettingsProfile.SaveProfile(Settings.CurrentProfile, "brpSettings.json");
+
             // Settings Step
 
-            CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
-            CultureInfo.CurrentCulture = Settings.CultureInfo;
+            CultureInfo.DefaultThreadCurrentCulture = Settings.CurrentProfile.General.CultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = Settings.CurrentProfile.General.CultureInfo;
+            CultureInfo.CurrentCulture = Settings.CurrentProfile.General.CultureInfo;
+
+            Properties.Language.Culture = Settings.CurrentProfile.General.CultureInfo;
 
             Events.Commands.Commands.LoadAll();
             Events.NPC.NPC.LoadAll();
@@ -49,38 +51,38 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
 
-            Utils.ConsoleOutput($"~Red~Blaine RolePlay~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.VERSION}~/~");
+            Utils.ConsoleOutput($"~Red~Blaine RolePlay~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.Version}~/~");
 
             Utils.ConsoleOutput();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
 
-            var ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
-            var ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
+            var clientCSPackagesTarget = new DirectoryInfo(currentDir + Settings.ClientScriptsTargetPath);
+            var clientCSPackagesSource = new DirectoryInfo(currentDir + Settings.ClientScriptsSourcePath);
 
-            ClientCSPackagesTarget.Delete(true);
-            ClientCSPackagesTarget.Create();
+            clientCSPackagesTarget.Delete(true);
+            clientCSPackagesTarget.Create();
 
-            foreach (var script in ClientCSPackagesSource.GetFiles("*.cs"))
-                File.Copy(script.FullName, ClientCSPackagesTarget.FullName + "\\" + script.Name, true);
+            foreach (var script in clientCSPackagesSource.GetFiles("*.cs"))
+                File.Copy(script.FullName, clientCSPackagesTarget.FullName + "\\" + script.Name, true);
 
-            foreach (var dir in ClientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj" && x.Name != "Properties"))
+            foreach (var dir in clientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj" && x.Name != "Properties"))
             {
-                var newDir = new DirectoryInfo(ClientCSPackagesTarget.FullName + "\\" + dir.Name);
+                var newDir = new DirectoryInfo(clientCSPackagesTarget.FullName + "\\" + dir.Name);
 
                 newDir.Create();
 
                 Utils.CloneDirectory(dir, newDir);
             }
 
-            var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", System.Reflection.Assembly.LoadFrom(Settings.DIR_RESOURCES_PATH + @"\BCRPClient.dll"));
+            var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", System.Reflection.Assembly.LoadFrom(currentDir + Settings.ResourcesPath + @"\BCRPClient.dll"));
 
             var langStrings = new Dictionary<string, string>();
 
             foreach (DictionaryEntry x in clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, true, true))
                 langStrings.Add((string)x.Key, (string)x.Value);
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH, "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", \"{x.Value}\" }},").ToList());
+            Utils.FillFileToReplaceRegion(currentDir + Settings.ClientScriptsTargetPath + @"\Language\Strings.cs", "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", \"{x.Value}\" }},").ToList());
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);
@@ -99,7 +101,7 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
-            Web.SocketIO.Service.Start("http://localhost:7777", "brp_server_1", "63c209c3-3505-443a-b234-91e3046e2894");
+            Web.SocketIO.Service.Start(Settings.CurrentProfile.Web.SocketIOCredentials.Host, Settings.CurrentProfile.Web.SocketIOCredentials.User, Settings.CurrentProfile.Web.SocketIOCredentials.Password);
 
             // Local Data Load Step
 
@@ -194,7 +196,7 @@ namespace BCRPServer.Events
 
             Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin" , "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
 
-            PayDayTimer = new Timer((obj) =>
+            _payDayTimer = new Timer((obj) =>
             {
                 var curTime = Utils.GetCurrentTime();
 
@@ -294,7 +296,7 @@ namespace BCRPServer.Events
             {
                 var player = pData.Player;
 
-                if (isAuto && pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
+                if (isAuto && pData.LastData.SessionTime < Settings.CurrentProfile.Game.PayDay.MinimalSessionTimeToReceive.TotalSeconds)
                 {
                     player.TriggerEvent("opday", pData.LastData.SessionTime);
 

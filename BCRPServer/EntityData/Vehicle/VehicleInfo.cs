@@ -11,7 +11,7 @@ namespace BCRPServer
         {
             public static Dictionary<uint, VehicleInfo> All { get; private set; } = new Dictionary<uint, VehicleInfo>();
 
-            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Settings.META_UID_FIRST_VID);
+            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Settings.CurrentProfile.Game.VIDBaseOffset);
 
             public static void AddOnLoad(VehicleInfo vInfo)
             {
@@ -93,7 +93,7 @@ namespace BCRPServer
             {
                 var data = Game.Data.Vehicles.All[ID];
 
-                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Settings.STUFF_DIMENSION);
+                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Settings.CurrentProfile.Game.StuffDimension);
 
                 return veh;
             }
@@ -116,7 +116,7 @@ namespace BCRPServer
 
                     var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
 
-                    if (LastData.Dimension != Settings.MAIN_DIMENSION && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
+                    if (LastData.Dimension != Settings.CurrentProfile.Game.MainDimension && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                     {
                         var hId = Utils.GetHouseIdByDimension(LastData.Dimension);
 
@@ -158,8 +158,8 @@ namespace BCRPServer
                         }
                         else
                         {
-                            if (LastData.Dimension != Settings.MAIN_DIMENSION)
-                                LastData.Dimension = Settings.MAIN_DIMENSION;
+                            if (LastData.Dimension != Settings.CurrentProfile.Game.MainDimension)
+                                LastData.Dimension = Settings.CurrentProfile.Game.MainDimension;
 
                             if (LastData.GarageSlot != -1)
                                 LastData.GarageSlot = -1;

@@ -427,23 +427,23 @@ namespace BCRPServer.Events.Players
             {
                 var pos = player.Position;
 
-                if (pDim >= Settings.HOUSE_DIMENSION_BASE)
+                if (pDim >= Settings.CurrentProfile.Game.HouseDimensionBaseOffset)
                 {
-                    if (pDim < Settings.APARTMENTS_DIMENSION_BASE)
+                    if (pDim < Settings.CurrentProfile.Game.ApartmentsDimensionBaseOffset)
                     {
                         var house = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.House;
 
                         if (house != null)
                             pos = house.PositionParams.Position;
                     }
-                    else if (pDim < Settings.APARTMENTS_ROOT_DIMENSION_BASE)
+                    else if (pDim < Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset)
                     {
                         var aps = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.Apartments;
 
                         if (aps != null)
                             pos = aps.Root.EnterParams.Position;
                     }
-                    else if (pDim < Settings.GARAGE_DIMENSION_BASE)
+                    else if (pDim < Settings.CurrentProfile.Game.GarageDimensionBaseOffset)
                     {
                         var apsRoot = Utils.GetApartmentsRootByDimension(pDim);
 
@@ -478,7 +478,7 @@ namespace BCRPServer.Events.Players
 
                 pData.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
 
-                if (Settings.DROP_WEAPONS_AFTER_DEATH)
+                if (Settings.CurrentProfile.Game.KnockedDropWeaponsEnabled)
                 {
                     for (int i = 0; i < pData.Weapons.Length; i++)
                         if (pData.Weapons[i] != null)
@@ -488,17 +488,17 @@ namespace BCRPServer.Events.Players
                 if (pData.Holster?.Items[0] != null)
                     pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Holster, 0, 1);
 
-                if (Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH > 0f && Settings.MAX_AMMO_TO_DROP_AFTER_DEATH > 0)
+                if (Settings.CurrentProfile.Game.KnockedDropAmmoTotalPercentage > 0f && Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount > 0)
                 {
                     int droppedAmmo = 0;
 
                     for (int i = 0; i < pData.Items.Length; i++)
                         if (pData.Items[i] is Game.Items.Ammo)
                         {
-                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH);
+                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Settings.CurrentProfile.Game.KnockedDropAmmoTotalPercentage);
 
-                            if (ammoToDrop + droppedAmmo > Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
-                                ammoToDrop = Settings.MAX_AMMO_TO_DROP_AFTER_DEATH - droppedAmmo;
+                            if (ammoToDrop + droppedAmmo > Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount)
+                                ammoToDrop = Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount - droppedAmmo;
 
                             if (ammoToDrop == 0)
                                 break;
@@ -507,7 +507,7 @@ namespace BCRPServer.Events.Players
 
                             droppedAmmo += ammoToDrop;
 
-                            if (droppedAmmo == Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
+                            if (droppedAmmo == Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount)
                                 break;
                         }
                 }

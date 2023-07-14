@@ -38,7 +38,7 @@ namespace BCRPServer.Game.Estates
                     lines.Add($"new ApartmentsRoot({x.Id}, {(byte)x.ShellType}, {x.EnterParams.Position.ToCSharpStr()});");
                 }
 
-                Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "AROOTS_TO_REPLACE", lines);
+                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "AROOTS_TO_REPLACE", lines);
             }
         }
 
@@ -59,7 +59,7 @@ namespace BCRPServer.Game.Estates
                 lines.Add($"new Apartments({x.Id}, {x.RootId}, {x.FloorIdx}, {x.SubIdx}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "APARTMENTS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "APARTMENTS_TO_REPLACE", lines);
 
             return All.Count;
         }

@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace BCRPServer.Sync
@@ -67,7 +68,7 @@ namespace BCRPServer.Sync
 
             AllDoors = new Dictionary<uint, Door>();
 
-            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Settings.MAIN_DIMENSION);
+            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Settings.CurrentProfile.Game.MainDimension);
 
             var lines = new List<string>();
 
@@ -76,7 +77,7 @@ namespace BCRPServer.Sync
                 lines.Add($"new Door({x.Key}, {x.Value.Model}, {x.Value.Position.ToCSharpStr()}, {x.Value.Dimension});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_DOOR_SYSTEM_DATA_PATH, "DOORS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Sync\DoorSystem.cs", "DOORS_TO_REPLACE", lines);
         }
     }
 }

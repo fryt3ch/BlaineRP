@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace BCRPServer.Game.Data
@@ -1166,7 +1167,7 @@ namespace BCRPServer.Game.Data
                 lines.Add($"new Vehicle(\"{x.Key}\", {x.Value.Model}, \"{x.Value.Name}\", {x.Value.Tank}f, Vehicle.FuelTypes.{x.Value.FuelType}, {(x.Value.TrunkData == null ? "null" : $"new Vehicle.Trunk({x.Value.TrunkData.Slots}")}, {x.Value.TrunkData.MaxWeight}), {x.Value.IsModdable.ToString().ToLower()}, {x.Value.HasCruiseControl.ToString().ToLower()}, {x.Value.HasAutoPilot.ToString().ToLower()}, Vehicle.Types.{x.Value.Type}, {x.Value.GovPrice}, Vehicle.ClassTypes.{x.Value.Class});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_VEHICLES_DATA_PATH, "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Data\Vehicles.cs", "TO_REPLACE", lines);
 
             return All.Count;
         }

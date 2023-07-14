@@ -10,7 +10,7 @@ namespace BCRPServer
     {
         public static void LoadHouse(Game.Estates.House house)
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials))
             {
                 conn.Open();
 
@@ -115,7 +115,7 @@ namespace BCRPServer
 
         public static void LoadApartments(Game.Estates.Apartments apartments)
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials))
             {
                 conn.Open();
 

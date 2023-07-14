@@ -14,28 +14,11 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        private const string Host = "localhost";
-        private const string User = "root";
-        private const string Password = "";
-        private const string LocalDatabase = "bcrp-1";
+        private static string _localConnectionCredentials = $"SERVER={Settings.CurrentProfile.DataBase.OwnDbCredentials.Host}; DATABASE={Settings.CurrentProfile.DataBase.OwnDbCredentials.Name}; UID={Settings.CurrentProfile.DataBase.OwnDbCredentials.User}; PASSWORD={Settings.CurrentProfile.DataBase.OwnDbCredentials.Password};";
 
-        private static string LocalConnectionCredentials = $"SERVER={Host}; DATABASE={LocalDatabase}; UID={User}; PASSWORD={Password}";
-
-        private static SemaphoreSlim LocalConnectionSemaphore { get; set; }
+        private static SemaphoreSlim _localConnectionSemaphore { get; set; }
 
         private static ConcurrentQueue<MySqlCommand> QueriesQueue { get; set; } = new ConcurrentQueue<MySqlCommand>();
-
-        public enum AuthResultTypes : byte
-        {
-            OK = 0,
-
-            RegMailNotFree = 1,
-            RegLoginNotFree = 2,
-
-            Unknown = 3,
-
-            RegConfirmationSent = 4,
-        }
 
         #region General
 
@@ -48,15 +31,14 @@ namespace BCRPServer
 
             QueriesServiceTimer = new Timer(async (obj) =>
             {
-                await Wait();
-
-                DoAllQueries();
-
-                Release();
+                NAPI.Task.Run(async () =>
+                {
+                    await DoAllQueries();
+                });
             }, null, 0, 10_000);
         }
 
-        public static void DoAllQueries()
+        public static async Task DoAllQueries()
         {
             var commands = new List<MySqlCommand>();
 
@@ -111,48 +93,57 @@ namespace BCRPServer
                 }
             }
 
-            try
+            using (var cts = new CancellationTokenSource(5_000))
             {
-                using (var conn = new MySqlConnection(LocalConnectionCredentials))
+                try
                 {
-                    conn.Open();
-
-                    using (var transaction = conn.BeginTransaction())
+/*                    await Web.SocketIO.Methods.Misc.SqlTransactionLocalDbSend(cts.Token, commands.Select(x =>
                     {
-                        try
-                        {
-                            foreach (var x in commands)
-                            {
-                                using (x)
-                                {
-                                    x.Connection = conn;
-                                    x.Transaction = transaction;
+                        var cmd = x.CommandText;
 
-                                    x.ExecuteNonQuery();
-                                }
-                            }
+                        // todo
+                    }));*/
+                    using (var conn = new MySqlConnection(_localConnectionCredentials))
+                    {
+                        conn.Open();
 
-                            transaction.Commit();
-
-                            Console.WriteLine($"{commands.Count} local queries were done!");
-                        }
-                        catch (Exception exC)
+                        using (var transaction = conn.BeginTransaction())
                         {
                             try
                             {
-                                transaction.Rollback();
-                            }
-                            catch (Exception exTr)
-                            {
+                                foreach (var x in commands)
+                                {
+                                    using (x)
+                                    {
+                                        x.Connection = conn;
+                                        x.Transaction = transaction;
 
+                                        x.ExecuteNonQuery();
+                                    }
+                                }
+
+                                transaction.Commit();
+
+                                Console.WriteLine($"{commands.Count} local queries were done!");
+                            }
+                            catch (Exception exC)
+                            {
+                                try
+                                {
+                                    transaction.Rollback();
+                                }
+                                catch (Exception exTr)
+                                {
+
+                                }
                             }
                         }
                     }
                 }
-            }
-            catch (Exception exG)
-            {
+                catch (Exception exG)
+                {
 
+                }
             }
         }
 
@@ -161,9 +152,9 @@ namespace BCRPServer
         #region Init Connection
         public static bool InitConnection()
         {
-            MySqlConnection localConnection = new MySqlConnection(LocalConnectionCredentials);
+            MySqlConnection localConnection = new MySqlConnection(_localConnectionCredentials);
 
-            LocalConnectionSemaphore = new SemaphoreSlim(1, 1);
+            _localConnectionSemaphore = new SemaphoreSlim(1, 1);
 
             try
             {
@@ -182,13 +173,13 @@ namespace BCRPServer
         }
         #endregion
 
-        public static async Task Wait() => await LocalConnectionSemaphore.WaitAsync();
+        public static async Task Wait() => await _localConnectionSemaphore.WaitAsync();
 
-        public static void Release() => LocalConnectionSemaphore.Release();
+        public static void Release() => _localConnectionSemaphore.Release();
 
         public static int SetOfflineAll()
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials))
             {
                 conn.Open();
 
@@ -254,7 +245,7 @@ namespace BCRPServer
                 }
             }*/
 
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials))
             {
                 conn.Open();
 
@@ -1212,13 +1203,13 @@ namespace BCRPServer
                     Game.Items.Item.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Settings.META_UID_FIRST_CID; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Settings.CurrentProfile.Game.CIDBaseOffset; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (PlayerData.PlayerInfo.Get(i) == null)
                     PlayerData.PlayerInfo.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Settings.META_UID_FIRST_VID; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Settings.CurrentProfile.Game.VIDBaseOffset; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (VehicleData.VehicleInfo.Get(i) == null)
                     VehicleData.VehicleInfo.UidHandler.SetUidAsFree(i);

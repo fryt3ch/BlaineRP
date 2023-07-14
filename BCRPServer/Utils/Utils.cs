@@ -42,22 +42,22 @@ namespace BCRPServer
 
                 var pos = GetNextPos();
 
-                pData.Player.Teleport(pos, false, Settings.DEMORGAN_DIMENSION, null, false);
+                pData.Player.Teleport(pos, false, Settings.CurrentProfile.Game.DemorganDimension, null, false);
             }
 
             public static void SetFromDemorgan(PlayerData pData)
             {
-                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Settings.MAIN_DIMENSION, Utils.DefaultSpawnHeading, false);
+                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Settings.CurrentProfile.Game.MainDimension, Utils.DefaultSpawnHeading, false);
             }
         }
 
-        public static uint GetPlayerIdByDimension(uint dim) => dim < Settings.PLAYER_PRIVATE_DIMENSION_BASE ? 0 : dim - Settings.PLAYER_PRIVATE_DIMENSION_BASE;
+        public static uint GetPlayerIdByDimension(uint dim) => dim < Settings.CurrentProfile.Game.PlayerPrivateDimensionBaseOffset ? 0 : dim - Settings.CurrentProfile.Game.PlayerPrivateDimensionBaseOffset;
 
-        public static uint GetHouseIdByDimension(uint dim) => dim < Settings.HOUSE_DIMENSION_BASE ? 0 : dim - Settings.HOUSE_DIMENSION_BASE;
+        public static uint GetHouseIdByDimension(uint dim) => dim < Settings.CurrentProfile.Game.HouseDimensionBaseOffset ? 0 : dim - Settings.CurrentProfile.Game.HouseDimensionBaseOffset;
 
-        public static uint GetGarageIdByDimension(uint dim) => dim < Settings.GARAGE_DIMENSION_BASE ? 0 : dim - Settings.GARAGE_DIMENSION_BASE;
+        public static uint GetGarageIdByDimension(uint dim) => dim < Settings.CurrentProfile.Game.GarageDimensionBaseOffset ? 0 : dim - Settings.CurrentProfile.Game.GarageDimensionBaseOffset;
 
-        public static uint GetApartmentsIdByDimension(uint dim) => dim < Settings.APARTMENTS_DIMENSION_BASE ? 0 : dim - Settings.APARTMENTS_DIMENSION_BASE;
+        public static uint GetApartmentsIdByDimension(uint dim) => dim < Settings.CurrentProfile.Game.ApartmentsDimensionBaseOffset ? 0 : dim - Settings.CurrentProfile.Game.ApartmentsDimensionBaseOffset;
 
         public static Game.Estates.HouseBase GetHouseBaseByDimension(uint dim)
         {
@@ -96,14 +96,14 @@ namespace BCRPServer
             return Game.Estates.Garage.Get(gId);
         }
 
-        public static uint GetApartmentsRootIdByDimension(uint dim) => dim < Settings.APARTMENTS_ROOT_DIMENSION_BASE ? 0 : dim - Settings.APARTMENTS_ROOT_DIMENSION_BASE;
+        public static uint GetApartmentsRootIdByDimension(uint dim) => dim < Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset ? 0 : dim - Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset;
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);
         /// <summary>Стандартный поворот</summary>
         public static float DefaultSpawnHeading = 0f;
 
-        public static uint GetPrivateDimension(Player player) => player.Id + Settings.PLAYER_PRIVATE_DIMENSION_BASE;
+        public static uint GetPrivateDimension(Player player) => player.Id + Settings.CurrentProfile.Game.PlayerPrivateDimensionBaseOffset;
 
         /// <summary>Нулевой вектор (X=0, Y=0, Z=0)</summary>
         public static Vector3 ZeroVector => new Vector3(0, 0, 0);
@@ -304,7 +304,7 @@ namespace BCRPServer
         /// <param name="vid">VID или RemoteID</param>
         /// <returns>Объект класса VehicleData, если транспорт найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static VehicleData FindVehicleOnline(uint vid) => vid >= Settings.META_UID_FIRST_VID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Values.Where(x => x.Vehicle.Id == vid).FirstOrDefault();
+        public static VehicleData FindVehicleOnline(uint vid) => vid >= Settings.CurrentProfile.Game.VIDBaseOffset ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Values.Where(x => x.Vehicle.Id == vid).FirstOrDefault();
 
         #endregion
 
@@ -450,13 +450,13 @@ namespace BCRPServer
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса PlayerData, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData FindReadyPlayerOnline(uint pid) => pid >= Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.CID == pid).FirstOrDefault() : PlayerData.All.Where(x => x.Key.Id == pid).Select(x => x.Value).FirstOrDefault();
+        public static PlayerData FindReadyPlayerOnline(uint pid) => pid >= Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.CID == pid).FirstOrDefault() : PlayerData.All.Where(x => x.Key.Id == pid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Метод для получения сущности игрока, который в сети</summary>
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player FindPlayerOnline(uint pid) => pid >= Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.CID == pid).Select(x => x.Player).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
+        public static Player FindPlayerOnline(uint pid) => pid >= Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.CID == pid).Select(x => x.Player).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
 
         /// <summary>Метод для получения пола игрока</summary>
         /// <param name="player">Сущность игрока</param>

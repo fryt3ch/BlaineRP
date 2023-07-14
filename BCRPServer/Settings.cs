@@ -1,59 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 namespace BCRPServer
 {
     public static class Settings
     {
-        public static CultureInfo CultureInfo { get; private set; } = new CultureInfo("en-US", false)
-        {
-            NumberFormat = new NumberFormatInfo()
-            {
-                CurrencyDecimalSeparator = ".",
-                NumberDecimalSeparator = ".",
-            }
-        };
+        public const string Version = "Beta 1.0";
 
-        public const string VERSION = "Beta 1.0";
+        private static Properties.SettingsProfile _currentProfile;
 
-        public const string DIR_BASE_PATH = @"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP";
+        public static Properties.SettingsProfile CurrentProfile => _currentProfile;
 
-        public const string DIR_RESOURCES_PATH = DIR_BASE_PATH + @"\dotnet\resources\BCRPMode";
+        public const string ResourcesPath = @"\dotnet\resources\BCRPMode";
 
-        public const string DIR_SOURCES_PATH = DIR_BASE_PATH + @"\backend\BCRPMode";
+        public const string ClientScriptsTargetPath = @"\client_packages\cs_packages";
+        public const string ClientScriptsSourcePath = @"\backend\BCRPMode\BCRPClient";
 
-        public const string DIR_CLIENT_PACKAGES_PATH = DIR_BASE_PATH + @"\client_packages";
-        public const string DIR_CLIENT_PACKAGES_CS_PATH = DIR_CLIENT_PACKAGES_PATH + @"\cs_packages";
-        public const string DIR_CLIENT_SOURCES_PATH = DIR_SOURCES_PATH + @"\BCRPClient";
-
-        public const string DIR_CLIENT_ITEMS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Items\Items.cs";
-        public const string DIR_CLIENT_VEHICLES_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Vehicles.cs";
-        public const string DIR_CLIENT_FURNITURE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Furniture.cs";
-        public const string DIR_CLIENT_SHOP_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\CEF\Shop.cs";
-        public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations\Locations.cs";
-        public const string DIR_CLIENT_DOOR_SYSTEM_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\DoorSystem.cs";
-        public const string DIR_CLIENT_SYNC_HOUSE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\House.cs";
-        public const string DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Language\Strings.cs";
-
-        /// <summary>Основное игровое измерение</summary>
-        public const uint MAIN_DIMENSION = 7;
-        /// <summary>Техническое измерение (в основном, пре-спавнинг сущностей)</summary>
-        public const uint STUFF_DIMENSION = 1;
-        /// <summary>Деморган</summary>
-        public const uint DEMORGAN_DIMENSION = 2;
-
-        public const uint PLAYER_PRIVATE_DIMENSION_BASE = 1_000;
-        public const uint HOUSE_DIMENSION_BASE = 10_000;
-        public const uint APARTMENTS_DIMENSION_BASE = 20_000;
-        public const uint APARTMENTS_ROOT_DIMENSION_BASE = 30_000;
-        public const uint GARAGE_DIMENSION_BASE = 50_000;
-
-        /// <summary>Номер первого CID</summary>
-        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
-        public const uint META_UID_FIRST_CID = 3_000;
-        /// <summary>Номер первого VID</summary>
-        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
-        public const uint META_UID_FIRST_VID = 100_000;
+        public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Data\Locations\Locations.cs";
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
@@ -64,12 +28,6 @@ namespace BCRPServer
 
         /// <summary>Дистанция апдейта для частовызываемых ивентов (например, обновление перемещения указания пальцем для игрока)</summary>
         public const float FREQ_UPDATE_DISTANCE = 25f;
-
-        /// <summary>Время, в течение которого игрок должен зайти на сервер/зарегистрироваться, в противном случае будет кикнут</summary>
-        public const int AUTH_TIMEOUT_TIME = 300000;
-
-        /// <summary>Максимальное кол-во попыток входа на сервер</summary>
-        public const int AUTH_ATTEMPTS = 3 + 1;
 
         /// <summary>Максимальное кол-во спама одновременно</summary>
         /// <remarks>После превышения заданного кол-ва последует кик игрока с сервера</remarks>
@@ -147,19 +105,6 @@ namespace BCRPServer
 
         /// <summary>Дистанция поиска аналогичных предметов для стака</summary>
         public const float IOG_MAX_DISTANCE_TO_STACK = 5f;
-
-        /// <summary>Выбрасывать ли оружие после смерти?</summary>
-        /// <remarks>Выбрасывается то оружие, которое находится в слотах для оружия и кобуре</remarks>
-        public const bool DROP_WEAPONS_AFTER_DEATH = true;
-
-        /// <summary>Максимальное кол-во патронов, которое выпадет после смерти</summary>
-        public const int MAX_AMMO_TO_DROP_AFTER_DEATH = 250;
-
-        /// <summary>Процент патронов, который выпадет после смерти (для каждого слота!)</summary>
-        public const float PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH = 0.5f;
-
-        /// <summary>Время в секундах, необходимое для получения игроком зарплаты</summary>
-        public const int MIN_SESSION_TIME_FOR_PAYDAY = 600;
 
         /// <summary>Время, после которого транспорт удалится с сервера (если до этого не зайдет владелец/владелец ключа)</summary>
         public const int OWNED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
@@ -290,5 +235,10 @@ namespace BCRPServer
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
 
         public static string SettingsToClientStr = (STREAM_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE_RENDER, MIN_CRUISE_CONTROL_SPEED, MAX_CRUISE_CONTROL_SPEED, MAX_INVENTORY_WEIGHT).SerializeToJson();
+
+        public static void SetProfile(Properties.SettingsProfile settProfile)
+        {
+            _currentProfile = settProfile;
+        }
     }
 }

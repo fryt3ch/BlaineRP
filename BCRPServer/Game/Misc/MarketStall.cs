@@ -43,7 +43,7 @@ namespace BCRPServer.Game.Misc
                 Sync.World.SetSharedData($"MARKETSTALL_{stallIdx}_R", rid);
         }
 
-        public bool IsPlayerNear(Player player, float maxDistance = 7.5f) => player.Dimension == Settings.MAIN_DIMENSION && player.Position.DistanceTo(Position.Position) <= maxDistance;
+        public bool IsPlayerNear(Player player, float maxDistance = 7.5f) => player.Dimension == Settings.CurrentProfile.Game.MainDimension && player.Position.DistanceTo(Position.Position) <= maxDistance;
 
         public static MarketStall GetByIdx(int stallIdx) => stallIdx < 0 || stallIdx >= All.Length ? null : All[stallIdx];
 
@@ -101,7 +101,7 @@ namespace BCRPServer.Game.Misc
                 lines.Add($"new MarketStall({i}, {x.Position.ToCSharpStr()});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "MARKETSTALLS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "MARKETSTALLS_TO_REPLACE", lines);
         }
 
         public bool IsPlayerRenter(int stallIdx, Player player, bool notify, out ushort renterRid)

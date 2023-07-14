@@ -149,14 +149,14 @@ namespace BCRPServer.Game.Fractions
 
             var pos = GetNextArrestCellPosition();
 
-            pData.Player.Teleport(pos, false, Settings.MAIN_DIMENSION, null, false);
+            pData.Player.Teleport(pos, false, Settings.CurrentProfile.Game.MainDimension, null, false);
         }
 
         public void SetPlayerFromPrison(PlayerData pData)
         {
             var pos = new Utils.Vector4(ArrestFreePosition.X, ArrestFreePosition.Y, ArrestFreePosition.Z, ArrestFreePosition.RotationZ);
 
-            pData.Player.Teleport(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, false);
+            pData.Player.Teleport(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, false);
         }
 
         public static CallInfo GetCallByCaller(ushort rid) => Calls.GetValueOrDefault(rid);

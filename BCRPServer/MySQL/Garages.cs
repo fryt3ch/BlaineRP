@@ -49,7 +49,7 @@ namespace BCRPServer
 
         public static void LoadGarage(Game.Estates.Garage garage)
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials))
             {
                 conn.Open();
 

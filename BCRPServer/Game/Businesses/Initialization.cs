@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -33,7 +34,7 @@ namespace BCRPServer.Game.Businesses
                 lines.Add($"Prices.Add(Types.{x.Key}, new Dictionary<string, uint>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_SHOP_DATA_PATH, "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\CEF\Shop.cs", "TO_REPLACE", lines);
         }
 
         public static int LoadAll()
@@ -438,7 +439,7 @@ namespace BCRPServer.Game.Businesses
                 lines.Add($"new {x.GetType().Name}({x.ClientData});");
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BIZS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "BIZS_TO_REPLACE", lines);
         }
     }
 }

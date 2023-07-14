@@ -18,7 +18,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.MAIN_DIMENSION || pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
             var school = Game.Autoschool.Get(schoolId);

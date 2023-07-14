@@ -396,7 +396,7 @@ namespace BCRPServer
         {
             Info = new PlayerInfo() { AID = aid };
 
-            LastData = new LastPlayerData() { Dimension = Settings.MAIN_DIMENSION, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
+            LastData = new LastPlayerData() { Dimension = Settings.CurrentProfile.Game.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
             Name = name;
             Surname = surname;
@@ -582,7 +582,7 @@ namespace BCRPServer
 
             Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
 
-            Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Settings.HOUSE_DIMENSION_BASE);
+            Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Settings.CurrentProfile.Game.HouseDimensionBaseOffset);
         }
 
         /// <summary>Метод раздевает игрока и надевает всю текущую одежду</summary>

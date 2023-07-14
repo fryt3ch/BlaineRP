@@ -69,7 +69,7 @@ namespace BCRPServer.Game.Misc
 
             lines.Add($"new FishBuyer({pos1.ToCSharpStr()});");
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "FISHBUYERS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "FISHBUYERS_TO_REPLACE", lines);
 
             FishBuyersPricesUpdateTimer = new Timer((obj) =>
             {

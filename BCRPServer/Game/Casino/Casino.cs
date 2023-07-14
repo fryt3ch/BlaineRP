@@ -206,7 +206,7 @@ namespace BCRPServer.Game.Casino
                 }
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "CASINOS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "CASINOS_TO_REPLACE", lines);
         }
 
         public static bool TryAddCasinoChips(PlayerData.PlayerInfo pInfo, uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)

@@ -40,7 +40,7 @@ namespace BCRPServer
 
         public PedData(uint Model, Utils.Vector4 Position, uint Dimension, Action PostCreationAction = null)
         {
-            Ped = NAPI.Ped.CreatePed(Model, Position.Position, Position.RotationZ, true, false, false, true, Settings.STUFF_DIMENSION);
+            Ped = NAPI.Ped.CreatePed(Model, Position.Position, Position.RotationZ, true, false, false, true, Settings.CurrentProfile.Game.StuffDimension);
 
             All.Add(Ped.Id, this);
 

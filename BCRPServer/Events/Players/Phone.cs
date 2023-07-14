@@ -317,7 +317,7 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
-            if (player.Dimension != Settings.MAIN_DIMENSION)
+            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
                 return false;
 
             if (Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).Any())
