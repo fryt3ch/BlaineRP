@@ -208,7 +208,7 @@ namespace BCRPServer
                 return TempData.Remove(key);
             }
 
-            public bool HasCooldown(uint cdType, DateTime curDate, int cdSecs, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, bool removeIfExists)
+            public bool HasCooldown(uint cdType, DateTime curDate, TimeSpan cdTime, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, bool removeIfExists)
             {
                 if (!TryGetCooldownTimePassed(cdType, curDate, out timePassed, out cdDate))
                 {
@@ -222,7 +222,7 @@ namespace BCRPServer
                     return false;
                 }
 
-                timeLeft = TimeSpan.FromSeconds(cdSecs).Subtract(timePassed);
+                timeLeft = cdTime.Subtract(timePassed);
 
                 return timeLeft.TotalSeconds > 0;
             }

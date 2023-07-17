@@ -39,6 +39,8 @@ namespace BCRPServer.Game.Casino
             new ChancePicker<Items.Gift.Prototype>.Item<Items.Gift.Prototype>(0.10d, Items.Gift.Prototype.CreateCasino(Items.Gift.Types.Money, null, 0, 50_000))
         );
 
+        public static TimeSpan SpinDefaultCooldown { get; } = TimeSpan.FromHours(24);
+
         public Vector3 Position { get; set; }
 
         public uint CurrentCID { get; private set; }

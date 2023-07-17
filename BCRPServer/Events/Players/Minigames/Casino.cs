@@ -181,7 +181,7 @@ namespace BCRPServer.Events.Players
 
             var curTime = Utils.GetCurrentTime();
 
-            if (pData.HasCooldown(freeLuckyWheelCdId, curTime, Settings.COOLDOWN_CASINO_ROULETTE_FREE_0, out _, out _, out _, 3, true))
+            if (pData.HasCooldown(freeLuckyWheelCdId, curTime, Game.Casino.LuckyWheel.SpinDefaultCooldown, out _, out _, out _, 3, true))
                 return;
 
             if (!luckyWheel.IsAvailableNow())

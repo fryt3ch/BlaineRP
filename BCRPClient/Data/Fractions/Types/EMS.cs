@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPClient.Data.Fractions.Police;
 
 namespace BCRPClient.Data.Fractions
 {
@@ -170,6 +171,22 @@ namespace BCRPClient.Data.Fractions
         public override void OnStartMembership(params object[] args)
         {
             base.OnStartMembership(args);
+
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
+
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, "fraction_invite");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, "ems_heal");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, "ems_diag");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "ems_medcard");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "ems_narco");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "ems_psych");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "ems_sellmask");
+
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "player_to_veh");
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "player_from_veh");
+
+/*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
+            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
         }
 
         public override void OnEndMembership()

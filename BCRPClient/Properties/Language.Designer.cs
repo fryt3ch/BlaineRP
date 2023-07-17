@@ -235,6 +235,42 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Выбирает персонажа.
+        /// </summary>
+        public static string DISCORD_L_CHARSEL_0 {
+            get {
+                return ResourceManager.GetString("DISCORD_L_CHARSEL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Играет на Blaine RP.
+        /// </summary>
+        public static string DISCORD_L_HEADER_0 {
+            get {
+                return ResourceManager.GetString("DISCORD_L_HEADER_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Входит в аккаунт.
+        /// </summary>
+        public static string DISCORD_L_LOGIN_0 {
+            get {
+                return ResourceManager.GetString("DISCORD_L_LOGIN_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Проходит регистрацию.
+        /// </summary>
+        public static string DISCORD_L_REG_0 {
+            get {
+                return ResourceManager.GetString("DISCORD_L_REG_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на не замужем.
         /// </summary>
         public static string DOCS_NOTMARRIED_FEMALE {
@@ -1470,7 +1506,27 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Вы надели наручники на {0}.
+        ///   Ищет локализованную строку, похожую на Вы взломали замок наручников!.
+        /// </summary>
+        public static string POLICE_CUFFS_LOCKPICK_0 {
+            get {
+                return ResourceManager.GetString("POLICE_CUFFS_LOCKPICK_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Отмычка сломалась! Попробуйте еще раз
+        ///
+        ///Отмычек осталось: {0}.
+        /// </summary>
+        public static string POLICE_CUFFS_LOCKPICK_1 {
+            get {
+                return ResourceManager.GetString("POLICE_CUFFS_LOCKPICK_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы надели наручники на руки {0}.
         /// </summary>
         public static string POLICE_CUFFS_N_0 {
             get {
@@ -1479,7 +1535,7 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Вы сняли наручники с {0}.
+        ///   Ищет локализованную строку, похожую на Вы сняли наручники с рук {0}.
         /// </summary>
         public static string POLICE_CUFFS_N_1 {
             get {
@@ -1488,7 +1544,7 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на {0} надел на Вас наручники.
+        ///   Ищет локализованную строку, похожую на {0} надел(а) на Ваши руки наручники.
         /// </summary>
         public static string POLICE_CUFFS_N_2 {
             get {
@@ -1497,7 +1553,7 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на {0} снял с Вас наручники.
+        ///   Ищет локализованную строку, похожую на {0} снял(а) с Ваших рук наручники.
         /// </summary>
         public static string POLICE_CUFFS_N_3 {
             get {

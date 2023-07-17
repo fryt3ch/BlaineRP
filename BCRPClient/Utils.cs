@@ -448,9 +448,9 @@ namespace BCRPClient
             return false;
         }
 
-        public static bool AnyOnFootMovingControlPressed()
+        public static bool AnyOnFootMovingControlJustPressed()
         {
-            if (RAGE.Game.Pad.IsControlPressed(0, 32) || RAGE.Game.Pad.IsControlPressed(0, 33) || RAGE.Game.Pad.IsControlPressed(0, 34) || RAGE.Game.Pad.IsControlPressed(0, 35) || RAGE.Game.Pad.IsControlPressed(0, 22) || RAGE.Game.Pad.IsControlPressed(0, 44) || RAGE.Game.Pad.IsControlPressed(0, 75))
+            if (RAGE.Game.Pad.IsControlJustPressed(0, 32) || RAGE.Game.Pad.IsControlJustPressed(0, 33) || RAGE.Game.Pad.IsControlJustPressed(0, 34) || RAGE.Game.Pad.IsControlJustPressed(0, 35) || RAGE.Game.Pad.IsControlJustPressed(0, 22) || RAGE.Game.Pad.IsControlJustPressed(0, 44) || RAGE.Game.Pad.IsControlJustPressed(0, 75))
                 return true;
 
             return false;

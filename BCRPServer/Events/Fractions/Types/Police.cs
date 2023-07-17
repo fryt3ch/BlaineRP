@@ -56,21 +56,27 @@ namespace BCRPServer.Events.Fractions
 
                 tData.Player.NotifyWithPlayer("Cuffs::0_0", player);
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_ON"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_ON_0"), target);
             }
             else
             {
                 if (cuffAttach == null)
                     return 2;
 
-                if (cuffAttach.Type != Sync.AttachSystem.Types.Cuffs)
-                    return 3;
-
-                if (tData.Player.DetachObject(Sync.AttachSystem.Types.Cuffs))
+                if (tData.Player.DetachObject(cuffAttach.Type))
                 {
-                    tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
+                    if (cuffAttach.Type == Sync.AttachSystem.Types.Cuffs)
+                    {
+                        tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
 
-                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF"), target);
+                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF_0"), target);
+                    }
+                    else
+                    {
+                        tData.Player.NotifyWithPlayer("Cuffs::1_1", player);
+
+                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF_1"), target);
+                    }
                 }
             }
 
@@ -389,7 +395,7 @@ namespace BCRPServer.Events.Fractions
                 if (activePunishment != null)
                     return 2;
 
-                if (time <= 0 || time > Game.Fractions.Police.ARREST_MAX_MINS || !Game.Fractions.Police.ArrestReason1Regex.IsMatch(reason1) || !Game.Fractions.Police.ArrestReason2Regex.IsMatch(reason2))
+                if (time <= 0 || time > Game.Fractions.Police.ArrestMaxTime.TotalMinutes || !Game.Fractions.Police.ArrestReason1Regex.IsMatch(reason1) || !Game.Fractions.Police.ArrestReason2Regex.IsMatch(reason2))
                     return 0;
 
                 var curTime = Utils.GetCurrentTime();
@@ -643,7 +649,7 @@ namespace BCRPServer.Events.Fractions
 
             if (existingCall != null)
             {
-                if (pData.HasCooldown(cdHash, Utils.GetCurrentTime(), Game.Fractions.Police.EXTRA_CALL_CD_TIMEOUT, out _, out _, out _, 3, true))
+                if (pData.HasCooldown(cdHash, Utils.GetCurrentTime(), Game.Fractions.Police.CallExtraCooldownTime, out _, out _, out _, 3, true))
                     return false;
 
                 Game.Fractions.Police.RemoveCall(player.Id, existingCall, 0, null);
@@ -1021,7 +1027,7 @@ namespace BCRPServer.Events.Fractions
             if (reason == null)
                 return true;
 
-            if (timeChange == 0 || timeChange < Game.Fractions.Police.ARREST_C_MIN_MINS || timeChange > Game.Fractions.Police.ARREST_C_MAX_MINS)
+            if (timeChange == 0 || timeChange < Game.Fractions.Police.ArrestMinTimeChange.TotalMinutes || timeChange > Game.Fractions.Police.ArrestMaxTimeChange.TotalMinutes)
                 return null;
 
             reason = reason.Trim();
@@ -1051,7 +1057,7 @@ namespace BCRPServer.Events.Fractions
             }
             else
             {
-                var maxMins = Game.Fractions.Police.ARREST_MAX_MINS_ADD - curSecs / 60;
+                var maxMins = Game.Fractions.Police.ArrestMaxTimeAfterAdd.TotalMinutes - curSecs / 60;
 
                 if (timeChange > maxMins)
                 {

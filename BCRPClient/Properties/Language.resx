@@ -564,16 +564,16 @@
     <value>Этого человека сейчас нельзя заключить в наручники!</value>
   </data>
   <data name="POLICE_CUFFS_N_0" xml:space="preserve">
-    <value>Вы надели наручники на {0}</value>
+    <value>Вы надели наручники на руки {0}</value>
   </data>
   <data name="POLICE_CUFFS_N_1" xml:space="preserve">
-    <value>Вы сняли наручники с {0}</value>
+    <value>Вы сняли наручники с рук {0}</value>
   </data>
   <data name="POLICE_CUFFS_N_2" xml:space="preserve">
-    <value>{0} надел на Вас наручники</value>
+    <value>{0} надел(а) на Ваши руки наручники</value>
   </data>
   <data name="POLICE_CUFFS_N_3" xml:space="preserve">
-    <value>{0} снял с Вас наручники</value>
+    <value>{0} снял(а) с Ваших рук наручники</value>
   </data>
   <data name="POLICE_ESCORT_E_0" xml:space="preserve">
     <value>Этот человек не находится в наручниках/стяжках!</value>
@@ -1195,5 +1195,25 @@ CID: #{2} | ID: {3}</value>
   </data>
   <data name="AUTH_CHARCREATE_E_0" xml:space="preserve">
     <value>Такая комбинация имени и фамилии уже используется кем-то!</value>
+  </data>
+  <data name="DISCORD_L_HEADER_0" xml:space="preserve">
+    <value>Играет на Blaine RP</value>
+  </data>
+  <data name="DISCORD_L_LOGIN_0" xml:space="preserve">
+    <value>Входит в аккаунт</value>
+  </data>
+  <data name="DISCORD_L_REG_0" xml:space="preserve">
+    <value>Проходит регистрацию</value>
+  </data>
+  <data name="DISCORD_L_CHARSEL_0" xml:space="preserve">
+    <value>Выбирает персонажа</value>
+  </data>
+  <data name="POLICE_CUFFS_LOCKPICK_0" xml:space="preserve">
+    <value>Вы взломали замок наручников!</value>
+  </data>
+  <data name="POLICE_CUFFS_LOCKPICK_1" xml:space="preserve">
+    <value>Отмычка сломалась! Попробуйте еще раз
+
+Отмычек осталось: {0}</value>
   </data>
 </root>

@@ -20,7 +20,6 @@ namespace BCRPClient.Sync
             mp.game.graphics.removeParticleFxInRange(0, 0, 0, 1000000);
          */
 
-        #region Types
         public enum Types
         {
             #region Entity-Object Attach | Типы, которые прикрепляют серверную сущность к клиентскому объекту (создается у всех клиентов в зоне стрима)
@@ -118,7 +117,6 @@ namespace BCRPClient.Sync
 
             #endregion
         }
-        #endregion
 
         private static Dictionary<int, List<int>> StreamedAttachments { get; set; } = new Dictionary<int, List<int>>();
 
@@ -189,6 +187,8 @@ namespace BCRPClient.Sync
             public bool FixedRot { get; set; }
 
             public Action<object[]> EntityAction;
+
+            public byte DisableInteraction { get; set; }
 
             public AttachmentData(int BoneID, Vector3 PositionOffset, Vector3 Rotation, bool UseSoftPinning, bool Collision, bool IsPed, int RotationOrder, bool FixedRot, Action<object[]> EntityAction = null)
             {
@@ -466,7 +466,7 @@ namespace BCRPClient.Sync
 
             { Types.EmsHealingBedFakeAttach, new AttachmentData(int.MinValue, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
 
-            { Types.PoliceEscort, new AttachmentData(1_000_000 + 11816, new Vector3(0.30f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { Types.PoliceEscort, new AttachmentData(1_000_000 + 11816, new Vector3(0.30f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) { DisableInteraction = 1, } },
 
             {
                 Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
@@ -743,13 +743,23 @@ namespace BCRPClient.Sync
 
             aObj.WasAttached = true;
 
-            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+            if (gTarget == Player.LocalPlayer)
             {
                 TargetAction(type, entity, true);
+
+                if (props != null && (props.DisableInteraction == 1 || props.DisableInteraction == 2))
+                {
+                    BCRPClient.Interaction.SetEntityAsDisabled(gEntity, true);
+                }
             }
-            else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
+            else if (gEntity  == Player.LocalPlayer)
             {
                 RootAction(type, gTarget, true);
+
+                if (props != null && (props.DisableInteraction == 1 || props.DisableInteraction == 3))
+                {
+                    BCRPClient.Interaction.SetEntityAsDisabled(gTarget, true);
+                }
             }
         }
 
@@ -793,13 +803,17 @@ namespace BCRPClient.Sync
 
             if (aObj.WasAttached)
             {
-                if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+                if (gTarget == Player.LocalPlayer)
                 {
                     TargetAction(aObj.Type, null, false);
+
+                    BCRPClient.Interaction.SetEntityAsDisabled(gEntity, false);
                 }
-                else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
+                else if (gEntity == Player.LocalPlayer)
                 {
                     RootAction(aObj.Type, null, false);
+
+                    BCRPClient.Interaction.SetEntityAsDisabled(gTarget, false);
                 }
             }
         }
@@ -1102,7 +1116,7 @@ namespace BCRPClient.Sync
                     {
                         var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
-                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlJustPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1180,11 +1194,18 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
                         var root = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Player;
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (root?.Exists != true || bind.IsPressed)
+                        var isForced = pData.IsKnocked || pData.IsCuffed;
+
+                        if (root?.Exists != true || (!isForced && bind.IsJustPressed))
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1195,7 +1216,8 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            if (!isForced)
+                                Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1278,7 +1300,7 @@ namespace BCRPClient.Sync
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (target?.Exists != true || bind.IsPressed)
+                        if (target?.Exists != true || bind.IsJustPressed)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1322,7 +1344,7 @@ namespace BCRPClient.Sync
 
                         var puffs = Player.LocalPlayer.GetData<int>("Smoke::Data::Puffs");
 
-                        if (bind.IsPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
+                        if (bind.IsJustPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1346,7 +1368,7 @@ namespace BCRPClient.Sync
                                 }
                             }
                             // alt - to mouth
-                            else if (((!CEF.Cursor.IsVisible && KeyBinds.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                            else if (((!CEF.Cursor.IsVisible && KeyBinds.IsJustDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1382,7 +1404,7 @@ namespace BCRPClient.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (bind.IsPressed || Player.LocalPlayer.IsInWater())
+                        if (bind.IsJustPressed || Player.LocalPlayer.IsInWater())
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1398,9 +1420,9 @@ namespace BCRPClient.Sync
                             if (Player.LocalPlayer.Vehicle == null)
                             {
                                 // alt - to hand
-                                if (!CEF.Cursor.IsVisible && KeyBinds.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
+                                if (!CEF.Cursor.IsVisible && KeyBinds.IsJustDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
-                                    if (!lastSent.IsSpam(1000, false, false) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                                    if (!lastSent.IsSpam(1000, false, true) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                                     {
                                         Events.CallRemote("Players::Smoke::State");
 
@@ -1429,9 +1451,9 @@ namespace BCRPClient.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (bind.IsPressed)
+                        if (bind.IsJustPressed)
                         {
-                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                            if (Sync.Animations.LastSent.IsSpam(500, false, true))
                                 return;
 
                             Sync.Animations.LastSent = Sync.World.ServerTime;
@@ -1458,7 +1480,7 @@ namespace BCRPClient.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (bind.IsPressed)
+                        if (bind.IsJustPressed)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1615,7 +1637,7 @@ namespace BCRPClient.Sync
 
                         if (Utils.CanShowCEF(true, true))
                         {
-                            if (bind.IsPressed)
+                            if (bind.IsJustPressed)
                             {
                                 if (!Sync.Animations.LastSent.IsSpam(500, false, false))
                                 {
@@ -1640,6 +1662,8 @@ namespace BCRPClient.Sync
                         KeyBinds.Get(KeyBinds.Types.Crawl)?.Disable();
 
                         Player.LocalPlayer.SetEnableHandcuffs(true);
+
+                        BCRPClient.Interaction.Enabled = false;
                     },
 
                     () =>
@@ -1649,6 +1673,8 @@ namespace BCRPClient.Sync
                         KeyBinds.Get(KeyBinds.Types.Crawl)?.Enable();
 
                         Player.LocalPlayer.SetEnableHandcuffs(false);
+
+                        BCRPClient.Interaction.Enabled = true;
                     },
 
                     () =>
@@ -1656,6 +1682,28 @@ namespace BCRPClient.Sync
                         if (Player.LocalPlayer.IsInAnyVehicle(false))
                         {
                             GameEvents.DisableMoveRender();
+                        }
+
+                        var lockpickItemIdx = Data.Minigames.LockPicking.GetInventoryLockpickItemIdx();
+
+                        if (lockpickItemIdx >= 0)
+                        {
+                            var key = RAGE.Ui.VirtualKeys.Return;
+
+                            if (Utils.CanShowCEF(true, true) && !Utils.IsAnyCefActive())
+                            {
+                                Utils.DrawText(string.Format("Нажмите {0}, чтобы воспользоваться отмычкой", KeyBinds.ExtraBind.GetKeyString(key)), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+
+                                if (KeyBinds.IsJustDown(key))
+                                {
+                                    if (!Sync.Animations.LastSent.IsSpam(500, false, false))
+                                    {
+                                        Sync.Animations.LastSent = Sync.World.ServerTime;
+
+                                        //Data.Minigames.LockPicking.Show("POLICE_CUFFS_LOCKPICK", 5, )
+                                    }
+                                }
+                            }
                         }
                     }
                 )
@@ -1692,7 +1740,7 @@ namespace BCRPClient.Sync
 
                         if (Utils.CanShowCEF(true, true))
                         {
-                            if (bind.IsPressed)
+                            if (bind.IsJustPressed)
                             {
                                 if (!Sync.Animations.LastSent.IsSpam(500, false, false))
                                 {

@@ -74,7 +74,7 @@ namespace BCRPServer.Events.Players
 
             player.SetAlpha(0);
 
-            player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::ShowCharacterChoosePage", false);
+            player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::CharSelect::Show", false);
         }
 
         [RemoteEvent("CharacterCreation::Create")]

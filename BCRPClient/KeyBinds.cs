@@ -33,6 +33,9 @@ namespace BCRPClient
         public static Action CurrentExtraAction0 { get; set; }
         public static Action CurrentExtraAction1 { get; set; }
 
+        private static HashSet<int> _justDownKeys = new HashSet<int>();
+        private static HashSet<int> _justUpKeys = new HashSet<int>();
+
         public enum Types
         {
             None = -1,
@@ -67,269 +70,198 @@ namespace BCRPClient
             pockets0, pockets1, pockets2, pockets3, pockets4, pockets5, pockets6, pockets7, pockets8, pockets9, pockets10, pockets11, pockets12, pockets13, pockets14, pockets15, pockets16, pockets17, pockets18, pockets19
         }
 
-        #region Key Names
-        private static List<string> KeyNames = new List<string>()
+        private static Dictionary<int, string> _keyNames = new Dictionary<int, string>()
         {
-            "-", // [0]
-            "", // [1]
-            "", // [2]
-            "Cancel", // [3]
-            "", // [4]
-            "", // [5]
-            "Help", // [6]
-            "", // [7]
-            "Backspace", // [8]
-            "⭾", // [9]
-            "", // [10]
-            "", // [11]
-            "Clear", // [12]
-            "Enter", // [13]
-            "Enter S.", // [14]
-            "", // [15]
-            "Shift", // [16]
-            "Ctrl", // [17]
-            "Alt", // [18]
-            "Pause", // [19]
-            "Capslock", // [20]
-            "KANA", // [21]
-            "EISU", // [22]
-            "JUNJA", // [23]
-            "FINAL", // [24]
-            "HANJA", // [25]
-            "", // [26]
-            "Esc", // [27]
-            "Convert", // [28]
-            "NonConvert", // [29]
-            "Accept", // [30]
-            "ModeChange", // [31]
-            "Space", // [32]
-            "Page ↑", // [33]
-            "Page ↓", // [34]
-            "End", // [35]
-            "Home", // [36]
-            "🠘", // [37]
-            "🠙", // [38]
-            "🠚", // [39]
-            "🠛", // [40]
-            "Select", // [41]
-            "Print", // [42]
-            "Execute", // [43]
-            "PrtSc", // [44]
-            "Ins", // [45]
-            "Del", // [46]
-            "", // [47]
-            "0", // [48]
-            "1", // [49]
-            "2", // [50]
-            "3", // [51]
-            "4", // [52]
-            "5", // [53]
-            "6", // [54]
-            "7", // [55]
-            "8", // [56]
-            "9", // [57]
-            ":", // [58]
-            ";", // [59]
-            "<", // [60]
-            "=", // [61]
-            ">", // [62]
-            "?", // [63]
-            "AT", // [64]
-            "A", // [65]
-            "B", // [66]
-            "C", // [67]
-            "D", // [68]
-            "E", // [69]
-            "F", // [70]
-            "G", // [71]
-            "H", // [72]
-            "I", // [73]
-            "J", // [74]
-            "K", // [75]
-            "L", // [76]
-            "M", // [77]
-            "N", // [78]
-            "O", // [79]
-            "P", // [80]
-            "Q", // [81]
-            "R", // [82]
-            "S", // [83]
-            "T", // [84]
-            "U", // [85]
-            "V", // [86]
-            "W", // [87]
-            "X", // [88]
-            "Y", // [89]
-            "Z", // [90]
-            "OS", // [91] Windows Key (Windows) or Command Key (Mac)
-            "", // [92]
-            "Contex Menu", // [93]
-            "", // [94]
-            "Sleep", // [95]
-            "Num. 0", // [96]
-            "Num. 1", // [97]
-            "Num. 2", // [98]
-            "Num. 3", // [99]
-            "Num. 4", // [100]
-            "Num. 5", // [101]
-            "Num. 6", // [102]
-            "Num. 7", // [103]
-            "Num. 8", // [104]
-            "Num. 9", // [105]
-            "*", // [106]
-            "+", // [107]
-            ",", // [108]
-            "-", // [109]
-            ".", // [110]
-            "/", // [111]
-            "F1", // [112]
-            "F2", // [113]
-            "F3", // [114]
-            "F4", // [115]
-            "F5", // [116]
-            "F6", // [117]
-            "F7", // [118]
-            "F8", // [119]
-            "F9", // [120]
-            "F10", // [121]
-            "F11", // [122]
-            "F12", // [123]
-            "F13", // [124]
-            "F14", // [125]
-            "F15", // [126]
-            "F16", // [127]
-            "F17", // [128]
-            "F18", // [129]
-            "F19", // [130]
-            "F20", // [131]
-            "F21", // [132]
-            "F22", // [133]
-            "F23", // [134]
-            "F24", // [135]
-            "", // [136]
-            "", // [137]
-            "", // [138]
-            "", // [139]
-            "", // [140]
-            "", // [141]
-            "", // [142]
-            "", // [143]
-            "Num", // [144]
-            "Scr Lk", // [145]
-            "WIN_OEM_FJ_JISHO", // [146]
-            "WIN_OEM_FJ_MASSHOU", // [147]
-            "WIN_OEM_FJ_TOUROKU", // [148]
-            "WIN_OEM_FJ_LOYA", // [149]
-            "WIN_OEM_FJ_ROYA", // [150]
-            "", // [151]
-            "", // [152]
-            "", // [153]
-            "", // [154]
-            "", // [155]
-            "", // [156]
-            "", // [157]
-            "", // [158]
-            "", // [159]
-            "[", // [160]
-            "!", // [161]
-            "\"", // [162]
-            "#", // [163]
-            "$", // [164]
-            "%", // [165]
-            "&", // [166]
-            "_", // [167]
-            "(", // [168]
-            ")", // [169]
-            "*", // [170]
-            "+", // [171]
-            "|", // [172]
-            "-", // [173]
-            "{", // [174]
-            "}", // [175]
-            "~", // [176]
-            "", // [177]
-            "", // [178]
-            "", // [179]
-            "", // [180]
-            "Vol. Mute", // [181]
-            "Vol. ↓", // [182]
-            "Vol. ↑", // [183]
-            "", // [184]
-            "", // [185]
-            ";", // [186]
-            "=", // [187]
-            ",", // [188]
-            "-", // [189]
-            ".", // [190]
-            "/", // [191]
-            "~", // [192]
-            "", // [193]
-            "", // [194]
-            "", // [195]
-            "", // [196]
-            "", // [197]
-            "", // [198]
-            "", // [199]
-            "", // [200]
-            "", // [201]
-            "", // [202]
-            "", // [203]
-            "", // [204]
-            "", // [205]
-            "", // [206]
-            "", // [207]
-            "", // [208]
-            "", // [209]
-            "", // [210]
-            "", // [211]
-            "", // [212]
-            "", // [213]
-            "", // [214]
-            "", // [215]
-            "", // [216]
-            "", // [217]
-            "", // [218]
-            "{", // [219]
-            "\\", // [220]
-            "]", // [221]
-            "'", // [222]
-            "", // [223]
-            "Meta", // [224]
-            "AltGr", // [225]
-            "", // [226]
-            "WIN_ICO_HELP", // [227]
-            "WIN_ICO_00", // [228]
-            "", // [229]
-            "WIN_ICO_CLEAR", // [230]
-            "", // [231]
-            "", // [232]
-            "WIN_OEM_RESET", // [233]
-            "WIN_OEM_JUMP", // [234]
-            "WIN_OEM_PA1", // [235]
-            "WIN_OEM_PA2", // [236]
-            "WIN_OEM_PA3", // [237]
-            "WIN_OEM_WSCTRL", // [238]
-            "WIN_OEM_CUSEL", // [239]
-            "WIN_OEM_ATTN", // [240]
-            "WIN_OEM_FINISH", // [241]
-            "WIN_OEM_COPY", // [242]
-            "WIN_OEM_AUTO", // [243]
-            "WIN_OEM_ENLW", // [244]
-            "WIN_OEM_BACKTAB", // [245]
-            "Attin", // [246]
-            "Crsel", // [247]
-            "Exsel", // [248]
-            "Ereof", // [249]
-            "Play", // [250]
-            "Zoo,", // [251]
-            "", // [252]
-            "PA1", // [253]
-            "WIN_OEM_CLEAR", // [254]
-            "" // [255]
+            { 0, "-" },
+            { 3, "Cancel" },
+            { 6, "Help" },
+            { 8, "Backspace" },
+            { 9, "⭾" },
+            { 12, "Clear" },
+            { 13, "Enter" },
+            { 14, "Enter S." },
+            { 16, "Shift" },
+            { 17, "Ctrl" },
+            { 18, "Alt" },
+            { 19, "Pause" },
+            { 20, "Capslock" },
+            { 21, "KANA" },
+            { 22, "EISU" },
+            { 23, "JUNJA" },
+            { 24, "FINAL" },
+            { 25, "HANJA" },
+            { 27, "Esc" },
+            { 28, "Convert" },
+            { 29, "NonConvert" },
+            { 30, "Accept" },
+            { 31, "ModeChange" },
+            { 32, "Space" },
+            { 33, "Page ↑" },
+            { 34, "Page ↓" },
+            { 35, "End" },
+            { 36, "Home" },
+            { 37, "🠘" },
+            { 38, "🠙" },
+            { 39, "🠚" },
+            { 40, "🠛" },
+            { 41, "Select" },
+            { 42, "Print" },
+            { 43, "Execute" },
+            { 44, "PrtSc" },
+            { 45, "Ins" },
+            { 46, "Del" },
+            { 48, "0" },
+            { 49, "1" },
+            { 50, "2" },
+            { 51, "3" },
+            { 52, "4" },
+            { 53, "5" },
+            { 54, "6" },
+            { 55, "7" },
+            { 56, "8" },
+            { 57, "9" },
+            { 58, ":" },
+            { 59, ";" },
+            { 60, "<" },
+            { 61, "=" },
+            { 62, ">" },
+            { 63, "?" },
+            { 64, "AT" },
+            { 65, "A" },
+            { 66, "B" },
+            { 67, "C" },
+            { 68, "D" },
+            { 69, "E" },
+            { 70, "F" },
+            { 71, "G" },
+            { 72, "H" },
+            { 73, "I" },
+            { 74, "J" },
+            { 75, "K" },
+            { 76, "L" },
+            { 77, "M" },
+            { 78, "N" },
+            { 79, "O" },
+            { 80, "P" },
+            { 81, "Q" },
+            { 82, "R" },
+            { 83, "S" },
+            { 84, "T" },
+            { 85, "U" },
+            { 86, "V" },
+            { 87, "W" },
+            { 88, "X" },
+            { 89, "Y" },
+            { 90, "Z" },
+            { 91, "OS" },
+            { 93, "Contex Menu" },
+            { 95, "Sleep" },
+            { 96, "Num. 0" },
+            { 97, "Num. 1" },
+            { 98, "Num. 2" },
+            { 99, "Num. 3" },
+            { 100, "Num. 4" },
+            { 101, "Num. 5" },
+            { 102, "Num. 6" },
+            { 103, "Num. 7" },
+            { 104, "Num. 8" },
+            { 105, "Num. 9" },
+            { 106, "*" },
+            { 107, "+" },
+            { 108, "," },
+            { 109, "-" },
+            { 110, "." },
+            { 111, "/" },
+            { 112, "F1" },
+            { 113, "F2" },
+            { 114, "F3" },
+            { 115, "F4" },
+            { 116, "F5" },
+            { 117, "F6" },
+            { 118, "F7" },
+            { 119, "F8" },
+            { 120, "F9" },
+            { 121, "F10" },
+            { 122, "F11" },
+            { 123, "F12" },
+            { 124, "F13" },
+            { 125, "F14" },
+            { 126, "F15" },
+            { 127, "F16" },
+            { 128, "F17" },
+            { 129, "F18" },
+            { 130, "F19" },
+            { 131, "F20" },
+            { 132, "F21" },
+            { 133, "F22" },
+            { 134, "F23" },
+            { 135, "F24" },
+            { 144, "Num" },
+            { 145, "Scr Lk" },
+            { 146, "WIN_OEM_FJ_JISHO" },
+            { 147, "WIN_OEM_FJ_MASSHOU" },
+            { 148, "WIN_OEM_FJ_TOUROKU" },
+            { 149, "WIN_OEM_FJ_LOYA" },
+            { 150, "WIN_OEM_FJ_ROYA" },
+            { 160, "[" },
+            { 161, "!" },
+            { 162, "\"" },
+            { 163, "#" },
+            { 164, "$" },
+            { 165, "%" },
+            { 166, "&" },
+            { 167, "_" },
+            { 168, "(" },
+            { 169, ")" },
+            { 170, "*" },
+            { 171, "+" },
+            { 172, "|" },
+            { 173, "-" },
+            { 174, "{" },
+            { 175, "}" },
+            { 176, "~" },
+            { 181, "Vol. Mute" },
+            { 182, "Vol. ↓" },
+            { 183, "Vol. ↑" },
+            { 186, ";" },
+            { 187, "=" },
+            { 188, "," },
+            { 189, "-" },
+            { 190, "." },
+            { 191, "/" },
+            { 192, "~" },
+            { 219, "{" },
+            { 220, "\\" },
+            { 221, "]" },
+            { 222, "'" },
+            { 224, "Meta" },
+            { 225, "AltGr" },
+            { 227, "WIN_ICO_HELP" },
+            { 228, "WIN_ICO_00" },
+            { 230, "WIN_ICO_CLEAR" },
+            { 233, "WIN_OEM_RESET" },
+            { 234, "WIN_OEM_JUMP" },
+            { 235, "WIN_OEM_PA1" },
+            { 236, "WIN_OEM_PA2" },
+            { 237, "WIN_OEM_PA3" },
+            { 238, "WIN_OEM_WSCTRL" },
+            { 239, "WIN_OEM_CUSEL" },
+            { 240, "WIN_OEM_ATTN" },
+            { 241, "WIN_OEM_FINISH" },
+            { 242, "WIN_OEM_COPY" },
+            { 243, "WIN_OEM_AUTO" },
+            { 244, "WIN_OEM_ENLW" },
+            { 245, "WIN_OEM_BACKTAB" },
+            { 246, "Attin" },
+            { 247, "Crsel" },
+            { 248, "Exsel" },
+            { 249, "Ereof" },
+            { 250, "Play" },
+            { 251, "Zoo," },
+            { 253, "PA1" },
+            { 254, "WIN_OEM_CLEAR" },
     };
-        #endregion
 
-        #region Default Binds
         private static Dictionary<Types, RAGE.Ui.VirtualKeys[]> DefaultBinds = new Dictionary<Types, RAGE.Ui.VirtualKeys[]>()
         {
             { Types.Cursor, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.OEM3 } },
@@ -394,7 +326,6 @@ namespace BCRPClient
             { Types.pockets15, new RAGE.Ui.VirtualKeys[] { } }, { Types.pockets16, new RAGE.Ui.VirtualKeys[] { } }, { Types.pockets17, new RAGE.Ui.VirtualKeys[] { } },
             { Types.pockets18, new RAGE.Ui.VirtualKeys[] { } }, { Types.pockets19, new RAGE.Ui.VirtualKeys[] { } },
         };
-        #endregion
 
         public static Dictionary<Types, ExtraBind> Binds { get; set; } = new Dictionary<Types, ExtraBind>();
 
@@ -453,6 +384,32 @@ namespace BCRPClient
                     {
                         for (int i = 0; i < Keys.Length; i++)
                             if (!KeyBinds.IsUp(Keys[i]))
+                                return false;
+
+                        return true;
+                    }
+                }
+            }
+
+            public bool IsJustPressed
+            {
+                get
+                {
+                    if (Keys.Length == 0)
+                        return false;
+
+                    if (IsDown)
+                    {
+                        for (int i = 0; i < Keys.Length; i++)
+                            if (!KeyBinds.IsJustDown(Keys[i]))
+                                return false;
+
+                        return true;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Keys.Length; i++)
+                            if (!KeyBinds.IsJustUp(Keys[i]))
                                 return false;
 
                         return true;
@@ -586,7 +543,7 @@ namespace BCRPClient
 
             public string GetKeyString() => GetKeyString(Keys);
 
-            public static string GetKeyString(params RAGE.Ui.VirtualKeys[] keys) => keys.Length == 0 ? "???" : string.Join(" + ", keys.Select(x => KeyNames[(int)x]));
+            public static string GetKeyString(params RAGE.Ui.VirtualKeys[] keys) => keys.Length == 0 ? "???" : string.Join(" + ", keys.Select(x => _keyNames.GetValueOrDefault((int)x) ?? ""));
         }
 
         public static void Add(ExtraBind bind, bool enable = true)
@@ -601,10 +558,11 @@ namespace BCRPClient
                 CEF.HUD.Menu.UpdateCurrentTypes(bind.Keys.Length == 0, HudMenuBinds[bind.Type]);
             }
 
-            if (Binds.ContainsKey(bind.Type))
+            ExtraBind oldBind;
+
+            if (Binds.Remove(bind.Type, out oldBind))
             {
-                Binds[bind.Type].Disable();
-                Binds.Remove(bind.Type);
+                oldBind.Disable();
             }
 
             if (enable)
@@ -615,19 +573,18 @@ namespace BCRPClient
 
         public static void Remove(Types type)
         {
-            if (!Binds.ContainsKey(type))
+            var bind = Binds.GetValueOrDefault(type);
+
+            if (bind == null)
                 return;
 
-            Binds[type].Disable();
+            bind.Disable();
             Binds.Remove(type);
         }
 
         public static ExtraBind Get(Types type)
         {
-            if (!Binds.ContainsKey(type))
-                return null;
-
-            return Binds[type];
+            return Binds.GetValueOrDefault(type);
         }
 
         #endregion
@@ -636,6 +593,27 @@ namespace BCRPClient
         #region Main
         public static void LoadMain()
         {
+            foreach (var x in Enum.GetValues(typeof(RAGE.Ui.VirtualKeys)).Cast<RAGE.Ui.VirtualKeys>())
+            {
+                RAGE.Input.Bind(x, true, async () =>
+                {
+                    _justDownKeys.Add((int)x);
+
+                    await RAGE.Game.Invoker.WaitAsync(0);
+
+                    _justDownKeys.Remove((int)x);
+                });
+
+                RAGE.Input.Bind(x, false, async () =>
+                {
+                    _justUpKeys.Add((int)x);
+
+                    await RAGE.Game.Invoker.WaitAsync(0);
+
+                    _justUpKeys.Remove((int)x);
+                });
+            }
+
             // ~ - Toggle Cursor
             Add(new ExtraBind(Types.Cursor, () =>
             {
@@ -1195,6 +1173,24 @@ namespace BCRPClient
         public static bool IsUp(int vk)
         {
             var res = RAGE.Input.IsUp(vk);
+
+            return res;
+        }
+
+        public static bool IsJustDown(RAGE.Ui.VirtualKeys vk) => IsJustDown((int)vk);
+
+        public static bool IsJustDown(int vk)
+        {
+            var res = _justDownKeys.Contains(vk);
+
+            return res;
+        }
+
+        public static bool IsJustUp(RAGE.Ui.VirtualKeys vk) => IsJustUp((int)vk);
+
+        public static bool IsJustUp(int vk)
+        {
+            var res = _justUpKeys.Contains(vk);
 
             return res;
         }

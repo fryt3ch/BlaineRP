@@ -80,6 +80,8 @@ namespace BCRPServer.Game.Businesses
             }
         };
 
+        public static TimeSpan ShootingRangeTryCooldownTime { get; } = TimeSpan.FromHours(3);
+
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}, {PositionShootingRangeEnter.Position.ToCSharpStr()}";
 
         public Utils.Vector4 PositionShootingRangeEnter { get; set; }

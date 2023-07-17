@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace BCRPServer.Properties
 {
@@ -17,11 +19,14 @@ namespace BCRPServer.Properties
 
         [JsonProperty(PropertyName = "dataBase")]
         public DataBaseSettings DataBase { get; private set; } = new DataBaseSettings();
+
         [JsonProperty(PropertyName = "web")]
         public WebSettings Web { get; private set; } = new WebSettings();
 
+        [SettingsSection]
         public class GeneralSettings
         {
+            [ClientSync]
             [JsonProperty(PropertyName = "cultureInfo")]
             public CultureInfo CultureInfo { get; private set; } = new CultureInfo("ru-RU", false)
             {
@@ -32,20 +37,25 @@ namespace BCRPServer.Properties
                 },
             };
 
+            [ClientSync]
             [JsonProperty(PropertyName = "serverId")]
             public string ServerId { get; private set; } = "brp-server-1";
 
             [JsonProperty(PropertyName = "playerMaxLoginAttempts")]
             public byte PlayerLoginMaxAttempts { get; private set; } = 3 + 1;
+
             [JsonProperty(PropertyName = "playerAuthTimeoutTime")]
             public TimeSpan PlayerAuthTimeoutTime { get; private set; } = TimeSpan.FromMinutes(10);
         }
 
+        [SettingsSection]
         public class GameSettings
         {
+            [ClientSync]
             [JsonProperty(PropertyName = "mainDimension")]
             public uint MainDimension { get; private set; } = 7;
 
+            [ClientSync]
             [JsonProperty(PropertyName = "stuffDimension")]
             public uint StuffDimension { get; private set; } = 1;
 
@@ -82,53 +92,42 @@ namespace BCRPServer.Properties
             [JsonProperty(PropertyName = "knockedDropAmmoTotalPercentage")]
             public double KnockedDropAmmoTotalPercentage { get; private set; } = 0.5d;
 
+            [JsonProperty(PropertyName = "payDayMinimalSessionTimeToReceive")]
+            public TimeSpan PayDayMinimalSessionTimeToReceive { get; private set; } = TimeSpan.FromSeconds(600);
+
             public GameSettings()
             { 
 
             }
-
-            [JsonProperty(PropertyName = "payDay")]
-            public PayDaySettings PayDay { get; private set; } = new PayDaySettings();
-
-            public class PayDaySettings
-            {
-                [JsonProperty(PropertyName = "minimalSessionTimeToReceive")]
-                public TimeSpan MinimalSessionTimeToReceive { get; private set; } = TimeSpan.FromSeconds(600);
-            }
         }
 
+        [SettingsSection]
         public class DataBaseSettings
         {
-            [JsonProperty(PropertyName = "ownDbCredentials")]
-            public MySQLDbCredentials OwnDbCredentials { get; private set; } = new MySQLDbCredentials();
+            [JsonProperty(PropertyName = "ownDbHost")]
+            public string OwnDbHost { get; private set; } = "localhost";
 
-            public class MySQLDbCredentials
-            {
-                [JsonProperty(PropertyName = "host")]
-                public string Host { get; private set; } = "localhost";
-                [JsonProperty(PropertyName = "user")]
-                public string User { get; private set; } = "root";
-                [JsonProperty(PropertyName = "password")]
-                public string Password { get; private set; } = "";
-                [JsonProperty(PropertyName = "name")]
-                public string Name { get; private set; } = "bcrp-1";
-            }
+            [JsonProperty(PropertyName = "ownDbUser")]
+            public string OwnDbUser { get; private set; } = "root";
+
+            [JsonProperty(PropertyName = "ownDbPassword")]
+            public string OwnDbPassword { get; private set; } = "";
+
+            [JsonProperty(PropertyName = "ownDbName")]
+            public string OwnDbName { get; private set; } = "bcrp-1";
         }
 
+        [SettingsSection]
         public class WebSettings
         {
-            [JsonProperty(PropertyName = "socketIOCredentials")]
-            public SocketIOSettings SocketIOCredentials { get; private set; } = new SocketIOSettings();
+            [JsonProperty(PropertyName = "socketIOHost")]
+            public string SocketIOHost { get; private set; } = "http://localhost:7777";
 
-            public class SocketIOSettings
-            {
-                [JsonProperty(PropertyName = "host")]
-                public string Host { get; private set; } = "http://localhost:7777";
-                [JsonProperty(PropertyName = "user")]
-                public string User { get; private set; } = "brp-server-1";
-                [JsonProperty(PropertyName = "password")]
-                public string Password { get; private set; } = "63c209c3-3505-443a-b234-91e3046e2894";
-            }
+            [JsonProperty(PropertyName = "socketIOUser")]
+            public string SocketIOUser { get; private set; } = "brp-server-1";
+
+            [JsonProperty(PropertyName = "socketIOPassword")]
+            public string SocketIOPassword { get; private set; } = "63c209c3-3505-443a-b234-91e3046e2894";
         }
 
         public static SettingsProfile LoadProfile(string path)
@@ -155,5 +154,75 @@ namespace BCRPServer.Properties
         }
 
         public static SettingsProfile GetDefault() => new SettingsProfile();
+
+        public static JObject GetClientsideData(SettingsProfile profile)
+        {
+            JObject jObj = new JObject();
+
+            foreach (var x in profile.GetType().GetProperties())
+            {
+                var settSectionAttr = x.PropertyType.GetCustomAttribute<SettingsSectionAttribute>();
+
+                if (settSectionAttr == null)
+                    continue;
+
+                var jsonAttrClass = x.GetCustomAttribute<JsonPropertyAttribute>();
+
+                if (jsonAttrClass == null)
+                    continue;
+
+                var dict = new Dictionary<string, object>();
+
+                foreach (var y in x.PropertyType.GetProperties())
+                {
+                    var clientSyncAttr = y.GetCustomAttribute<ClientSyncAttribute>();
+
+                    if (clientSyncAttr == null)
+                        continue;
+
+                    var jsonAttr = y.GetCustomAttribute<JsonPropertyAttribute>();
+
+                    if (jsonAttr == null)
+                        continue;
+
+                    var value = y.GetValue(x.GetValue(profile, null), null);
+
+                    if (!dict.TryAdd(jsonAttr.PropertyName, value))
+                        dict[jsonAttr.PropertyName] = value;
+
+                }
+
+                if (dict.Count > 0)
+                {
+                    jObj[jsonAttrClass.PropertyName] = JObject.FromObject(dict);
+                }
+            }
+
+            Console.WriteLine(jObj.SerializeToJson());
+
+            return jObj;
+        }
+
+        public JObject GetClientsideData() => GetClientsideData(this);
+
+        [AttributeUsage(AttributeTargets.Property)]
+        private class ClientSyncAttribute : Attribute
+        {
+            public string PropertyName { get; set; }
+
+            public ClientSyncAttribute()
+            {
+
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Class)]
+        private class SettingsSectionAttribute : Attribute
+        {
+            public SettingsSectionAttribute()
+            {
+
+            }
+        }
     }
 }

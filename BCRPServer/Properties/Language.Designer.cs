@@ -79,20 +79,38 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на снял(а) наручники с {0}.
+        ///   Ищет локализованную строку, похожую на снял(а) наручники с рук {0}.
         /// </summary>
-        public static string CHAT_PLAYER_CUFFS_OFF {
+        public static string CHAT_PLAYER_CUFFS_OFF_0 {
             get {
-                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_OFF", resourceCulture);
+                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_OFF_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на надел(а) наручники на {0}.
+        ///   Ищет локализованную строку, похожую на срезал(а) стяжки с рук {0}.
         /// </summary>
-        public static string CHAT_PLAYER_CUFFS_ON {
+        public static string CHAT_PLAYER_CUFFS_OFF_1 {
             get {
-                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_ON", resourceCulture);
+                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_OFF_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на надел(а) наручники на руки {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_CUFFS_ON_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_ON_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на связал(а) стяжками руки {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_CUFFS_ON_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_CUFFS_ON_1", resourceCulture);
             }
         }
         

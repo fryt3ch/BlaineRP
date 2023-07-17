@@ -190,7 +190,7 @@ namespace BCRPServer.Events.Players
 
                         var amount = int.Parse(dataObjD[0]);
 
-                        if (amount < Game.Fractions.Police.FINE_MIN_AMOUNT || amount > Game.Fractions.Police.FINE_MAX_AMOUNT)
+                        if (amount < Game.Fractions.Police.FineMinAmount || amount > Game.Fractions.Police.FineMaxAmount)
                             return ReturnTypes.Error;
 
                         var reason = dataObjD[1].Trim();

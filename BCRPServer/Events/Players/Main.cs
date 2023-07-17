@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -113,13 +114,13 @@ namespace BCRPServer.Events.Players
                     {
                         tData.StepType = TempData.StepTypes.AuthRegistration;
 
-                        player.TriggerEvent("Auth::ShowRegistrationPage", player.SocialClubName);
+                        player.TriggerEvent("Auth::Start::Show", JObject.FromObject(new { Type = 1, SCName = player.SocialClubName, }));
                     }
                     else
                     {
                         tData.StepType = TempData.StepTypes.AuthLogin;
 
-                        player.TriggerEvent("Auth::ShowLoginPage", player.SocialClubName);
+                        player.TriggerEvent("Auth::Start::Show", JObject.FromObject(new { Type = 0, SCName = player.SocialClubName, }));
                     }
                 });
             });

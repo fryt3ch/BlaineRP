@@ -44,8 +44,6 @@ namespace BCRPClient
 
         public const int DEFAULT_FADE_IN_OUT_SPEED = 500;
 
-        public const int DISCORD_STATUS_UPDATE_TIME = 5_000;
-
         public const int RENTED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
 
         public const int PHONE_SMS_MAX_LENGTH = 120;

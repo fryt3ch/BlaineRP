@@ -139,14 +139,9 @@ namespace BCRPServer.Events.Players
             {
                 password = DecryptToken(password, hwid.ToString());
             }
-
-            tData.LoginAttempts--;
-
-            if (tData.LoginAttempts <= 0)
+            else
             {
-                player.KickSilent();
 
-                return;
             }
 
             tData.BlockRemoteCalls = true;
@@ -170,16 +165,28 @@ namespace BCRPServer.Events.Players
 
                         var message = ioEx.Message;
 
-                        if (message == "WrongLogin")
+                        if (message == "WrongLogin" || message == "WrongPassword")
                         {
-                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGLOGIN_0", tData.LoginAttempts));
-                        }
-                        else if (message == "WrongPassword")
-                        {
-                            if (isPasswordToken)
-                                player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGTOKEN_0", tData.LoginAttempts));
+                            tData.LoginAttempts--;
+
+                            if (tData.LoginAttempts <= 0)
+                            {
+                                player.KickSilent();
+                            }
                             else
-                                player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGPASSWORD_0", tData.LoginAttempts));
+                            {
+                                if (message == "WrongLogin")
+                                {
+                                    player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGLOGIN_0", tData.LoginAttempts));
+                                }
+                                else
+                                {
+                                    if (isPasswordToken)
+                                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGTOKEN_0", tData.LoginAttempts));
+                                    else
+                                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGPASSWORD_0", tData.LoginAttempts));
+                                }
+                            }
                         }
                         else
                         {
@@ -271,37 +278,37 @@ namespace BCRPServer.Events.Players
 
                 var newToken = GenerateToken(password, hwid);
 
-                player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, newToken);
+                player.TriggerEvent("Auth::CharSelect::Show", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, newToken);
             });
         }
 
-        [RemoteEvent("Auth::OnCharacterChooseAttempt")]
-        private static void OnCharacterChooseAttempt(Player player, byte charNum)
+        [RemoteProc("Auth::OnCharacterChooseAttempt")]
+        private static byte OnCharacterChooseAttempt(Player player, byte charNum)
         {
             var sRes = player.CheckSpamAttackTemp();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var tData = sRes.Data;
 
             if ((tData.StepType != TempData.StepTypes.CharacterSelection) || tData.AccountData == null)
-                return;
+                return 0;
 
-            if (charNum < 0 || charNum > 2)
-                return;
+            if (charNum < 0 || charNum >= tData.Characters.Length)
+                return 0;
 
             if (tData.Characters[charNum] != null) // character exists
             {
                 var activePunishment = tData.Characters[charNum].Punishments.Where(x => (x.Type == Sync.Punishment.Types.Ban || x.Type == Sync.Punishment.Types.NRPPrison || x.Type == Sync.Punishment.Types.FederalPrison || x.Type == Sync.Punishment.Types.Arrest) && x.IsActive()).FirstOrDefault();
 
                 if (activePunishment?.Type == Sync.Punishment.Types.Ban || tData.Characters[charNum].IsOnline)
-                    return;
+                    return 1;
 
                 var data = PlayerData.PlayerInfo.Get(tData.Characters[charNum].CID);
 
                 if (data == null)
-                    return;
+                    return 0;
 
                 tData.StepType = TempData.StepTypes.StartPlace;
 
@@ -310,8 +317,6 @@ namespace BCRPServer.Events.Players
                 tData.PlayerData = pData;
 
                 MySQL.CharacterUpdateOnEnter(data);
-
-                player.TriggerEvent("Auth::SaveLastCharacter", charNum);
 
                 if (activePunishment != null)
                 {
@@ -328,9 +333,6 @@ namespace BCRPServer.Events.Players
 
                         var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(aData[1])) as Game.Fractions.Police;
 
-                        if (fData == null)
-                            return;
-
                         var pos = fData.GetNextArrestCellPosition();
 
                         data.LastData.Position.Position = pos;
@@ -345,17 +347,21 @@ namespace BCRPServer.Events.Players
                 {
                     tData.ShowStartPlace();
                 }
+
+                return 255;
             }
             else // create new character
             {
                 var charactersCount = tData.Characters.Where(x => x != null).Count();
 
                 if (charNum != charactersCount)
-                    return;
+                    return 0;
 
                 tData.StepType = TempData.StepTypes.CharacterCreation;
 
                 CharacterCreation.StartNew(player);
+
+                return 255;
             }
         }
 

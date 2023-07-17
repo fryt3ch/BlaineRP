@@ -95,7 +95,35 @@ namespace BCRPClient.Data.Fractions
 
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
-            KeyBinds.CurrentExtraAction0 = () => PlayerCuff(BCRPClient.Interaction.CurrentEntity as Player, null);
+            KeyBinds.CurrentExtraAction0 = () =>
+            {
+                if (BCRPClient.Interaction.CurrentEntity is Player player)
+                {
+                    PlayerCuff(player, null);
+                }
+                else if (BCRPClient.Interaction.CurrentEntity is Vehicle vehicle)
+                {
+                    if (CEF.Browser.IsAnyCEFActive)
+                        return;
+
+                    PlayerToVehicle(vehicle);
+                }
+            };
+
+            KeyBinds.CurrentExtraAction1 = () =>
+            {
+                if (BCRPClient.Interaction.CurrentEntity is Player player)
+                {
+                    PlayerEscort(player, null);
+                }
+                else if (BCRPClient.Interaction.CurrentEntity is Vehicle vehicle)
+                {
+                    if (CEF.Browser.IsAnyCEFActive)
+                        return;
+
+                    PlayerFromVehicle(vehicle);
+                }
+            };
 
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
 
@@ -165,6 +193,7 @@ namespace BCRPClient.Data.Fractions
             CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
             KeyBinds.CurrentExtraAction0 = null;
+            KeyBinds.CurrentExtraAction1 = null;
 
             Additional.ExtraColshape.All.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
 

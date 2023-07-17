@@ -123,11 +123,11 @@
   <data name="CHAT_ADMIN_KICK_SILENT_0" xml:space="preserve">
     <value>[SKick] {0} выгнал игрока {1} с сервера. Причина: {2}</value>
   </data>
-  <data name="CHAT_PLAYER_CUFFS_OFF" xml:space="preserve">
-    <value>снял(а) наручники с {0}</value>
+  <data name="CHAT_PLAYER_CUFFS_OFF_0" xml:space="preserve">
+    <value>снял(а) наручники с рук {0}</value>
   </data>
-  <data name="CHAT_PLAYER_CUFFS_ON" xml:space="preserve">
-    <value>надел(а) наручники на {0}</value>
+  <data name="CHAT_PLAYER_CUFFS_ON_0" xml:space="preserve">
+    <value>надел(а) наручники на руки {0}</value>
   </data>
   <data name="CHAT_PLAYER_ESCORT_OFF" xml:space="preserve">
     <value>ослабил(а) хватку и отпустил(а) {0}</value>
@@ -417,5 +417,11 @@
   </data>
   <data name="NTFC_AUTH_REGCONFIRM_SENT_E_0" xml:space="preserve">
     <value>Вы сможете запросить отправку нового письма с ссылкой для подтверждения регистрации не раньше, чем через {0}!</value>
+  </data>
+  <data name="CHAT_PLAYER_CUFFS_OFF_1" xml:space="preserve">
+    <value>срезал(а) стяжки с рук {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_CUFFS_ON_1" xml:space="preserve">
+    <value>связал(а) стяжками руки {0}</value>
   </data>
 </root>

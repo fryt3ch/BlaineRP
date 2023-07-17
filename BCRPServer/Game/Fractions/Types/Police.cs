@@ -19,7 +19,7 @@ namespace BCRPServer.Game.Fractions
 
         public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", {(uint)MetaFlags}, \"{ArrestCellsPositions.Select(x => x.Position).SerializeToJson().Replace('"', '\'')}\", \"{ArrestMenuPositions.SerializeToJson().Replace('\"', '\'')}\"";
 
-        public static Dictionary<string, uint[]> NumberplatePrices { get; private set; } = new Dictionary<string, uint[]>()
+        public static Dictionary<string, uint[]> NumberplatePrices { get; } = new Dictionary<string, uint[]>()
         {
             {
                 "np_0",
@@ -70,15 +70,16 @@ namespace BCRPServer.Game.Fractions
         public static uint VehicleNumberplateRegPrice { get; set; } = 1_000;
         public static uint VehicleNumberplateUnRegPrice { get; set; } = 500;
 
-        public const uint ARREST_MAX_MINS = 24 * 60;
-        public const uint ARREST_MAX_MINS_ADD = 36 * 60;
-        public const short ARREST_C_MAX_MINS = 120;
-        public const short ARREST_C_MIN_MINS = -120;
-        public const short EXTRA_CALL_CD_TIMEOUT = 60 * 1;
-        public const short DEF_CALL_CD_TIMEOUT = 60 * 5;
+        public static TimeSpan ArrestMaxTime { get; } = TimeSpan.FromHours(12);
+        public static TimeSpan ArrestMaxTimeAfterAdd { get; } = TimeSpan.FromHours(16);
+        public static TimeSpan ArrestMaxTimeChange { get; } = TimeSpan.FromHours(2);
+        public static TimeSpan ArrestMinTimeChange { get; } = TimeSpan.FromHours(-2);
 
-        public const uint FINE_MIN_AMOUNT = 100;
-        public const uint FINE_MAX_AMOUNT = 100_000;
+        public static TimeSpan CallExtraCooldownTime { get; } = TimeSpan.FromMinutes(1);
+        public static TimeSpan CallDefaultCooldownTime { get; } = TimeSpan.FromMinutes(5);
+
+        public const uint FineMinAmount = 100;
+        public const uint FineMaxAmount = 100_000;
 
         public static Regex ArrestReason1Regex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
         public static Regex ArrestReason2Regex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{0,100}$", RegexOptions.Compiled);
@@ -169,12 +170,21 @@ namespace BCRPServer.Game.Fractions
 
             GPSTrackers.Add(id, info);
 
-            var listAll = new List<Player>();
+            Player[] membersToTrigger;
 
-            foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
-                listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+            if (info.FractionType == Types.None)
+            {
+                var listAll = new List<Player>();
 
-            Player[] membersToTrigger = listAll.ToArray();
+                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                membersToTrigger = listAll.ToArray();
+            }
+            else
+            {
+                membersToTrigger = Fraction.Get(info.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+            }
 
             if (membersToTrigger.Length > 0)
             {
@@ -384,7 +394,7 @@ namespace BCRPServer.Game.Fractions
             var finesObj = Fines.Select(x => $"{x.Member}_{x.Target}_{x.Time.GetUnixTimestamp()}_{x.Amount}_{x.Reason}").ToList();
             var apbsObj = APBs.Select(x => $"{x.Key}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.TargetName}_{x.Value.Member}_{x.Value.Details}").ToList();
             var notificationsObj = Notifications.Select(x => $"{x.Key}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.Text}_{(x.Value.Position == null ? string.Empty : $"{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}")}").ToList();
-            var gpsTrackersObj = GPSTrackers.Select(x => $"{x.Key}_{x.Value.InstallerStr}_{x.Value.VehicleStr}").ToList();
+            var gpsTrackersObj = GPSTrackers.Where(x => x.Value.FractionType == Types.None || x.Value.FractionType == Type).Select(x => $"{x.Key}_{x.Value.InstallerStr}_{x.Value.VehicleStr}").ToList();
 
             var arrestsObj = ActiveArrests.Select(x => $"{x.Key}_{x.Value.TargetName}_{x.Value.MemberName}_{x.Value.PunishmentData.StartDate.GetUnixTimestamp()}").ToList();
 

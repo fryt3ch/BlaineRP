@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using RAGE;
+using RAGE.Elements;
 using System;
 
 namespace BCRPClient.CEF
@@ -26,54 +27,46 @@ namespace BCRPClient.CEF
 
         public Auth()
         {
-            #region Events
-
-            Events.Add("Auth::SaveLastCharacter", (object[] args) => Additional.Storage.SetData("Auth::LastCharacter", (int)args[0] + 1));
-
-            #region Showers
-            Events.Add("Auth::ShowLoginPage", async (object[] args) =>
+            Events.Add("Auth::Start::Show", async (args) =>
             {
+                var authData = (JObject)args[0];
+
+                var authDataType = authData["Type"].ToObject<byte>();
+                var socialClubName = authData["SCName"].ToObject<string>();
+
                 while (Browser.Window == null || !Browser.Window.Active)
                     await RAGE.Game.Invoker.WaitAsync(0);
 
                 CEF.Audio.StartAuthPlaylist();
 
-                await Browser.Render(Browser.IntTypes.Login, true);
+                Player.LocalPlayer.SetData("SocialClub::Name", socialClubName);
 
-                GameEvents.OnReady();
+                if (authDataType == 0)
+                {
+                    await Browser.Render(Browser.IntTypes.Login, true, true);
 
-                var login = Additional.Storage.GetData<string>("Auth::Login");
-                var token = Additional.Storage.GetData<string>("Auth::Token");
+                    GameEvents.OnReady();
 
-                Browser.Window.ExecuteJs("AuthLogin.fillPanel", Browser.DefaultServer, (string)args[0], login, token);
+                    var login = Additional.Storage.GetData<string>("Auth::Login");
+                    var token = Additional.Storage.GetData<string>("Auth::Token");
 
-                await Browser.Switch(Browser.IntTypes.Login, true);
+                    Browser.Window.ExecuteJs("AuthLogin.fillPanel", Browser.DefaultServer, socialClubName, login, token);
 
-                Cursor.Show(true, true);
+                    Cursor.Show(true, true);
+                }
+                else if (authDataType == 1)
+                {
+                    await Browser.Render(Browser.IntTypes.Registration, true, true);
 
-                Additional.Discord.SetStatus(Additional.Discord.Types.Login);
+                    GameEvents.OnReady();
+
+                    Browser.Window.ExecuteJs("AuthReg.fillPanel", Browser.DefaultServer, socialClubName);
+
+                    Cursor.Show(true, true);
+                }
             });
 
-            Events.Add("Auth::ShowRegistrationPage", async (object[] args) =>
-            {
-                while (Browser.Window == null || !Browser.Window.Active)
-                    await RAGE.Game.Invoker.WaitAsync(0);
-
-                CEF.Audio.StartAuthPlaylist();
-
-                await Browser.Render(Browser.IntTypes.Registration, true);
-
-                GameEvents.OnReady();
-
-                Browser.Window.ExecuteJs("AuthReg.fillPanel", Browser.DefaultServer, (string)args[0]);
-                Browser.Switch(Browser.IntTypes.Registration, true);
-
-                Cursor.Show(true, true);
-
-                Additional.Discord.SetStatus(Additional.Discord.Types.Registration);
-            });
-
-            Events.Add("Auth::ShowCharacterChoosePage", async (object[] args) =>
+            Events.Add("Auth::CharSelect::Show", async (args) =>
             {
                 if ((bool)args[0])
                 {
@@ -118,7 +111,18 @@ namespace BCRPClient.CEF
 
                     await Browser.Render(Browser.IntTypes.CharacterSelection, true, false);
 
-                    Browser.Window.ExecuteJs("AuthSelect.fillPanel", login, regDate.ToString("dd.MM.yyyy"), bCoins, Additional.Storage.GetData<int?>("Auth::LastCharacter") ?? 1, RAGE.Util.Json.Serialize(data));
+                    var lastCharIdx = Additional.Storage.GetData<int?>("Auth::LastCharacter");
+
+                    if (lastCharIdx is int lastCharIdxI)
+                    {
+                        if (lastCharIdxI < 0 || lastCharIdxI >= data.Length)
+                            lastCharIdx = 0;
+
+                        if (lastCharIdxI > 0 && ((object[])data[lastCharIdxI])[0] == null)
+                            lastCharIdx = lastCharIdxI - 1;
+                    }
+
+                    Browser.Window.ExecuteJs("AuthSelect.fillPanel", login, regDate.ToString("dd.MM.yyyy"), bCoins, (lastCharIdx ?? 0) + 1, RAGE.Util.Json.Serialize(data));
 
                     Browser.Switch(Browser.IntTypes.CharacterSelection, true);
                 }
@@ -128,13 +132,9 @@ namespace BCRPClient.CEF
                 }
 
                 Cursor.Show(true, true);
-
-                Additional.Discord.SetStatus(Additional.Discord.Types.CharacterSelect);
             });
-            #endregion
 
-            #region Attempt Managers
-            Events.Add("Auth::RegistrationAttempt", (object[] args) =>
+            Events.Add("Auth::RegistrationAttempt", (args) =>
             {
                 if (LastTime.IsSpam(500, false, true))
                     return;
@@ -207,7 +207,7 @@ namespace BCRPClient.CEF
                 RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass, pass == Additional.Storage.GetData<string>("Auth::Token"));
             });
 
-            Events.Add("Auth::CharacterChooseAttempt", (args) =>
+            Events.Add("Auth::CharacterChooseAttempt", async (args) =>
             {
                 if (LastTime.IsSpam(500, false, false))
                     return;
@@ -216,10 +216,17 @@ namespace BCRPClient.CEF
 
                 LastTime = Sync.World.ServerTime;
 
-                RAGE.Events.CallRemote("Auth::OnCharacterChooseAttempt", (byte)charNum);
+                var res = (int)await RAGE.Events.CallRemoteProc("Auth::OnCharacterChooseAttempt", (byte)charNum);
+
+                if (res == 0)
+                {
+                    CEF.Notification.ShowErrorDefault();
+                }
+                else if (res == 255)
+                {
+                    Additional.Storage.SetData("Auth::LastCharacter", charNum);
+                }
             });
-            #endregion
-            #endregion
         }
     }
 }

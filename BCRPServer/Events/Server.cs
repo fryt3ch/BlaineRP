@@ -34,6 +34,8 @@ namespace BCRPServer.Events
 
             Properties.SettingsProfile.SaveProfile(Settings.CurrentProfile, "brpSettings.json");
 
+            Settings.CurrentProfile.GetClientsideData();
+
             // Settings Step
 
             CultureInfo.DefaultThreadCurrentCulture = Settings.CurrentProfile.General.CultureInfo;
@@ -101,7 +103,7 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
-            Web.SocketIO.Service.Start(Settings.CurrentProfile.Web.SocketIOCredentials.Host, Settings.CurrentProfile.Web.SocketIOCredentials.User, Settings.CurrentProfile.Web.SocketIOCredentials.Password);
+            Web.SocketIO.Service.Start(Settings.CurrentProfile.Web.SocketIOHost, Settings.CurrentProfile.Web.SocketIOUser, Settings.CurrentProfile.Web.SocketIOPassword);
 
             // Local Data Load Step
 
@@ -296,7 +298,7 @@ namespace BCRPServer.Events
             {
                 var player = pData.Player;
 
-                if (isAuto && pData.LastData.SessionTime < Settings.CurrentProfile.Game.PayDay.MinimalSessionTimeToReceive.TotalSeconds)
+                if (isAuto && pData.LastData.SessionTime < Settings.CurrentProfile.Game.PayDayMinimalSessionTimeToReceive.TotalSeconds)
                 {
                     player.TriggerEvent("opday", pData.LastData.SessionTime);
 

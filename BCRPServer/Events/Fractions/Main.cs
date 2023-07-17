@@ -145,11 +145,11 @@ namespace BCRPServer.Events.Fractions
 
             var curTime = Utils.GetCurrentTime();
 
-            var targetTime = vFData.LastRespawnedTime.AddSeconds(Settings.FRACTION_VEHICLE_RESPAWN_CD);
+            var cdTimeDiff = vFData.LastRespawnedTime.Add(Game.Fractions.Fraction.VehicleRespawnCooldownTime).Subtract(curTime);
 
-            if (curTime < targetTime)
+            if (cdTimeDiff.TotalSeconds > 0)
             {
-                player.Notify("CDown::3", targetTime.Subtract(curTime).GetBeautyString());
+                player.Notify("CDown::3", cdTimeDiff.GetBeautyString());
 
                 return false;
             }

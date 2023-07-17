@@ -4,38 +4,34 @@ namespace BCRPClient.Additional
 {
     public class Discord : Events.Script
     {
-        public static Types CurrentType { get; private set; }
-        private static string CurrentText { get; set; }
+        public const int StatusUpdateTime = 5_000;
 
-        public enum Types
-        {
-            Default = 0,
-            Login,
-            Registration,
-            CharacterSelect,
-        }
+        private static string _currentHeader;
+        private static string _currentContent;
 
         public Discord()
         {
             SetDefault();
 
-            (new AsyncTask(() => RAGE.Discord.Update(CurrentText, Locale.General.Discord.Header), Settings.DISCORD_STATUS_UPDATE_TIME, true, 0)).Run();
+            (new AsyncTask(() => RAGE.Discord.Update(_currentContent, _currentHeader), StatusUpdateTime, true, StatusUpdateTime)).Run();
         }
 
-        public static void SetStatus(Types type, params object[] args)
+        public static void SetStatus(string content, string header = null)
         {
-            CurrentType = type;
-            CurrentText = args.Length == 0 ? Locale.General.Discord.Statuses[type] : string.Format(Locale.General.Discord.Statuses[type], args);
+            _currentContent = content;
 
-            RAGE.Discord.Update(CurrentText, Locale.General.Discord.Header);
+            if (header != null)
+                _currentHeader = header;
+
+            RAGE.Discord.Update(_currentContent,_currentHeader);
         }
 
         public static void SetDefault()
         {
-            CurrentType = Types.Default;
-            CurrentText = Locale.General.Discord.Statuses[Types.Default];
+            _currentHeader = Language.Strings.Get("DISCORD_L_HEADER_0");
+            _currentContent = string.Empty;
 
-            RAGE.Discord.Update(CurrentText, Locale.General.Discord.Header);
+            RAGE.Discord.Update(_currentContent, _currentHeader);
         }
     }
 }

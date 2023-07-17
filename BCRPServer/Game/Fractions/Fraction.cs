@@ -94,6 +94,8 @@ namespace BCRPServer.Game.Fractions
 
     public abstract partial class Fraction
     {
+        public static TimeSpan VehicleRespawnCooldownTime { get; } = TimeSpan.FromMinutes(2);
+
         public static Dictionary<Types, Fraction> All { get; set; } = new Dictionary<Types, Fraction>();
 
         public static Fraction Get(Types type) => All.GetValueOrDefault(type);

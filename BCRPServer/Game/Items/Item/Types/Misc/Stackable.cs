@@ -23,6 +23,7 @@ namespace BCRPServer.Game.Items
             { "mis_1", new ItemData("Червяк", 0.01f, "prop_paints_can04", 1024) },
 
             { "mis_gpstr", new ItemData("GPS-трекер", 0.05f, "lr_prop_carkey_fob", 10) },
+            { "mis_lockpick", new ItemData("Отмычка", 0.01f, "prop_w_me_knife_01", 10) },
         };
 
         public static ItemData GetData(string id) => (ItemData)IDList[id];

@@ -14,7 +14,7 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        private static string _localConnectionCredentials = $"SERVER={Settings.CurrentProfile.DataBase.OwnDbCredentials.Host}; DATABASE={Settings.CurrentProfile.DataBase.OwnDbCredentials.Name}; UID={Settings.CurrentProfile.DataBase.OwnDbCredentials.User}; PASSWORD={Settings.CurrentProfile.DataBase.OwnDbCredentials.Password};";
+        private static string _localConnectionCredentials = $"SERVER={Settings.CurrentProfile.DataBase.OwnDbHost}; DATABASE={Settings.CurrentProfile.DataBase.OwnDbName}; UID={Settings.CurrentProfile.DataBase.OwnDbUser}; PASSWORD={Settings.CurrentProfile.DataBase.OwnDbPassword};";
 
         private static SemaphoreSlim _localConnectionSemaphore { get; set; }
 

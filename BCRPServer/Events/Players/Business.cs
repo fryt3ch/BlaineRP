@@ -95,7 +95,7 @@ namespace BCRPServer.Events.Players
 
             var cdSRangeType = NAPI.Util.GetHashKey("SRANGE_SHOP");
 
-            if (pData.HasCooldown(cdSRangeType, curTime, Settings.COOLDOWN_SHOOTINGRANGE_SHOP, out _, out _, out _, 2, false))
+            if (pData.HasCooldown(cdSRangeType, curTime, Game.Businesses.WeaponShop.ShootingRangeTryCooldownTime, out _, out _, out _, 2, false))
                 return;
 
             if (!ws.TryBuyShootingRange(pData))

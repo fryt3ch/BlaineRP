@@ -1,10 +1,11 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System;
+using System.Collections.Generic;
 
 namespace BCRPClient
 {
-    class Interaction : Events.Script
+    class Interaction
     {
         private static bool _Enabled = false;
 
@@ -14,21 +15,12 @@ namespace BCRPClient
 
         public static RAGE.Elements.Entity CurrentEntity { get; set; }
 
-        public Interaction()
-        {
+        private static HashSet<Entity> DisabledEntities { get; } = new HashSet<Entity>();
 
-        }
 
         private static void Render()
         {
-            if (RAGE.Elements.Player.LocalPlayer.Vehicle != null)
-            {
-                CurrentEntity = RAGE.Elements.Player.LocalPlayer.Vehicle;
-
-                return;
-            }
-
-            var entity = Utils.GetEntityPlayerLookAt(Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER);
+            var entity = Player.LocalPlayer.Vehicle ?? Utils.GetEntityPlayerLookAt(Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER);
 
             if (entity == null)
             {
@@ -36,6 +28,9 @@ namespace BCRPClient
 
                 return;
             }
+
+            if (DisabledEntities.Contains(entity))
+                return;
 
             float x = 0f, y = 0f;
 
@@ -125,6 +120,30 @@ namespace BCRPClient
                 return;
 
             Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+        }
+
+        public static bool SetEntityAsDisabled(Entity entity, bool state)
+        {
+            if (state)
+            {
+                if (DisabledEntities.Add(entity))
+                {
+                    if (CurrentEntity == entity)
+                        CurrentEntity = null;
+
+                    CEF.Interaction.CloseMenu();
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return DisabledEntities.Remove(entity);
+            }
         }
     }
 }

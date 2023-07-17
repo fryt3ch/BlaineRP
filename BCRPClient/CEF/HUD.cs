@@ -90,9 +90,9 @@ namespace BCRPClient.CEF
                 });
             }
 
-            public static void UpdateCurrentTypes(bool add, params Types[] types)
+            public static void UpdateCurrentTypes(bool enable, params Types[] types)
             {
-                if (add)
+                if (enable)
                 {
                     foreach (var x in types)
                     {

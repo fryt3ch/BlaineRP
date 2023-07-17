@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BCRPClient.Language
 {
-    public class Strings
+    public static class Strings
     {
         private static Dictionary<string, string> Texts = new Dictionary<string, string>()
         {
