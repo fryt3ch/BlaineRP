@@ -322,15 +322,6 @@ namespace BCRPServer
         #endregion
 
         #region Stuff
-        /// <summary>Занят ли игрок?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsBusy
-        {
-            get
-            {
-                return PhoneStateType != Sync.Players.PhoneStateTypes.Off || CurrentWorkbench != null || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null || IsFrozen;
-            }
-        }
 
         public bool BlockRemoteCalls { get => Player.GetData<bool?>("BlockRC") ?? false; set { if (value) Player.SetData("BlockRC", true); else Player.ResetData("BlockRC"); } }
 

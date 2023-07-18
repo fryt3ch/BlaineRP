@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.Sync;
+using RAGE;
 using RAGE.Elements;
 using System.Linq;
 
@@ -6,6 +7,19 @@ namespace BCRPClient.Data
 {
     partial class Commands
     {
+        [Command("ping", false, "")]
+        public static async void Ping()
+        {
+            if (LastSent.IsSpam(500, false, true))
+                return;
+
+            LastSent = Sync.World.ServerTime;
+
+            var res = Utils.ToDecimal(await Events.CallRemoteProc("Misc::GetPing"));
+
+            Events.CallLocal("Chat::ShowServerMessage", $"[Ping] Ваш текущий пинг: {res}");
+        }
+
         [Command("dl", false, "Показ дополнительных сведений о всех сущностях")]
         public static void DebugLabels(bool? state = null)
         {

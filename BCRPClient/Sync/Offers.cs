@@ -49,6 +49,8 @@ namespace BCRPClient.Sync
             SellBusiness,
             /// <summary>Штраф полиции</summary>
             PoliceFine,
+            /// <summary>Лечение от врача</summary>
+            EmsHeal,
         }
 
         public enum ReplyTypes
@@ -229,7 +231,7 @@ namespace BCRPClient.Sync
             }));
         }
 
-        public static void Request(Player player, Types type, object data = null)
+        public static async void Request(Player player, Types type, object data = null)
         {
             if (CurrentTarget != null)
             {
@@ -247,11 +249,26 @@ namespace BCRPClient.Sync
             if (Utils.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || !Utils.CanDoSomething(true, ActionsToCheck))
                 return;
 
-            Events.CallRemote("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data));
-
-            CurrentTarget = player;
-
             LastSent = Sync.World.ServerTime;
+
+            var res = await Events.CallRemoteProc("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data ?? string.Empty));
+
+            if (res == null)
+                return;
+
+            if (res is int resI)
+            {
+                if (resI == 0)
+                {
+                    CEF.Notification.ShowErrorDefault();
+                }
+                else if (resI == 255)
+                {
+                    CurrentTarget = player;
+
+                    CEF.Notification.Show("Offer::Sent");
+                }
+            }
         }
 
         public static void Reply(ReplyTypes rType = ReplyTypes.AutoCancel)

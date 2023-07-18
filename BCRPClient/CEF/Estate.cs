@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 
 namespace BCRPClient.CEF
@@ -93,7 +94,7 @@ namespace BCRPClient.CEF
 
                                 Close(true);
 
-                                Sync.Offers.Request(player, Sync.Offers.Types.SellVehicle, $"{vid}_{price}");
+                                Sync.Offers.Request(player, Sync.Offers.Types.SellVehicle, new { VID = vid, Price = price, });
                             }
                             else if (CurrentType == Types.SellBusiness)
                             {
@@ -106,10 +107,9 @@ namespace BCRPClient.CEF
                                     return;
 
                                 var businessId = businesses[num].Id;
-
                                 Close(true);
 
-                                Sync.Offers.Request(player, Sync.Offers.Types.SellBusiness, $"{businessId}_{price}");
+                                Sync.Offers.Request(player, Sync.Offers.Types.SellBusiness, new { BID = businessId, Price = price, });
                             }
                             else if (CurrentType == Types.SellEstate)
                             {
@@ -125,7 +125,7 @@ namespace BCRPClient.CEF
 
                                 Close(true);
 
-                                Sync.Offers.Request(player, Sync.Offers.Types.SellEstate, $"{(int)estate.Item1}_{estate.Item2}_{price}");
+                                Sync.Offers.Request(player, Sync.Offers.Types.SellEstate, new { EST = (int)estate.Item1, UID = estate.Item2, Price = price, });
                             }
                         }
                         else

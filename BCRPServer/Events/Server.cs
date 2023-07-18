@@ -144,6 +144,8 @@ namespace BCRPServer.Events
 
             Sync.Quest.InitializeAll();
 
+            Sync.Offers.Offer.Load();
+
             // DB Load Step
 
             int loadedItemsAmount = 0;

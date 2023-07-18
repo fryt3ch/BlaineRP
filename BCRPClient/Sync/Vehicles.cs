@@ -2193,7 +2193,7 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            Sync.Offers.Request(driver, Offers.Types.WaypointShare, $"{wpPos.X}_{wpPos.Y}");
+            Sync.Offers.Request(driver, Offers.Types.WaypointShare, new { X = wpPos.X, Y = wpPos.Y, });
         }
 
         public static async void BoatFromTrailerToWater(Vehicle veh)

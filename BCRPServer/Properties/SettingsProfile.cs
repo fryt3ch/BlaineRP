@@ -198,7 +198,7 @@ namespace BCRPServer.Properties
                 }
             }
 
-            Console.WriteLine(jObj.SerializeToJson());
+            //Console.WriteLine(jObj.SerializeToJson());
 
             return jObj;
         }

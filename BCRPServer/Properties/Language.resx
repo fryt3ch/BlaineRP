@@ -424,4 +424,10 @@
   <data name="CHAT_PLAYER_CUFFS_ON_1" xml:space="preserve">
     <value>связал(а) стяжками руки {0}</value>
   </data>
+  <data name="CHAT_EMS_PHEAL_0" xml:space="preserve">
+    <value>передал(а) лекарство {0}</value>
+  </data>
+  <data name="CHAT_EMS_PHEAL_1" xml:space="preserve">
+    <value>принял(а) и употребил(а) лекарство от {0}</value>
+  </data>
 </root>

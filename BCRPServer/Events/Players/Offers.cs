@@ -1,277 +1,55 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Linq;
-using static BCRPServer.Sync.Offers;
+using BCRPServer.Sync.Offers;
 
 namespace BCRPServer.Events.Players
 {
     class Offers : Script
     {
-        [RemoteEvent("Offers::Send")]
-        private static void Send(Player player, Player target, int type, string data)
+        [RemoteProc("Offers::Send")]
+        private static object Send(Player player, Player target, int typeNum, string dataStr)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return null;
 
-            if (!Enum.IsDefined(typeof(Types), type))
-                return;
+            if (!Enum.IsDefined(typeof(Types), typeNum))
+                return null;
 
             var pData = sRes.Data;
 
-            if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
-                return;
-
             var tData = target.GetMainData();
 
-            if (tData?.Player?.Exists != true || target == player)
-                return;
+            if (tData == null || tData == pData)
+                return null;
 
-            object dataObj = null;
+            var oType = (Types)typeNum;
 
-            var oType = (Types)type;
+            var offerBaseData = Offer.GetOfferBaseDataByType(oType);
 
-            var res = ((Func<ReturnTypes>)(() =>
+            if (offerBaseData == null)
+                return null;
+
+            Offer offer;
+            object returnObj;
+            bool customTargetShow;
+
+            var isRequestCorrect = offerBaseData.IsRequestCorrect(pData, tData, oType, dataStr, out offer, out returnObj, out customTargetShow);
+
+            if (!isRequestCorrect)
             {
-                if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                    return ReturnTypes.Error;
-
-                if (tData.IsBusy)
-                    return ReturnTypes.TargetBusy;
-
-                if (pData.ActiveOffer != null)
-                    return ReturnTypes.SourceHasOffer;
-
-                if (tData.ActiveOffer != null)
-                    return ReturnTypes.TargetHasOffer;
-
-                try
+                return returnObj;
+            }
+            else
+            {
+                if (!customTargetShow)
                 {
-                    dataObj = data.DeserializeFromJson<object>();
-
-                    if (oType == Types.Settle)
-                    {
-                        var curHouseBase = pData.CurrentHouseBase;
-
-                        if (curHouseBase == null)
-                            return ReturnTypes.Error;
-
-                        if (curHouseBase.Owner != pData.Info)
-                        {
-                            player.Notify("House::NotAllowed");
-
-                            return ReturnTypes.Error;
-                        }
-
-                        target.TriggerEvent("Offer::Show", player.Handle, type, curHouseBase.Type);
-                    }
-                    else if (oType == Types.Cash)
-                    {
-                        var cash = Convert.ToUInt32(dataObj);
-
-                        dataObj = cash;
-
-                        if (cash == 0)
-                            return ReturnTypes.Error;
-
-                        if (!pData.TryRemoveCash(cash, out _, true))
-                            return ReturnTypes.Error;
-
-                        target.TriggerEvent("Offer::Show", player.Handle, type, cash);
-                    }
-                    else if (oType == Types.WaypointShare)
-                    {
-                        var dataObjD = ((string)dataObj).Split('_');
-
-                        dataObj = new Vector3(float.Parse(dataObjD[0]), float.Parse(dataObjD[1]), 0f);
-                    }
-                    else if (oType == Types.ShowVehiclePassport)
-                    {
-                        var vid = (uint)(long)dataObj;
-
-                        var found = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
-
-                        if (found == null)
-                            return ReturnTypes.Error;
-
-                        dataObj = found;
-                    }
-                    else if (oType == Types.SellVehicle)
-                    {
-                        var dataObjD = ((string)dataObj).Split('_');
-
-                        var price = int.Parse(dataObjD[1]);
-
-                        if (price <= 0)
-                            return ReturnTypes.Error;
-
-                        var vid = uint.Parse(dataObjD[0]);
-
-                        var vInfo = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
-
-                        if (vInfo == null)
-                            return ReturnTypes.Error;
-
-                        dataObj = new Offer.PropertySellData(vInfo, (ulong)price);
-                    }
-                    else if (oType == Types.SellBusiness)
-                    {
-                        var dataObjD = ((string)dataObj).Split('_');
-
-                        var price = int.Parse(dataObjD[1]);
-
-                        if (price <= 0)
-                            return ReturnTypes.Error;
-
-                        var businessId = int.Parse(dataObjD[0]);
-
-                        var bInfo = pData.OwnedBusinesses.Where(x => x.ID == businessId).FirstOrDefault();
-
-                        if (bInfo == null)
-                            return ReturnTypes.Error;
-
-                        dataObj = new Offer.PropertySellData(bInfo, (ulong)price);
-                    }
-                    else if (oType == Types.SellEstate)
-                    {
-                        var dataObjD = ((string)dataObj).Split('_');
-
-                        var price = int.Parse(dataObjD[2]);
-
-                        if (price <= 0)
-                            return ReturnTypes.Error;
-
-                        var estType = (PlayerData.PropertyTypes)int.Parse(dataObjD[0]);
-
-                        var estId = uint.Parse(dataObjD[1]);
-
-                        if (estType == PlayerData.PropertyTypes.House)
-                        {
-                            var house = pData.OwnedHouses.Where(x => x.Id == estId).FirstOrDefault();
-
-                            if (house == null)
-                                return ReturnTypes.Error;
-
-                            dataObj = new Offer.PropertySellData(house, (ulong)price);
-                        }
-                        else if (estType == PlayerData.PropertyTypes.Apartments)
-                        {
-                            var aps = pData.OwnedApartments.Where(x => x.Id == estId).FirstOrDefault();
-
-                            if (aps == null)
-                                return ReturnTypes.Error;
-
-                            dataObj = new Offer.PropertySellData(aps, (ulong)price);
-                        }
-                        else if (estType == PlayerData.PropertyTypes.Garage)
-                        {
-                            var garage = pData.OwnedGarages.Where(x => x.Id == estId).FirstOrDefault();
-
-                            if (garage == null)
-                                return ReturnTypes.Error;
-
-                            dataObj = new Offer.PropertySellData(garage, (ulong)price);
-                        }
-                        else
-                            return ReturnTypes.Error;
-                    }
-                    else if (oType == Types.PoliceFine)
-                    {
-                        var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
-
-                        if (fData == null)
-                            return ReturnTypes.Error;
-
-                        if (!fData.HasMemberPermission(pData.Info, 14, true))
-                            return ReturnTypes.Error;
-
-                        var dataObjD = ((string)dataObj).Split('_');
-
-                        var amount = int.Parse(dataObjD[0]);
-
-                        if (amount < Game.Fractions.Police.FineMinAmount || amount > Game.Fractions.Police.FineMaxAmount)
-                            return ReturnTypes.Error;
-
-                        var reason = dataObjD[1].Trim();
-
-                        if (!Game.Fractions.Police.FineReasonRegex.IsMatch(reason))
-                            return ReturnTypes.Error;
-
-                        dataObj = $"{amount}_{reason}";
-
-                        target.TriggerEvent("Offer::Show", player.Handle, type, dataObj);
-                    }
-                    else if (oType == Types.InviteFraction)
-                    {
-                        if (tData.Fraction != Game.Fractions.Types.None)
-                            return ReturnTypes.Error;
-
-                        if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
-                            return ReturnTypes.Error;
-
-                        var fData = Game.Fractions.Fraction.Get(pData.Fraction);
-
-                        if (!fData.HasMemberPermission(pData.Info, 2, true))
-                            return ReturnTypes.Error;
-
-                        dataObj = fData.Type;
-
-                        target.TriggerEvent("Offer::Show", player.Handle, type, dataObj);
-                    }
-                    else if (oType == Types.ShowFractionDocs)
-                    {
-                        if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
-                            return ReturnTypes.Error;
-
-                        var fData = Game.Fractions.Fraction.Get(pData.Fraction);
-
-                        if (!fData.MetaFlags.HasFlag(Game.Fractions.MetaFlagTypes.MembersHaveDocs))
-                            return ReturnTypes.Error;
-
-                        dataObj = fData.Type;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return ReturnTypes.Error;
+                    tData.Player.TriggerEvent("Offer::Show", player.Handle, typeNum);
                 }
 
-                Offer.Create(pData, tData, oType, -1, dataObj);
-
-                return ReturnTypes.Success;
-            })).Invoke();
-
-            switch (res)
-            {
-                case ReturnTypes.Success:
-                    if (oType != Types.Cash && oType != Types.Settle && oType != Types.PoliceFine)
-                    {
-                        target.TriggerEvent("Offer::Show", player.Handle, type);
-                    }
-
-                    player.TriggerEvent("Offer::Reply::Server", true, false, false);
-                    player.Notify("Offer::Sent");
-                    break;
-
-                case ReturnTypes.TargetBusy:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::TargetBusy");
-                    break;
-
-                case ReturnTypes.SourceHasOffer:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::HasOffer");
-                    break;
-
-                case ReturnTypes.TargetHasOffer:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::TargetHasOffer");
-                    break;
-
-                case ReturnTypes.Error:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    break;
+                return returnObj;
             }
         }
 

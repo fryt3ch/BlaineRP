@@ -347,9 +347,9 @@ namespace BCRPClient.CEF
 
             #region Player Actions
 
-            CharacterInteractionInfo.AddAction("interact", "coin", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails); });
-            CharacterInteractionInfo.AddAction("interact", "handshake", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Handshake); });
-            CharacterInteractionInfo.AddAction("interact", "carry", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Carry); });
+            CharacterInteractionInfo.AddAction("interact", "coin", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails, null); });
+            CharacterInteractionInfo.AddAction("interact", "handshake", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Handshake, null); });
+            CharacterInteractionInfo.AddAction("interact", "carry", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Carry, null); });
 
             CharacterInteractionInfo.AddAction("money", "money_50", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 50); });
             CharacterInteractionInfo.AddAction("money", "money_150", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 150); });
@@ -357,7 +357,7 @@ namespace BCRPClient.CEF
             CharacterInteractionInfo.AddAction("money", "money_1000", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 1000); });
             CharacterInteractionInfo.AddAction("money", "", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 0); });
 
-            CharacterInteractionInfo.AddAction("trade", "", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Exchange); });
+            CharacterInteractionInfo.AddAction("trade", "", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Exchange, null); });
 
             CharacterInteractionInfo.AddAction("property", "settle", (entity) => { var player = entity as Player; if (player == null) return; PlayerSettleRequest(player); });
             CharacterInteractionInfo.AddAction("property", "sell_house", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 2); });
@@ -681,7 +681,7 @@ namespace BCRPClient.CEF
                         if (rType == CEF.ActionBox.ReplyTypes.OK)
                         {
                             if (player is Player targetPlayer)
-                                Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, amount);
+                                Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, new { Amount = amount, });
                         }
                     },
 
@@ -697,7 +697,7 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                Sync.Offers.Request(player, Sync.Offers.Types.Cash, amount);
+                Sync.Offers.Request(player, Sync.Offers.Types.Cash, new { Amount = amount, });
             }
         }
 
@@ -724,7 +724,7 @@ namespace BCRPClient.CEF
                 return;
             }
 
-            Sync.Offers.Request(player, Sync.Offers.Types.Settle);
+            Sync.Offers.Request(player, Sync.Offers.Types.Settle, null);
         }
 
         public static void PlayerSellPropertyRequest(Player player, byte type)
@@ -785,11 +785,11 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                Sync.Offers.Request(player, Sync.Offers.Types.ShowMedicalCard);
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowMedicalCard, null);
             }
             else if (type == 1)
             {
-                Sync.Offers.Request(player, Sync.Offers.Types.ShowPassport);
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowPassport, null);
             }
             else if (type == 2)
             {
@@ -802,12 +802,12 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                if (allVehs.Count == 1)
+/*                if (allVehs.Count == 1)
                 {
                     Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
 
                     return;
-                }
+                }*/
 
                 var t = 0;
 
@@ -839,7 +839,7 @@ namespace BCRPClient.CEF
 
                             CEF.ActionBox.Close(true);
 
-                            Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[id].VID);
+                            Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, new { VID = allVehs[id].VID, });
                         }
                         else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
                         {
@@ -854,7 +854,7 @@ namespace BCRPClient.CEF
             }
             else if (type == 3)
             {
-                Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses);
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses, null);
             }
         }
     }

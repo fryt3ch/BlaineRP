@@ -578,7 +578,7 @@ namespace BCRPClient.Data.Fractions
 
                 CEF.ActionBox.Close(true);
 
-                Sync.Offers.Request(player, Sync.Offers.Types.PoliceFine, $"{fineSum}_{reason}");
+                Sync.Offers.Request(player, Sync.Offers.Types.PoliceFine, new { Amount = fineSum, Reason = reason, });
 
             }, null);
         }

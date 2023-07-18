@@ -185,6 +185,8 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "player_to_veh");
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "player_from_veh");
 
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_heal", (entity) => { var player = entity as Player; if (player == null) return; PlayerHeal(player); });
+
 /*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
         }
@@ -195,6 +197,11 @@ namespace BCRPClient.Data.Fractions
         }
 
         public bool IsBedOccupied(int bedIdx) => Sync.World.GetSharedData<bool>($"EMS::{(int)Type}::BED::{bedIdx}", false);
+
+        private void PlayerHeal(Player player)
+        {
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsHeal, null);
+        }
 
         private static async void OnHealingBedPress(MapObject obj)
         {

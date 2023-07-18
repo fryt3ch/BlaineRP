@@ -79,6 +79,24 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на передал(а) лекарство {0}.
+        /// </summary>
+        public static string CHAT_EMS_PHEAL_0 {
+            get {
+                return ResourceManager.GetString("CHAT_EMS_PHEAL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на принял(а) и употребил(а) лекарство от {0}.
+        /// </summary>
+        public static string CHAT_EMS_PHEAL_1 {
+            get {
+                return ResourceManager.GetString("CHAT_EMS_PHEAL_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на снял(а) наручники с рук {0}.
         /// </summary>
         public static string CHAT_PLAYER_CUFFS_OFF_0 {
