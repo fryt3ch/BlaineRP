@@ -7,16 +7,22 @@ namespace BCRPClient.Data.Minigames
 {
     public class LockPicking : Events.Script
     {
+        public const byte DurabilityDefault = 10;
+        public const int MaxDeviationDefault = 10;
+        public const int RotationDefault = 0;
+
         public static string CurrentContext { get; private set; }
 
-        public const byte DurabilityDefault = 20;
-        public const int MaxDeviationDefault = 10;
-        public const int RotationDefault = 0 - 90;
+        private static byte _currentDurability;
+        private static int _currentMaxDeviation;
+
+        private static int _escBindIdx;
 
         private LockPicking()
         {
             Events.Add("MiniGames::LockPick", async (args) =>
             {
+                Utils.ConsoleOutput("LOCKPICK");
                 var success = (bool)args[0];
 
                 if (CurrentContext == "POLICE_CUFFS_LOCKPICK")
@@ -49,6 +55,8 @@ namespace BCRPClient.Data.Minigames
                     }
                     else
                     {
+                        var targetRotation = Utils.ToInt32(args[1]);
+
                         var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", false, itemIdx);
 
                         if (res == 255)
@@ -67,7 +75,7 @@ namespace BCRPClient.Data.Minigames
                             {
                                 CEF.Notification.ShowError(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_1", lockpicksLeft));
 
-                                Update(0, 0, 0, 0);
+                                Update(_currentDurability, targetRotation, _currentMaxDeviation, RotationDefault);
                             }
                         }
                         else
@@ -79,18 +87,29 @@ namespace BCRPClient.Data.Minigames
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(string context, int durability, int targetDegrees, int maxDeviation, int currentDegrees)
+        public static async System.Threading.Tasks.Task Show(string context, byte durability, int targetRotation, int maxDeviation, int currentRotation)
         {
-            if (context != null)
+            if (CurrentContext != null)
                 return;
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameLockPicking, true, true);
 
+            CEF.HUD.ShowHUD(false);
+
+            CEF.Chat.Show(false);
+
+            RAGE.Game.Graphics.TransitionToBlurred(0f);
+
+            _currentMaxDeviation = maxDeviation;
+            _currentDurability = durability;
+
             CurrentContext = context;
 
-            Update(durability, targetDegrees, maxDeviation, currentDegrees);
+            Update(durability, targetRotation, maxDeviation, currentRotation);
 
             CEF.Cursor.Show(true, true);
+
+            _escBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -101,14 +120,27 @@ namespace BCRPClient.Data.Minigames
             CurrentContext = null;
 
             CEF.Browser.Render(CEF.Browser.IntTypes.MinigameLockPicking, false);
+
+            CEF.Cursor.Show(false, false);
+
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(true);
+
+            CEF.Chat.Show(true);
+
+            RAGE.Game.Graphics.TransitionFromBlurred(0f);
+
+            KeyBinds.Unbind(_escBindIdx);
+
+            _escBindIdx = -1;
         }
 
-        public static void Update(int durability, int targetDegrees, int maxDeviation, int currentDegrees)
+        public static void Update(int durability, int targetRotation, int maxDeviation, int currentRotation)
         {
             if (CurrentContext == null)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("MG.LP.draw", durability, targetDegrees, maxDeviation, currentDegrees);
+            CEF.Browser.Window.ExecuteJs("MG.LP.draw", durability, targetRotation + 90, maxDeviation, currentRotation - 90);
         }
 
         public static int GetInventoryLockpickItemIdx()
@@ -136,11 +168,16 @@ namespace BCRPClient.Data.Minigames
             {
                 if (CEF.Inventory.ItemsParams[i]?.Id == "mis_lockpick")
                 {
-                    totalAmount += (int)((object[][])CEF.Inventory.ItemsData[0][i])[0][3];
+                    totalAmount += (int)((object[])CEF.Inventory.ItemsData[i][0])[3];
                 }
             }
 
             return totalAmount;
+        }
+
+        public static int GetLockpickingRandomTargetRotation()
+        {
+            return Utils.Random.Next(0, 360 + 1);
         }
     }
 }

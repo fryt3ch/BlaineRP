@@ -70,7 +70,7 @@ namespace BCRPClient
             RAGE.Game.Misc.SetFadeInAfterDeathArrest(false);
             RAGE.Game.Misc.SetFadeInAfterLoad(false);
 
-            RAGE.Game.Graphics.TransitionFromBlurred(0);
+            RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
             RAGE.Game.Misc.DisableAutomaticRespawn(true);
             RAGE.Game.Misc.IgnoreNextRestart(true);

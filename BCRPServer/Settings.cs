@@ -6,15 +6,14 @@ namespace BCRPServer
 {
     public static class Settings
     {
-        public const string Version = "Beta 1.0";
-
         private static Properties.SettingsProfile _currentProfile;
 
         public static Properties.SettingsProfile CurrentProfile => _currentProfile;
 
         public const string ResourcesPath = @"\dotnet\resources\BCRPMode";
 
-        public const string ClientScriptsTargetPath = @"\client_packages\cs_packages";
+        public const string ClientPackagesTargetPath = @"\client_packages";
+        public const string ClientScriptsTargetPath = ClientPackagesTargetPath + @"\cs_packages";
         public const string ClientScriptsSourcePath = @"\backend\BCRPMode\BCRPClient";
 
         public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Data\Locations\Locations.cs";

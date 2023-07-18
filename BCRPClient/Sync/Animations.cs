@@ -913,7 +913,7 @@ namespace BCRPClient.Sync
             LastSent = Sync.World.ServerTime;
 
             #region Events
-            Events.Add("Players::PlayFastAnim", async (object[] args) =>
+            Events.Add("Players::PlayFastAnim", async (args) =>
             {
                 var player = (Player)args[0];
 
@@ -940,9 +940,9 @@ namespace BCRPClient.Sync
                 Play(player, data);
             });
 
-            Events.Add("Players::FAST", (object[] args) =>
+            Events.Add("Players::FAST", (args) =>
             {
-                var timeout = (int)args[0];
+                var timeout = Utils.ToInt32(args[0]);
 
                 Utils.CancelPendingTask("LPFATT");
 
@@ -961,12 +961,10 @@ namespace BCRPClient.Sync
                     Events.CallRemote("Players::SFTA");
                 }, 0, false, 0);
 
-                task.Run();
-
                 Utils.SetTaskAsPending("LPFATT", task);
             });
 
-            Events.Add("Players::StopAnim", (object[] args) =>
+            Events.Add("Players::StopAnim", (args) =>
             {
                 var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
 

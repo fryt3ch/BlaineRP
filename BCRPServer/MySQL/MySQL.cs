@@ -14,7 +14,16 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        private static string _localConnectionCredentials = $"SERVER={Settings.CurrentProfile.DataBase.OwnDbHost}; DATABASE={Settings.CurrentProfile.DataBase.OwnDbName}; UID={Settings.CurrentProfile.DataBase.OwnDbUser}; PASSWORD={Settings.CurrentProfile.DataBase.OwnDbPassword};";
+        private static MySqlConnectionStringBuilder _localConnectionCredentials => new MySqlConnectionStringBuilder()
+        {
+            Server = Settings.CurrentProfile.DataBase.OwnDbHost,
+
+            Database = Settings.CurrentProfile.DataBase.OwnDbName,
+
+            UserID = Settings.CurrentProfile.DataBase.OwnDbUser,
+
+            Password = Settings.CurrentProfile.DataBase.OwnDbPassword,
+        };
 
         private static SemaphoreSlim _localConnectionSemaphore { get; set; }
 
@@ -103,7 +112,7 @@ namespace BCRPServer
 
                         // todo
                     }));*/
-                    using (var conn = new MySqlConnection(_localConnectionCredentials))
+                    using (var conn = new MySqlConnection(_localConnectionCredentials.ConnectionString))
                     {
                         conn.Open();
 
@@ -152,7 +161,7 @@ namespace BCRPServer
         #region Init Connection
         public static bool InitConnection()
         {
-            MySqlConnection localConnection = new MySqlConnection(_localConnectionCredentials);
+            MySqlConnection localConnection = new MySqlConnection(_localConnectionCredentials.ConnectionString);
 
             _localConnectionSemaphore = new SemaphoreSlim(1, 1);
 
@@ -179,7 +188,7 @@ namespace BCRPServer
 
         public static int SetOfflineAll()
         {
-            using (var conn = new MySqlConnection(_localConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials.ConnectionString))
             {
                 conn.Open();
 
@@ -245,7 +254,7 @@ namespace BCRPServer
                 }
             }*/
 
-            using (var conn = new MySqlConnection(_localConnectionCredentials))
+            using (var conn = new MySqlConnection(_localConnectionCredentials.ConnectionString))
             {
                 conn.Open();
 

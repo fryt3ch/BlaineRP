@@ -6,6 +6,12 @@
 
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	<PlatformTarget>AnyCPU</PlatformTarget>
+	<Version>1.2.0-beta</Version>
+	<Authors>frytech</Authors>
+	<Title>[RAGEMP] Blaine Role Play (Server-side)</Title>
+	<RepositoryUrl>https://github.com/fryt3ch/BlaineRP</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<Product>Blaine Role Play (Server-side)</Product>
   </PropertyGroup>
 
   <ItemGroup>

@@ -588,7 +588,6 @@ namespace BCRPClient.Sync
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
-            #region Events
             Events.AddDataHandler(AttachedEntitiesKey, (Entity entity, object value, object oldValue) =>
             {
                 if (entity.IsLocal)
@@ -640,10 +639,8 @@ namespace BCRPClient.Sync
                         DetachObject(entity, x.Type);
                 }
             });
-            #endregion
         }
 
-        #region Entity Methods
         public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType, string syncData)
         {
             GameEntity gTarget = null;
@@ -817,9 +814,7 @@ namespace BCRPClient.Sync
                 }
             }
         }
-        #endregion
 
-        #region Object Methods
         public static async System.Threading.Tasks.Task AttachObject(uint hash, Entity target, Types type, string syncData)
         {
             var res = await Utils.RequestModel(hash);
@@ -1633,7 +1628,7 @@ namespace BCRPClient.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                         if (Utils.CanShowCEF(true, true))
                         {
@@ -1675,6 +1670,11 @@ namespace BCRPClient.Sync
                         Player.LocalPlayer.SetEnableHandcuffs(false);
 
                         BCRPClient.Interaction.Enabled = true;
+
+                        if (Data.Minigames.LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
+                        {
+                            Data.Minigames.LockPicking.Close();
+                        }
                     },
 
                     () =>
@@ -1684,15 +1684,15 @@ namespace BCRPClient.Sync
                             GameEvents.DisableMoveRender();
                         }
 
-                        var lockpickItemIdx = Data.Minigames.LockPicking.GetInventoryLockpickItemIdx();
+                        var lockpickItemAmount = Data.Minigames.LockPicking.GetLockpickTotalAmount();
 
-                        if (lockpickItemIdx >= 0)
+                        if (lockpickItemAmount > 0)
                         {
                             var key = RAGE.Ui.VirtualKeys.Return;
 
                             if (Utils.CanShowCEF(true, true) && !Utils.IsAnyCefActive())
                             {
-                                Utils.DrawText(string.Format("Нажмите {0}, чтобы воспользоваться отмычкой", KeyBinds.ExtraBind.GetKeyString(key)), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                                Utils.DrawText(string.Format("Нажмите {0}, чтобы воспользоваться отмычкой (x{1})", KeyBinds.ExtraBind.GetKeyString(key), lockpickItemAmount), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                                 if (KeyBinds.IsJustDown(key))
                                 {
@@ -1700,9 +1700,18 @@ namespace BCRPClient.Sync
                                     {
                                         Sync.Animations.LastSent = Sync.World.ServerTime;
 
-                                        //Data.Minigames.LockPicking.Show("POLICE_CUFFS_LOCKPICK", 5, )
+                                        Data.Minigames.LockPicking.Show("POLICE_CUFFS_LOCKPICK", Data.Minigames.LockPicking.DurabilityDefault, Data.Minigames.LockPicking.GetLockpickingRandomTargetRotation(), Data.Minigames.LockPicking.MaxDeviationDefault, Data.Minigames.LockPicking.RotationDefault);
                                     }
                                 }
+                            }
+                        }
+                        else
+                        {
+                            if (Data.Minigames.LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
+                            {
+                                CEF.Notification.Show("Inventory::NoItem");
+
+                                Data.Minigames.LockPicking.Close();
                             }
                         }
                     }
@@ -1856,7 +1865,6 @@ namespace BCRPClient.Sync
                 actions.Value.Off?.Invoke();
             }
         }
-        #endregion
 
         public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, Types type)
         {

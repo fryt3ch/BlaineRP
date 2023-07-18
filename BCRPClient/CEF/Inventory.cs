@@ -1585,7 +1585,7 @@ namespace BCRPClient.CEF
 
             Chat.Show(false);
 
-            RAGE.Game.Graphics.TransitionToBlurred(250);
+            RAGE.Game.Graphics.TransitionToBlurred(0f);
 
             Cursor.Show(true, true);
         }
@@ -1658,9 +1658,7 @@ namespace BCRPClient.CEF
 
             GameEvents.DisableAllControls(false);
 
-            RAGE.Game.Graphics.TransitionFromBlurred(250);
-
-            AsyncTask.RunSlim(() => RAGE.Game.Graphics.TransitionFromBlurred(0), 300);
+            RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
             if (!Settings.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);

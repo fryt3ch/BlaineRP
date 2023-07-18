@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace BCRPServer.Events
 
 
         [ServerEvent(Event.ResourceStart)]
-        public void OnResourceStart()
+        public static void OnResourceStart()
         {
             var currentDir = Directory.GetCurrentDirectory();
 
@@ -53,11 +54,20 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
 
-            Utils.ConsoleOutput($"~Red~Blaine RolePlay~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.Version}~/~");
+            var appVersionInfo = FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            Utils.ConsoleOutput($"~Red~{appVersionInfo.ProductName}~/~ | Developed by ~Red~{appVersionInfo.CompanyName}~/~ | Version: ~Green~{appVersionInfo.ProductVersion}~/~");
 
             Utils.ConsoleOutput();
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .js files to client_packages...");
+
+            var clientPackagesTarget = new DirectoryInfo(currentDir + Settings.ClientPackagesTargetPath);
+
+            foreach (var script in (new DirectoryInfo(currentDir + Settings.ClientScriptsSourcePath + @"\Properties\JavaScript")).GetFiles("*.js"))
+                File.Copy(script.FullName, clientPackagesTarget.FullName + "\\" + script.Name, true);
+
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_packages/cs_packages...");
 
             var clientCSPackagesTarget = new DirectoryInfo(currentDir + Settings.ClientScriptsTargetPath);
             var clientCSPackagesSource = new DirectoryInfo(currentDir + Settings.ClientScriptsSourcePath);
@@ -359,7 +369,7 @@ namespace BCRPServer.Events
         }
 
         [ServerEvent(Event.Update)]
-        public void OnUpdate()
+        public static void OnUpdate()
         {
             var currentTime = Utils.GetCurrentTime();
 

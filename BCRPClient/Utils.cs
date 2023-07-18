@@ -16,7 +16,7 @@ namespace BCRPClient
 
         public static bool IsGameWindowFocused => RAGE.Ui.Windows.Focused;
 
-        public static Random Random { get; private set; } = new Random();
+        public static Random Random { get; } = new Random();
 
         public static long ServerTimestamp { get; set; } = long.MinValue;
 

@@ -200,12 +200,21 @@ namespace BCRPServer.Game.Fractions
             {
                 GPSTrackerUidHandler.SetUidAsFree(id);
 
-                var listAll = new List<Player>();
+                Player[] membersToTrigger;
 
-                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
-                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+                if (info.FractionType == Types.None)
+                {
+                    var listAll = new List<Player>();
 
-                Player[] membersToTrigger = listAll.ToArray();
+                    foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                        listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                    membersToTrigger = listAll.ToArray();
+                }
+                else
+                {
+                    membersToTrigger = Fraction.Get(info.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+                }
 
                 if (membersToTrigger.Length > 0)
                 {

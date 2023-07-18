@@ -3,7 +3,23 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Title>[RAGEMP] Blaine Role Play (Client-side)</Title>
+    <Version>1.2.0-beta</Version>
+    <Authors>frytech</Authors>
+    <RepositoryUrl>https://github.com/fryt3ch/BlaineRP</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Product>Blaine Role Play (Client-side)</Product>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Properties\JavaScript\fingerpoint.js" />
+    <None Remove="Properties\JavaScript\index.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\JavaScript\fingerpoint.js" />
+    <EmbeddedResource Include="Properties\JavaScript\index.js" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
