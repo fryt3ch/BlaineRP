@@ -2,7 +2,6 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace BCRPClient.CEF
 {
@@ -15,70 +14,64 @@ namespace BCRPClient.CEF
 
         private static Additional.Camera.StateTypes[] AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots, Additional.Camera.StateTypes.WholePed };
 
-        #region Temp Variables
-        private static string[] MaleNames;
-        private static string[] FemaleNames;
-        private static string[] Surnames;
+        private static string[] _maleNames => "Dario,Deante,Alton,Estevan,Kody,Louis,Joey,Braiden,Kennedy,Sabastian,Tony,Briar,Osvaldo,Corbin,Winston,Shamar,Allan,Layton,Jaleel,Rogelio,Bronson,Tracy,Jaylan,Derek,Corey,Domenic,Jevon,Nathen,Kane,Floyd,Drake,Kristofer,Auston,Ramon,Gordon,Patrick,Ethen,Tyriq,Dashaun,Reginald,Mikael,Tristin,Reilly,Jase,Christopher,Braeden,Cain,Ronaldo,Norman,Bradly,Conor,Kole,Ryan,Mustafa,Martin,Tyson,Jalil,Lloyd,Treyvon,Jordon,David,Morgan,Rowan,Lincoln,Abdullah,Jonathan,Dejon,Mohammad,Trever,Cecil,Alvaro,Deonte,Mauricio,Leslie,Daquan,Tommy,Garrison,Khalil,Eli,Leonard,Brycen,Ladarius,Bailey,Armando,Cannon,Korey,Geoffrey,Mikel,Kasey,Enrique,Darryl,Tyrese,Esteban,Jonathon,Zackary,Kavon,Desmond,Rodney,Desean,Marquis,Spencer,Malachi,Rocco,Brooks,Gerard,Clarence,Miguelangel,Dequan,Micah,Jabari,Andres,Tahj,Rahul,Jayson,Lamar,Caleb,Isidro,Lucas,Ismael,Marcos,Alden,Maxim,Albert,Billy,Bryant,Jan,Draven,Gannon,Korbin,Donald,Stefan,Syed,Aiden,Troy,Grant,Aman,Rashad,Alek,Deion,Trinity,Edgardo,Rickey,Angelo,Rafael,Javon,William,Roman,Coy,Arturo,Guillermo".Split(',');
+        private static string[] _femaleNames => "Makaela,Adriana,Aniya,Maryann,Nayeli,Alex,Janiya,Camila,Paulina,Zaria,Samira,Audrey,Yasmin,Pilar,Veronica,Tristin,Iris,Angie,Laken,Leyla,Maia,Shay,Tatyana,Jaliyah,Shelbi,Corrine,Alanis,Miracle,Aiyana,Tayler,Susannah,Eliza,Helen,Devyn,Nicolette,Kassidy,Griselda,Janessa,Joy,Cayla,Rubi,Hillary,Chassidy,Liza,Lyndsey,Dajah,Savana,Danielle,Lilliana,Imari,Emerald,Tiffani,Tyra,Kaylyn,Jasmyne,Bobbi,Ann,Infant,Robin,Nathalie,Gwendolyn,Allie,Hazel,Jailyn,Darby,Anabel,Justine,Gina,Susanna,Carina,Katlyn,Chaya,Haven,Mindy,Lily,Jennifer,Lilian,Macie,Klarissa,Gia,Whitney,Izabella,Tionna,Kayley,Camille,Misty,Karlee,Brooklyn,Kyndall,Kelsi,Charity,Keri,Susana,Karla,Jewel,Kristal,Karissa,Kiana,Gloria,Danica,Francesca,Elaina,Jayden,Jacinda,Nicolle,Cathy,Jessika,Jada,Lucinda,Tyasia,Daria,Meg,Desire,Halley,Beth,Jazmyn,Ayesha,Kristy,Flor,Nyla,Fatima,Kalie,Sandra,Evelin,Georgina,Alaina,Notnamed,Terri,Sasha,Carrie,Melanie,Keyara,Galilea,Lucero,Silvia,Yesica,Sadie,Shyanne,Breanne,Sheyla,Shreya,Rhonda,Colette,Leila,Katharine,Jala,Cynthia,Jesse,Nikole,Linnea".Split(',');
+        private static string[] _surnames => "Zimmer,Cable,Edwards,Neumann,Royer,Beers,Marr,Daigle,Turner,Baldwin,Poore,Roldan,Hadley,Benton,Wetzel,Good,Walsh,Carlson,Low,Mcghee,Corcoran,Dozier,Krueger,Jaeger,Reyes,Stroud,Ricks,Gallegos,Bartels,Ridgeway,Gill,Estep,Graham,Burks,Nance,Norris,Patten,Holmes,Locke,Mancuso,Huerta,Cordell,Schiller,Oh,Snyder,Staples,Morgan,Hand,Newberry,Gallant,Turpin,Bermudez,Mallory,Garber,Robles,Spears,Corbin,Maxwell,Mott,Mulligan,Lowry,Whitworth,Fulmer,Heredia,Vang,Dixon,Alonzo,Muse,Watts,Hennessy,Savage,Borden,Sam,Loy,Mojica,Singletary,Noble,Wolff,Evers,Guillen,Muir,Mason,Correa,Emerson,Reedy,Braswell,Zhao,Hinds,Shipp,Ruffin,Land,Jacobson,Stamper,Solorzano,Ly,Garza,Canada,Colburn,High,Light,Woodruff,Jacoby,Schwab,Kenny,Lindsey,Ngo,Cramer,Chin,Cepeda,Ochoa,Mears,Victor,Ferguson,Kirk,Felder,Quigley,Price,Browne,Atkinson,Mancini,Robertson,Alley,Israel,Polanco,Lane,Heinrich,Chow,Herr,Morris,Llamas,Woods,Ceja,Davenport,Ware,Ryder,Swain,Sepulveda,Hastings,Flowers,Fair,Decker,Winslow,Jewell,Ortega,Lauer,Root,Spaulding,Ragland,Embry,Bateman".Split(',');
 
-        private static Data.Customization.HeadBlend HeadBlend;
-        private static Dictionary<int, Data.Customization.HeadOverlay> HeadOverlays;
-        private static float[] FaceFeatures;
-        private static Data.Customization.HairStyle HairStyle;
-        private static byte EyeColor;
+        private static Data.Customization.HeadBlend _headBlend;
+        private static Dictionary<int, Data.Customization.HeadOverlay> _headOverlays;
+        private static float[] _faceFeatures;
+        private static Data.Customization.HairStyle _hairStyle;
+        private static byte _eyeColor;
 
-        private static bool Sex;
+        private static bool _sex;
 
-        private static int CurrentCameraStateNum;
+        private static int _currentCameraStateNum;
 
-        private static Dictionary<bool, string[][]> DefaultClothes;
-        private static string[] Clothes;
+        private static Dictionary<bool, string[][]> _defaultClothes;
+        private static string[] _clothes;
 
-        private static List<int> TempBinds;
+        private static List<int> _tempBinds;
 
-        private static float DefaultHeading;
-        private static RAGE.Ui.Cursor.Vector2 LastCursorPos;
-        private static AsyncTask CursorTask;
-        #endregion
+        private static float _defaultHeading;
+        private static RAGE.Ui.Cursor.Vector2 _lastCursorPos;
+        private static AsyncTask _cursorTask;
 
-        #region Defaulter
         private static void SetDefaultCustomization()
         {
-            HeadBlend.SetFather(0);
-            HeadBlend.SetMother(21);
-            HeadBlend.ShapeMix = Sex ? 0.5f : 0f; HeadBlend.SkinMix = 0.5f;
+            _headBlend.SetFather(0);
+            _headBlend.SetMother(21);
+            _headBlend.ShapeMix = _sex ? 0.5f : 0f; _headBlend.SkinMix = 0.5f;
 
-            EyeColor = 0;
-            HairStyle.Id = 0; HairStyle.Overlay = 0; HairStyle.Color = 0; HairStyle.Color2 = 0;
+            _eyeColor = 0;
+            _hairStyle.Id = 0; _hairStyle.Overlay = 0; _hairStyle.Color = 0; _hairStyle.Color2 = 0;
 
             for (int i = 0; i < 20; i++)
-                FaceFeatures[i] = 0;
+                _faceFeatures[i] = 0;
 
             for (int i = 0; i < 13; i++)
             {
-                HeadOverlays[i].Color = 0;
-                HeadOverlays[i].SecondaryColor = 0;
-                HeadOverlays[i].Opacity = 1;
-                HeadOverlays[i].Index = 255;
+                _headOverlays[i].Color = 0;
+                _headOverlays[i].SecondaryColor = 0;
+                _headOverlays[i].Opacity = 1;
+                _headOverlays[i].Index = 255;
             }
 
-            HeadOverlays[4].Opacity = 0.5f;
-            HeadOverlays[5].Opacity = 0.5f;
-            HeadOverlays[8].Opacity = 0.5f;
+            _headOverlays[4].Opacity = 0.5f;
+            _headOverlays[5].Opacity = 0.5f;
+            _headOverlays[8].Opacity = 0.5f;
 
-            HeadOverlays[12].Opacity = 0;
+            _headOverlays[12].Opacity = 0;
 
             Player.LocalPlayer.ClearFacialDecorations();
         }
-        #endregion
 
         public CharacterCreation()
         {
-            #region Events
-            Events.Add("CharacterCreation::StartNew", async (object[] args) => { await StartNew(); });
-            Events.Add("CharacterCreation::Close", async (object[] args) => { await Close(); });
+            Events.Add("CharacterCreation::StartNew", async (args) => { await StartNew(); });
+            Events.Add("CharacterCreation::Close", async (args) => { await Close(); });
 
-            #region Create
-            Events.Add("CharacterCreation::Create", (object[] args) =>
+            Events.Add("CharacterCreation::Create", async (args) =>
             {
                 var name = (string)args[0];
                 var surname = (string)args[1];
@@ -127,12 +120,10 @@ namespace BCRPClient.CEF
 
                     CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
-                    Events.CallRemote("CharacterCreation::Create", name, surname, age, Sex, EyeColor, RAGE.Util.Json.Serialize(HeadBlend), RAGE.Util.Json.Serialize(HeadOverlays), RAGE.Util.Json.Serialize(HairStyle), RAGE.Util.Json.Serialize(FaceFeatures), RAGE.Util.Json.Serialize(Clothes));
+                    var res = await Events.CallRemoteProc("CharacterCreation::Create", name, surname, age, _sex, _eyeColor, RAGE.Util.Json.Serialize(_headBlend), RAGE.Util.Json.Serialize(_headOverlays), RAGE.Util.Json.Serialize(_hairStyle), RAGE.Util.Json.Serialize(_faceFeatures), RAGE.Util.Json.Serialize(_clothes));
                 }
             });
-            #endregion
 
-            #region Exit
             Events.Add("CharacterCreation::OnExit", (object[] args) =>
             {
                 var approveContext = "CharacterCreationEXIT";
@@ -158,69 +149,72 @@ namespace BCRPClient.CEF
                     Events.CallRemote("CharacterCreation::Exit");
                 }
             });
-            #endregion
 
-            #region Set Sex
-            Events.Add("CharacterCreation::SetSex", (object[] args) =>
+            Events.Add("CharacterCreation::SetSex", async (args) =>
             {
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
                 var newSex = (bool)args[0];
 
-                if (newSex == Sex)
+                if (newSex == _sex)
                     return;
 
-                Sex = newSex;
-
-                if (IsActive)
-                    Browser.Window.ExecuteJs("ChCreate.sexApply", Sex ? "boy" : "girl");
-
-                Events.CallRemote("CharacterCreation::SetSex", Sex);
 
                 LastSent = Sync.World.ServerTime;
 
-                (new AsyncTask(() =>
+                var res = (int)await Events.CallRemoteProc("CharacterCreation::SetSex", _sex);
+
+                if (res == 0)
                 {
+                    CEF.Notification.ShowErrorDefault();
+                }
+                else if (res == 255)
+                {
+                    _sex = newSex;
+
+                    if (IsActive)
+                        Browser.Window.ExecuteJs("ChCreate.sexApply", _sex ? "boy" : "girl");
+
+                    Events.CallRemote("CharacterCreation::SetSex", _sex);
+
+                    LastSent = Sync.World.ServerTime;
+
                     SetDefaultCustomization();
                     Data.Clothes.UndressAll();
 
-                    Clothes[0] = null;
-                    Clothes[1] = null;
-                    Clothes[2] = null;
-                    Clothes[3] = null;
-                }, 250)).Run();
+                    _clothes[0] = null;
+                    _clothes[1] = null;
+                    _clothes[2] = null;
+                    _clothes[3] = null;
+                }
             });
-            #endregion
 
-            #region Get Random Name
             Events.Add("CharacterCreation::GetRandomName", (object[] args) =>
             {
                 if (!IsActive)
                     return;
 
-                Random r = new Random();
+                var r = Utils.Random;
 
-                Browser.Window.ExecuteJs("ChCreate.nameSet", Sex ? MaleNames[r.Next(0, MaleNames.Length - 1)] : FemaleNames[r.Next(0, MaleNames.Length - 1)], Surnames[r.Next(0, Surnames.Length - 1)]);
+                Browser.Window.ExecuteJs("ChCreate.nameSet", _sex ? _maleNames[r.Next(0, _maleNames.Length - 1)] : _femaleNames[r.Next(0, _maleNames.Length - 1)], _surnames[r.Next(0, _surnames.Length - 1)]);
             });
-            #endregion
 
-            #region Updaters
             #region Parents
             Events.Add("CharacterCreation::Update::Parents", (object[] args) =>
             {
                 var parent = (string)args[1];
 
                 if (parent == "father")
-                    HeadBlend.SetFather((byte)(int)args[0]);
+                    _headBlend.SetFather((byte)(int)args[0]);
                 else if (parent == "mother")
-                    HeadBlend.SetMother((byte)(int)args[0]);
+                    _headBlend.SetMother((byte)(int)args[0]);
                 else if (parent == "mix-0")
-                    HeadBlend.ShapeMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
+                    _headBlend.ShapeMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
                 else if (parent == "mix-1")
-                    HeadBlend.SkinMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
+                    _headBlend.SkinMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
 
-                Player.LocalPlayer.SetHeadBlendData(HeadBlend.GetMother(), HeadBlend.GetFather(), 0, HeadBlend.GetMother(), HeadBlend.GetFather(), 0, HeadBlend.ShapeMix, HeadBlend.SkinMix, 0, true);
+                Player.LocalPlayer.SetHeadBlendData(_headBlend.GetMother(), _headBlend.GetFather(), 0, _headBlend.GetMother(), _headBlend.GetFather(), 0, _headBlend.ShapeMix, _headBlend.SkinMix, 0, true);
             });
             #endregion
 
@@ -230,7 +224,7 @@ namespace BCRPClient.CEF
                 var id = (int)args[1];
                 var value = RAGE.Util.Json.Deserialize<float>((string)args[0]);
 
-                if (id < 0 || id > FaceFeatures.Length)
+                if (id < 0 || id > _faceFeatures.Length)
                     return;
 
                 if (value < -1f)
@@ -240,7 +234,7 @@ namespace BCRPClient.CEF
 
                 Player.LocalPlayer.SetFaceFeature(id, value);
 
-                FaceFeatures[id] = value;
+                _faceFeatures[id] = value;
             });
             #endregion
 
@@ -258,9 +252,9 @@ namespace BCRPClient.CEF
                 else
                     value--;
 
-                Player.LocalPlayer.SetHeadOverlay(id, value, HeadOverlays[id].Opacity);
+                Player.LocalPlayer.SetHeadOverlay(id, value, _headOverlays[id].Opacity);
 
-                HeadOverlays[id].Index = (byte)value;
+                _headOverlays[id].Index = (byte)value;
             });
 
             Events.Add("CharacterCreation::Update::HeadOverlayOpacity", (object[] args) =>
@@ -276,9 +270,9 @@ namespace BCRPClient.CEF
                 else if (value > 1f)
                     value = 1f;
 
-                Player.LocalPlayer.SetHeadOverlay(id, HeadOverlays[id].Index, value);
+                Player.LocalPlayer.SetHeadOverlay(id, _headOverlays[id].Index, value);
 
-                HeadOverlays[id].Opacity = value;
+                _headOverlays[id].Opacity = value;
             });
 
             Events.Add("CharacterCreation::Update::HeadOverlayColor", (object[] args) =>
@@ -296,8 +290,8 @@ namespace BCRPClient.CEF
 
                 Player.LocalPlayer.SetHeadOverlayColor(id, id == 5 || id == 8 ? 2 : 1, value, value);
 
-                HeadOverlays[id].Color = value;
-                HeadOverlays[id].SecondaryColor = value;
+                _headOverlays[id].Color = value;
+                _headOverlays[id].SecondaryColor = value;
             });
             #endregion
 
@@ -305,17 +299,17 @@ namespace BCRPClient.CEF
             Events.Add("CharacterCreation::Update::Hair", (object[] args) =>
             {
                 int id = (int)args[0];
-                int value = Data.Customization.GetHair(Sex, id);
+                int value = Data.Customization.GetHair(_sex, id);
 
-                if (HairStyle.Id == id)
+                if (_hairStyle.Id == id)
                     return;
 
                 Player.LocalPlayer.SetComponentVariation(2, value, 0, 0);
 
-                HairStyle.Id = id;
+                _hairStyle.Id = id;
 
                 if (IsActive)
-                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.GetDefaultHairOverlayId(Sex, (int)args[0]));
+                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.GetDefaultHairOverlayId(_sex, (int)args[0]));
             });
 
             Events.Add("CharacterCreation::Update::HairOverlay", (object[] args) =>
@@ -325,9 +319,9 @@ namespace BCRPClient.CEF
                 if (value < 0)
                     value = 0;
 
-                HairStyle.Overlay = value;
+                _hairStyle.Overlay = value;
 
-                var overlay = Data.Customization.GetHairOverlay(Sex, value);
+                var overlay = Data.Customization.GetHairOverlay(_sex, value);
 
                 Player.LocalPlayer.ClearFacialDecorations();
 
@@ -345,14 +339,14 @@ namespace BCRPClient.CEF
                 else if (value > 63)
                     value = 63;
 
-                Player.LocalPlayer.SetHairColor(isFirst ? value : HairStyle.Color, value);
+                Player.LocalPlayer.SetHairColor(isFirst ? value : _hairStyle.Color, value);
 
                 if (isFirst)
-                    HairStyle.Color = value;
+                    _hairStyle.Color = value;
 
-                HairStyle.Color2 = value;
+                _hairStyle.Color2 = value;
 
-                if (Data.Customization.GetHairOverlay(Sex, HairStyle.Overlay) is Data.Customization.HairOverlay overlay)
+                if (Data.Customization.GetHairOverlay(_sex, _hairStyle.Overlay) is Data.Customization.HairOverlay overlay)
                 {
                     Player.LocalPlayer.ClearFacialDecorations();
 
@@ -373,7 +367,7 @@ namespace BCRPClient.CEF
 
                 Player.LocalPlayer.SetEyeColor(value);
 
-                EyeColor = value;
+                _eyeColor = value;
             });
             #endregion
 
@@ -391,15 +385,15 @@ namespace BCRPClient.CEF
                         Data.Clothes.Unwear(typeof(Data.Items.Top));
                     }
 
-                    var clothes = DefaultClothes[Sex][type][value];
+                    var clothes = _defaultClothes[_sex][type][value];
 
-                    Clothes[type] = clothes;
+                    _clothes[type] = clothes;
 
                     Data.Clothes.Wear(clothes, 0);
                 }
                 else
                 {
-                    Clothes[type] = null;
+                    _clothes[type] = null;
 
                     if (type == 0)
                         Data.Clothes.Unwear(typeof(Data.Items.Hat));
@@ -414,8 +408,6 @@ namespace BCRPClient.CEF
                         Data.Clothes.Unwear(typeof(Data.Items.Shoes));
                 }
             });
-            #endregion
-            #endregion
             #endregion
         }
 
@@ -441,24 +433,21 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task Close()
         {
-            foreach (var bind in TempBinds)
+            foreach (var bind in _tempBinds)
                 KeyBinds.Unbind(bind);
 
-            TempBinds = null;
+            _tempBinds = null;
 
-            DefaultClothes = null;
-            MaleNames = null;
-            FemaleNames = null;
-            Surnames = null;
+            _defaultClothes = null;
 
-            HeadBlend = null;
-            HeadOverlays = null;
-            FaceFeatures = null;
-            HairStyle = null;
-            Clothes = null;
+            _headBlend = null;
+            _headOverlays = null;
+            _faceFeatures = null;
+            _hairStyle = null;
+            _clothes = null;
 
-            CursorTask = null;
-            LastCursorPos = null;
+            _cursorTask = null;
+            _lastCursorPos = null;
 
             await Browser.Render(Browser.IntTypes.CharacterCreation, false);
 
@@ -474,95 +463,86 @@ namespace BCRPClient.CEF
             Player.LocalPlayer.ResetData("TempClothes::Gloves");
         }
 
-        #region Start New
         public static async System.Threading.Tasks.Task StartNew()
         {
-            CurrentCameraStateNum = 0;
+            _currentCameraStateNum = 0;
 
             LastSent = Sync.World.ServerTime;
 
-            TempBinds = new List<int>();
+            _tempBinds = new List<int>();
 
-            #region Default Data (+ Random Names)
-            MaleNames = "Dario,Deante,Alton,Estevan,Kody,Louis,Joey,Braiden,Kennedy,Sabastian,Tony,Briar,Osvaldo,Corbin,Winston,Shamar,Allan,Layton,Jaleel,Rogelio,Bronson,Tracy,Jaylan,Derek,Corey,Domenic,Jevon,Nathen,Kane,Floyd,Drake,Kristofer,Auston,Ramon,Gordon,Patrick,Ethen,Tyriq,Dashaun,Reginald,Mikael,Tristin,Reilly,Jase,Christopher,Braeden,Cain,Ronaldo,Norman,Bradly,Conor,Kole,Ryan,Mustafa,Martin,Tyson,Jalil,Lloyd,Treyvon,Jordon,David,Morgan,Rowan,Lincoln,Abdullah,Jonathan,Dejon,Mohammad,Trever,Cecil,Alvaro,Deonte,Mauricio,Leslie,Daquan,Tommy,Garrison,Khalil,Eli,Leonard,Brycen,Ladarius,Bailey,Armando,Cannon,Korey,Geoffrey,Mikel,Kasey,Enrique,Darryl,Tyrese,Esteban,Jonathon,Zackary,Kavon,Desmond,Rodney,Desean,Marquis,Spencer,Malachi,Rocco,Brooks,Gerard,Clarence,Miguelangel,Dequan,Micah,Jabari,Andres,Tahj,Rahul,Jayson,Lamar,Caleb,Isidro,Lucas,Ismael,Marcos,Alden,Maxim,Albert,Billy,Bryant,Jan,Draven,Gannon,Korbin,Donald,Stefan,Syed,Aiden,Troy,Grant,Aman,Rashad,Alek,Deion,Trinity,Edgardo,Rickey,Angelo,Rafael,Javon,William,Roman,Coy,Arturo,Guillermo".Split(',');
-            FemaleNames = "Makaela,Adriana,Aniya,Maryann,Nayeli,Alex,Janiya,Camila,Paulina,Zaria,Samira,Audrey,Yasmin,Pilar,Veronica,Tristin,Iris,Angie,Laken,Leyla,Maia,Shay,Tatyana,Jaliyah,Shelbi,Corrine,Alanis,Miracle,Aiyana,Tayler,Susannah,Eliza,Helen,Devyn,Nicolette,Kassidy,Griselda,Janessa,Joy,Cayla,Rubi,Hillary,Chassidy,Liza,Lyndsey,Dajah,Savana,Danielle,Lilliana,Imari,Emerald,Tiffani,Tyra,Kaylyn,Jasmyne,Bobbi,Ann,Infant,Robin,Nathalie,Gwendolyn,Allie,Hazel,Jailyn,Darby,Anabel,Justine,Gina,Susanna,Carina,Katlyn,Chaya,Haven,Mindy,Lily,Jennifer,Lilian,Macie,Klarissa,Gia,Whitney,Izabella,Tionna,Kayley,Camille,Misty,Karlee,Brooklyn,Kyndall,Kelsi,Charity,Keri,Susana,Karla,Jewel,Kristal,Karissa,Kiana,Gloria,Danica,Francesca,Elaina,Jayden,Jacinda,Nicolle,Cathy,Jessika,Jada,Lucinda,Tyasia,Daria,Meg,Desire,Halley,Beth,Jazmyn,Ayesha,Kristy,Flor,Nyla,Fatima,Kalie,Sandra,Evelin,Georgina,Alaina,Notnamed,Terri,Sasha,Carrie,Melanie,Keyara,Galilea,Lucero,Silvia,Yesica,Sadie,Shyanne,Breanne,Sheyla,Shreya,Rhonda,Colette,Leila,Katharine,Jala,Cynthia,Jesse,Nikole,Linnea".Split(',');
-            Surnames = "Zimmer,Cable,Edwards,Neumann,Royer,Beers,Marr,Daigle,Turner,Baldwin,Poore,Roldan,Hadley,Benton,Wetzel,Good,Walsh,Carlson,Low,Mcghee,Corcoran,Dozier,Krueger,Jaeger,Reyes,Stroud,Ricks,Gallegos,Bartels,Ridgeway,Gill,Estep,Graham,Burks,Nance,Norris,Patten,Holmes,Locke,Mancuso,Huerta,Cordell,Schiller,Oh,Snyder,Staples,Morgan,Hand,Newberry,Gallant,Turpin,Bermudez,Mallory,Garber,Robles,Spears,Corbin,Maxwell,Mott,Mulligan,Lowry,Whitworth,Fulmer,Heredia,Vang,Dixon,Alonzo,Muse,Watts,Hennessy,Savage,Borden,Sam,Loy,Mojica,Singletary,Noble,Wolff,Evers,Guillen,Muir,Mason,Correa,Emerson,Reedy,Braswell,Zhao,Hinds,Shipp,Ruffin,Land,Jacobson,Stamper,Solorzano,Ly,Garza,Canada,Colburn,High,Light,Woodruff,Jacoby,Schwab,Kenny,Lindsey,Ngo,Cramer,Chin,Cepeda,Ochoa,Mears,Victor,Ferguson,Kirk,Felder,Quigley,Price,Browne,Atkinson,Mancini,Robertson,Alley,Israel,Polanco,Lane,Heinrich,Chow,Herr,Morris,Llamas,Woods,Ceja,Davenport,Ware,Ryder,Swain,Sepulveda,Hastings,Flowers,Fair,Decker,Winslow,Jewell,Ortega,Lauer,Root,Spaulding,Ragland,Embry,Bateman".Split(',');
-
-            DefaultClothes = new Dictionary<bool, string[][]>()
+            _defaultClothes = new Dictionary<bool, string[][]>()
             {
                 { true, new string[][] { new string[] { "hat_m_0", "hat_m_8", "hat_m_39" }, new string[] { "top_m_0", "under_m_2", "under_m_5" }, new string[] { "pants_m_0", "pants_m_2", "pants_m_11" }, new string[] { "shoes_m_5", "shoes_m_1", "shoes_m_3" } } },
                 { false, new string[][] { new string[] { "hat_f_1", "hat_f_13", "hat_f_6" }, new string[] { "top_f_5", "under_f_2", "under_f_1" }, new string[] { "pants_f_0", "pants_f_4", "pants_f_7" }, new string[] { "shoes_f_0", "shoes_f_2", "shoes_f_5" } } },
             };
 
-            Clothes = new string[] { null, null, null, null };
-            #endregion
+            _clothes = new string[] { null, null, null, null };
 
-            Sex = true;
+            _sex = true;
 
-            HeadBlend = new Data.Customization.HeadBlend();
-            HairStyle = new Data.Customization.HairStyle();
-            HeadOverlays = new Dictionary<int, Data.Customization.HeadOverlay>();
+            _headBlend = new Data.Customization.HeadBlend();
+            _hairStyle = new Data.Customization.HairStyle();
+            _headOverlays = new Dictionary<int, Data.Customization.HeadOverlay>();
 
             for (int i = 0; i < 13; i++)
-                HeadOverlays.Add(i, new Data.Customization.HeadOverlay());
+                _headOverlays.Add(i, new Data.Customization.HeadOverlay());
 
-            FaceFeatures = new float[20];
+            _faceFeatures = new float[20];
 
             SetDefaultCustomization();
             Data.Clothes.UndressAll();
 
-            CursorTask = null;
+            _cursorTask = null;
 
             GameEvents.Render -= ClearTasksRender;
             GameEvents.Render += ClearTasksRender;
 
             CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
 
-            DefaultHeading = Player.LocalPlayer.GetHeading();
+            _defaultHeading = Player.LocalPlayer.GetHeading();
 
             await Show();
 
             Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
-                if (CursorTask != null)
+                if (_cursorTask != null)
                     return;
 
-                LastCursorPos = RAGE.Ui.Cursor.Position;
+                _lastCursorPos = RAGE.Ui.Cursor.Position;
 
-                CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
-                CursorTask.Run();
+                _cursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
+                _cursorTask.Run();
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
-                if (CursorTask == null)
+                if (_cursorTask == null)
                     return;
 
-                CursorTask.Cancel();
+                _cursorTask.Cancel();
 
-                CursorTask = null;
+                _cursorTask = null;
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
-                ChangeView(++CurrentCameraStateNum);
+                ChangeView(++_currentCameraStateNum);
             }));
         }
-        #endregion
 
-        #region Stuff
         private static void ChangeView(int camStateNum)
         {
             if (camStateNum >= AllowedCameraStates.Length || AllowedCameraStates.Length < camStateNum)
                 camStateNum = 0;
 
-            Player.LocalPlayer.SetHeading(DefaultHeading);
+            Player.LocalPlayer.SetHeading(_defaultHeading);
 
             Additional.Camera.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
 
-            CurrentCameraStateNum = camStateNum;
+            _currentCameraStateNum = camStateNum;
         }
 
         public static void ClearTasksRender()
@@ -573,14 +553,14 @@ namespace BCRPClient.CEF
         public static void OnTickMouse()
         {
             var curPos = RAGE.Ui.Cursor.Position;
-            var dist = curPos.Distance(LastCursorPos);
+            var dist = curPos.Distance(_lastCursorPos);
             var newHeading = Player.LocalPlayer.GetHeading();
 
-            if (curPos.X > LastCursorPos.X)
+            if (curPos.X > _lastCursorPos.X)
                 newHeading += dist / 10;
-            else if (curPos.X < LastCursorPos.X)
+            else if (curPos.X < _lastCursorPos.X)
                 newHeading -= dist / 10;
-            else if (curPos.X == LastCursorPos.X)
+            else if (curPos.X == _lastCursorPos.X)
             {
                 if (curPos.X == 0)
                     newHeading -= 5;
@@ -604,8 +584,7 @@ namespace BCRPClient.CEF
 
             Player.LocalPlayer.SetHeading(newHeading);
 
-            LastCursorPos = curPos;
+            _lastCursorPos = curPos;
         }
-        #endregion
     }
 }

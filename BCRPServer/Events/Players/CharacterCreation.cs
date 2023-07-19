@@ -35,18 +35,18 @@ namespace BCRPServer.Events.Players
             player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, true, "CharacterCreation::StartNew");
         }
 
-        [RemoteEvent("CharacterCreation::SetSex")]
-        public static void SetSex(Player player, bool sex)
+        [RemoteProc("CharacterCreation::SetSex")]
+        public static byte SetSex(Player player, bool sex)
         {
             var sRes = player.CheckSpamAttackTemp();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var tData = sRes.Data;
 
             if (tData.StepType != TempData.StepTypes.CharacterCreation)
-                return;
+                return 0;
 
             player.SetSkin(sex ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01);
             player.SetCustomization(sex, Game.Data.Customization.Defaults.HeadBlend, Game.Data.Customization.Defaults.EyeColor, Game.Data.Customization.Defaults.HairStyle.Color, Game.Data.Customization.Defaults.HairStyle.Color2, Game.Data.Customization.Defaults.FaceFeatures, Game.Data.Customization.Defaults.HeadOverlays, Game.Data.Customization.Defaults.Decorations);
@@ -55,6 +55,8 @@ namespace BCRPServer.Events.Players
                 player.UpdateHeadBlend(0f, 0.5f, 0f);
 
             Undress(player, sex);
+
+            return 255;
         }
 
         [RemoteEvent("CharacterCreation::Exit")]

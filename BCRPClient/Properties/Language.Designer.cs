@@ -379,11 +379,29 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на {0:n0} фишек.
+        /// </summary>
+        public static string GEN_CHIPS_0 {
+            get {
+                return ResourceManager.GetString("GEN_CHIPS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на {0} м..
         /// </summary>
         public static string GEN_DIST_METERS_0 {
             get {
                 return ResourceManager.GetString("GEN_DIST_METERS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ${0:n0}.
+        /// </summary>
+        public static string GEN_MONEY_0 {
+            get {
+                return ResourceManager.GetString("GEN_MONEY_0", resourceCulture);
             }
         }
         
@@ -411,6 +429,87 @@ namespace BCRPClient.Properties {
         public static string GEN_TEXT_NOTMATCH_0 {
             get {
                 return ResourceManager.GetString("GEN_TEXT_NOTMATCH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} дн..
+        /// </summary>
+        public static string GEN_TIMESPAN_DAYS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_DAYS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} дн. и {1} ч..
+        /// </summary>
+        public static string GEN_TIMESPAN_DAYS_HOURS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_DAYS_HOURS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} ч..
+        /// </summary>
+        public static string GEN_TIMESPAN_HOURS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_HOURS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} ч. и {1} мин..
+        /// </summary>
+        public static string GEN_TIMESPAN_HOURS_MINS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_HOURS_MINS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} мин..
+        /// </summary>
+        public static string GEN_TIMESPAN_MINS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_MINS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} мин. и {1} сек..
+        /// </summary>
+        public static string GEN_TIMESPAN_MINS_SECS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_MINS_SECS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} сек..
+        /// </summary>
+        public static string GEN_TIMESPAN_SECS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_SECS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} год(а).
+        /// </summary>
+        public static string GEN_TIMESPAN_YEARS_0 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_YEARS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на долгие годы.
+        /// </summary>
+        public static string GEN_TIMESPAN_YEARS_1 {
+            get {
+                return ResourceManager.GetString("GEN_TIMESPAN_YEARS_1", resourceCulture);
             }
         }
         
@@ -1101,6 +1200,15 @@ namespace BCRPClient.Properties {
         public static string OFFER_CASH_TEXT {
             get {
                 return ResourceManager.GetString("OFFER_CASH_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам лечебную таблетку, стоимость: {1}.
+        /// </summary>
+        public static string OFFER_EMSHEAL_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMSHEAL_TEXT", resourceCulture);
             }
         }
         

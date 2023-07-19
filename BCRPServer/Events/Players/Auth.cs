@@ -324,7 +324,7 @@ namespace BCRPServer.Events.Players
                     {
                         var pos = Utils.Demorgan.GetNextPos();
 
-                        data.LastData.Dimension = Properties.Settings.Profile.Current.Game.DemorganDimension;
+                        data.LastData.Dimension = Properties.Settings.Static.DemorganDimension;
                         data.LastData.Position.Position = pos;
                     }
                     else if (activePunishment.Type == Sync.Punishment.Types.Arrest)
@@ -336,7 +336,7 @@ namespace BCRPServer.Events.Players
                         var pos = fData.GetNextArrestCellPosition();
 
                         data.LastData.Position.Position = pos;
-                        data.LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
+                        data.LastData.Dimension = Properties.Settings.Static.MainDimension;
                     }
 
                     tData.Delete();
@@ -411,7 +411,7 @@ namespace BCRPServer.Events.Players
                 else if (sType == TempData.StartPlaceTypes.SpawnBlaineCounty)
                 {
                     tData.PositionToSpawn = new Utils.Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
-                    tData.DimensionToSpawn = Properties.Settings.Profile.Current.Game.MainDimension;
+                    tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                     player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
@@ -427,7 +427,7 @@ namespace BCRPServer.Events.Players
                             return false;
 
                         tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
-                        tData.DimensionToSpawn = Properties.Settings.Profile.Current.Game.MainDimension;
+                        tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }
@@ -446,7 +446,7 @@ namespace BCRPServer.Events.Players
                             return false;
 
                         tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
-                        tData.DimensionToSpawn = Properties.Settings.Profile.Current.Game.MainDimension;
+                        tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }

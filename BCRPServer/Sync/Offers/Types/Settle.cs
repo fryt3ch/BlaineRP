@@ -20,7 +20,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var houseBase = pData.CurrentHouseBase;

@@ -20,7 +20,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             Sync.Chat.SendLocal(Chat.MessageTypes.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));

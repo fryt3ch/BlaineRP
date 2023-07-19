@@ -118,7 +118,7 @@ namespace BCRPServer
 
             BlockRemoteCalls = true;
 
-            DimensionToSpawn = Properties.Settings.Profile.Current.Game.MainDimension;
+            DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
             StepType = StepTypes.None;
 
@@ -158,10 +158,10 @@ namespace BCRPServer
                 sTypes.Add(StartPlaceTypes.SpawnLosSantos);
             }
 
-            if (PlayerData.LastData.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+            if (PlayerData.LastData.Dimension != Properties.Settings.Static.MainDimension)
             {
                 PlayerData.LastData.Position.Position = Utils.DefaultSpawnPosition;
-                PlayerData.LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
+                PlayerData.LastData.Dimension = Properties.Settings.Static.MainDimension;
             }
             else
             {

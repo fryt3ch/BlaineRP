@@ -914,7 +914,7 @@ namespace BCRPClient.Sync
                             {
                                 var randRes = Utils.Random.NextDouble();
 
-                                if (randRes <= Settings.App.Static.DAMAGE_SYSTEM_WOUND_CHANCE) // wounded chance
+                                if (randRes <= Settings.App.Static.WeaponSystemWoundChance) // wounded chance
                                 {
                                     Events.CallRemote("dmswme");
                                 }

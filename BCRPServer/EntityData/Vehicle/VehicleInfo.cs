@@ -93,7 +93,7 @@ namespace BCRPServer
             {
                 var data = Game.Data.Vehicles.All[ID];
 
-                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Properties.Settings.Profile.Current.Game.StuffDimension);
+                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Properties.Settings.Static.StuffDimension);
 
                 return veh;
             }
@@ -116,7 +116,7 @@ namespace BCRPServer
 
                     var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
 
-                    if (LastData.Dimension != Properties.Settings.Profile.Current.Game.MainDimension && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
+                    if (LastData.Dimension != Properties.Settings.Static.MainDimension && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                     {
                         var hId = Utils.GetHouseIdByDimension(LastData.Dimension);
 
@@ -158,8 +158,8 @@ namespace BCRPServer
                         }
                         else
                         {
-                            if (LastData.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
-                                LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
+                            if (LastData.Dimension != Properties.Settings.Static.MainDimension)
+                                LastData.Dimension = Properties.Settings.Static.MainDimension;
 
                             if (LastData.GarageSlot != -1)
                                 LastData.GarageSlot = -1;

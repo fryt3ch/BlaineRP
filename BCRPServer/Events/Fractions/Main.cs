@@ -59,7 +59,7 @@ namespace BCRPServer.Events.Fractions
             if (!fData.AllVehicles.ContainsKey(vInfo))
                 return null;
 
-            if (vInfo.VehicleData == null || vInfo.VehicleData.Vehicle.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+            if (vInfo.VehicleData == null || vInfo.VehicleData.Vehicle.Dimension != Properties.Settings.Static.MainDimension)
             {
                 return null;
             }

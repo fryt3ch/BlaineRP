@@ -95,7 +95,7 @@ namespace BCRPServer.Sync
             }
             else if (vInfo.VehicleData.Vehicle.Dimension != pData.Player.Dimension)
             {
-                if (pData.Player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+                if (pData.Player.Dimension != Properties.Settings.Static.MainDimension)
                 {
                     pData.Player.Notify("Vehicle::KENS");
 
@@ -143,7 +143,7 @@ namespace BCRPServer.Sync
         {
             if (vData.Vehicle.Dimension != pData.Player.Dimension)
             {
-                if (pData.Player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+                if (pData.Player.Dimension != Properties.Settings.Static.MainDimension)
                 {
                     pData.Player.Notify("Vehicle::KENS");
 

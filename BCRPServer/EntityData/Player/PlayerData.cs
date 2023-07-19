@@ -385,7 +385,7 @@ namespace BCRPServer
         {
             Info = new PlayerInfo() { AID = aid };
 
-            LastData = new LastPlayerData() { Dimension = Properties.Settings.Profile.Current.Game.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
+            LastData = new LastPlayerData() { Dimension = Properties.Settings.Static.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
             Name = name;
             Surname = surname;
@@ -406,8 +406,8 @@ namespace BCRPServer
             Satiety = Properties.Settings.Static.CHARACTER_DEFAULT_SATIETY;
             Mood = Properties.Settings.Static.CHARACTER_DEFAULT_MOOD;
 
-            Info.Skills = Properties.Settings.Static.CHARACTER_DEFAULT_SKILLS;
-            Info.Licenses = Properties.Settings.Static.CHARACTER_DEFAULT_LICENSES;
+            Info.Skills = Properties.Settings.Static.CharacterDefaultSkills;
+            Info.Licenses = Properties.Settings.Static.CharacterDefaultLicenses;
 
             Gifts = new List<Game.Items.Gift>();
 

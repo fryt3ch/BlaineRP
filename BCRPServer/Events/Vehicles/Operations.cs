@@ -50,13 +50,13 @@ namespace BCRPServer.Events.Vehicles
                     if (house.GarageOutside == null)
                         return 3;
 
-                    veh.Teleport(house.GarageOutside.Position, Properties.Settings.Profile.Current.Game.MainDimension, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(house.GarageOutside.Position, Properties.Settings.Static.MainDimension, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                 }
                 else if (pData.CurrentGarage is Game.Estates.Garage garage)
                 {
                     var ePos = garage.Root.GetNextVehicleExit();
 
-                    veh.Teleport(ePos.Position, Properties.Settings.Profile.Current.Game.MainDimension, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(ePos.Position, Properties.Settings.Static.MainDimension, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                 }
                 else
                 {
@@ -121,7 +121,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return 0;
 
-            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != veh && !player.IsNearToEntity(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!vData.CanManipulate(pData, true))
@@ -275,7 +275,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return 0;
 
-            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != veh && !player.IsNearToEntity(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!vData.CanManipulate(pData, true))
@@ -332,7 +332,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return 0;
 
-            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != veh && !player.IsNearToEntity(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!vData.CanManipulate(pData, true))

@@ -89,7 +89,7 @@ namespace BCRPServer.Events.Players
             if (item.Type == Sync.World.ItemOnGround.Types.PlacedItem && !item.PlayerHasAccess(pData, false, true))
                 return;
 
-            if (!player.AreEntitiesNearby(item.Object, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.IsNearToEntity(item.Object, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);

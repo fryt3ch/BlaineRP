@@ -34,7 +34,7 @@ namespace BCRPServer.Events.Fractions
             if (fData == null)
                 return 0;
 
-            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, 7.5f))
                 return 0;
 
             if (tData.IsKnocked || tData.IsFrozen)
@@ -103,7 +103,7 @@ namespace BCRPServer.Events.Fractions
                 if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Any())
                     return 0;
 
-                if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                if (!tData.Player.IsNearToEntity(player, 7.5f))
                     return 0;
 
                 if (!tData.IsCuffed)
@@ -188,10 +188,10 @@ namespace BCRPServer.Events.Fractions
             if (vData == null)
                 return 0;
 
-            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, 7.5f))
                 return 0;
 
-            if (!vData.Vehicle.AreEntitiesNearby(player, 10f))
+            if (!vData.Vehicle.IsNearToEntity(player, 10f))
                 return 0;
 
             if (seatIdx == 255)
@@ -254,10 +254,10 @@ namespace BCRPServer.Events.Fractions
             if (vData == null)
                 return 0;
 
-            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, 7.5f))
                 return 0;
 
-            if (!vData.Vehicle.AreEntitiesNearby(player, 10f))
+            if (!vData.Vehicle.IsNearToEntity(player, 10f))
                 return 0;
 
             if (!tData.IsKnocked && !tData.IsCuffed)
@@ -318,7 +318,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, 7.5f))
                 return 0;
 
             if (!tData.IsCuffed)
@@ -373,7 +373,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!tData.Player.AreEntitiesNearby(pData.Player, 7.5f))
+            if (!tData.Player.IsNearToEntity(pData.Player, 7.5f))
                 return 0;
 
             reason1 = reason1.Trim();
@@ -674,7 +674,7 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
@@ -823,7 +823,7 @@ namespace BCRPServer.Events.Fractions
             if (vData == null)
                 return null;
 
-            if (!vData.Vehicle.AreEntitiesNearby(player, 7.5f))
+            if (!vData.Vehicle.IsNearToEntity(player, 7.5f))
                 return null;
 
             if (slot < 0 || slot >= pData.Items.Length)
@@ -910,7 +910,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return null;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Static.MainDimension)
                 return null;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -948,7 +948,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return false;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -1003,7 +1003,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return null;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return null;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -1106,7 +1106,7 @@ namespace BCRPServer.Events.Fractions
             }
             else
             {
-                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                     return 0;
 
                 var existingCall = Game.Fractions.Police.GetCallByCaller(player.Id);
@@ -1162,7 +1162,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
                 return null;
 
             if (licTypeS == null || licTypeS.Length == 0)
@@ -1210,7 +1210,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
                 return null;
 
             if (!tData.IsCuffed)
@@ -1375,7 +1375,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
                 return null;
 
             if (!tData.IsCuffed)
@@ -1462,7 +1462,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
                 return 0;
 
             if (!tData.IsCuffed)
@@ -1637,7 +1637,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null)
                 return null;
 
-            if (!pData.Player.AreEntitiesNearby(target, 10f))
+            if (!pData.Player.IsNearToEntity(target, 10f))
                 return null;
 
             if (sType == -1 || sType == -2)
@@ -1707,7 +1707,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null)
                 return 0;
 
-            if (!pData.Player.AreEntitiesNearby(tData.Vehicle, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Vehicle, 7.5f))
                 return 0;
 
             if (tData.Info.TID == 0)

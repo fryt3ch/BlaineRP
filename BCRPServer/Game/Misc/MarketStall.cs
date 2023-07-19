@@ -43,7 +43,7 @@ namespace BCRPServer.Game.Misc
                 Sync.World.SetSharedData($"MARKETSTALL_{stallIdx}_R", rid);
         }
 
-        public bool IsPlayerNear(Player player, float maxDistance = 7.5f) => player.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && player.Position.DistanceTo(Position.Position) <= maxDistance;
+        public bool IsPlayerNear(Player player, float maxDistance = 7.5f) => player.Dimension == Properties.Settings.Static.MainDimension && player.Position.DistanceTo(Position.Position) <= maxDistance;
 
         public static MarketStall GetByIdx(int stallIdx) => stallIdx < 0 || stallIdx >= All.Length ? null : All[stallIdx];
 

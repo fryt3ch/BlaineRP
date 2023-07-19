@@ -31,7 +31,7 @@ namespace BCRPServer.Events.Fractions
             if (bedInfo == null || bedInfo.Timer != null)
                 return false;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAnyAnimOn())
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAnyAnimOn())
                 return false;
 
             if (player.Health > 80)

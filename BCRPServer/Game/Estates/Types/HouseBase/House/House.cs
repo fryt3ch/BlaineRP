@@ -42,9 +42,9 @@ namespace BCRPServer.Game.Estates
             Sync.World.SetSharedData($"House::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
-        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
+        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Properties.Settings.Static.MainDimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
 
-        public bool IsEntityNearVehicleEnter(Entity entity) => GarageOutside == null ? false : entity.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && entity.Position.DistanceIgnoreZ(GarageOutside.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
+        public bool IsEntityNearVehicleEnter(Entity entity) => GarageOutside == null ? false : entity.Dimension == Properties.Settings.Static.MainDimension && entity.Position.DistanceIgnoreZ(GarageOutside.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
 
         public override void SetPlayersInside(bool teleport, params Player[] players)
         {
@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Estates
         {
             if (teleport)
             {
-                Utils.TeleportPlayers(PositionParams.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, PositionParams.RotationZ, true, players);
+                Utils.TeleportPlayers(PositionParams.Position, false, Properties.Settings.Static.MainDimension, PositionParams.RotationZ, true, players);
             }
             else
             {

@@ -63,17 +63,6 @@ namespace BCRPServer.Properties.Settings
             [JsonProperty(PropertyName = "streamDistance")]
             public float StreamDistance { get; private set; } = 300f;
 
-            [ClientSync]
-            [JsonProperty(PropertyName = "mainDimension")]
-            public uint MainDimension { get; private set; } = 7;
-
-            [ClientSync]
-            [JsonProperty(PropertyName = "stuffDimension")]
-            public uint StuffDimension { get; private set; } = 1;
-
-            [JsonProperty(PropertyName = "demorganDimension")]
-            public uint DemorganDimension { get; private set; } = 2;
-
             [JsonProperty(PropertyName = "playerPrivateDimensionBaseOffset")]
             public uint PlayerPrivateDimensionBaseOffset { get; private set; } = 1_000;
 

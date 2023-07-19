@@ -42,12 +42,12 @@ namespace BCRPServer
 
                 var pos = GetNextPos();
 
-                pData.Player.Teleport(pos, false, Properties.Settings.Profile.Current.Game.DemorganDimension, null, false);
+                pData.Player.Teleport(pos, false, Properties.Settings.Static.DemorganDimension, null, false);
             }
 
             public static void SetFromDemorgan(PlayerData pData)
             {
-                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Properties.Settings.Profile.Current.Game.MainDimension, Utils.DefaultSpawnHeading, false);
+                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Properties.Settings.Static.MainDimension, Utils.DefaultSpawnHeading, false);
             }
         }
 
@@ -377,9 +377,9 @@ namespace BCRPServer
             NAPI.ClientEvent.TriggerClientEventToPlayers(pArr, eventName, args);
         }
 
-        public static bool AreEntitiesNearby(this Entity entity, Entity target, float radius) => (entity.Dimension == target.Dimension && Vector3.Distance(entity.Position, target.Position) <= radius);
+        public static bool IsNearToEntity(this Entity entity, Entity target, float radius) => (entity.Dimension == target.Dimension && Vector3.Distance(entity.Position, target.Position) <= radius);
 
-        public static bool AreEntitiesNearbyDiffDims(this Entity entity, Entity target, float radius) => (Vector3.Distance(entity.Position, target.Position) <= radius);
+        public static bool IsNearToEntityDifferentDimension(this Entity entity, Entity target, float radius) => (Vector3.Distance(entity.Position, target.Position) <= radius);
 
         public static Entity GetEntityById(EntityType eType, ushort id)
         {

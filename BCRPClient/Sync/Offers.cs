@@ -110,6 +110,7 @@ namespace BCRPClient.Sync
             { Sync.Offers.Types.InviteOrganisation, "OFFER_INVITEORGANISATION_TEXT" },
             { Sync.Offers.Types.ShowFractionDocs, "OFFER_SHOWFRACTIONDOCS_TEXT" },
             { Sync.Offers.Types.PoliceFine, "OFFER_POLICEFINE_TEXT" },
+            { Sync.Offers.Types.EmsHeal, "OFFER_EMSHEAL_TEXT" },
         };
 
         private static List<int> _tempBinds;
@@ -201,6 +202,10 @@ namespace BCRPClient.Sync
                     return;
 
                 text = string.Format(text, name, fData.Name);
+            }
+            else if (type == Types.EmsHeal)
+            {
+                text = string.Format(text, name, data);
             }
             else
             {

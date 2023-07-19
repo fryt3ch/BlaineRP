@@ -163,7 +163,7 @@ namespace BCRPServer.Game.Items
 
             if (Entity?.Exists == true)
             {
-                return player.AreEntitiesNearby(Entity, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE);
+                return player.IsNearToEntity(Entity, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE);
             }
             else
             {

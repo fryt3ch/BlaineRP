@@ -83,7 +83,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             npc.SetTempDialogueData("buy_chips_amount", amountD);
 
-                            npc.ShowDialogue("casino_cashier_cbuy_0", false, null, Utils.ToStringWithWhitespace(amountD.ToString()), Utils.ToStringWithWhitespace(((ulong)Math.Floor(amountD * casino.BuyChipPrice)).ToString()));
+                            npc.ShowDialogue("casino_cashier_cbuy_0", false, null, Utils.SplitToNumberOf(amountD.ToString()), Utils.SplitToNumberOf(((ulong)Math.Floor(amountD * casino.BuyChipPrice)).ToString()));
                         },
 
                         () =>
@@ -134,7 +134,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             npc.SetTempDialogueData("sell_chips_amount", amountD);
 
-                            npc.ShowDialogue("casino_cashier_csell_0", false, null, Utils.ToStringWithWhitespace(amountD.ToString()), Utils.ToStringWithWhitespace(((ulong)Math.Floor(amountD * casino.SellChipPrice)).ToString()));
+                            npc.ShowDialogue("casino_cashier_csell_0", false, null, Utils.SplitToNumberOf(amountD.ToString()), Utils.SplitToNumberOf(((ulong)Math.Floor(amountD * casino.SellChipPrice)).ToString()));
                         },
 
                         () =>
@@ -157,7 +157,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                 dialogue.Buttons = btns;
 
-                NPC.CurrentNPC.ShowDialogue("casino_cashier_def_0", true, null, Utils.ToStringWithWhitespace(balance.ToString()));
+                NPC.CurrentNPC.ShowDialogue("casino_cashier_def_0", true, null, Utils.SplitToNumberOf(balance.ToString()));
             });
 
             new Dialogue("casino_cashier_def_0", "Приветствуем в кассе нашего казино, здесь вы можете купить или продать фишки для игры. У Вас на балансе - {0} фишек", null);

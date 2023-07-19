@@ -595,7 +595,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (!player.AreEntitiesNearby(veh, 10f))
+            if (!player.IsNearToEntity(veh, 10f))
                 return;
 
             Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
@@ -614,7 +614,7 @@ namespace BCRPServer.Events.Players
             if (target?.Exists != true)
                 return;
 
-            if (!player.AreEntitiesNearby(target, 10f))
+            if (!player.IsNearToEntity(target, 10f))
                 return;
 
             Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
@@ -698,7 +698,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (vData.EngineOn || !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (vData.EngineOn || !player.IsNearToEntity(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (vData.ForcedSpeed != 0f)

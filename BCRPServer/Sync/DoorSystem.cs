@@ -68,7 +68,7 @@ namespace BCRPServer.Sync
 
             AllDoors = new Dictionary<uint, Door>();
 
-            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Properties.Settings.Profile.Current.Game.MainDimension);
+            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Properties.Settings.Static.MainDimension);
 
             var lines = new List<string>();
 

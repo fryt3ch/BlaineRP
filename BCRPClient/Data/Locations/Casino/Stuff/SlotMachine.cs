@@ -244,7 +244,7 @@ namespace BCRPClient.Data
 
                 public static string GetJackpotString(decimal currentJackpot)
                 {
-                    var baseStr = Utils.ToStringWithWhitespace(currentJackpot.ToString());
+                    var baseStr = Utils.SplitToNumberOf(currentJackpot.ToString());
 
                     if (currentJackpot < JackpotMinValue)
                         return $"&#9940; {baseStr}";

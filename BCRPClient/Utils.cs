@@ -1208,7 +1208,7 @@ namespace BCRPClient
             RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);
         }
 
-        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (GameEvents.FPS > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : GameEvents.FPS);
+        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (GameEvents.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : GameEvents.CurrentFps);
 
         public static void SetTaskAsPending(string key, AsyncTask aTask)
         {
@@ -1249,9 +1249,9 @@ namespace BCRPClient
 
         public static decimal GetGovSellPrice(decimal price) => Math.Floor(price / 2m);
 
-        public static string GetPriceString(decimal price) => $"${ToStringWithWhitespace(price.ToString())}";
+        public static string GetPriceString(object price) => Locale.Get("GEN_MONEY_0", price);
 
-        public static string ToStringWithWhitespace(string str)
+        public static string SplitToNumberOf(string str)
         {
             var len = str.Length;
 
@@ -1270,6 +1270,7 @@ namespace BCRPClient
 
                 result.Insert(0, str[len - 1 - i]);
             }
+
             return result.ToString();
         }
 
@@ -1757,9 +1758,9 @@ namespace BCRPClient
                 var years = ts.Days / 365;
 
                 if (years >= 3)
-                    return "долгие годы";
+                    return Locale.Get("GEN_TIMESPAN_YEARS_1");
 
-                return $"{years} год(а)";
+                return Locale.Get("GEN_TIMESPAN_YEARS_0", years);
             }
 
             var days = ts.Days;
@@ -1769,9 +1770,9 @@ namespace BCRPClient
                 var hours = ts.Hours;
 
                 if (hours >= 1)
-                    return $"{days} дн. и {hours} ч.";
+                    return Locale.Get("GEN_TIMESPAN_DAYS_HOURS_0", days, hours);
 
-                return $"{days} дн.";
+                return Locale.Get("GEN_TIMESPAN_DAYS_0", days);
             }
 
             var hours1 = ts.Hours;
@@ -1781,9 +1782,9 @@ namespace BCRPClient
                 var mins = ts.Minutes;
 
                 if (mins >= 1)
-                    return $"{hours1} ч. и {mins} мин.";
+                    return Locale.Get("GEN_TIMESPAN_HOURS_MINS_0", hours1, mins);
 
-                return $"{hours1} ч.";
+                return Locale.Get("GEN_TIMESPAN_HOURS_0", hours1);
             }
 
             var mins1 = ts.Minutes;
@@ -1793,12 +1794,12 @@ namespace BCRPClient
             if (mins1 >= 1)
             {
                 if (secs >= 1)
-                    return $"{mins1} мин. и {secs} сек.";
+                    return Locale.Get("GEN_TIMESPAN_MINS_SECS_0", mins1, secs);
 
-                return $"{mins1} мин.";
+                return Locale.Get("GEN_TIMESPAN_MINS_0", mins1);
             }
 
-            return $"{secs} сек.";
+            return Locale.Get("GEN_TIMESPAN_SECS_0", secs);
         }
 
         public static int GetTrailerVehicle(this Vehicle veh)

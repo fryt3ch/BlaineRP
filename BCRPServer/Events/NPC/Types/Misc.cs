@@ -55,7 +55,7 @@ namespace BCRPServer.Events.NPC
             vInfo.LastData.Position = newPos.Position;
             vInfo.LastData.Heading = newPos.RotationZ;
 
-            vInfo.LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
+            vInfo.LastData.Dimension = Properties.Settings.Static.MainDimension;
 
             vInfo.LastData.GarageSlot = int.MinValue;
 
@@ -63,7 +63,7 @@ namespace BCRPServer.Events.NPC
 
             MySQL.VehicleDeletionUpdate(vInfo);
 
-            pData.Player.CreateGPSBlip(newPos.Position, Properties.Settings.Profile.Current.Game.MainDimension, true);
+            pData.Player.CreateGPSBlip(newPos.Position, Properties.Settings.Static.MainDimension, true);
 
             return true;
         }
@@ -102,7 +102,7 @@ namespace BCRPServer.Events.NPC
 
             var vTypeData = Game.Data.Vehicles.GetData("faggio");
 
-            var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Properties.Settings.Profile.Current.Game.MainDimension);
+            var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Properties.Settings.Static.MainDimension);
 
             return true;
         }

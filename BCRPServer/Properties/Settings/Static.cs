@@ -15,6 +15,12 @@ namespace BCRPServer.Properties.Settings
 
         public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Data\Locations\Locations.cs";
 
+        public const uint MainDimension = 7;
+        public const uint StuffDimension = 1;
+        public const uint DemorganDimension = 2;
+
+        public const int PlayerMaxHealth = 100;
+
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
 
@@ -210,17 +216,18 @@ namespace BCRPServer.Properties.Settings
         public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
-        public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
+        public static Dictionary<PlayerData.SkillTypes, int> CharacterDefaultSkills => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
 
         /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
-        public static HashSet<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new HashSet<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
+        public static HashSet<PlayerData.LicenseTypes> CharacterDefaultLicenses => new HashSet<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
 
         public static JObject GetClientSettings()
         {
             var jObj = new JObject();
 
-            jObj["mainDimension"] = Profile.Current.Game.MainDimension;
-            jObj["stuffDimension"] = Profile.Current.Game.StuffDimension;
+            jObj["mainDimension"] = Static.MainDimension;
+            jObj["stuffDimension"] = Static.StuffDimension;
+            jObj["playerMaxHealth"] = Static.PlayerMaxHealth;
 
             return jObj;
         }

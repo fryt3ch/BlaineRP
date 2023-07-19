@@ -274,7 +274,7 @@ namespace BCRPServer.Events.Players
             if (aRoot == null)
                 return;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             aRoot.SetPlayersInside(true, player);
@@ -442,7 +442,7 @@ namespace BCRPServer.Events.Players
 
             if (slot >= 0)
             {
-                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
+                if (player.Dimension != Properties.Settings.Static.MainDimension)
                     return;
 
                 var house = Game.Estates.House.Get(houseId);
@@ -499,7 +499,7 @@ namespace BCRPServer.Events.Players
             if (!vData.IsFullOwner(pData))
                 return;
 
-            if (!player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.IsNearToEntity(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var house = Game.Estates.House.Get(houseId);

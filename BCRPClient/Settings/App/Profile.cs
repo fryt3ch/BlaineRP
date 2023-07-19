@@ -37,14 +37,6 @@ namespace BCRPClient.Settings.App
         public class GameSettings
         {
             [ClientSync]
-            [JsonProperty(PropertyName = "mainDimension")]
-            public uint MainDimension { get; private set; }
-
-            [ClientSync]
-            [JsonProperty(PropertyName = "stuffDimension")]
-            public uint StuffDimension { get; private set; }
-
-            [ClientSync]
             [JsonProperty(PropertyName = "streamDistance")]
             public float StreamDistance { get; private set; }
 

@@ -1216,4 +1216,40 @@ CID: #{2} | ID: {3}</value>
 
 Отмычек осталось: {0}</value>
   </data>
+  <data name="OFFER_EMSHEAL_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам лечебную таблетку, стоимость: {1}</value>
+  </data>
+  <data name="GEN_TIMESPAN_YEARS_0" xml:space="preserve">
+    <value>{0} год(а)</value>
+  </data>
+  <data name="GEN_TIMESPAN_YEARS_1" xml:space="preserve">
+    <value>долгие годы</value>
+  </data>
+  <data name="GEN_TIMESPAN_HOURS_MINS_0" xml:space="preserve">
+    <value>{0} ч. и {1} мин.</value>
+  </data>
+  <data name="GEN_TIMESPAN_HOURS_0" xml:space="preserve">
+    <value>{0} ч.</value>
+  </data>
+  <data name="GEN_TIMESPAN_DAYS_HOURS_0" xml:space="preserve">
+    <value>{0} дн. и {1} ч.</value>
+  </data>
+  <data name="GEN_TIMESPAN_DAYS_0" xml:space="preserve">
+    <value>{0} дн.</value>
+  </data>
+  <data name="GEN_TIMESPAN_MINS_SECS_0" xml:space="preserve">
+    <value>{0} мин. и {1} сек.</value>
+  </data>
+  <data name="GEN_TIMESPAN_SECS_0" xml:space="preserve">
+    <value>{0} сек.</value>
+  </data>
+  <data name="GEN_TIMESPAN_MINS_0" xml:space="preserve">
+    <value>{0} мин.</value>
+  </data>
+  <data name="GEN_MONEY_0" xml:space="preserve">
+    <value>${0:n0}</value>
+  </data>
+  <data name="GEN_CHIPS_0" xml:space="preserve">
+    <value>{0:n0} фишек</value>
+  </data>
 </root>

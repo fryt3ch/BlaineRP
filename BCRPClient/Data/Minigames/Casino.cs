@@ -73,7 +73,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     if (bet < Data.Locations.Casino.SlotMachine.MinBet || bet > Data.Locations.Casino.SlotMachine.MaxBet)
                     {
-                        CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MinBet.ToString())} до {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MaxBet.ToString())} фишек!", -1);
+                        CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.SplitToNumberOf(Data.Locations.Casino.SlotMachine.MinBet.ToString())} до {Utils.SplitToNumberOf(Data.Locations.Casino.SlotMachine.MaxBet.ToString())} фишек!", -1);
 
                         return;
                     }
@@ -177,7 +177,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                         if (bet < table.MinBet || bet > table.MaxBet)
                         {
-                            CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(table.MinBet.ToString())} до {Utils.ToStringWithWhitespace(table.MaxBet.ToString())} фишек!", -1);
+                            CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.SplitToNumberOf(table.MinBet.ToString())} до {Utils.SplitToNumberOf(table.MaxBet.ToString())} фишек!", -1);
 
                             return;
                         }

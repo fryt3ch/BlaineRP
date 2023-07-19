@@ -805,7 +805,7 @@ namespace BCRPServer.Game.Estates
                 {
                     var pos = EnterParams;
 
-                    Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, true, players);
+                    Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Static.MainDimension, pos.RotationZ, true, players);
                 }
                 else
                 {
@@ -893,7 +893,7 @@ namespace BCRPServer.Game.Estates
 
                 var pos = root.EnterParams;
 
-                Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Static.MainDimension, pos.RotationZ, true, players);
             }
             else
             {

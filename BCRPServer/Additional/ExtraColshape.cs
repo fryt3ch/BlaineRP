@@ -106,7 +106,7 @@ namespace BCRPServer.Additional
 
         private ExtraColshape(Types Type, bool IsVisible, Color Colour, uint Dimension = 0, InteractionTypes InteractionType = InteractionTypes.None, ActionTypes ActionType = ActionTypes.None)
         {
-            this.Colshape = NAPI.ColShape.CreateSphereColShape(Utils.ZeroVector, 0f, Properties.Settings.Profile.Current.Game.StuffDimension);
+            this.Colshape = NAPI.ColShape.CreateSphereColShape(Utils.ZeroVector, 0f, Properties.Settings.Static.StuffDimension);
 
             this.Colshape.OnEntityEnterColShape += (ColShape colShape, Player client) => client?.KickSilent();
             this.Colshape.OnEntityExitColShape += (ColShape colShape, Player client) => client?.KickSilent();

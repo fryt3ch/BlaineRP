@@ -22,6 +22,11 @@ namespace BCRPServer.Game.Fractions
         private const int HEALING_BED_TIMEOUT = 20_000;
         private const byte HEALING_BED_HP_DIFF = 10;
 
+        public const uint PlayerHealOn1HpPrice = 200;
+        public const uint PlayerHealOn99HpPrice = 80;
+
+        public const decimal PlayerHealPriceFee = 0.90m;
+
         private static Dictionary<ushort, CallInfo> AllCalls { get; set; } = new Dictionary<ushort, CallInfo>();
 
         public List<Customization.UniformTypes> UniformTypes { get; set; }
@@ -154,7 +159,7 @@ namespace BCRPServer.Game.Fractions
 
             var pos = emsFraction.AfterDeathSpawnPositions[posIdx];
 
-            pData.Player.Teleport(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, false);
+            pData.Player.Teleport(pos.Position, false, Properties.Settings.Static.MainDimension, pos.RotationZ, false);
 
             NAPI.Player.SpawnPlayer(pData.Player, pos.Position, pos.RotationZ);
 

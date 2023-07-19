@@ -52,12 +52,12 @@ namespace BCRPServer.Game
             {
                 Vehicles = new Dictionary<VehicleData.VehicleInfo, PlayerData.LicenseTypes>()
                 {
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(208.6979f, -1373.918f, 30.17774f, 230.5807f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(211.0172f, -1371.398f, 30.17699f, 232.7517f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(213.2036f, -1369.059f, 30.17646f, 231.8667f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(214.5865f, -1363.528f, 30.17337f, 229.6534f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(216.8003f, -1360.368f, 30.17301f, 231.4579f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
-                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(218.7388f, -1357.639f, 30.17165f, 232.5897f), Properties.Settings.Profile.Current.Game.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(208.6979f, -1373.918f, 30.17774f, 230.5807f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(211.0172f, -1371.398f, 30.17699f, 232.7517f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(213.2036f, -1369.059f, 30.17646f, 231.8667f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(214.5865f, -1363.528f, 30.17337f, 229.6534f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(216.8003f, -1360.368f, 30.17301f, 231.4579f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
+                    { VehicleData.NewAutoschool(1, vehicle1, col1, col2, new Utils.Vector4(218.7388f, -1357.639f, 30.17165f, 232.5897f), Properties.Settings.Static.MainDimension), PlayerData.LicenseTypes.B },
                 },
 
                 PracticeRoutes = new Dictionary<PlayerData.LicenseTypes, Vector3[]>()

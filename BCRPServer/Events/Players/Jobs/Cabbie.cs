@@ -16,7 +16,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return 0;
 
             var job = pData.CurrentJob as Game.Jobs.Cabbie;
@@ -58,7 +58,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Static.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             var job = pData.CurrentJob as Game.Jobs.Cabbie;

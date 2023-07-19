@@ -21,8 +21,6 @@ namespace BCRPClient.Settings.App
 
         public const int SPEEDOMETER_UPDATE_SPEED = 10;
 
-        public const int PlayerMaxHealth = 100;
-
         public const int RENTED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
 
         public const int PHONE_SMS_MAX_LENGTH = 120;
@@ -32,16 +30,15 @@ namespace BCRPClient.Settings.App
         public const byte POLICE_CALL_MAX_WAIT_RANGE = 10;
         public const byte EMS_CALL_MAX_WAIT_RANGE = 10;
 
-        public const double DAMAGE_SYSTEM_WOUND_CHANCE = 0.15d;
+        public const double WeaponSystemWoundChance = 0.15d;
 
         public const bool DisableIdleCamera = true;
 
-        public const int SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT = 2_500;
-
-        public static readonly Color HUD_COLOUR = Color.FromArgb(255, 255, 0, 0);
+        public static readonly Color HudColour = Color.FromArgb(255, 255, 0, 0);
 
         public static uint MainDimension => GetOther<uint>("mainDimension");
         public static uint StuffDimension => GetOther<uint>("stuffDimension");
+        public static int PlayerMaxHealth => GetOther<int>("playerMaxHealth");
 
         #region TO_REPLACE
 

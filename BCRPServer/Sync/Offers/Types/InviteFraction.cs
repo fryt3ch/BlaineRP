@@ -20,7 +20,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction);
@@ -71,7 +71,7 @@ namespace BCRPServer.Sync.Offers
 
             offer.Data = fData.Type;
 
-            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, offer.Data);
+            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, fData.Type);
 
             customTargetShow = true;
 

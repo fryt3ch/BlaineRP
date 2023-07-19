@@ -59,7 +59,7 @@ namespace BCRPServer.Events.Players
             if (voiceRange <= 0f)
                 return;
 
-            if (pData.Listeners.Contains(target) || !player.AreEntitiesNearby(target, voiceRange + 5f))
+            if (pData.Listeners.Contains(target) || !player.IsNearToEntity(target, voiceRange + 5f))
                 return;
 
             player.EnableVoiceTo(target);

@@ -57,7 +57,7 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
 
-            var appVersionInfo = FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var appVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
 
             Utils.ConsoleOutput($"~Red~{appVersionInfo.ProductName}~/~ | Developed by ~Red~{appVersionInfo.CompanyName}~/~ | Version: ~Green~{appVersionInfo.ProductVersion}~/~");
 
