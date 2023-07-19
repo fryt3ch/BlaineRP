@@ -1,7 +1,6 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BCRPClient.Additional
@@ -10,7 +9,8 @@ namespace BCRPClient.Additional
         Anticheat System for RAGE MP by frytech
      */
 
-    class AntiCheat : Events.Script
+    [Script(int.MaxValue)]
+    public class AntiCheat 
     {
 
         public static bool LastTeleportWasGround { get; set; }
@@ -53,9 +53,6 @@ namespace BCRPClient.Additional
 
         public AntiCheat()
         {
-            #region Events
-            #region Teleport
-
             Events.Add("AC::Ped::TP", async (args) =>
             {
                 var remoteId = Utils.ToUInt16(args[0]);
@@ -279,9 +276,7 @@ namespace BCRPClient.Additional
 
                 Utils.SetTaskAsPending(TeleportTaskKey, task);
             });
-            #endregion
 
-            #region Health
             Events.Add("AC::State::HP", async (object[] args) =>
             {
                 Utils.CancelPendingTask(HealthTaskKey);
@@ -305,9 +300,7 @@ namespace BCRPClient.Additional
 
                 Utils.SetTaskAsPending(HealthTaskKey, task);
             });
-            #endregion
 
-            #region Armour
             Events.Add("AC::State::Arm", async (object[] args) =>
             {
                 Utils.CancelPendingTask(ArmourTaskKey);
@@ -341,9 +334,7 @@ namespace BCRPClient.Additional
 
                 Utils.SetTaskAsPending(ArmourTaskKey, task);
             });
-            #endregion
 
-            #region Transparency
             Events.Add("AC::State::Alpha", async (object[] args) =>
             {
                 Utils.CancelPendingTask(AlphaTaskKey);
@@ -368,7 +359,6 @@ namespace BCRPClient.Additional
 
                 Utils.SetTaskAsPending(AlphaTaskKey, task);
             });
-            #endregion
 
             Events.Add("AC::State::Invincible", (object[] args) =>
             {
@@ -385,7 +375,6 @@ namespace BCRPClient.Additional
                     GameEvents.Render += InvincibleRender;
             });
 
-            #region Weapon
             Events.Add("AC::State::Weapon", async (object[] args) =>
             {
                 Utils.CancelPendingTask(WeaponTaskKey);
@@ -443,8 +432,6 @@ namespace BCRPClient.Additional
 
                 Utils.SetTaskAsPending(WeaponTaskKey, task);
             });
-            #endregion
-            #endregion
         }
 
         public static void Enable()
@@ -476,7 +463,7 @@ namespace BCRPClient.Additional
         {
             /*            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
                         {
-                            if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
+                            if (Player.LocalPlayer.Dimension == Settings.App.Static.MainDimension)
                             {
                                 fakeVeh.Destroy();
                             }
@@ -486,7 +473,6 @@ namespace BCRPClient.Additional
 
             AntiAltF4Vehicle();
 
-            #region Teleport
             if (!Utils.IsTaskStillPending(TeleportTaskKey, null))
             {
                 var diff = Vector3.Distance(curPos, LastPosition);
@@ -496,7 +482,7 @@ namespace BCRPClient.Additional
 
                 if (diff >= 50f)
                 {
-                    Utils.ConsoleOutput($"{RAGE.Util.Json.Serialize(curPos)}, {RAGE.Util.Json.Serialize(LastPosition)}");
+                    //Utils.ConsoleOutput($"{RAGE.Util.Json.Serialize(curPos)}, {RAGE.Util.Json.Serialize(LastPosition)}");
 
                     Events.CallRemote("AC::Detect::TP", diff);
                 }
@@ -513,9 +499,6 @@ namespace BCRPClient.Additional
 
             LastPosition = curPos;
 
-            #endregion
-
-            #region Health
             if (!Utils.IsTaskStillPending(HealthTaskKey, null) && !LastAllowedInvincible)
             {
                 var diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
@@ -528,9 +511,6 @@ namespace BCRPClient.Additional
 
             LastHealth = Player.LocalPlayer.GetRealHealth();
 
-            #endregion
-
-            #region Armour
             if (!Utils.IsTaskStillPending(ArmourTaskKey, null))
             {
                 var diff = Player.LocalPlayer.GetArmour() - LastArmour;
@@ -542,17 +522,13 @@ namespace BCRPClient.Additional
                 Player.LocalPlayer.SetArmour(LastAllowedArm);
 
             LastArmour = Player.LocalPlayer.GetArmour();
-            #endregion
 
-            #region Transparency
             if (!Utils.IsTaskStillPending(AlphaTaskKey, null))
             {
                 if (Player.LocalPlayer.GetAlpha() != LastAllowedAlpha)
                     Player.LocalPlayer.SetAlpha(LastAllowedAlpha, false);
             }
-            #endregion
 
-            #region Weapon
             if (!Utils.IsTaskStillPending(WeaponTaskKey, null))
             {
                 var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
@@ -575,7 +551,6 @@ namespace BCRPClient.Additional
                 if (LastAllowedAmmo >= 0 && Player.LocalPlayer.GetAmmoInWeapon(LastAllowedWeapon) > LastAllowedAmmo)
                     Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
             }
-            #endregion
 
             for (int i = 0; i < Sync.Vehicles.ControlledVehicles.Count; i++)
             {

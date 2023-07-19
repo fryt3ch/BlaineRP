@@ -1,7 +1,9 @@
 ﻿#define DEBUGGING
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
+using System.Linq;
 
 namespace BCRPClient
 {
@@ -42,67 +44,6 @@ namespace BCRPClient
 
         public GameEvents()
         {
-            System.GC.Collect();
-
-            RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
-
-            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
-            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
-            System.Globalization.CultureInfo.CurrentCulture = Settings.CultureInfo;
-
-            RAGE.Ui.Console.Clear();
-            RAGE.Ui.Console.Reset();
-
-            RAGE.Chat.Activate(false);
-            RAGE.Chat.Show(false);
-
-            RAGE.Game.Graphics.RemoveParticleFxInRange(0f, 0f, 0f, float.MaxValue);
-
-            Player.LocalPlayer.SetVisible(true, false);
-
-            RAGE.Game.Ui.SetPauseMenuActive(false);
-
-            RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
-
-            RAGE.Game.Misc.SetFadeOutAfterDeath(false);
-            RAGE.Game.Misc.SetFadeOutAfterArrest(false);
-
-            RAGE.Game.Misc.SetFadeInAfterDeathArrest(false);
-            RAGE.Game.Misc.SetFadeInAfterLoad(false);
-
-            RAGE.Game.Graphics.TransitionFromBlurred(0f);
-
-            RAGE.Game.Misc.DisableAutomaticRespawn(true);
-            RAGE.Game.Misc.IgnoreNextRestart(true);
-
-            RAGE.Game.Invoker.Invoke(0xE6C0C80B8C867537, true); // SetEnableVehicleSlipstreaming
-
-            RAGE.Game.Graphics.SetTvChannel(-1);
-            RAGE.Game.Graphics.SetTvAudioFrontend(false);
-
-            RAGE.Game.Ui.SetMapFullScreen(false);
-
-            Utils.ClearTvChannelPlaylist(-1);
-            Utils.ClearTvChannelPlaylist(0);
-            Utils.ClearTvChannelPlaylist(1);
-
-            if (RAGE.Game.Audio.IsStreamPlaying())
-                RAGE.Game.Audio.StopStream();
-
-            RAGE.Game.Audio.StopAudioScenes();
-
-            RAGE.Game.Audio.SetAudioFlag("LoadMPData", true);
-
-            Utils.DisableFlightMusic();
-
-            LoadHUD();
-
-            RAGE.Game.Ui.DisplayRadar(false);
-
-            Render += HideHudComponents;
-
-            GameEvents.DisableAllControls(true);
-
             Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClicked?.Invoke(x, y, up, right);
             Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClickedWithRaycast?.Invoke(x, y, up, right, relX, relY, worldPos, eHandle);
 
@@ -144,6 +85,89 @@ namespace BCRPClient
                         }
                     }
                 }
+            };
+
+            Events.OnPlayerReady += () =>
+            {
+                Sync.World.LoadServerDataColshape();
+
+                var settingsProfile = Settings.App.Profile.LoadProfile(Sync.World.GetSharedData<JObject>("Settings"));
+
+                Settings.App.Profile.SetCurrentProfile(settingsProfile);
+
+                System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.App.Profile.Current.General.CultureInfo;
+                System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.App.Profile.Current.General.CultureInfo;
+                System.Globalization.CultureInfo.CurrentCulture = Settings.App.Profile.Current.General.CultureInfo;
+
+                RAGE.Ui.Console.Clear();
+                RAGE.Ui.Console.Reset();
+
+                RAGE.Chat.Activate(false);
+                RAGE.Chat.Show(false);
+
+                RAGE.Game.Graphics.RemoveParticleFxInRange(0f, 0f, 0f, float.MaxValue);
+
+                Player.LocalPlayer.SetVisible(true, false);
+
+                RAGE.Game.Ui.SetPauseMenuActive(false);
+
+                RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
+
+                RAGE.Game.Misc.SetFadeOutAfterDeath(false);
+                RAGE.Game.Misc.SetFadeOutAfterArrest(false);
+
+                RAGE.Game.Misc.SetFadeInAfterDeathArrest(false);
+                RAGE.Game.Misc.SetFadeInAfterLoad(false);
+
+                RAGE.Game.Graphics.TransitionFromBlurred(0f);
+
+                RAGE.Game.Misc.DisableAutomaticRespawn(true);
+                RAGE.Game.Misc.IgnoreNextRestart(true);
+
+                RAGE.Game.Invoker.Invoke(0xE6C0C80B8C867537, true); // SetEnableVehicleSlipstreaming
+
+                RAGE.Game.Graphics.SetTvChannel(-1);
+                RAGE.Game.Graphics.SetTvAudioFrontend(false);
+
+                RAGE.Game.Ui.SetMapFullScreen(false);
+
+                System.GC.Collect();
+
+                RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
+
+                Utils.ClearTvChannelPlaylist(-1);
+                Utils.ClearTvChannelPlaylist(0);
+                Utils.ClearTvChannelPlaylist(1);
+
+                if (RAGE.Game.Audio.IsStreamPlaying())
+                    RAGE.Game.Audio.StopStream();
+
+                RAGE.Game.Audio.StopAudioScenes();
+
+                RAGE.Game.Audio.SetAudioFlag("LoadMPData", true);
+
+                Utils.DisableFlightMusic();
+
+                LoadHUD();
+
+                RAGE.Game.Ui.DisplayRadar(false);
+
+                Render += HideHudComponents;
+
+                DisableAllControls(true);
+
+                Sync.World.Preload();
+
+                #region SCRIPTS_TO_REPLACE
+
+
+
+                #endregion
+            };
+
+            Events.OnPlayerJoin += (player) =>
+            {
+
             };
 
             Events.OnPlayerSpawn += (cancel) =>
@@ -282,15 +306,13 @@ namespace BCRPClient
 
             Render += PauseMenuWatcher;
 
-            if (Settings.DISABLE_IDLE_CAM)
+            if (Settings.App.Static.DisableIdleCamera)
             {
                 (new AsyncTask(() =>
                 {
-                    // InvalidateVehicleIdleCam
-                    RAGE.Game.Invoker.Invoke(0x9E4CFFF989258472);
-                    // InvalidateIdleCam
-                    RAGE.Game.Invoker.Invoke(0xF4F2C0D4EE209E20);
-                }, Settings.DISABLE_IDLE_CAM_TIMEOUT, true, 0)).Run();
+                    RAGE.Game.Invoker.Invoke(0x9E4CFFF989258472);   // InvalidateVehicleIdleCam
+                    RAGE.Game.Invoker.Invoke(0xF4F2C0D4EE209E20);   // InvalidateIdleCam
+                }, 25_000, true, 0)).Run();
             }
 
             (new AsyncTask(() =>
@@ -305,7 +327,7 @@ namespace BCRPClient
                 ScreenResolution.X = x; ScreenResolution.Y = y;
 
                 ScreenResolutionChange?.Invoke(x, y);
-            }, Settings.SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT, true, 0)).Run();
+            }, Settings.App.Static.SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT, true, 0)).Run();
 
             Vector3 lastWaypointPos = null;
 
@@ -347,7 +369,7 @@ namespace BCRPClient
                 if (pData == null)
                     return;
 
-                if (pData.AdminLevel > -1 && Settings.Other.AutoTeleportMarker)
+                if (pData.AdminLevel > -1 && Settings.User.Other.AutoTeleportMarker)
                     Data.Commands.TeleportMarker();
             };
 
@@ -359,7 +381,6 @@ namespace BCRPClient
             };
         }
 
-        #region Renders
         private static void HideHudComponents()
         {
             // Disable Other Hud Components
@@ -387,13 +408,11 @@ namespace BCRPClient
             // Disable G (plane landing gear)
             RAGE.Game.Pad.DisableControlAction(32, 113, true);
         }
-        #endregion
 
-        #region Stuff
         public static void OnReady()
         {
-            Player.LocalPlayer.SetMaxHealth(Settings.MAX_PLAYER_HEALTH);
-            Player.LocalPlayer.SetHealth(Settings.MAX_PLAYER_HEALTH);
+            Player.LocalPlayer.SetMaxHealth(100 + Settings.App.Static.PlayerMaxHealth);
+            Player.LocalPlayer.SetRealHealth(Settings.App.Static.PlayerMaxHealth);
             Player.LocalPlayer.SetArmour(0);
             Player.LocalPlayer.RemoveAllWeapons(true);
 
@@ -402,8 +421,6 @@ namespace BCRPClient
             KeyBinds.LoadMain();
 
             CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, KeyBinds.Get(KeyBinds.Types.Cursor).GetKeyString()), false);
-
-            Sync.World.Preload();
         }
 
         public static void DisableAllControls(bool state)
@@ -472,11 +489,11 @@ namespace BCRPClient
         private static void LoadHUD()
         {
             // Enable Red HUD and Map Title
-            RAGE.Game.Ui.SetHudColour(143, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
-            RAGE.Game.Ui.SetHudColour(116, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
+            RAGE.Game.Ui.SetHudColour(143, Settings.App.Static.HUD_COLOUR.R, Settings.App.Static.HUD_COLOUR.G, Settings.App.Static.HUD_COLOUR.B, Settings.App.Static.HUD_COLOUR.A);
+            RAGE.Game.Ui.SetHudColour(116, Settings.App.Static.HUD_COLOUR.R, Settings.App.Static.HUD_COLOUR.G, Settings.App.Static.HUD_COLOUR.B, Settings.App.Static.HUD_COLOUR.A);
 
             // Waypoint
-            RAGE.Game.Ui.SetHudColour(142, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
+            RAGE.Game.Ui.SetHudColour(142, Settings.App.Static.HUD_COLOUR.R, Settings.App.Static.HUD_COLOUR.G, Settings.App.Static.HUD_COLOUR.B, Settings.App.Static.HUD_COLOUR.A);
 
             RAGE.Game.Gxt.Add("PM_PAUSE_HDR", Locale.Get("GEN_PAUSEMENU_HUDM_T"));
 
@@ -524,7 +541,6 @@ namespace BCRPClient
 
             RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53); // EndScaleformMovieMethod
         }
-        #endregion
 
         public static void CloseGameNow(string message)
         {

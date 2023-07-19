@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Sync
 {
-    public class Offers : Events.Script
+    [Script(int.MaxValue)]
+    public class Offers 
     {
         public enum Types
         {
@@ -111,14 +112,10 @@ namespace BCRPClient.Sync
             { Sync.Offers.Types.PoliceFine, "OFFER_POLICEFINE_TEXT" },
         };
 
-        private static List<int> TempBinds { get; set; }
+        private static List<int> _tempBinds;
 
         public Offers()
         {
-            TempBinds = new List<int>();
-
-            LastSent = Sync.World.ServerTime;
-
             Events.Add("Offer::Show", (object[] args) =>
             {
                 Player player = (Player)args[0];
@@ -152,10 +149,10 @@ namespace BCRPClient.Sync
                     {
                         CEF.Notification.ClearAll();
 
-                        foreach (var x in TempBinds)
+                        foreach (var x in _tempBinds)
                             KeyBinds.Unbind(x);
 
-                        TempBinds.Clear();
+                        _tempBinds.Clear();
                     }
 
                     if (justCancelCts)
@@ -212,20 +209,20 @@ namespace BCRPClient.Sync
 
             CEF.Notification.ShowOffer(text);
 
-            if (TempBinds.Count > 0)
+            if (_tempBinds.Count > 0)
             {
-                foreach (var x in TempBinds)
+                foreach (var x in _tempBinds)
                     KeyBinds.Unbind(x);
 
-                TempBinds.Clear();
+                _tempBinds.Clear();
             }
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
             {
                 Reply(ReplyTypes.Accept);
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
+            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
             {
                 Reply(ReplyTypes.Deny);
             }));
@@ -243,7 +240,7 @@ namespace BCRPClient.Sync
             if (player?.Exists != true)
                 return;
 
-            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
+            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
             if (Utils.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || !Utils.CanDoSomething(true, ActionsToCheck))
@@ -289,7 +286,7 @@ namespace BCRPClient.Sync
 
         public static void OfferTick()
         {
-            if (CurrentTarget?.Exists != true || Vector3.Distance(CurrentTarget.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (CurrentTarget?.Exists != true || Vector3.Distance(CurrentTarget.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance)
             {
                 Reply(ReplyTypes.AutoCancel);
 

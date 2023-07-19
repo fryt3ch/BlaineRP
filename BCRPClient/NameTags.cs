@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient
 {
-    class NameTags : Events.Script
+    [Script(int.MaxValue)]
+    public class NameTags 
     {
         private const int MaxDistance = 450;
         private const float Width = 0.03f;
@@ -54,7 +55,7 @@ namespace BCRPClient
 
                 var pData = Sync.Players.GetData(player);
 
-                if (Settings.Other.DebugLabels && data.AdminLevel > -1)
+                if (Settings.User.Other.DebugLabels && data.AdminLevel > -1)
                 {
                     if (Utils.GetScreenCoordFromWorldCoord(player.Position, ref screenX, ref screenY))
                     {
@@ -111,7 +112,7 @@ namespace BCRPClient
 
                 Utils.DrawText(player.GetName(true, false, true), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
-                if (!Settings.Interface.HideCID)
+                if (!Settings.User.Interface.HideCID)
                     Utils.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (pData.AdminLevel > -1)

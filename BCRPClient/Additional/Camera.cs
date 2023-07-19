@@ -6,7 +6,7 @@ using static BCRPClient.Additional.Camera.State;
 
 namespace BCRPClient.Additional
 {
-    class Camera : Events.Script
+    class Camera
     {
         public class State
         {
@@ -284,7 +284,7 @@ namespace BCRPClient.Additional
         private static float MaxFov { get; set; }
 
         /// <summary>ID текущей камеры</summary>
-        private static int Id { get; set; }
+        private static int Id { get; set; } = -1;
 
         /// <summary>Позиция текущей камеры</summary>
         public static Vector3 Position { get => RAGE.Game.Cam.GetCamCoord(Id); set { RAGE.Game.Cam.SetCamCoord(Id, value.X, value.Y, value.Z); } }
@@ -299,7 +299,7 @@ namespace BCRPClient.Additional
         public static bool IsActive { get; private set; }
 
         /// <summary>Использованные камеры, подлежат удалению</summary>
-        private static List<int> UsedCams { get; set; }
+        private static List<int> UsedCams { get; } = new List<int>();
 
         /// <summary>Хэш стандартной камеры</summary>
         private static uint DefaultScriptedCameraHash { get; } = RAGE.Game.Misc.GetHashKey("DEFAULT_SCRIPTED_CAMERA");
@@ -315,14 +315,6 @@ namespace BCRPClient.Additional
 
         /// <summary>Текущий StateType</summary>
         private static StateTypes? CurrentState { get; set; }
-
-        public Camera()
-        {
-            UsedCams = new List<int>();
-
-            Id = -1;
-            IsActive = false;
-        }
 
         public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
         {

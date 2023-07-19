@@ -6,7 +6,8 @@ using System.Threading;
 
 namespace BCRPClient.CEF
 {
-    class Notification : Events.Script
+    [Script(int.MaxValue)]
+    public class Notification 
     {
         public const int DefTimeout = 2500;
         public const int MaxNotifications = 5;
@@ -471,7 +472,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (!showAnyway && Settings.Interface.HideHints)
+            if (!showAnyway && Settings.User.Interface.HideHints)
                 return;
 
             Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(content) : timeout, Types.Information.ToString(), Locale.Notifications.Hints.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, false);

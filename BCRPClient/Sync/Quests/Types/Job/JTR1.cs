@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
-    internal class JTR1 : Events.Script
+    [Script(int.MaxValue)]
+    internal class JTR1 
     {
         public JTR1()
         {
@@ -43,7 +44,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(job.MaterialsPositions[currentOrder.MPIdx].X, job.MaterialsPositions[currentOrder.MPIdx].Y, job.MaterialsPositions[currentOrder.MPIdx].Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -109,14 +110,14 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(478, destPos, Locale.General.Blip.JobTruckerPointAText, 1f, 3, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(478, destPos, Locale.General.Blip.JobTruckerPointAText, 1f, 3, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
                             quest.SetActualData("E_BP_M", blip);
                             quest.SetActualData("CS_0", colshape);
 
-                            quest.SetActualData("E_TXL_0", new Additional.ExtraLabel(new Vector3(destPos.X, destPos.Y, destPos.Z + 2f), Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
+                            quest.SetActualData("E_TXL_0", new Additional.ExtraLabel(new Vector3(destPos.X, destPos.Y, destPos.Z + 2f), Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.App.Static.MainDimension) { Font = 4, LOS = false });
                         },
 
                         EndAction = (pData, quest) =>
@@ -150,7 +151,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z);
 
-                            var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -216,7 +217,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(478, destPos, "", 0f, 3, 255, 0f, true, 0, 10f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(478, destPos, "", 0f, 3, 255, 0f, true, 0, 10f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 

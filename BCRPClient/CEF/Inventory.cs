@@ -7,7 +7,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class Inventory : Events.Script
+    [Script(int.MaxValue)]
+    public class Inventory 
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContextStr == "Inventory"; }
 
@@ -478,7 +479,7 @@ namespace BCRPClient.CEF
 
                     if (FirstOpenInv)
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "inv", ItemsData.Select(x => x?[GetTooltipGroup()]), Settings.MAX_INVENTORY_WEIGHT });
+                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "inv", ItemsData.Select(x => x?[GetTooltipGroup()]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
                         Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
                         Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData == null ? null : BagData.Select(x => x?[GetTooltipGroup()]), BagWeight });
                         Browser.Window.ExecuteJs("Inventory.fillWeapon", new object[] { WeaponsData });
@@ -554,7 +555,7 @@ namespace BCRPClient.CEF
                 {
                     if (FirstOpenCrate)
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "crate", ItemsData.Select(x => x?[0]), Settings.MAX_INVENTORY_WEIGHT });
+                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "crate", ItemsData.Select(x => x?[0]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
                         Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData == null ? null : BagData.Select(x => x?[0]), BagWeight });
 
                         FirstOpenCrate = false;
@@ -662,7 +663,7 @@ namespace BCRPClient.CEF
 
                     Browser.Window.ExecuteJs("Inventory.fillTradeLProperties", new object[] { properties });
 
-                    Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "trade", ItemsData.Select(x => x?[3]), Settings.MAX_INVENTORY_WEIGHT });
+                    Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "trade", ItemsData.Select(x => x?[3]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
 
                     Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", 0);
                     Browser.Window.ExecuteJs("Inventory.updateGiveMoney", 0);
@@ -677,7 +678,7 @@ namespace BCRPClient.CEF
                 {
                     if (FirstOpenWorkbench)
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "wb", ItemsData.Select(x => x?[0]), Settings.MAX_INVENTORY_WEIGHT });
+                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "wb", ItemsData.Select(x => x?[0]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
 
                         FirstOpenWorkbench = false;
                     }
@@ -1364,8 +1365,6 @@ namespace BCRPClient.CEF
 
                         var res = (bool)await Events.CallRemoteProc("Trade::UpdateMoney", newAmount);
 
-                        Utils.ConsoleOutput($"{res}, {newAmount}, {CurrentGiveMoney}");
-
                         if (!res)
                         {
                             Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
@@ -1577,10 +1576,10 @@ namespace BCRPClient.CEF
 
             GameEvents.DisableAllControls(true);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
 
-            if (!Settings.Interface.HideNames)
+            if (!Settings.User.Interface.HideNames)
                 BCRPClient.NameTags.Enabled = false;
 
             Chat.Show(false);
@@ -1654,16 +1653,16 @@ namespace BCRPClient.CEF
             GameEvents.Update -= OnTickCheck;
 
             Sync.World.EnabledItemsOnGround = true;
-            BCRPClient.Interaction.EnabledVisual = !Settings.Interface.HideInteractionBtn;
+            BCRPClient.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
 
             GameEvents.DisableAllControls(false);
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
-            if (!Settings.Interface.HideNames)
+            if (!Settings.User.Interface.HideNames)
                 BCRPClient.NameTags.Enabled = true;
 
             Chat.Show(true);
@@ -2407,7 +2406,7 @@ namespace BCRPClient.CEF
             {
                 if (CurrentContainerType == ContainerTypes.Trunk)
                 {
-                    if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                    if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.App.Static.EntityInteractionMaxDistance))
                         Close();
                 }
             }

@@ -18,7 +18,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
             var school = Game.Autoschool.Get(schoolId);
@@ -39,7 +39,7 @@ namespace BCRPServer.Events.Players
             if (!Game.Autoschool.Prices.TryGetValue(licType, out price))
                 return false;
 
-            if (pData.Licenses.Contains(licType))
+            if (pData.Info.Licenses.Contains(licType))
             {
                 player.Notify("DriveS::AHTL");
 

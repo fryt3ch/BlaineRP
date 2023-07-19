@@ -2134,7 +2134,7 @@ namespace BCRPServer.Game.Estates
 					lines.Add($"new Style({x.Key}, {x.Value.Position.ToCSharpStr()}, {x.Value.InteriorPosition.ToCSharpStr()}, {x.Value.Price}, \"{x.Value.Doors.SerializeToJson().Replace('\"', '\'')}\", \"{x.Value.Lights.SerializeToJson().Replace('\"', '\'')}\", \"{x.Value.SupportedRoomTypes.SerializeToJson().Replace('\"', '\'')}\", \"{x.Value.SupportedHouseTypes.SerializeToJson().Replace('\"', '\'')}\", \"{x.Value.FamiliarTypes.SerializeToJson().Replace('\"', '\'')}\");");
 				}
 
-				Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Sync\House.cs", "STYLES_TO_REPLACE", lines);
+				Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Sync\House.cs", "STYLES_TO_REPLACE", lines);
 			}
 		}
 

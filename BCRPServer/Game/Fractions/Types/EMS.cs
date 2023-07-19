@@ -154,7 +154,7 @@ namespace BCRPServer.Game.Fractions
 
             var pos = emsFraction.AfterDeathSpawnPositions[posIdx];
 
-            pData.Player.Teleport(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, false);
+            pData.Player.Teleport(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, false);
 
             NAPI.Player.SpawnPlayer(pData.Player, pos.Position, pos.RotationZ);
 

@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class CameraApp : Events.Script
+    [Script(int.MaxValue)]
+    public class CameraApp 
     {
         public static bool IsActive { get; private set; }
 
@@ -141,7 +142,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             KeyBinds.EnableAll();
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);

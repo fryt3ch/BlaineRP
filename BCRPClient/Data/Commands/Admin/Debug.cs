@@ -249,22 +249,22 @@ namespace BCRPClient.Data
         public static void HighPolyMode(bool? state = null)
         {
             if (state == null)
-                Settings.Other.HighPolygonsMode = !Settings.Other.HighPolygonsMode;
+                Settings.User.Other.HighPolygonsMode = !Settings.User.Other.HighPolygonsMode;
             else
-                Settings.Other.HighPolygonsMode = (bool)state;
+                Settings.User.Other.HighPolygonsMode = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode"));
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode"));
         }
 
         [Command("colshapes_visible", true, "Сменить видимость колшейпов", "cs_vis")]
         public static void ColshapesVisible(bool? state = null)
         {
             if (state == null)
-                Settings.Other.ColshapesVisible = !Settings.Other.ColshapesVisible;
+                Settings.User.Other.ColshapesVisible = !Settings.User.Other.ColshapesVisible;
             else
-                Settings.Other.ColshapesVisible = (bool)state;
+                Settings.User.Other.ColshapesVisible = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible"));
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible"));
         }
 
         [Command("5sound", true, "Проиграть звук из GTA5", "gta5sound")]

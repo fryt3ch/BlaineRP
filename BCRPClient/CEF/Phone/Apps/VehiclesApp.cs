@@ -2,7 +2,8 @@
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class VehiclesApp : Events.Script
+    [Script(int.MaxValue)]
+    public class VehiclesApp 
     {
         public VehiclesApp()
         {

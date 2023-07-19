@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class ActionBox : Events.Script
+    [Script(int.MaxValue)]
+    public class ActionBox 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.ActionBox); }
 

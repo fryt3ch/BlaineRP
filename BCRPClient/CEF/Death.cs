@@ -3,7 +3,8 @@ using RAGE.Elements;
 
 namespace BCRPClient.CEF
 {
-    class Death : Events.Script
+    [Script(int.MaxValue)]
+    public class Death 
     {
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Death); }
 

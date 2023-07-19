@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
-    internal class JBD1 : Events.Script
+    [Script(int.MaxValue)]
+    internal class JBD1 
     {
         public JBD1()
         {
@@ -43,7 +44,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(job.Routes[routeIdx].Positions[0].X, job.Routes[routeIdx].Positions[0].Y, job.Routes[routeIdx].Positions[0].Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -62,14 +63,14 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 },
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
                             quest.SetActualData("E_BP_0", blip);
                             quest.SetActualData("CS_0", colshape);
 
-                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 4.5f), 5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.MAIN_DIMENSION));
+                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 4.5f), 5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.App.Static.MainDimension));
                         },
 
                         EndAction = (pData, quest) =>
@@ -107,7 +108,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             var destPos = new Vector3(job.Routes[routeIdx].Positions[posIdx].X, job.Routes[routeIdx].Positions[posIdx].Y, job.Routes[routeIdx].Positions[posIdx].Z - 1f);
                             var nextPos = new Vector3(job.Routes[routeIdx].Positions[posIdx + 1].X, job.Routes[routeIdx].Positions[posIdx + 1].Y, job.Routes[routeIdx].Positions[posIdx + 1].Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -179,7 +180,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
@@ -189,7 +190,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             var p1 = new Vector3(destPos.X, destPos.Y, destPos.Z + 4.5f);
                             var p2 = new Vector3(nextPos.X, nextPos.Y, nextPos.Z + 4.5f);
 
-                            quest.SetActualData("E_MKR_0", new Checkpoint(17, p1, 5f, p2, new RGBA(255, 255, 255, 150), true, Settings.MAIN_DIMENSION));
+                            quest.SetActualData("E_MKR_0", new Checkpoint(17, p1, 5f, p2, new RGBA(255, 255, 255, 150), true, Settings.App.Static.MainDimension));
                         },
 
                         EndAction = (pData, quest) =>
@@ -225,7 +226,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(job.Routes[routeIdx].Positions[destIdx].X, job.Routes[routeIdx].Positions[destIdx].Y, job.Routes[routeIdx].Positions[destIdx].Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -244,14 +245,14 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 },
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
                             quest.SetActualData("E_BP_0", blip);
                             quest.SetActualData("CS_0", colshape);
 
-                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 4.5f), 5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.MAIN_DIMENSION));
+                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 4.5f), 5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.App.Static.MainDimension));
                         },
 
                         EndAction = (pData, quest) =>

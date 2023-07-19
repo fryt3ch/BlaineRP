@@ -35,7 +35,7 @@ namespace BCRPClient.Data.Jobs
             var subId = SubId;
 
             if (subId == 0)
-                JobGiver = new NPC($"job_{Id}_{subId}", "Кеннет", NPC.Types.Talkable, "ig_oneil", Position.Position, Position.RotationZ, Settings.MAIN_DIMENSION);
+                JobGiver = new NPC($"job_{Id}_{subId}", "Кеннет", NPC.Types.Talkable, "ig_oneil", Position.Position, Position.RotationZ, Settings.App.Static.MainDimension);
 
             JobGiver.SubName = "NPC_SUBNAME_JOB_TRUCK_BOSS";
 
@@ -43,7 +43,7 @@ namespace BCRPClient.Data.Jobs
 
             JobGiver.DefaultDialogueId = "job_trucker_g_0";
 
-            var blip = new Additional.ExtraBlip(477, Position.Position, "Грузоперевозки", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            var blip = new Additional.ExtraBlip(477, Position.Position, "Грузоперевозки", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
         }
 
         public override void OnStartJob(object[] data)

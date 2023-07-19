@@ -8,7 +8,8 @@ using System.Reflection;
 
 namespace BCRPClient.Data
 {
-    partial class Commands : Events.Script
+    [Script(int.MaxValue)]
+    public partial class Commands 
     {
         private static DateTime LastSent;
 

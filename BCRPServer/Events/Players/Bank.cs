@@ -367,7 +367,7 @@ namespace BCRPServer.Events.Players
             if (house == null || house.Owner != pData.Info)
                 return null;
 
-            return $"{house.Balance}_{Settings.MAX_PAID_HOURS_HOUSE_APS}_{Settings.MIN_PAID_HOURS_HOUSE_APS}";
+            return $"{house.Balance}_{Properties.Settings.Static.MAX_PAID_HOURS_HOUSE_APS}_{Properties.Settings.Static.MIN_PAID_HOURS_HOUSE_APS}";
         }
 
         [RemoteProc("Bank::GAA")]
@@ -385,7 +385,7 @@ namespace BCRPServer.Events.Players
             if (aps == null || aps.Owner != pData.Info)
                 return null;
 
-            return $"{aps.Balance}_{Settings.MAX_PAID_HOURS_HOUSE_APS}_{Settings.MIN_PAID_HOURS_HOUSE_APS}";
+            return $"{aps.Balance}_{Properties.Settings.Static.MAX_PAID_HOURS_HOUSE_APS}_{Properties.Settings.Static.MIN_PAID_HOURS_HOUSE_APS}";
         }
 
         [RemoteProc("Bank::GGA")]
@@ -403,7 +403,7 @@ namespace BCRPServer.Events.Players
             if (garge == null || garge.Owner != pData.Info)
                 return null;
 
-            return $"{garge.Balance}_{Settings.MAX_PAID_HOURS_GARAGE}_{Settings.MIN_PAID_HOURS_GARAGE}";
+            return $"{garge.Balance}_{Properties.Settings.Static.MAX_PAID_HOURS_GARAGE}_{Properties.Settings.Static.MIN_PAID_HOURS_GARAGE}";
         }
 
         [RemoteProc("Bank::GBA")]
@@ -421,7 +421,7 @@ namespace BCRPServer.Events.Players
             if (business == null || business.Owner != pData.Info)
                 return null;
 
-            return $"{business.Bank}_{Settings.MAX_PAID_HOURS_BUSINESS}_{Settings.MIN_PAID_HOURS_BUSINESS}";
+            return $"{business.Bank}_{Properties.Settings.Static.MAX_PAID_HOURS_BUSINESS}_{Properties.Settings.Static.MIN_PAID_HOURS_BUSINESS}";
         }
 
         [RemoteProc("Bank::GFA")]
@@ -598,7 +598,7 @@ namespace BCRPServer.Events.Players
                 if (!business.TryAddMoneyBank(amount, out newBalance, true))
                     return null;
 
-                var maxHours = Settings.MAX_PAID_HOURS_BUSINESS;
+                var maxHours = Properties.Settings.Static.MAX_PAID_HOURS_BUSINESS;
 
                 if (maxHours > 0 && (business.Rent * maxHours < newBalance))
                     return null;
@@ -634,7 +634,7 @@ namespace BCRPServer.Events.Players
                 if (!business.TryRemoveMoneyBank(amount, out newBalance, true))
                     return null;
 
-                if (business.Rent * Settings.MIN_PAID_HOURS_BUSINESS > newBalance)
+                if (business.Rent * Properties.Settings.Static.MIN_PAID_HOURS_BUSINESS > newBalance)
                     return null;
 
                 if (useCash)
@@ -708,9 +708,9 @@ namespace BCRPServer.Events.Players
                 if (!house.TryAddMoneyBalance(amount, out newBalance, true))
                     return null;
 
-                var maxHours = Settings.MAX_PAID_HOURS_HOUSE_APS;
+                var maxHours = Properties.Settings.Static.MAX_PAID_HOURS_HOUSE_APS;
 
-                if (maxHours > 0 && ((uint)(house.Tax * Settings.MAX_PAID_HOURS_HOUSE_APS) < newBalance))
+                if (maxHours > 0 && ((uint)(house.Tax * Properties.Settings.Static.MAX_PAID_HOURS_HOUSE_APS) < newBalance))
                     return null;
 
                 if (useCash)
@@ -744,7 +744,7 @@ namespace BCRPServer.Events.Players
                 if (!house.TryRemoveMoneyBalance(amount, out newBalance, true))
                     return null;
 
-                if ((uint)(house.Tax * Settings.MIN_PAID_HOURS_HOUSE_APS) > newBalance)
+                if ((uint)(house.Tax * Properties.Settings.Static.MIN_PAID_HOURS_HOUSE_APS) > newBalance)
                     return null;
 
                 if (useCash)
@@ -816,9 +816,9 @@ namespace BCRPServer.Events.Players
                 if (!garage.TryAddMoneyBalance(amount, out newBalance, true))
                     return null;
 
-                var maxHours = Settings.MAX_PAID_HOURS_GARAGE;
+                var maxHours = Properties.Settings.Static.MAX_PAID_HOURS_GARAGE;
 
-                if (maxHours > 0 && ((uint)(garage.Tax * Settings.MAX_PAID_HOURS_GARAGE) < newBalance))
+                if (maxHours > 0 && ((uint)(garage.Tax * Properties.Settings.Static.MAX_PAID_HOURS_GARAGE) < newBalance))
                     return null;
 
                 if (useCash)
@@ -852,7 +852,7 @@ namespace BCRPServer.Events.Players
                 if (!garage.TryRemoveMoneyBalance(amount, out newBalance, true))
                     return null;
 
-                if ((uint)(garage.Tax * Settings.MIN_PAID_HOURS_GARAGE) > newBalance)
+                if ((uint)(garage.Tax * Properties.Settings.Static.MIN_PAID_HOURS_GARAGE) > newBalance)
                     return null;
 
                 if (useCash)

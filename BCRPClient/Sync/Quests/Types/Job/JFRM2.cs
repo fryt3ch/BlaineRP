@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
-    internal class JFRM2 : Events.Script
+    [Script(int.MaxValue)]
+    internal class JFRM2 
     {
         private const int PLANE_IRRIGATION_WATER_FX_TIME = 7_500;
 

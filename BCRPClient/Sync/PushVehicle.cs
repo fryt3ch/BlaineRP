@@ -4,7 +4,8 @@ using System;
 
 namespace BCRPClient.Sync
 {
-    class PushVehicle : Events.Script
+    [Script(int.MaxValue)]
+    public class PushVehicle 
     {
         private static DateTime LastSwitchTime;
 

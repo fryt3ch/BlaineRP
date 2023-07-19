@@ -81,7 +81,7 @@ namespace BCRPServer.Game.Items
 
             InUse = true;
 
-            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemShovel, -1, null, 10_000 - 100 * pData.Skills[PlayerData.SkillTypes.Strength]);
+            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemShovel, -1, null, 10_000 - 100 * pData.Info.Skills[PlayerData.SkillTypes.Strength]);
 
             pData.PlayAnim(Sync.Animations.GeneralTypes.ShovelProcess0);
 

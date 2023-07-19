@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    public partial class Locations
     {
         public abstract class HouseBase
         {
@@ -104,7 +104,7 @@ namespace BCRPClient.Data
                     {
                         //aRoot.Blip.SetDisplay(0);
 
-                        OwnerBlip = new Additional.ExtraBlip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
                     else if (curARoot.Id == aRoot.Id)
                     {
@@ -160,7 +160,7 @@ namespace BCRPClient.Data
 
                 this.GaragePosition = GaragePosition;
 
-                Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter,
                     ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
@@ -168,7 +168,7 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
                 All.Add(Id, this);
             }
@@ -196,16 +196,16 @@ namespace BCRPClient.Data
                 {
                     if (GarageType == null)
                     {
-                        OwnerBlip = new Additional.ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
                     else
                     {
-                        OwnerBlip = new Additional.ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
 
                     if (GaragePosition != null)
                     {
-                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                         {
                             ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -214,7 +214,7 @@ namespace BCRPClient.Data
                             Data = this,
                         };
 
-                        OwnerGarageBlip = new Additional.ExtraBlip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
+                        OwnerGarageBlip = new Additional.ExtraBlip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.App.Static.MainDimension);
                     }
                 }
                 else
@@ -388,7 +388,7 @@ namespace BCRPClient.Data
 
                 All.Add(Id, this);
 
-                this.Colshape = new Additional.Cylinder(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                this.Colshape = new Additional.Cylinder(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                 {
                     ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootEnter,
                     InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter,
@@ -396,9 +396,9 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                InfoText = new Additional.ExtraLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                InfoText = new Additional.ExtraLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
-                Blip = new Additional.ExtraBlip(475, PositionEnter, "Жилой комплекс", 1f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(475, PositionEnter, "Жилой комплекс", 1f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             }
 
             public void Load()

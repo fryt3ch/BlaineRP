@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class Phone : Events.Script
+    [Script(int.MaxValue)]
+    public class Phone 
     {
         public static bool IsActive { get; private set; }
 
@@ -752,7 +753,7 @@ namespace BCRPClient.CEF
                 {
                     if (toggleId == "disturb")
                     {
-                        Settings.Other.PhoneNotDisturb = state;
+                        Settings.User.Other.PhoneNotDisturb = state;
 
                         ToggleDoNotDisturb(state);
 
@@ -932,7 +933,7 @@ namespace BCRPClient.CEF
             if (CEF.HUD.SpeedometerMustBeEnabled)
                 CEF.Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
 
-            if (CEF.HUD.IsActive && !Settings.Interface.HideHints)
+            if (CEF.HUD.IsActive && !Settings.User.Interface.HideHints)
                 CEF.Browser.Switch(Browser.IntTypes.HUD_Help, true);
 
             if (CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "PhonePoliceCallInput" || CEF.ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || CEF.ActionBox.CurrentContextStr == "Phone911Select"))
@@ -951,9 +952,9 @@ namespace BCRPClient.CEF
         {
             CEF.Browser.Switch(Browser.IntTypes.Phone, true);
 
-            SetWallpaper(Settings.Other.PhoneWallpaperNum);
+            SetWallpaper(Settings.User.Other.PhoneWallpaperNum);
 
-            CEF.Browser.Window.ExecuteJs("Phone.setDisturb", Settings.Other.PhoneNotDisturb);
+            CEF.Browser.Window.ExecuteJs("Phone.setDisturb", Settings.User.Other.PhoneNotDisturb);
         }
 
         public static void UpdateTime()

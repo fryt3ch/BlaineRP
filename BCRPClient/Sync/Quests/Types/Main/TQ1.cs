@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Sync.Quests.Types.Main
 {
-    internal class TQ1 : Events.Script
+    [Script(int.MaxValue)]
+    internal class TQ1 
     {
         public TQ1()
         {
@@ -17,7 +18,7 @@ namespace BCRPClient.Sync.Quests.Types.Main
                     {
                         StartAction = (pData, quest) =>
                         {
-                            var mBlip = new Additional.ExtraBlip(304, new Vector3(0f, 0f, 0f), "asdas", 1f, 5, 255, 0, false, 0, 0, Settings.MAIN_DIMENSION);
+                            var mBlip = new Additional.ExtraBlip(304, new Vector3(0f, 0f, 0f), "asdas", 1f, 5, 255, 0, false, 0, 0, Settings.App.Static.MainDimension);
 
                             quest.SetActualData("E_BP_M", mBlip);
                         },

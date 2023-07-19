@@ -5,7 +5,8 @@ using System.Text;
 
 namespace BCRPClient.CEF
 {
-    public class PlayerMarket : Events.Script
+    [Script(int.MaxValue)]
+    public class PlayerMarket 
     {
         public static bool IsActive => CurrentContext != null && CEF.Browser.IsActive(Browser.IntTypes.Retail);
 

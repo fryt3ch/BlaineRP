@@ -8,7 +8,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Casino : Events.Script
+    [Script(int.MaxValue)]
+    public class Casino 
     {
         public Casino()
         {

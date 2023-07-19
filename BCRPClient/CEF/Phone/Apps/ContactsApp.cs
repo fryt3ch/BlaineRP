@@ -5,7 +5,8 @@ using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class ContactsApp : Events.Script
+    [Script(int.MaxValue)]
+    public class ContactsApp 
     {
         public ContactsApp()
         {

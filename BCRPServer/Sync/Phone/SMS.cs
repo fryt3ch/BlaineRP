@@ -60,7 +60,7 @@ namespace BCRPServer.Sync.Phone
 
         public static void Add(PlayerData.PlayerInfo pInfo, SMS sms, bool triggerAdd)
         {
-            if (pInfo.AllSMS.Count >= Settings.PHONE_SMS_MAX_COUNT)
+            if (pInfo.AllSMS.Count >= Properties.Settings.Static.PHONE_SMS_MAX_COUNT)
             {
                 pInfo.AllSMS.RemoveAt(0);
 

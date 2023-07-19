@@ -52,8 +52,8 @@ namespace BCRPServer.Game.Items
 
                 var amountExceed = amount;
 
-                if (totalWeight + itemWeight > Settings.MAX_INVENTORY_WEIGHT)
-                    amountExceed = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - totalWeight) / data.Weight);
+                if (totalWeight + itemWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
+                    amountExceed = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - totalWeight) / data.Weight);
 
                 if (amountExceed > 0)
                 {
@@ -142,7 +142,7 @@ namespace BCRPServer.Game.Items
                     {
                         totalWeight += curItem.Weight;
 
-                        if (totalWeight + data.Weight > Settings.MAX_INVENTORY_WEIGHT)
+                        if (totalWeight + data.Weight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                         {
                             if (freeIdx >= 0)
                                 freeIdx = -1;
@@ -223,7 +223,7 @@ namespace BCRPServer.Game.Items
                     {
                         totalWeight += curItem.Weight;
 
-                        if (totalWeight + itemWeight > Settings.MAX_INVENTORY_WEIGHT)
+                        if (totalWeight + itemWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                         {
                             if (freeIdx >= 0)
                                 freeIdx = -1;
@@ -303,7 +303,7 @@ namespace BCRPServer.Game.Items
                     {
                         totalWeight += curItem.Weight;
 
-                        if (totalWeight + data.Weight > Settings.MAX_INVENTORY_WEIGHT)
+                        if (totalWeight + data.Weight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                         {
                             if (freeIdx >= 0)
                                 freeIdx = -1;
@@ -383,7 +383,7 @@ namespace BCRPServer.Game.Items
                     {
                         totalWeight += curItem.Weight;
 
-                        if (totalWeight + itemWeight > Settings.MAX_INVENTORY_WEIGHT)
+                        if (totalWeight + itemWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                         {
                             if (freeIdx >= 0)
                                 freeIdx = -1;
@@ -465,7 +465,7 @@ namespace BCRPServer.Game.Items
                     {
                         totalWeight += curItem.Weight;
 
-                        if (totalWeight + data.Weight > Settings.MAX_INVENTORY_WEIGHT)
+                        if (totalWeight + data.Weight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                         {
                             if (freeIdx >= 0)
                                 freeIdx = -1;
@@ -520,9 +520,9 @@ namespace BCRPServer.Game.Items
                 if (amount > curAmount)
                     amount = curAmount;
 
-                if (curWeight + amount * item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + amount * item.BaseWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                 {
-                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.BaseWeight);
+                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / item.BaseWeight);
                 }
 
                 if (amount > 0)
@@ -553,7 +553,7 @@ namespace BCRPServer.Game.Items
                 if (amount != 1)
                     amount = 1;
 
-                if (curWeight + item.Weight <= Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + item.Weight <= Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                     freeIdx = Array.IndexOf(pData.Items, null);
             }
 
@@ -771,7 +771,7 @@ namespace BCRPServer.Game.Items
                 lines.Add($"Craft.AllReceipts.Add(new Craft.Receipt(new Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
             }
 
-            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Data\Items\Items.cs", "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Data\Items\Items.cs", "TO_REPLACE", lines);
 
             return counter;
         }

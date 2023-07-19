@@ -7,7 +7,8 @@ using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class SMSApp : Events.Script
+    [Script(int.MaxValue)]
+    public class SMSApp 
     {
         public class SMS
         {
@@ -124,7 +125,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var text = ((string)args[1])?.Trim();
 
-                if (!text.IsTextLengthValid(Settings.PHONE_SMS_MIN_LENGTH, Settings.PHONE_SMS_MAX_LENGTH, true))
+                if (!text.IsTextLengthValid(Settings.App.Static.PHONE_SMS_MIN_LENGTH, Settings.App.Static.PHONE_SMS_MAX_LENGTH, true))
                     return;
 
                 LastSent = Sync.World.ServerTime;
@@ -259,7 +260,7 @@ namespace BCRPClient.CEF.PhoneApps
                         }
                     }
 
-                    if (Settings.Other.PhoneNotDisturb)
+                    if (Settings.User.Other.PhoneNotDisturb)
                         return;
 
                     if (CEF.HUD.IsActive)

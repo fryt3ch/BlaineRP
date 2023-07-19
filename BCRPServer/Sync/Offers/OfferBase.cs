@@ -33,7 +33,7 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!pData.Player.AreEntitiesNearby(tData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
             {
                 returnObj = 0;
 

@@ -114,7 +114,7 @@ namespace BCRPServer.Game.Jobs
             Trucker.AllTruckerJobs = AllJobs.Values.Select(x => x as Trucker).Where(x => x != null).ToList();
             Collector.AllCollectorJobs = AllJobs.Values.Select(x => x as Collector).Where(x => x != null).ToList();
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "JOBS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "JOBS_TO_REPLACE", lines);
 
             return AllJobs.Count;
         }

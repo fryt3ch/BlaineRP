@@ -6,7 +6,7 @@ namespace BCRPServer.Events.Players
 {
     public class Phone : Script
     {
-        private static uint VisualClientPhoneCallPrice { get; } = (60_000 / Settings.PHONE_CALL_X) * Settings.PHONE_CALL_COST_X;
+        private static uint VisualClientPhoneCallPrice { get; } = (60_000 / Properties.Settings.Static.PHONE_CALL_X) * Properties.Settings.Static.PHONE_CALL_COST_X;
 
         [RemoteProc("Phone::GPD")]
         private static string GetPhoneData(Player player)
@@ -18,7 +18,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            return $"{pData.Info.PhoneBalance}_{VisualClientPhoneCallPrice}_{Settings.PHONE_SMS_COST_PER_CHAR}";
+            return $"{pData.Info.PhoneBalance}_{VisualClientPhoneCallPrice}_{Properties.Settings.Static.PHONE_SMS_COST_PER_CHAR}";
         }
 
         [RemoteProc("Phone::AB")]
@@ -49,9 +49,9 @@ namespace BCRPServer.Events.Players
             if (!pData.Info.TryAddPhoneBalance(amount, out newPhoneBalance, true))
                 return null;
 
-            if (newPhoneBalance > Settings.PHONE_MAX_BALANCE)
+            if (newPhoneBalance > Properties.Settings.Static.PHONE_MAX_BALANCE)
             {
-                player.Notify("Phone::MBA", Settings.PHONE_MAX_BALANCE);
+                player.Notify("Phone::MBA", Properties.Settings.Static.PHONE_MAX_BALANCE);
 
                 return null;
             }
@@ -87,7 +87,7 @@ namespace BCRPServer.Events.Players
             if (tData == null || tData == pData)
                 return 1;
 
-            if (!pData.Info.TryRemovePhoneBalance(Settings.PHONE_CALL_COST_X, out _, true))
+            if (!pData.Info.TryRemovePhoneBalance(Properties.Settings.Static.PHONE_CALL_COST_X, out _, true))
                 return 0;
 
             if (tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber) || tData.Player.Dimension == Utils.GetPrivateDimension(tData.Player) || pData.IsFrozen)
@@ -147,16 +147,16 @@ namespace BCRPServer.Events.Players
             if (name == null)
                 return false;
 
-            if (pData.Info.Contacts.Count >= Settings.PHONE_CONTACTS_MAX_AMOUNT)
+            if (pData.Info.Contacts.Count >= Properties.Settings.Static.PHONE_CONTACTS_MAX_AMOUNT)
             {
-                player.Notify("Phone::CMA", Settings.PHONE_CONTACTS_MAX_AMOUNT);
+                player.Notify("Phone::CMA", Properties.Settings.Static.PHONE_CONTACTS_MAX_AMOUNT);
 
                 return false;
             }
 
             name = name.Trim();
 
-            if (name.Length > Settings.PHONE_CONTACT_NAME_MAX_LENGTH)
+            if (name.Length > Properties.Settings.Static.PHONE_CONTACT_NAME_MAX_LENGTH)
                 return false;
 
             foreach (var x in name)
@@ -204,9 +204,9 @@ namespace BCRPServer.Events.Players
                 if (pData.Info.PhoneBlacklist.Contains(phoneNumber))
                     return false;
 
-                if (pData.Info.PhoneBlacklist.Count >= Settings.PHONE_BLACKLIST_MAX_AMOUNT)
+                if (pData.Info.PhoneBlacklist.Count >= Properties.Settings.Static.PHONE_BLACKLIST_MAX_AMOUNT)
                 {
-                    player.Notify("Phone::BLMA", Settings.PHONE_BLACKLIST_MAX_AMOUNT);
+                    player.Notify("Phone::BLMA", Properties.Settings.Static.PHONE_BLACKLIST_MAX_AMOUNT);
 
                     return false;
                 }
@@ -244,12 +244,12 @@ namespace BCRPServer.Events.Players
 
             var symbolsCount = (uint)text.Length;
 
-            if (symbolsCount < Settings.PHONE_SMS_MIN_LENGTH || symbolsCount > Settings.PHONE_SMS_MAX_LENGTH)
+            if (symbolsCount < Properties.Settings.Static.PHONE_SMS_MIN_LENGTH || symbolsCount > Properties.Settings.Static.PHONE_SMS_MAX_LENGTH)
                 return null;
 
             uint newPhoneBalance;
 
-            if (!pData.Info.TryRemovePhoneBalance(symbolsCount * Settings.PHONE_SMS_COST_PER_CHAR, out newPhoneBalance, true))
+            if (!pData.Info.TryRemovePhoneBalance(symbolsCount * Properties.Settings.Static.PHONE_SMS_COST_PER_CHAR, out newPhoneBalance, true))
                 return null;
 
             if (Sync.Phone.Call.GetByCaller(pData) != null)
@@ -317,7 +317,7 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             if (Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).Any())

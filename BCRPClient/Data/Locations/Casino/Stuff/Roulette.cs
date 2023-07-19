@@ -97,12 +97,12 @@ namespace BCRPClient.Data
 
                 public Roulette(int CasinoId, int Id, string Model, float PosX, float PosY, float PosZ, float RotZ)
                 {
-                    TableObject = new MapObject(RAGE.Util.Joaat.Hash(Model), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, RotZ), 255, Settings.MAIN_DIMENSION)
+                    TableObject = new MapObject(RAGE.Util.Joaat.Hash(Model), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, RotZ), 255, Settings.App.Static.MainDimension)
                     {
                         NotifyStreaming = true,
                     };
 
-                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION)
+                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_CASINO_ROULETTE_WORKER",
                     };

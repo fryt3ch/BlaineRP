@@ -41,7 +41,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var gZone = new GangZone();
 
-                gZone.Blip = new Additional.ExtraBlip(5, new Vector3(posX, posY, 0f), "", 1f, 0, 120, 0f, true, 90, 50f, Settings.MAIN_DIMENSION);
+                gZone.Blip = new Additional.ExtraBlip(5, new Vector3(posX, posY, 0f), "", 1f, 0, 120, 0f, true, 90, 50f, Settings.App.Static.MainDimension);
                 gZone.Id = id;
 
                 All.Add(gZone);
@@ -112,7 +112,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class GangEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class GangEvents 
     {
         public GangEvents()
         {

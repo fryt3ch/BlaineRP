@@ -89,7 +89,7 @@ namespace BCRPServer.Events.Players
             if (item.Type == Sync.World.ItemOnGround.Types.PlacedItem && !item.PlayerHasAccess(pData, false, true))
                 return;
 
-            if (!player.AreEntitiesNearby(item.Object, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.AreEntitiesNearby(item.Object, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
@@ -103,9 +103,9 @@ namespace BCRPServer.Events.Players
                 if (amount > curAmount)
                     amount = curAmount;
 
-                if (curWeight + amount * item.Item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + amount * item.Item.BaseWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                 {
-                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
+                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
                 }
 
                 if (amount > 0)
@@ -136,7 +136,7 @@ namespace BCRPServer.Events.Players
                 if (amount != 1)
                     amount = 1;
 
-                if (curWeight + item.Item.Weight <= Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + item.Item.Weight <= Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                     freeIdx = Array.IndexOf(pData.Items, null);
             }
 

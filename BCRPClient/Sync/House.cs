@@ -5,11 +5,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.Sync
 {
-    public class House : Events.Script
+    [Script(int.MaxValue)]
+    public class House 
     {
         public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 

@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class Animations : Events.Script
+    [Script(int.MaxValue)]
+    public class Animations 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.Animations); }
 
@@ -98,14 +99,14 @@ namespace BCRPClient.CEF
                 if (prefix != "a-" && prefix != "s-")
                     return;
 
-                var favs = Settings.Other.FavoriteAnimations;
+                var favs = Settings.User.Other.FavoriteAnimations;
 
                 if (state)
                     favs.Add(id);
                 else
                     favs.Remove(id);
 
-                Settings.Other.FavoriteAnimations = favs;
+                Settings.User.Other.FavoriteAnimations = favs;
             });
         }
 
@@ -233,7 +234,7 @@ namespace BCRPClient.CEF
                 },
 
                 // Fav
-                Settings.Other.FavoriteAnimations,
+                Settings.User.Other.FavoriteAnimations,
             };
 
             CEF.Browser.Window.ExecuteJs("Anims.draw", new object[] { list });

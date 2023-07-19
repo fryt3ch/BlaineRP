@@ -13,9 +13,9 @@ namespace BCRPClient.Data
         {
             public VehicleDestruction(int id, Vector3 Position)
             {
-                var blip = new Additional.ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -37,7 +37,7 @@ namespace BCRPClient.Data
                     OnExit = OnColshapeExit,
                 };
 
-                var marker = new Marker(29, new Vector3(Position.X, Position.Y, Position.Z + 1.5f), 2.5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 125), true, Settings.MAIN_DIMENSION);
+                var marker = new Marker(29, new Vector3(Position.X, Position.Y, Position.Z + 1.5f), 2.5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 125), true, Settings.App.Static.MainDimension);
             }
 
             private static void OnColshapeExit(Events.CancelEventArgs cancel)

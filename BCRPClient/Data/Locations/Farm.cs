@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    public partial class Locations
     {
         public class Farm : Business
         {
@@ -532,11 +532,11 @@ namespace BCRPClient.Data
                 {
                     var posCs = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z - 20f);
 
-                    MainLabel = new Additional.ExtraLabel(posCs, $"Поле #{farm.CropFields.IndexOf(this) + 1}", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 7, LOS = false };
+                    MainLabel = new Additional.ExtraLabel(posCs, $"Поле #{farm.CropFields.IndexOf(this) + 1}", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.App.Static.MainDimension) { Font = 7, LOS = false };
 
                     posCs.Z -= 0.5f;
 
-                    InfoLabel = new Additional.ExtraLabel(posCs, "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                    InfoLabel = new Additional.ExtraLabel(posCs, "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.App.Static.MainDimension) { Font = 4, LOS = false };
 
                     UpdateLabels(farm, fieldIdx);
 
@@ -557,7 +557,7 @@ namespace BCRPClient.Data
 
                             var pos = new Vector3(x, y, CoordZ - 1.5f);
 
-                            cropData.Colshape = new Additional.Cylinder(pos, csRange, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            cropData.Colshape = new Additional.Cylinder(pos, csRange, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 OnEnter = (cancel) =>
                                 {
@@ -576,7 +576,7 @@ namespace BCRPClient.Data
 
                                     CropData.TextLabel?.Destroy();
 
-                                    CropData.TextLabel = new Additional.ExtraLabel(new Vector3(x, y, z + 0.5f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                                    CropData.TextLabel = new Additional.ExtraLabel(new Vector3(x, y, z + 0.5f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.App.Static.MainDimension) { Font = 4, LOS = false };
 
                                     fieldData.CropsData[col][row].GrowTimeChanged(farm, fieldIdx, col, row, CropData.GetGrowTime(farm, fieldIdx, col, row));
                                 },
@@ -606,7 +606,7 @@ namespace BCRPClient.Data
                                 }
                             };
 
-                            //var blip = new Additional.ExtraBlip(1, pos, "", 0.35f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            //var blip = new Additional.ExtraBlip(1, pos, "", 0.35f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             //prop.SetData("BP", blip);
                         }
@@ -747,7 +747,7 @@ namespace BCRPClient.Data
                 {
                     var orangeTreeData = farm.OrangeTrees[idx];
 
-                    orangeTreeData.Colshape = new Additional.Cylinder(orangeTreeData.Position, 2.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    orangeTreeData.Colshape = new Additional.Cylinder(orangeTreeData.Position, 2.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         OnEnter = (cancel) =>
                         {
@@ -1120,7 +1120,7 @@ namespace BCRPClient.Data
 
                     cow.Ped?.Destroy();
 
-                    cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.MAIN_DIMENSION);
+                    cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.App.Static.MainDimension);
 
                     cow.Ped.StreamInCustomActionsAdd(CowStreamInAction);
 
@@ -1128,13 +1128,13 @@ namespace BCRPClient.Data
 
                     cow.Colshape?.Destroy();
 
-                    cow.Colshape = new Additional.Cylinder(new Vector3(cow.Position.X, cow.Position.Y, cow.Position.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    cow.Colshape = new Additional.Cylinder(new Vector3(cow.Position.X, cow.Position.Y, cow.Position.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         OnEnter = (cancel) =>
                         {
                             TextLabel?.Destroy();
 
-                            TextLabel = new Additional.ExtraLabel(cow.Ped.GetCoords(false), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                            TextLabel = new Additional.ExtraLabel(cow.Ped.GetCoords(false), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.App.Static.MainDimension) { Font = 4, LOS = false };
 
                             cow.GrowTimeChanged(farm, idx, GetGrowTime(farm, idx));
                         },
@@ -1235,7 +1235,7 @@ namespace BCRPClient.Data
                         new Vector3(1805.541f, 4890.7583f, 75f),
                         new Vector3(1736.1438f, 4978.261f, 75f),
                         new Vector3(1923.747f, 5137.78564f, 75f),
-                    }, 0f, 0f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    }, 0f, 0f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -1245,9 +1245,9 @@ namespace BCRPClient.Data
                     };
                 }
 
-                Blip = new Additional.ExtraBlip(569, PositionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(569, PositionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                this.Seller = new NPC($"farmer_{Id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"farmer_{Id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
                     SubName = "NPC_SUBNAME_JOB_FARM_BOSS",
 
@@ -1287,7 +1287,7 @@ namespace BCRPClient.Data
 
                                 var idx = i;
 
-                                farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     OnEnter = (cancel) =>
                                     {
@@ -1320,7 +1320,7 @@ namespace BCRPClient.Data
 
                                 var idx = i;
 
-                                farm.CowBucketPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                farm.CowBucketPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     OnEnter = (cancel) =>
                                     {
@@ -1346,39 +1346,39 @@ namespace BCRPClient.Data
 
                             if (i == 0)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 1)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 2)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 3)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 4)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1952.97778f, 4856.847f, 68.3354877f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1952.97778f, 4856.847f, 68.3354877f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 5)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1956.74463f, 4796.612f, 68.3354877f - 1.55087f), 50f, 40f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1956.74463f, 4796.612f, 68.3354877f - 1.55087f), 50f, 40f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 6)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1915.74133f, 4761.87549f, 68.3354877f - 2.95878f), 55f, 40f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1915.74133f, 4761.87549f, 68.3354877f - 2.95878f), 55f, 40f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 7)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1887.2063f, 4790.97266f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1887.2063f, 4790.97266f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 8)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1860.861f, 4817.32959f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1860.861f, 4817.32959f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
                             }
 
                             farm.CropFields[i].Colshape.ApproveType = Additional.ExtraColshape.ApproveTypes.None;
@@ -1506,10 +1506,10 @@ namespace BCRPClient.Data
 
                                     var pos = new Vector3(x, y, z);
 
-                                    var marker = new Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
-                                    var blip = new Additional.ExtraBlip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                                    var marker = new Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension);
+                                    var blip = new Additional.ExtraBlip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                                    var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                                     {
                                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -1601,9 +1601,9 @@ namespace BCRPClient.Data
 
                                 var pos = CropFields[i].IrrigationPoints[j];
 
-                                var blip = new Additional.ExtraBlip(441, pos, "Чекпоинт", 0.5f, 3, 255, 0f, false, 180, 0f, Settings.MAIN_DIMENSION);
+                                var blip = new Additional.ExtraBlip(441, pos, "Чекпоинт", 0.5f, 3, 255, 0f, false, 180, 0f, Settings.App.Static.MainDimension);
 
-                                var checkpoint = new Checkpoint(40, pos, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION)
+                                var checkpoint = new Checkpoint(40, pos, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension)
                                 {
                                     OnEnter = async (cancel) =>
                                     {

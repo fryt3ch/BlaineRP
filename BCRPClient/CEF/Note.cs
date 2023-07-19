@@ -5,7 +5,8 @@ using System.Text;
 
 namespace BCRPClient.CEF
 {
-    public class Note : Events.Script
+    [Script(int.MaxValue)]
+    public class Note 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Note);
 

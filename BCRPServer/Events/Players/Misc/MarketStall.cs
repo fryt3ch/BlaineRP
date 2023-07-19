@@ -497,7 +497,7 @@ namespace BCRPServer.Events.Players.Misc
 
                 if (wereItemsChanged)
                 {
-                    Utils.TriggerEventInDistance(stall.Position.Position, Settings.CurrentProfile.Game.MainDimension, 10f, "MarketStall::UPD", stallIdx);
+                    Utils.TriggerEventInDistance(stall.Position.Position, Properties.Settings.Profile.Current.Game.MainDimension, 10f, "MarketStall::UPD", stallIdx);
                 }
             }
 
@@ -585,7 +585,7 @@ namespace BCRPServer.Events.Players.Misc
 
             stall.SetItems(rItems);
 
-            Utils.TriggerEventInDistance(stall.Position.Position, Settings.CurrentProfile.Game.MainDimension, 10f, "MarketStall::UPD", stallIdx);
+            Utils.TriggerEventInDistance(stall.Position.Position, Properties.Settings.Profile.Current.Game.MainDimension, 10f, "MarketStall::UPD", stallIdx);
 
             return 1;
         }

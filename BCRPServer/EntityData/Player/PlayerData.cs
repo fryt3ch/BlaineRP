@@ -112,7 +112,7 @@ namespace BCRPServer
         {
             var tCid = tInfo.CID;
 
-            if (Familiars.Add(tCid))
+            if (Info.Familiars.Add(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", true, tCid);
 
@@ -124,7 +124,7 @@ namespace BCRPServer
         {
             var tCid = tInfo.CID;
 
-            if (Familiars.Remove(tCid))
+            if (Info.Familiars.Remove(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", false, tCid);
 
@@ -134,10 +134,8 @@ namespace BCRPServer
 
         public void AddLicense(LicenseTypes lType)
         {
-            if (Licenses.Contains(lType))
+            if (!Info.Licenses.Add(lType))
                 return;
-
-            Licenses.Add(lType);
 
             Player.TriggerEvent("Player::Licenses::Update", true, lType);
 
@@ -146,7 +144,7 @@ namespace BCRPServer
 
         public void RemoveLicense(LicenseTypes lType)
         {
-            if (!Licenses.Remove(lType))
+            if (!Info.Licenses.Remove(lType))
                 return;
 
             Player.TriggerEvent("Player::Licenses::Update", false, lType);
@@ -156,14 +154,14 @@ namespace BCRPServer
 
         public void UpdateSkill(SkillTypes sType, int updValue)
         {
-            updValue = Skills[sType] + updValue;
+            updValue = Info.Skills[sType] + updValue;
 
             if (updValue > MaxSkills[sType])
                 updValue = MaxSkills[sType];
             else if (updValue < 0)
                 updValue = 0;
 
-            Skills[sType] = updValue;
+            Info.Skills[sType] = updValue;
 
             Player.TriggerEvent("Player::Skills::Update", sType, updValue);
 
@@ -298,7 +296,7 @@ namespace BCRPServer
 
         public bool HasLicense(LicenseTypes lType, bool notifyIfNot = true)
         {
-            if (Licenses.Contains(lType))
+            if (Info.Licenses.Contains(lType))
                 return true;
 
             if (notifyIfNot)
@@ -387,11 +385,11 @@ namespace BCRPServer
         {
             Info = new PlayerInfo() { AID = aid };
 
-            LastData = new LastPlayerData() { Dimension = Settings.CurrentProfile.Game.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
+            LastData = new LastPlayerData() { Dimension = Properties.Settings.Profile.Current.Game.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
             Name = name;
             Surname = surname;
-            BirthDate = Utils.GetCurrentTime().Subtract(new TimeSpan(365 * age, 0, 0, 0, 0));
+            Info.BirthDate = Utils.GetCurrentTime().Subtract(new TimeSpan(365 * age, 0, 0, 0, 0));
             Sex = sex;
 
             AdminLevel = -1;
@@ -399,17 +397,17 @@ namespace BCRPServer
             OrganisationID = -1;
             BankAccount = null;
             LastJoinDate = Utils.GetCurrentTime();
-            CreationDate = LastJoinDate;
+            Info.CreationDate = LastJoinDate;
             TimePlayed = 0;
 
             OwnedVehicles = new List<VehicleData.VehicleInfo>();
 
-            Cash = Settings.CHARACTER_DEFAULT_MONEY_CASH;
-            Satiety = Settings.CHARACTER_DEFAULT_SATIETY;
-            Mood = Settings.CHARACTER_DEFAULT_MOOD;
+            Cash = Properties.Settings.Static.CHARACTER_DEFAULT_MONEY_CASH;
+            Satiety = Properties.Settings.Static.CHARACTER_DEFAULT_SATIETY;
+            Mood = Properties.Settings.Static.CHARACTER_DEFAULT_MOOD;
 
-            Skills = Settings.CHARACTER_DEFAULT_SKILLS;
-            Licenses = Settings.CHARACTER_DEFAULT_LICENSES;
+            Info.Skills = Properties.Settings.Static.CHARACTER_DEFAULT_SKILLS;
+            Info.Licenses = Properties.Settings.Static.CHARACTER_DEFAULT_LICENSES;
 
             Gifts = new List<Game.Items.Gift>();
 
@@ -438,7 +436,7 @@ namespace BCRPServer
 
             Info.WeaponSkins = new List<WeaponSkin>();
 
-            Familiars = new HashSet<uint>();
+            Info.Familiars = new HashSet<uint>();
 
             Punishments = new List<Sync.Punishment>();
 
@@ -505,15 +503,15 @@ namespace BCRPServer
 
                 { "PN", Info.PhoneNumber },
 
-                { "Licenses", Licenses.SerializeToJson() },
+                { "Licenses", Info.Licenses.SerializeToJson() },
 
-                { "Skills", Skills.SerializeToJson() },
+                { "Skills", Info.Skills.SerializeToJson() },
 
                 { "TimePlayed", TimePlayed },
-                { "CreationDate", CreationDate },
-                { "BirthDate", BirthDate },
+                { "CreationDate", Info.CreationDate },
+                { "BirthDate", Info.BirthDate },
                 { "Org", OrganisationID == -1 ? null : "todo" },
-                { "Familiars", Familiars.SerializeToJson() },
+                { "Familiars", Info.Familiars.SerializeToJson() },
 
                 { "Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson() }, // to change!
 
@@ -571,9 +569,9 @@ namespace BCRPServer
 
             Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-            Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
+            Player.TriggerEvent("Players::CharacterPreload", data);
 
-            Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Settings.CurrentProfile.Game.HouseDimensionBaseOffset);
+            Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Properties.Settings.Profile.Current.Game.HouseDimensionBaseOffset);
         }
 
         /// <summary>Метод раздевает игрока и надевает всю текущую одежду</summary>
@@ -795,12 +793,12 @@ namespace BCRPServer
 
         public void ShowPassport(Player target)
         {
-            target.TriggerEvent("Documents::Show", 0, Name, Surname, Sex, BirthDate.SerializeToJson(), null, CID, CreationDate.SerializeToJson(), false, Info.LosSantosAllowed);
+            target.TriggerEvent("Documents::Show", 0, Name, Surname, Sex, Info.BirthDate.SerializeToJson(), null, CID, Info.CreationDate.SerializeToJson(), false, Info.LosSantosAllowed);
         }
 
         public void ShowLicences(Player target)
         {
-            target.TriggerEvent("Documents::Show", 1, Name, Surname, Licenses);
+            target.TriggerEvent("Documents::Show", 1, Name, Surname, Info.Licenses);
         }
 
         public void ShowFractionDocs(Player target, Game.Fractions.Fraction fData, byte fRank)

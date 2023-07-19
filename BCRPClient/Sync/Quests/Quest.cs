@@ -208,7 +208,7 @@ namespace BCRPClient.Sync
 
                 ActualQuest = this;
 
-                if (!Settings.Interface.HideQuest)
+                if (!Settings.User.Interface.HideQuest)
                 {
                     CEF.HUD.EnableQuest(true);
                 }

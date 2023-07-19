@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
-    internal class JCL1 : Events.Script
+    [Script(int.MaxValue)]
+    internal class JCL1 
     {
         public JCL1()
         {
@@ -43,7 +44,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -109,7 +110,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 3, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 3, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
@@ -148,7 +149,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var destPos = new Vector3(job.Position.X, job.Position.Y, job.Position.Z - 1f);
 
-                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 5f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -214,7 +215,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 3, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 3, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 

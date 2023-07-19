@@ -86,12 +86,12 @@ namespace BCRPServer.Sync.Offers
                 var senderRemoveWeight = senderItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
                 var receiverRemoveWeight = receiverItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
 
-                if (senderCurrentWeight - senderRemoveWeight + receiverRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (senderCurrentWeight - senderRemoveWeight + receiverRemoveWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                     return (Game.Items.Inventory.ResultTypes.NoSpace, pData);
 
                 var receiverCurrentWeight = tData.Items.Sum(x => x?.Weight ?? 0f);
 
-                if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                     return (Game.Items.Inventory.ResultTypes.NoSpace, tData);
 
                 foreach (var x in SenderVehicles)

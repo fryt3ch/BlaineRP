@@ -88,7 +88,7 @@ namespace BCRPServer.Sync
         /// <returns>true/false если type = Try, true - в любом другом случае</returns>
         public static bool SendLocal(MessageTypes type, Player sender, string message, Player target = null, params object[] args)
         {
-            var range = type == MessageTypes.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == MessageTypes.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
+            var range = type == MessageTypes.Whisper ? Properties.Settings.Static.CHAT_MAX_RANGE_WHISPER : type == MessageTypes.Shout ? Properties.Settings.Static.CHAT_MAX_RANGE_LOUD : Properties.Settings.Static.CHAT_MAX_RANGE_DEFAULT;
 
             if (type != MessageTypes.Try)
             {

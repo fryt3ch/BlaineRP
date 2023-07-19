@@ -109,7 +109,7 @@ namespace BCRPServer.Game.Items
                                 var addWeightItems = toItem?.Weight ?? 0f;
                                 var addWeightBag = fromItem.Weight;
 
-                                if ((addWeightBag - addWeightItems + curWeight > maxWeight) || (addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT))
+                                if ((addWeightBag - addWeightItems + curWeight > maxWeight) || (addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT))
                                     return Game.Items.Inventory.ResultTypes.NoSpace;
 
                                 pData.Items[slotFrom] = toItem;
@@ -393,9 +393,9 @@ namespace BCRPServer.Game.Items
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
 
-                                if (curWeight + amount * fromItem.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                if (curWeight + amount * fromItem.BaseWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+                                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
                                         return Game.Items.Inventory.ResultTypes.NoSpace;
@@ -430,9 +430,9 @@ namespace BCRPServer.Game.Items
                             #region Split To New
                             else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
                             {
-                                if (fromItem.BaseWeight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                if (fromItem.BaseWeight * amount + curWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+                                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
                                         return Game.Items.Inventory.ResultTypes.NoSpace;
@@ -452,7 +452,7 @@ namespace BCRPServer.Game.Items
                                 var addWeightItems = toItem?.Weight ?? 0f;
                                 var addWeightBag = fromItem.Weight;
 
-                                if ((addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT) || (addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight))
+                                if ((addWeightBag - addWeightItems + curWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT) || (addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight))
                                     return Game.Items.Inventory.ResultTypes.NoSpace;
 
                                 cont.Items[slotFrom] = toItem;

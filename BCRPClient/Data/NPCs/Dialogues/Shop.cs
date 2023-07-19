@@ -5,7 +5,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues
 {
-    public class Shop : Events.Script
+    [Script(int.MaxValue)]
+    public class Shop 
     {
         public Shop()
         {

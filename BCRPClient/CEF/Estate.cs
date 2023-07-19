@@ -9,7 +9,8 @@ using System.Xml.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Estate : Events.Script
+    [Script(int.MaxValue)]
+    public class Estate 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Estate);
 
@@ -661,7 +662,8 @@ namespace BCRPClient.CEF
         }
     }
 
-    public class EstateAgency : Events.Script
+    [Script(int.MaxValue)]
+    public class EstateAgency 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
 
@@ -707,7 +709,7 @@ namespace BCRPClient.CEF
 
                     if (res)
                     {
-                        Additional.ExtraBlips.CreateGPS(houseData.Position, Settings.MAIN_DIMENSION, true);
+                        Additional.ExtraBlips.CreateGPS(houseData.Position, Settings.App.Static.MainDimension, true);
                     }
                 }
                 else if (idS[0] == "a")
@@ -723,7 +725,7 @@ namespace BCRPClient.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootId].PositionEnter, Settings.MAIN_DIMENSION, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootId].Shell.StartFloor + apsData.FloorIdx}, кв. {apsData.NumberInRoot + 1}");
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootId].PositionEnter, Settings.App.Static.MainDimension, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootId].Shell.StartFloor + apsData.FloorIdx}, кв. {apsData.NumberInRoot + 1}");
                 }
                 else if (idS[0] == "g")
                 {
@@ -738,7 +740,7 @@ namespace BCRPClient.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootId].EnterColshape.Position, Settings.MAIN_DIMENSION, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootId].EnterColshape.Position, Settings.App.Static.MainDimension, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
                 }
             });
         }

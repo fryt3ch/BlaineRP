@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Browser : Events.Script
+    [Script(int.MaxValue)]
+    public class Browser 
     {
         public const string CurrentServer = "sandy";
 

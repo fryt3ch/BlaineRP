@@ -6,7 +6,8 @@ using System.Text;
 
 namespace BCRPClient.Sync
 {
-    public class Peds : Events.Script
+    [Script(int.MaxValue)]
+    public class Peds 
     {
         public static PedData GetData(Ped ped)
         {

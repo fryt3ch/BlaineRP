@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class StartPlace : Events.Script
+    [Script(int.MaxValue)]
+    public class StartPlace 
     {
         public static bool IsRendered { get => CEF.Browser.IsRendered(CEF.Browser.IntTypes.StartPlace); }
         public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.StartPlace); }

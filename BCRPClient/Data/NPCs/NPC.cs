@@ -7,7 +7,8 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public class NPC : Events.Script
+    [Script(int.MaxValue)]
+    public class NPC 
     {
         public static NPC CurrentNPC { get; set; }
 
@@ -179,7 +180,7 @@ namespace BCRPClient.Data
                     if (Vector3.Distance(pos, Player.LocalPlayer.Position) > 10f)
                         continue;
 
-                    if (Settings.Other.DebugLabels && pData.AdminLevel > -1)
+                    if (Settings.User.Other.DebugLabels && pData.AdminLevel > -1)
                     {
                         if (Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         {

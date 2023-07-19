@@ -165,7 +165,7 @@ namespace BCRPServer.Game.Estates
                     lines.Add($"new GarageRoot({x.Id}, {x.EnterPosition.Position.ToCSharpStr()}, {x.EnterPositionVehicle.ToCSharpStr()});");
                 }
 
-                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "GROOTS_TO_REPLACE", lines);
+                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "GROOTS_TO_REPLACE", lines);
             }
 
             public Utils.Vector4 GetNextVehicleExit()
@@ -180,9 +180,9 @@ namespace BCRPServer.Game.Estates
                 return VehicleExitPositions[nextId];
             }
 
-            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Settings.CurrentProfile.Game.MainDimension && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
 
-            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Settings.CurrentProfile.Game.MainDimension && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
+            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
 
             public static GarageRoot Get(uint id) => All.GetValueOrDefault(id);
         }
@@ -255,7 +255,7 @@ namespace BCRPServer.Game.Estates
 
             this.ClassType = GetClass(this);
 
-            this.Dimension = (uint)(Id + Settings.CurrentProfile.Game.GarageDimensionBaseOffset);
+            this.Dimension = (uint)(Id + Properties.Settings.Profile.Current.Game.GarageDimensionBaseOffset);
 
             All.Add(Id, this);
         }
@@ -275,7 +275,7 @@ namespace BCRPServer.Game.Estates
                 lines.Add($"new Garage({x.Id}, {x.Root.Id}, Garage.Types.{x.StyleData.Type.ToString()}, {x.Variation}, Garage.ClassTypes.{x.ClassType.ToString()}, {x.Tax}, {x.Price});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "GARAGES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "GARAGES_TO_REPLACE", lines);
         }
 
         public static Garage Get(uint id) => All.GetValueOrDefault(id);
@@ -359,7 +359,7 @@ namespace BCRPServer.Game.Estates
             {
                 pInfo.PlayerData?.AddGarageProperty(this);
 
-                var minBalance = Settings.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
+                var minBalance = Properties.Settings.Static.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
 
                 if (buyGov && Balance < minBalance)
                     SetBalance(minBalance, null);
@@ -527,7 +527,7 @@ namespace BCRPServer.Game.Estates
             {
                 var pos = Root.EnterPosition;
 
-                Utils.TeleportPlayers(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, true, players);
             }
             else
             {

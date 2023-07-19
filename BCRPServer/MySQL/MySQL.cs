@@ -16,13 +16,13 @@ namespace BCRPServer
     {
         private static MySqlConnectionStringBuilder _localConnectionCredentials => new MySqlConnectionStringBuilder()
         {
-            Server = Settings.CurrentProfile.DataBase.OwnDbHost,
+            Server = Properties.Settings.Profile.Current.DataBase.OwnDbHost,
 
-            Database = Settings.CurrentProfile.DataBase.OwnDbName,
+            Database = Properties.Settings.Profile.Current.DataBase.OwnDbName,
 
-            UserID = Settings.CurrentProfile.DataBase.OwnDbUser,
+            UserID = Properties.Settings.Profile.Current.DataBase.OwnDbUser,
 
-            Password = Settings.CurrentProfile.DataBase.OwnDbPassword,
+            Password = Properties.Settings.Profile.Current.DataBase.OwnDbPassword,
         };
 
         private static SemaphoreSlim _localConnectionSemaphore { get; set; }
@@ -667,7 +667,7 @@ namespace BCRPServer
 
                                 var birthDate = (DateTime)reader["BirthDate"];
 
-                                var licenses = ((string)reader["Licenses"]).DeserializeFromJson<List<PlayerData.LicenseTypes>>();
+                                var licenses = ((string)reader["Licenses"]).DeserializeFromJson<HashSet<PlayerData.LicenseTypes>>();
 
                                 var medCard = reader["MedicalCard"] is DBNull ? null : ((string)reader["MedicalCard"]).DeserializeFromJson<PlayerData.MedicalCard>();
 
@@ -1212,13 +1212,13 @@ namespace BCRPServer
                     Game.Items.Item.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Settings.CurrentProfile.Game.CIDBaseOffset; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Properties.Settings.Profile.Current.Game.CIDBaseOffset; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (PlayerData.PlayerInfo.Get(i) == null)
                     PlayerData.PlayerInfo.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Settings.CurrentProfile.Game.VIDBaseOffset; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Properties.Settings.Profile.Current.Game.VIDBaseOffset; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (VehicleData.VehicleInfo.Get(i) == null)
                     VehicleData.VehicleInfo.UidHandler.SetUidAsFree(i);

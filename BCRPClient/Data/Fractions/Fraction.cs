@@ -186,7 +186,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var contPos = contPoses[i];
 
-                var containerCs = new Additional.Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var containerCs = new Additional.Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.ContainerInteract,
 
@@ -195,12 +195,12 @@ namespace BCRPClient.Data.Fractions
                     Data = StorageContainerId,
                 };
 
-                var containerTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var containerTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
 
-                var containerInfoTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var containerInfoTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
@@ -214,7 +214,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var wbPos = wbPoses[i];
 
-                var creationWorkbenchCs = new Additional.Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var creationWorkbenchCs = new Additional.Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract,
 
@@ -223,12 +223,12 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var creationWorkbenchTextLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var creationWorkbenchTextLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
 
-                var wbTextInfoLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var wbTextInfoLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
@@ -513,7 +513,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class FractionEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class FractionEvents 
     {
         public FractionEvents()
         {

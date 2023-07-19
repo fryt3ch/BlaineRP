@@ -177,7 +177,7 @@ namespace BCRPServer.Game.Items.Craft
         {
             ClearAllWrongObservers();
 
-            if (PlayersObserving.Count >= Settings.WORKBENCH_MAX_PLAYERS)
+            if (PlayersObserving.Count >= Properties.Settings.Static.WORKBENCH_MAX_PLAYERS)
                 return false;
 
             pData.CurrentWorkbench = this;
@@ -411,7 +411,7 @@ namespace BCRPServer.Game.Items.Craft
             if (pData.Player.Dimension != OwnerEntity.Object.Dimension)
                 return false;
 
-            if (pData.Player.Position.DistanceTo(OwnerEntity.Object.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (pData.Player.Position.DistanceTo(OwnerEntity.Object.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return false;
 
             return true;

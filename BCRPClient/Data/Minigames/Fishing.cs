@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.Data.Minigames
 {
-    public class Fishing : Events.Script
+    [Script(int.MaxValue)]
+    public class Fishing 
     {
         public Fishing()
         {

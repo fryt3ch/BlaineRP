@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    class DoorSystem : Events.Script
+    [Script(int.MaxValue)]
+    public class DoorSystem 
     {
         private static Dictionary<HashSet<uint>, string> Names { get; set; } = new Dictionary<HashSet<uint>, string>()
         {

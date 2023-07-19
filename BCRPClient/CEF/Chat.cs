@@ -8,7 +8,8 @@ using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
-    class Chat : Events.Script
+    [Script(int.MaxValue)]
+    public class Chat 
     {
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Chat); }
         public static bool InputVisible = false;
@@ -17,7 +18,7 @@ namespace BCRPClient.CEF
 
         private static Regex TodoMessageRegex = new Regex(@".+\*.+");
 
-        private static string TimeStr { get => Settings.Chat.ShowTime ? (Settings.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
+        private static string TimeStr { get => Settings.User.Chat.ShowTime ? (Settings.User.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
         public enum MessageTypes
         {
@@ -218,7 +219,7 @@ namespace BCRPClient.CEF
                 if (name2 != null)
                     message = string.Format(message, name2);
 
-                if (Settings.Chat.UseFilter)
+                if (Settings.User.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
 
                 if (type == MessageTypes.Say)
@@ -362,7 +363,7 @@ namespace BCRPClient.CEF
                 var type = (MessageTypes)((int)args[1]);
                 var message = (string)args[2];
 
-                if (Settings.Chat.UseFilter)
+                if (Settings.User.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
 
                 if (type == MessageTypes.Admin)
@@ -443,7 +444,7 @@ namespace BCRPClient.CEF
 
                 var message = (string)args[0];
 
-                if (Settings.Chat.UseFilter)
+                if (Settings.User.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
 
                 if (IsActive)

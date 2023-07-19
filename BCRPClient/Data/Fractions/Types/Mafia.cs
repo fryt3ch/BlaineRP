@@ -26,7 +26,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class MafiaEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class MafiaEvents 
     {
         public MafiaEvents()
         {

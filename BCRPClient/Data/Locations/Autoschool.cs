@@ -32,7 +32,7 @@ namespace BCRPClient.Data
 
                 var id = Id;
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract,
 
@@ -41,13 +41,13 @@ namespace BCRPClient.Data
                     Data = id,
                 };
 
-                var marker = new Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
+                var marker = new Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension);
 
-                var blip = new Additional.ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 if (id == 1)
                 {
-                    var npc = new NPC($"drivingschool_{id}", "Оливия", NPC.Types.Talkable, "s_f_y_airhostess_01", new Vector3(214.5508f, -1400.095f, 30.58353f), 318.5795f, Settings.MAIN_DIMENSION)
+                    var npc = new NPC($"drivingschool_{id}", "Оливия", NPC.Types.Talkable, "s_f_y_airhostess_01", new Vector3(214.5508f, -1400.095f, 30.58353f), 318.5795f, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_DRIVINGSCHOOL_WORKER",
 

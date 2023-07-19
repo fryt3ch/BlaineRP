@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class GPSApp : Events.Script
+    [Script(int.MaxValue)]
+    public class GPSApp 
     {
         private static Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>> AllPositions = new Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>>()
         {

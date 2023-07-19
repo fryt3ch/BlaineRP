@@ -118,11 +118,11 @@ namespace BCRPServer
 
             BlockRemoteCalls = true;
 
-            DimensionToSpawn = Settings.CurrentProfile.Game.MainDimension;
+            DimensionToSpawn = Properties.Settings.Profile.Current.Game.MainDimension;
 
             StepType = StepTypes.None;
 
-            LoginAttempts = Settings.CurrentProfile.General.PlayerLoginMaxAttempts;
+            LoginAttempts = Properties.Settings.Profile.Current.General.PlayerLoginMaxAttempts;
 
             AuthTimer = new Timer((obj) =>
             {
@@ -141,7 +141,7 @@ namespace BCRPServer
                     if (StepType < StepTypes.CharacterSelection)
                         Utils.Kick(Player, "Время на вход вышло!");
                 });
-            }, null, (int)Settings.CurrentProfile.General.PlayerAuthTimeoutTime.TotalMilliseconds, Timeout.Infinite);
+            }, null, (int)Properties.Settings.Profile.Current.General.PlayerAuthTimeoutTime.TotalMilliseconds, Timeout.Infinite);
 
             Characters = new PlayerData.PlayerInfo[3];
         }
@@ -158,10 +158,10 @@ namespace BCRPServer
                 sTypes.Add(StartPlaceTypes.SpawnLosSantos);
             }
 
-            if (PlayerData.LastData.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (PlayerData.LastData.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
             {
                 PlayerData.LastData.Position.Position = Utils.DefaultSpawnPosition;
-                PlayerData.LastData.Dimension = Settings.CurrentProfile.Game.MainDimension;
+                PlayerData.LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
             }
             else
             {

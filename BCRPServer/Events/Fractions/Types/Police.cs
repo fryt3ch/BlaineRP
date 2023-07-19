@@ -506,7 +506,7 @@ namespace BCRPServer.Events.Fractions
                 if (!uint.TryParse(searchStr, out pid))
                     return 0;
 
-                tInfo = pid >= Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.PlayerInfo.Get(pid) : PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info;
+                tInfo = pid >= Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.PlayerInfo.Get(pid) : PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info;
             }
 
             if (tInfo == null)
@@ -674,7 +674,7 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
@@ -910,7 +910,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return null;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return null;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -948,7 +948,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return false;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -1003,7 +1003,7 @@ namespace BCRPServer.Events.Fractions
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
                 return null;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return null;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
@@ -1106,7 +1106,7 @@ namespace BCRPServer.Events.Fractions
             }
             else
             {
-                if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                     return 0;
 
                 var existingCall = Game.Fractions.Police.GetCallByCaller(player.Id);
@@ -1167,7 +1167,7 @@ namespace BCRPServer.Events.Fractions
 
             if (licTypeS == null || licTypeS.Length == 0)
             {
-                return tData.Licenses;
+                return tData.Info.Licenses;
             }
             else
             {

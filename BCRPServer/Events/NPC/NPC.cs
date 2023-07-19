@@ -79,7 +79,7 @@ namespace BCRPServer.Events.NPC
             if (npcPos == null)
                 return;
 
-            if (player.Position.DistanceTo(npcPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (player.Position.DistanceTo(npcPos) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             var actionData = GetActionDataById(actionId);
@@ -111,7 +111,7 @@ namespace BCRPServer.Events.NPC
             if (npcPos == null)
                 return null;
 
-            if (player.Position.DistanceTo(npcPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (player.Position.DistanceTo(npcPos) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return null;
 
             var actionData = GetActionDataById(procId);

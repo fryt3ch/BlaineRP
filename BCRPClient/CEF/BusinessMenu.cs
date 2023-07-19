@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF
 {
-    public class BusinessMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class BusinessMenu 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuBusiness);
 

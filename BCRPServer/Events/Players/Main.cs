@@ -55,6 +55,12 @@ namespace BCRPServer.Events.Players
                 }
                 catch (Exception ex)
                 {
+                    NAPI.Task.Run(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+                    });
+
                     return;
                 }
             }
@@ -96,7 +102,7 @@ namespace BCRPServer.Events.Players
                             if (player?.Exists != true)
                                 return;
 
-                            tData.BlockRemoteCalls = false;
+                            //tData.BlockRemoteCalls = false;
                         });
 
                         return;
@@ -260,7 +266,7 @@ namespace BCRPServer.Events.Players
                     }
                 }
 
-                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE));
+                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask(Properties.Settings.Static.OWNED_VEHICLE_TIME_TO_AUTODELETE));
                 #endregion
 
                 if (pData.Armour != null)
@@ -428,23 +434,23 @@ namespace BCRPServer.Events.Players
             {
                 var pos = player.Position;
 
-                if (pDim >= Settings.CurrentProfile.Game.HouseDimensionBaseOffset)
+                if (pDim >= Properties.Settings.Profile.Current.Game.HouseDimensionBaseOffset)
                 {
-                    if (pDim < Settings.CurrentProfile.Game.ApartmentsDimensionBaseOffset)
+                    if (pDim < Properties.Settings.Profile.Current.Game.ApartmentsDimensionBaseOffset)
                     {
                         var house = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.House;
 
                         if (house != null)
                             pos = house.PositionParams.Position;
                     }
-                    else if (pDim < Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset)
+                    else if (pDim < Properties.Settings.Profile.Current.Game.ApartmentsRootDimensionBaseOffset)
                     {
                         var aps = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.Apartments;
 
                         if (aps != null)
                             pos = aps.Root.EnterParams.Position;
                     }
-                    else if (pDim < Settings.CurrentProfile.Game.GarageDimensionBaseOffset)
+                    else if (pDim < Properties.Settings.Profile.Current.Game.GarageDimensionBaseOffset)
                     {
                         var apsRoot = Utils.GetApartmentsRootByDimension(pDim);
 
@@ -479,7 +485,7 @@ namespace BCRPServer.Events.Players
 
                 pData.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
 
-                if (Settings.CurrentProfile.Game.KnockedDropWeaponsEnabled)
+                if (Properties.Settings.Profile.Current.Game.KnockedDropWeaponsEnabled)
                 {
                     for (int i = 0; i < pData.Weapons.Length; i++)
                         if (pData.Weapons[i] != null)
@@ -489,17 +495,17 @@ namespace BCRPServer.Events.Players
                 if (pData.Holster?.Items[0] != null)
                     pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Holster, 0, 1);
 
-                if (Settings.CurrentProfile.Game.KnockedDropAmmoTotalPercentage > 0f && Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount > 0)
+                if (Properties.Settings.Profile.Current.Game.KnockedDropAmmoTotalPercentage > 0f && Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount > 0)
                 {
                     int droppedAmmo = 0;
 
                     for (int i = 0; i < pData.Items.Length; i++)
                         if (pData.Items[i] is Game.Items.Ammo)
                         {
-                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Settings.CurrentProfile.Game.KnockedDropAmmoTotalPercentage);
+                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Properties.Settings.Profile.Current.Game.KnockedDropAmmoTotalPercentage);
 
-                            if (ammoToDrop + droppedAmmo > Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount)
-                                ammoToDrop = Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount - droppedAmmo;
+                            if (ammoToDrop + droppedAmmo > Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount)
+                                ammoToDrop = Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount - droppedAmmo;
 
                             if (ammoToDrop == 0)
                                 break;
@@ -508,7 +514,7 @@ namespace BCRPServer.Events.Players
 
                             droppedAmmo += ammoToDrop;
 
-                            if (droppedAmmo == Settings.CurrentProfile.Game.KnockedDropAmmoMaxAmount)
+                            if (droppedAmmo == Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount)
                                 break;
                         }
                 }
@@ -571,7 +577,7 @@ namespace BCRPServer.Events.Players
         [RemoteEvent("fpsu")]
         public static void FingerUpdate(Player sender, float camPitch, float camHeading)
         {
-            sender?.TriggerEventInDistance(Settings.FREQ_UPDATE_DISTANCE, "fpsu", sender.Handle, camPitch, camHeading);
+            sender?.TriggerEventInDistance(Properties.Settings.Static.FREQ_UPDATE_DISTANCE, "fpsu", sender.Handle, camPitch, camHeading);
         }
 
         [RemoteEvent("Players::FingerPoint::Vehicle")]
@@ -692,7 +698,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (vData.EngineOn || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (vData.EngineOn || !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (vData.ForcedSpeed != 0f)
@@ -817,10 +823,10 @@ namespace BCRPServer.Events.Players
             if (vData.Data.HasCruiseControl || vData.IsAnchored)
                 return;
 
-            if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)
+            if (vData.ForcedSpeed >= Properties.Settings.Static.MIN_CRUISE_CONTROL_SPEED)
                 vData.ForcedSpeed = 0f;
             else if (vData.EngineOn)
-                vData.ForcedSpeed = speed > Settings.MAX_CRUISE_CONTROL_SPEED ? Settings.MAX_CRUISE_CONTROL_SPEED : speed;
+                vData.ForcedSpeed = speed > Properties.Settings.Static.MAX_CRUISE_CONTROL_SPEED ? Properties.Settings.Static.MAX_CRUISE_CONTROL_SPEED : speed;
         }
         #endregion
 

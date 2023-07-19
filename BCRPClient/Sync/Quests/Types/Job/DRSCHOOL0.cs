@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
-    internal class DRSCHOOL0 : Events.Script
+    [Script(int.MaxValue)]
+    internal class DRSCHOOL0 
     {
         public DRSCHOOL0()
         {
@@ -47,7 +48,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             if (minIdx < 0)
                                 return;
 
-                            var blip = new Additional.ExtraBlip(162, pos, "Экзаменационный транспорт", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, pos, "Экзаменационный транспорт", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             quest.SetActualData("E_BP_M", blip);
                         },
@@ -89,7 +90,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             var destPos = new Vector3(routeData[posIdx].X, routeData[posIdx].Y, routeData[posIdx].Z - 1f);
                             var nextPos = posIdx < routeData.Length - 1 ? new Vector3(routeData[posIdx + 1].X, routeData[posIdx + 1].Y, routeData[posIdx + 1].Z - 1f) : null;
 
-                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -121,7 +122,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
@@ -134,7 +135,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             {
                                 var p2 = new Vector3(nextPos.X, nextPos.Y, nextPos.Z + 2.5f);
 
-                                quest.SetActualData("E_MKR_0", new Checkpoint(17, p1, 2.5f, p2, new RGBA(255, 255, 255, 150), true, Settings.MAIN_DIMENSION));
+                                quest.SetActualData("E_MKR_0", new Checkpoint(17, p1, 2.5f, p2, new RGBA(255, 255, 255, 150), true, Settings.App.Static.MainDimension));
                             }
 
                             var faultCheckTask = new AsyncTask(async () =>
@@ -180,7 +181,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             var veh = RAGE.Elements.Entities.Vehicles.GetAtRemote(ushort.Parse(qData[0]));
 
-                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
                                 ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -238,14 +239,14 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
                             quest.SetActualData("E_BP_0", blip);
                             quest.SetActualData("CS_0", colshape);
 
-                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 2.5f), 2.5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.MAIN_DIMENSION));
+                            quest.SetActualData("E_MKR_0", new Marker(4, new Vector3(destPos.X, destPos.Y, destPos.Z + 2.5f), 2.5f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 150), true, Settings.App.Static.MainDimension));
 
                             var faultCheckTask = new AsyncTask(async () =>
                             {

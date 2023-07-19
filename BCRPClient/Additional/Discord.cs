@@ -2,7 +2,8 @@
 
 namespace BCRPClient.Additional
 {
-    public class Discord : Events.Script
+    [Script(int.MaxValue)]
+    public class Discord 
     {
         public const int StatusUpdateTime = 5_000;
 

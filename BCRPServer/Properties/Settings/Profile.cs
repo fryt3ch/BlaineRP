@@ -7,10 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace BCRPServer.Properties
+namespace BCRPServer.Properties.Settings
 {
-    public class SettingsProfile
+    public class Profile
     {
+        private static Profile _current;
+
+        public static Profile Current => _current;
+
         [JsonProperty(PropertyName = "general")]
         public GeneralSettings General { get; private set; } = new GeneralSettings();
 
@@ -25,7 +29,7 @@ namespace BCRPServer.Properties
 
         [SettingsSection]
         public class GeneralSettings
-        {
+{
             [ClientSync]
             [JsonProperty(PropertyName = "cultureInfo")]
             public CultureInfo CultureInfo { get; private set; } = new CultureInfo("ru-RU", false)
@@ -46,11 +50,19 @@ namespace BCRPServer.Properties
 
             [JsonProperty(PropertyName = "playerAuthTimeoutTime")]
             public TimeSpan PlayerAuthTimeoutTime { get; private set; } = TimeSpan.FromMinutes(10);
+
+            [ClientSync]
+            [JsonProperty(PropertyName = "timeUtcOffset")]
+            public TimeSpan TimeUtcOffset { get; private set; } = TimeSpan.FromHours(+3);
         }
 
         [SettingsSection]
         public class GameSettings
         {
+            [ClientSync]
+            [JsonProperty(PropertyName = "streamDistance")]
+            public float StreamDistance { get; private set; } = 300f;
+
             [ClientSync]
             [JsonProperty(PropertyName = "mainDimension")]
             public uint MainDimension { get; private set; } = 7;
@@ -95,8 +107,12 @@ namespace BCRPServer.Properties
             [JsonProperty(PropertyName = "payDayMinimalSessionTimeToReceive")]
             public TimeSpan PayDayMinimalSessionTimeToReceive { get; private set; } = TimeSpan.FromSeconds(600);
 
+            [ClientSync]
+            [JsonProperty(PropertyName = "inventoryMaxWeight")]
+            public float InventoryMaxWeight { get; private set; } = 15f;
+
             public GameSettings()
-            { 
+            {
 
             }
         }
@@ -130,12 +146,12 @@ namespace BCRPServer.Properties
             public string SocketIOPassword { get; private set; } = "63c209c3-3505-443a-b234-91e3046e2894";
         }
 
-        public static SettingsProfile LoadProfile(string path)
+        public static Profile LoadProfile(string path)
         {
-            return JsonConvert.DeserializeObject<SettingsProfile>(File.ReadAllText(path));
+            return JsonConvert.DeserializeObject<Profile>(File.ReadAllText(path));
         }
 
-        public static void SaveProfile(SettingsProfile settProfile, string path)
+        public static void SaveProfile(Profile settProfile, string path)
         {
             using (FileStream fs = File.Open(path, FileMode.OpenOrCreate))
             {
@@ -153,9 +169,9 @@ namespace BCRPServer.Properties
             }
         }
 
-        public static SettingsProfile GetDefault() => new SettingsProfile();
+        public static Profile GetDefault() => new Profile();
 
-        public static JObject GetClientsideData(SettingsProfile profile)
+        public static JObject GetClientsideSettings(Profile profile)
         {
             JObject jObj = new JObject();
 
@@ -203,7 +219,13 @@ namespace BCRPServer.Properties
             return jObj;
         }
 
-        public JObject GetClientsideData() => GetClientsideData(this);
+        public JObject GetClientsideSettings() => GetClientsideSettings(this);
+
+
+        public static void SetCurrentProfile(Profile profile)
+        {
+            _current = profile;
+        }
 
         [AttributeUsage(AttributeTargets.Property)]
         private class ClientSyncAttribute : Attribute

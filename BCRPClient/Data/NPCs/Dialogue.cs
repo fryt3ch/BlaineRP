@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public class Dialogue : Events.Script
+    [Script(int.MaxValue)]
+    public class Dialogue 
     {
         public enum TimeTypes
         {

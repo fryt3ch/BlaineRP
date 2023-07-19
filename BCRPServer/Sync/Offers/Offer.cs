@@ -170,7 +170,7 @@ namespace BCRPServer.Sync.Offers
             var offer = new Offer(pData, tData, type, data);
 
             if (duration == -1)
-                duration = Settings.OFFER_DEFAULT_DURATION;
+                duration = Properties.Settings.Static.OFFER_DEFAULT_DURATION;
 
             offer.Timer = new Timer((obj) =>
             {

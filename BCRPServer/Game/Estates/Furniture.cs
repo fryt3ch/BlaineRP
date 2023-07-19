@@ -828,7 +828,7 @@ namespace BCRPServer.Game.Estates
                     lines.Add($"new Furniture(\"{x.Key}\", Types.{x.Value.Type}, \"{x.Value.Name}\", {x.Value.Model});");
                 }
 
-                Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Data\Furniture.cs", "TO_REPLACE_FURN_LIST", lines);
+                Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Data\Furniture.cs", "TO_REPLACE_FURN_LIST", lines);
 
 /*                lines.Clear();
 

@@ -4,7 +4,8 @@ using System;
 
 namespace BCRPClient.Sync
 {
-    class Crawl : Events.Script
+    [Script(int.MaxValue)]
+    public class Crawl 
     {
         private static DateTime LastSwitchTime;
 
@@ -17,7 +18,7 @@ namespace BCRPClient.Sync
 
         public Crawl()
         {
-            LastSwitchTime = Sync.World.ServerTime;
+
         }
 
         public static void Toggle()

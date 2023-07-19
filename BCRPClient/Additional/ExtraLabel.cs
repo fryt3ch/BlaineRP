@@ -68,7 +68,7 @@ namespace BCRPClient.Additional
 
                 foreach (var x in All)
                 {
-                    if ((x.Dimension == uint.MaxValue || x.Dimension == dim) && x.Position.DistanceTo(pos) <= Settings.STREAM_DISTANCE)
+                    if ((x.Dimension == uint.MaxValue || x.Dimension == dim) && x.Position.DistanceTo(pos) <= Settings.App.Profile.Current.Game.StreamDistance)
                     {
                         if (!Streamed.Contains(x))
                             Streamed.Add(x);

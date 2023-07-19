@@ -96,7 +96,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
             
             if (tInfo == null)
             {
@@ -118,7 +118,7 @@ namespace BCRPServer.Events.Commands
 
             var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Mute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
 
-            if (allMutes.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
+            if (allMutes.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
                 var oldMute = allMutes.OrderBy(x => x.StartDate).FirstOrDefault();
 
@@ -163,7 +163,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -217,7 +217,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -239,7 +239,7 @@ namespace BCRPServer.Events.Commands
 
             var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) {  AdditionalData = "0" };
 
-            if (allJails.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
+            if (allJails.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
                 var oldJail = allJails.OrderBy(x => x.StartDate).FirstOrDefault();
 
@@ -291,7 +291,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -352,7 +352,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[1];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -363,7 +363,7 @@ namespace BCRPServer.Events.Commands
 
             var allWarns = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Warn).ToList();
 
-            if (allWarns.Count == Settings.MAX_WARNS_BEFORE_BAN)
+            if (allWarns.Count == Properties.Settings.Static.MAX_WARNS_BEFORE_BAN)
             {
                 pData.Player.Notify("ASTUFF::PAHMW");
 
@@ -372,9 +372,9 @@ namespace BCRPServer.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Warn, reason, curTime, curTime.AddDays(Settings.WARN_DAYS_TO_UNWARN), pData.CID);
+            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Warn, reason, curTime, curTime.AddDays(Properties.Settings.Static.WARN_DAYS_TO_UNWARN), pData.CID);
 
-            if (allWarns.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
+            if (allWarns.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
                 var oldJail = allWarns.OrderBy(x => x.StartDate).FirstOrDefault();
 
@@ -417,7 +417,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[2];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -469,7 +469,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -491,7 +491,7 @@ namespace BCRPServer.Events.Commands
 
             var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Ban, reason, curTime, curTime.AddDays(days), pData.CID);
 
-            if (allBans.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
+            if (allBans.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
                 var oldJail = allBans.OrderBy(x => x.StartDate).FirstOrDefault();
 
@@ -543,7 +543,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {

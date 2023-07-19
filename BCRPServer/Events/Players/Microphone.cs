@@ -24,7 +24,7 @@ namespace BCRPServer.Events.Players
                 if (vRange > 0f)
                     return;
 
-                var nvRange = Settings.MICROPHONE_MAX_RANGE_DEFAULT;
+                var nvRange = Properties.Settings.Static.MICROPHONE_MAX_RANGE_DEFAULT;
 
                 pData.VoiceRange = nvRange;
 

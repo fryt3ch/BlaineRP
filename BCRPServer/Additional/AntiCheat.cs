@@ -176,13 +176,13 @@ namespace BCRPServer.Additional
 
                         if (pDim != dim)
                         {
-                            if (pDim >= Settings.CurrentProfile.Game.HouseDimensionBaseOffset)
+                            if (pDim >= Properties.Settings.Profile.Current.Game.HouseDimensionBaseOffset)
                             {
-                                if (pDim < Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset)
+                                if (pDim < Properties.Settings.Profile.Current.Game.ApartmentsRootDimensionBaseOffset)
                                 {
                                     Utils.GetHouseBaseByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }
-                                else if (pDim < Settings.CurrentProfile.Game.GarageDimensionBaseOffset)
+                                else if (pDim < Properties.Settings.Profile.Current.Game.GarageDimensionBaseOffset)
                                 {
                                     Utils.GetApartmentsRootByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }
@@ -242,17 +242,17 @@ namespace BCRPServer.Additional
 
         private static void OnDimensionChange(uint dim, params Player[] players)
         {
-            if (dim < Settings.CurrentProfile.Game.HouseDimensionBaseOffset)
+            if (dim < Properties.Settings.Profile.Current.Game.HouseDimensionBaseOffset)
                 return;
 
-            if (dim < Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset)
+            if (dim < Properties.Settings.Profile.Current.Game.ApartmentsRootDimensionBaseOffset)
             {
                 Utils.GetHouseBaseByDimension(dim)?.SetPlayersInside(false, players);
 
                 return;
             }
 
-            if (dim < Settings.CurrentProfile.Game.GarageDimensionBaseOffset)
+            if (dim < Properties.Settings.Profile.Current.Game.GarageDimensionBaseOffset)
             {
                 Utils.GetApartmentsRootByDimension(dim)?.SetPlayersInside(false, players);
 

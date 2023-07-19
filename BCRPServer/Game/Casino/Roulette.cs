@@ -204,7 +204,7 @@ namespace BCRPServer.Game.Casino
         {
             CurrentStateData = value;
 
-            Utils.TriggerEventInDistance(Position, Settings.CurrentProfile.Game.MainDimension, 50f, "Casino::RLTS", CasinoId, Id, value);
+            Utils.TriggerEventInDistance(Position, Properties.Settings.Profile.Current.Game.MainDimension, 50f, "Casino::RLTS", CasinoId, Id, value);
         }
 
         public string GetCurrentStateData()

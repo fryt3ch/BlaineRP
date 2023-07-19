@@ -7,7 +7,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues
 {
-    public class VehiclePound : Events.Script
+    [Script(int.MaxValue)]
+    public class VehiclePound 
     {
         public VehiclePound()
         {

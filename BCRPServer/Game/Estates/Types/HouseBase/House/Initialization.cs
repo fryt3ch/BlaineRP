@@ -738,7 +738,7 @@ namespace BCRPServer.Game.Estates
                 });
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "HOUSES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "HOUSES_TO_REPLACE", lines);
 
             return All.Count;
         }

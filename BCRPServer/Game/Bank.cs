@@ -159,14 +159,14 @@ namespace BCRPServer.Game
             foreach (var x in Banks)
                 lines.Add($"new Bank({x.Key}, new Utils.Vector4[] {{ {string.Join(", ", x.Value.Select(x => x.ToCSharpStr()))} }});");
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "BANKS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "BANKS_TO_REPLACE", lines);
 
             lines = new List<string>();
 
             foreach (var x in ATMs)
                 lines.Add($"new ATM({x.Key}, {x.Value.ToCSharpStr()});");
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "ATM_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "ATM_TO_REPLACE", lines);
         }
 
         public static Utils.Vector4[] GetBankData(int id) => Banks.GetValueOrDefault(id);
@@ -177,12 +177,12 @@ namespace BCRPServer.Game
         {
             var bData = GetBankData(id);
 
-            if (bData == null || player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (bData == null || player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             foreach (var x in bData)
             {
-                if (player.Position.DistanceTo(x.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                if (player.Position.DistanceTo(x.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                     return true;
             }
 
@@ -193,7 +193,7 @@ namespace BCRPServer.Game
         {
             var atmData = GetAtmData(id);
 
-            if (atmData == null || player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (atmData == null || player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             return player.Position.DistanceTo(atmData.Position) <= (atmData.RotationZ + 5f);

@@ -7,7 +7,8 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public class Items : Events.Script
+    [Script(int.MaxValue)]
+    public class Items 
     {
         public abstract class Item
         {
@@ -927,8 +928,6 @@ namespace BCRPClient.Data
 
                 if (!Utils.DiggableMaterials.Contains(material))
                 {
-                    Utils.ConsoleOutput(material);
-
                     CEF.Notification.ShowError(Locale.Notifications.Inventory.DiggingNotAllowedHere);
 
                     return null;

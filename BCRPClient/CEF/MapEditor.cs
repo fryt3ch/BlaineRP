@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF
 {
-    class MapEditor : Events.Script
+    [Script(int.MaxValue)]
+    public class MapEditor 
     {
         public static bool IsActive { get; private set; }
 

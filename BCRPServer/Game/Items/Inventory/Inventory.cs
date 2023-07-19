@@ -6,7 +6,7 @@ namespace BCRPServer.Game.Items
 {
     public partial class Inventory
     {
-        #region Settings
+        #region Properties.Settings.Static.
         /// <summary>Слоты одежды</summary>
         public static Dictionary<Type, int> ClothesSlots = new Dictionary<Type, int>()
         {
@@ -240,9 +240,9 @@ namespace BCRPServer.Game.Items
                 if (amount > curAmount)
                     amount = curAmount;
 
-                if (curWeight + amount * item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + amount * item.BaseWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                 {
-                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.BaseWeight);
+                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / item.BaseWeight);
                 }
 
                 if (amount > 0)
@@ -273,7 +273,7 @@ namespace BCRPServer.Game.Items
                 if (amount != 1)
                     amount = 1;
 
-                if (curWeight + item.Weight <= Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + item.Weight <= Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                     freeIdx = Array.IndexOf(pData.Items, null);
             }
 

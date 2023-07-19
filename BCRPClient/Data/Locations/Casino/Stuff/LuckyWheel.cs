@@ -43,17 +43,17 @@ namespace BCRPClient.Data
 
                 public LuckyWheel(int CasinoId, int Id, float PosX, float PosY, float PosZ, float Heading)
                 {
-                    WheelObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckywheel_02a"), new Vector3(PosX, PosY, PosZ + 1.5f), new Vector3(0f, 0f, Heading), 255, Settings.MAIN_DIMENSION)
+                    WheelObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckywheel_02a"), new Vector3(PosX, PosY, PosZ + 1.5f), new Vector3(0f, 0f, Heading), 255, Settings.App.Static.MainDimension)
                     {
 
                     };
 
-                    BaseObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckywheel_01a"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.MAIN_DIMENSION)
+                    BaseObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckywheel_01a"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.App.Static.MainDimension)
                     {
 
                     };
 
-                    ArrowObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_jackpot_on"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.MAIN_DIMENSION)
+                    ArrowObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_jackpot_on"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.App.Static.MainDimension)
                     {
                         NotifyStreaming = true,
                     };
@@ -62,7 +62,7 @@ namespace BCRPClient.Data
 
                     ArrowObj.SetHeading(Heading);
 
-                    LightsObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckylight_on"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.MAIN_DIMENSION)
+                    LightsObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckylight_on"), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.App.Static.MainDimension)
                     {
                         NotifyStreaming = true,
                     };

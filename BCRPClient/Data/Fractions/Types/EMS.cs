@@ -23,7 +23,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var pos = lockerPoses[i];
 
-                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract,
 
@@ -32,7 +32,7 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var lockerRoomText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var lockerRoomText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
@@ -70,7 +70,7 @@ namespace BCRPClient.Data.Fractions
             {
                 Additional.ExtraColshape cs = null;
 
-                cs = new Additional.Circle(x.Position, x.RotationZ, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                cs = new Additional.Circle(x.Position, x.RotationZ, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     Name = $"EMS_{(int)Type}",
 
@@ -266,7 +266,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class EMSEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class EMSEvents 
     {
         public EMSEvents()
         {

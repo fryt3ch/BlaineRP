@@ -4,7 +4,8 @@ using System;
 
 namespace BCRPClient.Sync
 {
-    public class Phone : Events.Script
+    [Script(int.MaxValue)]
+    public class Phone 
     {
         public enum PhoneStateTypes : byte
         {
@@ -24,7 +25,6 @@ namespace BCRPClient.Sync
 
         public static bool Toggled { get; private set; }
 
-        #region Anims
         private static string AnimDict = "cellphone@str";
         private static string AnimDictSelf = "cellphone@self";
 
@@ -32,14 +32,10 @@ namespace BCRPClient.Sync
         private static string AnimCallBase = "cellphone_call_listen_a";
         private static string AnimCameraSelfieBase = "selfie";
 
-        #endregion
-
         private static AsyncTask CurrentTask { get; set; }
 
         public Phone()
         {
-            LastSwitchTime = Sync.World.ServerTime;
-
             RAGE.Game.Mobile.DestroyMobilePhone();
         }
 

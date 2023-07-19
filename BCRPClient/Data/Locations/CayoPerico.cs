@@ -3,7 +3,7 @@ using RAGE.Elements;
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    public partial class Locations
     {
         public static class CayoPerico
         {
@@ -44,7 +44,7 @@ namespace BCRPClient.Data
 
                 ToggleCayoPericoIsland(false, false);
 
-                var mainBlip = new Additional.ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var mainBlip = new Additional.ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             }
 
             public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)

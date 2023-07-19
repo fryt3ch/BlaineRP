@@ -1,10 +1,10 @@
-﻿using BCRPClient.Sync; using Newtonsoft.Json;
+﻿using BCRPClient.Sync;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -413,7 +413,7 @@ namespace BCRPClient
             var headCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(12844, 0f, 0f, 0f);
             var screenCenterCoord = headCoord.MinimizeDistance(GetWorldCoordFromScreenCoord(0.5f, 0.5f), distance);
 
-            if (Settings.Other.RaytraceEnabled)
+            if (Settings.User.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
 
             return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 31);
@@ -424,7 +424,7 @@ namespace BCRPClient
             var fingerCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(26613, 0f, 0f, 0f);
             var screenCenterCoord = fingerCoord.MinimizeDistance(GetWorldCoordFromScreenCoord(0.5f, 0.5f), distance);
 
-            if (Settings.Other.RaytraceEnabled)
+            if (Settings.User.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(fingerCoord.X, fingerCoord.Y, fingerCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 0, 255, 0, 255);
 
             return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 31);
@@ -1009,8 +1009,6 @@ namespace BCRPClient
             while (!Additional.Storage.GotData)
                 await RAGE.Game.Invoker.WaitAsync(25);
 
-            Utils.ConsoleOutputLimited(Additional.Storage.LastData);
-
             return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<float>(Additional.Storage.LastData) : 0f;
         }
 
@@ -1210,7 +1208,7 @@ namespace BCRPClient
             RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);
         }
 
-        public static float GetFpsCoef() => Settings.BASE_FPS / (GameEvents.FPS > Settings.BASE_FPS ? Settings.BASE_FPS : GameEvents.FPS);
+        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (GameEvents.FPS > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : GameEvents.FPS);
 
         public static void SetTaskAsPending(string key, AsyncTask aTask)
         {

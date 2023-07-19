@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public class Vehicles : Events.Script
+    [Script(int.MaxValue)]
+    public class Vehicles 
     {
         public class Vehicle
         {

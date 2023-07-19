@@ -197,7 +197,7 @@ namespace BCRPClient.Sync
                     {
                         Additional.ExtraColshape cs = null;
 
-                        cs = new Additional.Sphere(new Vector3(x.X, x.Y, x.Z), 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                        cs = new Additional.Sphere(new Vector3(x.X, x.Y, x.Z), 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                         {
                             Name = "CopArrestCell",
                         };
@@ -297,7 +297,8 @@ namespace BCRPClient.Sync
         }
     }
 
-    public class PunishmentEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class PunishmentEvents 
     {
         public PunishmentEvents()
         {

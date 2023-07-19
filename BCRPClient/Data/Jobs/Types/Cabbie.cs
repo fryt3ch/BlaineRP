@@ -24,7 +24,7 @@ namespace BCRPClient.Data.Jobs
 
         public Cabbie(int Id, Utils.Vector4 Position) : base(Id, Types.Cabbie)
         {
-            Blip = new Additional.ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            Blip = new Additional.ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
         }
 
         public async void ShowOrderSelection(List<OrderInfo> activeOrders)
@@ -101,11 +101,11 @@ namespace BCRPClient.Data.Jobs
 
                                 pos.Z -= 1f;
 
-                                var blip = new Additional.ExtraBlip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                                var blip = new Additional.ExtraBlip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                                 blip.SetRoute(true);
 
-                                var colshape = new Additional.Circle(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                                var colshape = new Additional.Circle(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                                 {
                                     ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 

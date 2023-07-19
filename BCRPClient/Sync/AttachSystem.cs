@@ -1,8 +1,14 @@
-﻿using Newtonsoft.Json;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
+﻿using Newtonsoft.Json;
+using RAGE;
+using RAGE.Elements;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    public class AttachSystem : Events.Script
+    [Script(int.MaxValue)]
+    public class AttachSystem 
     {
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
@@ -1111,7 +1117,7 @@ namespace BCRPClient.Sync
                     {
                         var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
-                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlJustPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlJustPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.App.Static.EntityInteractionMaxDistance)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1507,12 +1513,12 @@ namespace BCRPClient.Sync
 
                         foreach (var x in farmBusiness.OrangeTreeBoxPositions)
                         {
-                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.MAIN_DIMENSION));
+                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.App.Static.MainDimension));
                         }
 
                         var closestOrangeBoxPos = farmBusiness.OrangeTreeBoxPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
 
-                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
                         CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Отнесите коробку с апельсинами в место, отмеченное на карте");
@@ -1567,13 +1573,13 @@ namespace BCRPClient.Sync
 
                         foreach (var x in farmBusiness.CowBucketPositions)
                         {
-                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.MAIN_DIMENSION));
+                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.App.Static.MainDimension));
                         }
 
                         var closestOrangeBoxPos = farmBusiness.CowBucketPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
 
 
-                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
                         CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Отнесите ведро с молоком в место, отмеченное на карте");

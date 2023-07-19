@@ -68,7 +68,7 @@ namespace BCRPServer.Sync.Phone
 
                     Cancel(CancelTypes.ServerAuto);
                 });
-            }, null, Settings.PHONE_MAX_CALL_OUT_TIME, Timeout.Infinite);
+            }, null, Properties.Settings.Static.PHONE_MAX_CALL_OUT_TIME, Timeout.Infinite);
 
             Receiver.Player.TriggerEvent("Phone::ACS", false, Caller.Info.PhoneNumber);
         }
@@ -80,7 +80,7 @@ namespace BCRPServer.Sync.Phone
                 Timer.Dispose();
             }
 
-            var maxCallTime = (int)((Caller.Info.PhoneBalance / Settings.PHONE_CALL_COST_X) * Settings.PHONE_CALL_X);
+            var maxCallTime = (int)((Caller.Info.PhoneBalance / Properties.Settings.Static.PHONE_CALL_COST_X) * Properties.Settings.Static.PHONE_CALL_X);
 
             Timer = new Timer((obj) =>
             {

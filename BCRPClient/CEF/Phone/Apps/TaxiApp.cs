@@ -4,7 +4,8 @@ using System;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class TaxiApp : Events.Script
+    [Script(int.MaxValue)]
+    public class TaxiApp 
     {
         public static ClientOrderInfo CurrentOrderInfo { get; set; }
 
@@ -117,18 +118,18 @@ namespace BCRPClient.CEF.PhoneApps
                             {
                                 Date = Sync.World.ServerTime,
 
-                                ExitColshape1 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION)
+                                ExitColshape1 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
                                         if (CurrentOrderInfo?.ExitColshape1?.Exists != true)
                                             return;
 
-                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2));
+                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2));
                                     }
                                 },
 
-                                ExitColshape2 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
+                                ExitColshape2 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {

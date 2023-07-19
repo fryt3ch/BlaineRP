@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace BCRPServer
+namespace BCRPServer.Properties.Settings
 {
-    public static class Settings
+    public static class Static
     {
-        private static Properties.SettingsProfile _currentProfile;
-
-        public static Properties.SettingsProfile CurrentProfile => _currentProfile;
-
         public const string ResourcesPath = @"\dotnet\resources\BCRPMode";
 
         public const string ClientPackagesTargetPath = @"\client_packages";
@@ -20,10 +17,6 @@ namespace BCRPServer
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
-
-        /// <summary>Дальность стрима</summary>
-        /// <remarks>Сюда устанавливать значение строго такое же, как и в config.xml сервера!</remarks>
-        public const float STREAM_DISTANCE = 300f;
 
         /// <summary>Дистанция апдейта для частовызываемых ивентов (например, обновление перемещения указания пальцем для игрока)</summary>
         public const float FREQ_UPDATE_DISTANCE = 25f;
@@ -47,12 +40,7 @@ namespace BCRPServer
         public const float MICROPHONE_MAX_RANGE_DEFAULT = 20f;
 
         /// <summary>Максимально возможная дистанция для взаимодействия игрока с сущностью</summary>
-        /// <remarks>Ставить строго больше, чем для рендера, т.к. расстояние от игрока до сущности может быть больше, чем расстояние от головы игрока до одной из визуальной части сущности</remarks>
         public const float ENTITY_INTERACTION_MAX_DISTANCE = 10f;
-
-        /// <summary>Максимально возможная дистанция для взаимодействия игрока с сущностью</summary>
-        /// <remarks>Для клиента, рендер</remarks>
-        public const float ENTITY_INTERACTION_MAX_DISTANCE_RENDER = 2.5f;
 
         /// <summary>Минимальная скорость для активации круиз-контроля</summary>
         /// <remarks>НЕ КМ/Ч! (умножить на 3.6 чтобы получить в км/ч)</remarks>
@@ -225,13 +213,16 @@ namespace BCRPServer
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
 
         /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
-        public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
+        public static HashSet<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new HashSet<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
 
-        public static string SettingsToClientStr = (STREAM_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE_RENDER, MIN_CRUISE_CONTROL_SPEED, MAX_CRUISE_CONTROL_SPEED, MAX_INVENTORY_WEIGHT).SerializeToJson();
-
-        public static void SetProfile(Properties.SettingsProfile settProfile)
+        public static JObject GetClientSettings()
         {
-            _currentProfile = settProfile;
+            var jObj = new JObject();
+
+            jObj["mainDimension"] = Profile.Current.Game.MainDimension;
+            jObj["stuffDimension"] = Profile.Current.Game.StuffDimension;
+
+            return jObj;
         }
     }
 }

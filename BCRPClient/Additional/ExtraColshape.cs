@@ -8,7 +8,8 @@ using System.Threading;
 
 namespace BCRPClient.Additional
 {
-    public class ExtraColshapes : Events.Script
+    [Script(int.MaxValue)]
+    public class ExtraColshapes 
     {
         public static AsyncTask PolygonCreationTask { get; set; }
 
@@ -20,9 +21,8 @@ namespace BCRPClient.Additional
 
         public static string OverrideInteractionText { get; set; }
 
-        private ExtraColshapes()
+        public ExtraColshapes()
         {
-            ExtraColshape.LastSent = DateTime.MinValue;
             ExtraColshape.InteractionColshapesAllowed = true;
 
             GameEvents.Render -= ExtraColshape.Render;
@@ -683,8 +683,8 @@ namespace BCRPClient.Additional
                     if (res == null)
                         return;
 
-                    Utils.ConsoleOutput(slotMachineId);
-                    Utils.ConsoleOutput(slotMachine?.MachineObj.Handle ?? -1);
+/*                    Utils.ConsoleOutput(slotMachineId);
+                    Utils.ConsoleOutput(slotMachine?.MachineObj.Handle ?? -1);*/
 
                     if (slotMachine?.MachineObj?.Exists != true)
                         return;
@@ -2107,9 +2107,9 @@ namespace BCRPClient.Additional
             }
         }
 
-        public ExtraColshape(Types Type, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null, InteractionTypes InteractionType = InteractionTypes.None, ActionTypes ActionType = ActionTypes.None)
+        public ExtraColshape(Types Type, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null, InteractionTypes InteractionType = InteractionTypes.None, ActionTypes ActionType = ActionTypes.None)
         {
-            this.Colshape = Colshape ?? new RAGE.Elements.SphereColshape(Vector3.Zero, 0f, Settings.STUFF_DIMENSION);
+            this.Colshape = Colshape ?? new RAGE.Elements.SphereColshape(Vector3.Zero, 0f, Settings.App.Static.StuffDimension);
 
             this.Type = Type;
             this.Colour = Colour;
@@ -2126,12 +2126,14 @@ namespace BCRPClient.Additional
 
         public static void Render()
         {
-            for (int i = 0; i < Streamed.Count; i++)
-            {
-                var curColshape = Streamed[i];
+            var pos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                if (curColshape.IsVisible || Settings.Other.ColshapesVisible)
-                    curColshape.Draw();
+            var list = Streamed.OrderBy(x => x.Position.DistanceTo(pos)).ToList();
+
+            foreach (var x in Streamed.OrderBy(x => x.Position.DistanceTo(pos)))
+            {
+                if (Settings.User.Other.ColshapesVisible || x.IsVisible)
+                    x.Draw();
             }
         }
 
@@ -2239,7 +2241,7 @@ namespace BCRPClient.Additional
 
         public float Radius { get; set; }
 
-        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Sphere, IsVisible, Colour, Dimension, Colshape)
+        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(Types.Sphere, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
 
@@ -2253,7 +2255,7 @@ namespace BCRPClient.Additional
         {
             Utils.DrawSphere(Position, Radius, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha / 255f);
 
-            if (Settings.Other.DebugLabels)
+            if (Settings.User.Other.DebugLabels)
             {
                 float screenX = 0f, screenY = 0f;
 
@@ -2271,7 +2273,7 @@ namespace BCRPClient.Additional
             if (!base.IsStreamed())
                 return false;
 
-            return Vector3.Distance(Player.LocalPlayer.Position, Position) <= Radius + Settings.STREAM_DISTANCE;
+            return Vector3.Distance(Player.LocalPlayer.Position, Position) <= Radius + Settings.App.Profile.Current.Game.StreamDistance;
         }
 
         public override bool IsPointInside(Vector3 point) => Vector3.Distance(point, Position) <= Radius;
@@ -2283,7 +2285,7 @@ namespace BCRPClient.Additional
 
         public float Radius { get; set; }
 
-        public Circle(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Circle, IsVisible, Colour, Dimension, Colshape)
+        public Circle(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(Types.Circle, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
 
@@ -2299,7 +2301,7 @@ namespace BCRPClient.Additional
 
             RAGE.Game.Graphics.DrawMarker(1, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, 10f, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
 
-            if (Settings.Other.DebugLabels)
+            if (Settings.User.Other.DebugLabels)
             {
                 float screenX = 0f, screenY = 0f;
 
@@ -2317,7 +2319,7 @@ namespace BCRPClient.Additional
             if (!base.IsStreamed())
                 return false;
 
-            return Position.DistanceIgnoreZ(Player.LocalPlayer.Position) <= Radius + Settings.STREAM_DISTANCE;
+            return Position.DistanceIgnoreZ(Player.LocalPlayer.Position) <= Radius + Settings.App.Profile.Current.Game.StreamDistance;
         }
 
         public override bool IsPointInside(Vector3 point) => point.DistanceIgnoreZ(Position) <= Radius;
@@ -2330,7 +2332,7 @@ namespace BCRPClient.Additional
         public float Radius { get; set; }
         public float Height { get; set; }
 
-        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Cylinder, IsVisible, Colour, Dimension, Colshape)
+        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(Types.Cylinder, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
             this.Height = Height;
@@ -2347,7 +2349,7 @@ namespace BCRPClient.Additional
 
             RAGE.Game.Graphics.DrawMarker(1, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
 
-            if (Settings.Other.DebugLabels)
+            if (Settings.User.Other.DebugLabels)
             {
                 float screenX = 0f, screenY = 0f;
 
@@ -2373,7 +2375,7 @@ namespace BCRPClient.Additional
             if (!base.IsStreamed())
                 return false;
 
-            return Vector3.Distance(Player.LocalPlayer.Position, Position) <= Height + Radius + Settings.STREAM_DISTANCE;
+            return Vector3.Distance(Player.LocalPlayer.Position, Position) <= Height + Radius + Settings.App.Profile.Current.Game.StreamDistance;
         }
     }
 
@@ -2476,7 +2478,7 @@ namespace BCRPClient.Additional
 
         public bool Is3D => Height > 0;
 
-        protected Polygon(Types Type, List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Type, IsVisible, Colour, Dimension, Colshape)
+        protected Polygon(Types Type, List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(Type, IsVisible, Colour, Dimension, Colshape)
         {
             this.Height = Height;
 
@@ -2494,7 +2496,7 @@ namespace BCRPClient.Additional
                 Streamed.Add(this);
         }
 
-        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : this(Types.Polygon, Vertices, Height, Heading, IsVisible, Colour, Dimension, Colshape)
+        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : this(Types.Polygon, Vertices, Height, Heading, IsVisible, Colour, Dimension, Colshape)
         {
 
         }
@@ -2637,7 +2639,7 @@ namespace BCRPClient.Additional
             if (!base.IsStreamed())
                 return false;
 
-            return Position.DistanceIgnoreZ(Player.LocalPlayer.Position) <= MaxRange + Settings.STREAM_DISTANCE;
+            return Position.DistanceIgnoreZ(Player.LocalPlayer.Position) <= MaxRange + Settings.App.Profile.Current.Game.StreamDistance;
         }
 
         public override void Draw()
@@ -2652,7 +2654,7 @@ namespace BCRPClient.Additional
 
                 RAGE.Game.Graphics.DrawLine(vertice.X, vertice.Y, vertice.Z, vertice.X, vertice.Y, vertice.Z + Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
             }
-            else if (Settings.Other.HighPolygonsMode)
+            else if (Settings.User.Other.HighPolygonsMode)
             {
                 if (Height == 0)
                 {
@@ -2663,7 +2665,7 @@ namespace BCRPClient.Additional
 
                         RAGE.Game.Graphics.DrawPoly(currentVertice.X, currentVertice.Y, currentVertice.Z, nextVertice.X, nextVertice.Y, nextVertice.Z, Position.X, Position.Y, Position.Z, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
 
-                        if (Settings.Other.DebugLabels && (i % vertIdLimiter == 0))
+                        if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
                             if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
@@ -2684,7 +2686,7 @@ namespace BCRPClient.Additional
                         RAGE.Game.Graphics.DrawPoly(currentVertice.X, currentVertice.Y, currentVertice.Z + Height, nextVertice.X, nextVertice.Y, nextVertice.Z + Height, Position.X, Position.Y, Position.Z + Height / 2, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
                         RAGE.Game.Graphics.DrawPoly(currentVertice.X, currentVertice.Y, currentVertice.Z, nextVertice.X, nextVertice.Y, nextVertice.Z, Position.X, Position.Y, Position.Z - Height / 2, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
 
-                        if (Settings.Other.DebugLabels && (i % vertIdLimiter == 0))
+                        if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
                             if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
@@ -2705,7 +2707,7 @@ namespace BCRPClient.Additional
 
                         RAGE.Game.Graphics.DrawLine(currentVertice.X, currentVertice.Y, currentVertice.Z, nextVertice.X, nextVertice.Y, nextVertice.Z, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
 
-                        if (Settings.Other.DebugLabels && (i % vertIdLimiter == 0))
+                        if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
                             if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
@@ -2726,7 +2728,7 @@ namespace BCRPClient.Additional
                         RAGE.Game.Graphics.DrawLine(nextVertice.X, nextVertice.Y, nextVertice.Z, nextVertice.X, nextVertice.Y, nextVertice.Z + Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
                         RAGE.Game.Graphics.DrawLine(currentVertice.X, currentVertice.Y, currentVertice.Z + Height, nextVertice.X, nextVertice.Y, nextVertice.Z + Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
 
-                        if (Settings.Other.DebugLabels && (i % vertIdLimiter == 0))
+                        if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
                             if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
@@ -2737,7 +2739,7 @@ namespace BCRPClient.Additional
                 }
             }
 
-            if (Settings.Other.DebugLabels)
+            if (Settings.User.Other.DebugLabels)
             {
                 if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;

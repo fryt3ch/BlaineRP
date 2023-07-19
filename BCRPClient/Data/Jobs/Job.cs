@@ -248,7 +248,8 @@ namespace BCRPClient.Data.Jobs
         }
     }
 
-    public class JobEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class JobEvents 
     {
         public JobEvents()
         {

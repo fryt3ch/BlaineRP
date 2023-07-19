@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF
 {
-    class ATM : Events.Script
+    [Script(int.MaxValue)]
+    public class ATM 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.ATM);
 

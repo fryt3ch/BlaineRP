@@ -95,7 +95,7 @@ namespace BCRPServer.Sync
             }
             else if (vInfo.VehicleData.Vehicle.Dimension != pData.Player.Dimension)
             {
-                if (pData.Player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+                if (pData.Player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 {
                     pData.Player.Notify("Vehicle::KENS");
 
@@ -143,7 +143,7 @@ namespace BCRPServer.Sync
         {
             if (vData.Vehicle.Dimension != pData.Player.Dimension)
             {
-                if (pData.Player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+                if (pData.Player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 {
                     pData.Player.Notify("Vehicle::KENS");
 
@@ -172,7 +172,7 @@ namespace BCRPServer.Sync
 
             if (vData.OwnerID == pData.CID && (vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob))
             {
-                vData.StartDeletionTask(Settings.RENTED_VEHICLE_TIME_TO_AUTODELETE);
+                vData.StartDeletionTask(Properties.Settings.Static.RENTED_VEHICLE_TIME_TO_AUTODELETE);
             }
         }
     }

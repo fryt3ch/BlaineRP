@@ -12,7 +12,7 @@
                 return;
             }
 
-            Settings.Chat.FontSize = value;
+            Settings.User.Chat.FontSize = value;
         }
 
         [Command("chatheight", false, "Задать высоту чата", "cheight")]
@@ -25,13 +25,13 @@
                 return;
             }
 
-            Settings.Chat.Height = value;
+            Settings.User.Chat.Height = value;
         }
 
         [Command("chathide", false, "Скрыть/показать чат", "chide")]
         public static void ChatHide()
         {
-            Settings.Chat.Height = Settings.Chat.Height == 0 ? Settings.Chat.Default.Height : 0;
+            Settings.User.Chat.Height = Settings.User.Chat.Height == 0 ? Settings.User.Chat.Default.Height : 0;
         }
 
         [Command("mutef", false, "Скрыть/показать чат")]

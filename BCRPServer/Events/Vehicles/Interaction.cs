@@ -113,7 +113,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (!vData.IsFullOwner(pData, true))
@@ -143,7 +143,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (vData.IsDead)
@@ -219,7 +219,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var vDataData = vData.Data;
@@ -351,7 +351,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return false;
 
-            if (!player.AreEntitiesNearby(vehicle, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.AreEntitiesNearby(vehicle, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return false;
 
             if (vData.HoodLocked && !vData.CanManipulate(pData, false))
@@ -468,7 +468,7 @@ namespace BCRPServer.Events.Vehicles
             if (destr == null)
                 return null;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || destr.Position.DistanceTo(player.Position) > 10f)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || destr.Position.DistanceTo(player.Position) > 10f)
                 return null;
 
             if (!vData.IsFullOwner(pData, true))
@@ -503,7 +503,7 @@ namespace BCRPServer.Events.Vehicles
             if (destr == null)
                 return false;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || destr.Position.DistanceTo(player.Position) > 10f)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || destr.Position.DistanceTo(player.Position) > 10f)
                 return false;
 
             if (!vData.IsFullOwner(pData, true))

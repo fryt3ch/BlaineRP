@@ -68,7 +68,7 @@ namespace BCRPServer.Sync
 
             AllDoors = new Dictionary<uint, Door>();
 
-            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Settings.CurrentProfile.Game.MainDimension);
+            new Door(1, "prison_prop_door2", 1780.352f, 2596.023f, 50.83891f, Properties.Settings.Profile.Current.Game.MainDimension);
 
             var lines = new List<string>();
 
@@ -77,7 +77,7 @@ namespace BCRPServer.Sync
                 lines.Add($"new Door({x.Key}, {x.Value.Model}, {x.Value.Position.ToCSharpStr()}, {x.Value.Dimension});");
             }
 
-            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetPath + @"\Sync\DoorSystem.cs", "DOORS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Sync\DoorSystem.cs", "DOORS_TO_REPLACE", lines);
         }
     }
 }

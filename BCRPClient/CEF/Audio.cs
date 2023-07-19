@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class Audio : Events.Script
+    [Script(int.MaxValue)]
+    public class Audio 
     {
         public static RAGE.Ui.HtmlWindow Window { get; private set; }
 
@@ -241,9 +242,9 @@ namespace BCRPClient.CEF
 
             (new AsyncTask(() =>
             {
-                var userVolume = Settings.Audio.SoundVolume / 100f;
+                var userVolume = Settings.User.Audio.SoundVolume / 100f;
 
-                if (!Utils.IsGameWindowFocused && Settings.Native.Audio_MuteAudioOnFocusLoss)
+                if (!Utils.IsGameWindowFocused && Settings.User.Native.Audio_MuteAudioOnFocusLoss)
                     userVolume = 0f;
 
                 for (int i = 0; i < AllAudios.Count; i++)

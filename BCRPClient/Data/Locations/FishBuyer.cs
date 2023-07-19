@@ -27,11 +27,11 @@ namespace BCRPClient.Data
 
                 var id = Id;
 
-                var blip = new Additional.ExtraBlip(762, Position.Position, "Скупщик рыбы", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(762, Position.Position, "Скупщик рыбы", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 if (id == 0)
                 {
-                    var npc = new Data.NPC("fishbuyer_0", "Остин", NPC.Types.Talkable, "a_m_o_genstreet_01", Position.Position, Position.RotationZ, Settings.MAIN_DIMENSION)
+                    var npc = new Data.NPC("fishbuyer_0", "Остин", NPC.Types.Talkable, "a_m_o_genstreet_01", Position.Position, Position.RotationZ, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_FISH_BUYER",
 

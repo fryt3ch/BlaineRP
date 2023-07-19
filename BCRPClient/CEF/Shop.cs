@@ -8,7 +8,8 @@ using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
-    public class Shop : Events.Script
+    [Script(int.MaxValue)]
+    public class Shop 
     {
         //        Стало : //items[i] = [id, 'name', cash, variants || maxspeed, chageable(t|f) || [slots, weight] || maxtank, cruise, autopilot, maxtrunk, maxweight] 
         //(если магаз не транспортный последние 4 параметра можно либо не передавать вообще, либо передавать как null)
@@ -1649,7 +1650,7 @@ namespace BCRPClient.CEF
 
                     DefaultHeading = (float)heading;
 
-                    if (!Settings.Interface.HideHUD)
+                    if (!Settings.User.Interface.HideHUD)
                         CEF.HUD.ShowHUD(false);
 
                     CEF.Chat.Show(false);
@@ -2475,7 +2476,7 @@ namespace BCRPClient.CEF
 
                     CEF.Chat.Show(true);
 
-                    if (!Settings.Interface.HideHUD)
+                    if (!Settings.User.Interface.HideHUD)
                         CEF.HUD.ShowHUD(true);
 
                     KeyBinds.EnableAll();
@@ -2812,7 +2813,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.EnableAll();
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);

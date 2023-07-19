@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.Data.Minigames
 {
-    public class ShootingRange : Events.Script
+    [Script(int.MaxValue)]
+    public class ShootingRange 
     {
         public enum Types
         {

@@ -10,7 +10,7 @@ namespace BCRPServer
         {
             public static Dictionary<uint, PlayerInfo> All { get; private set; } = new Dictionary<uint, PlayerInfo>();
 
-            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Settings.CurrentProfile.Game.CIDBaseOffset);
+            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Properties.Settings.Profile.Current.Game.CIDBaseOffset);
 
             public static void AddOnLoad(PlayerInfo pInfo)
             {
@@ -76,7 +76,7 @@ namespace BCRPServer
 
             public DateTime BirthDate { get; set; }
 
-            public List<LicenseTypes> Licenses { get; set; }
+            public HashSet<LicenseTypes> Licenses { get; set; }
 
             public Game.Fractions.Types Fraction { get; set; }
 

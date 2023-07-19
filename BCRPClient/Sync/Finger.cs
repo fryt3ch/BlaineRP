@@ -4,13 +4,14 @@ using System;
 
 namespace BCRPClient.Sync
 {
-    public class Finger : Events.Script
+    [Script(int.MaxValue)]
+    public class Finger 
     {
         private static DateTime LastSwitchTime;
         private static DateTime LastSentEntityTime;
         private static DateTime LastSentSameEntityTime;
 
-        private static Entity LastSentEntity;
+        private static Entity _lastSentEntity;
 
         public static bool Toggled = false;
 
@@ -33,22 +34,17 @@ namespace BCRPClient.Sync
 
         public Finger()
         {
-            LastSwitchTime = Sync.World.ServerTime;
-            LastSentEntityTime = Sync.World.ServerTime;
-
-            LastSentEntity = null;
-
             Events.Add("Players::FingerPointUpdate", (object[] args) =>
             {
-                if (!Settings.Interface.FingerOn)
+                if (!Settings.User.Interface.FingerOn)
                     return;
 
-                var entity = Utils.GetEntityPlayerPointsAt(Settings.FINGER_POINT_ENTITY_MAX_DISTANCE);
+                var entity = Utils.GetEntityPlayerPointsAt(Settings.App.Static.FINGER_POINT_ENTITY_MAX_DISTANCE);
 
                 if (entity == null)
                     return;
 
-                if (entity != LastSentEntity && !LastSentEntityTime.IsSpam(2500, false, false))
+                if (entity != _lastSentEntity && !LastSentEntityTime.IsSpam(2500, false, false))
                 {
                     if (entity.Type == RAGE.Elements.Type.Vehicle)
                         Events.CallRemote("Players::FingerPoint::Vehicle", (Vehicle)entity);
@@ -57,12 +53,12 @@ namespace BCRPClient.Sync
                     else if (entity.Type == RAGE.Elements.Type.Ped)
                         Events.CallRemote("Players::FingerPoint::Ped");
 
-                    LastSentEntity = entity;
+                    _lastSentEntity = entity;
                     LastSentEntityTime = Sync.World.ServerTime;
                 }
 
-                if (entity != LastSentEntity)
-                    LastSentEntity = null;
+                if (entity != _lastSentEntity)
+                    _lastSentEntity = null;
             });
         }
 
@@ -74,7 +70,7 @@ namespace BCRPClient.Sync
             if (LastSwitchTime.IsSpam(1000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(false, ActionsToCheck))
                 return;
 
-            LastSentEntity = null;
+            _lastSentEntity = null;
 
             PushVehicle.Off();
 

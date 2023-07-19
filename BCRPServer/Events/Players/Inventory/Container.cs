@@ -33,7 +33,7 @@ namespace BCRPServer.Events.Players
 
             if (!cont.AddPlayerObserving(pData))
             {
-                player.Notify("Container::Wait", Settings.CONTAINER_MAX_PLAYERS);
+                player.Notify("Container::Wait", Properties.Settings.Static.CONTAINER_MAX_PLAYERS);
 
                 return;
             }

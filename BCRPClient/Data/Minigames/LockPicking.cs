@@ -5,7 +5,8 @@ using System.Text;
 
 namespace BCRPClient.Data.Minigames
 {
-    public class LockPicking : Events.Script
+    [Script(int.MaxValue)]
+    public class LockPicking 
     {
         public const byte DurabilityDefault = 10;
         public const int MaxDeviationDefault = 10;
@@ -18,11 +19,10 @@ namespace BCRPClient.Data.Minigames
 
         private static int _escBindIdx;
 
-        private LockPicking()
+        public LockPicking()
         {
             Events.Add("MiniGames::LockPick", async (args) =>
             {
-                Utils.ConsoleOutput("LOCKPICK");
                 var success = (bool)args[0];
 
                 if (CurrentContext == "POLICE_CUFFS_LOCKPICK")
@@ -123,7 +123,7 @@ namespace BCRPClient.Data.Minigames
 
             CEF.Cursor.Show(false, false);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);

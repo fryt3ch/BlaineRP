@@ -8,7 +8,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Fraction : Events.Script
+    [Script(int.MaxValue)]
+    public class Fraction 
     {
         public Fraction()
         {

@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Numberplates : Events.Script
+    [Script(int.MaxValue)]
+    public class Numberplates 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
 

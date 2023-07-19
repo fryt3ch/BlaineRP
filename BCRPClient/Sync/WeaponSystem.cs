@@ -8,7 +8,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    public class WeaponSystem : Events.Script
+    [Script(int.MaxValue)]
+    public class WeaponSystem 
     {
         private const float IN_VEHICLE_DAMAGE_COEF = 0.75f;
 
@@ -515,15 +516,6 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Player.DisablePlayerVehicleRewards();
 
-            LastArmourLoss = Sync.World.ServerTime;
-
-            LastSentReload = Sync.World.ServerTime;
-            LastSentUpdate = Sync.World.ServerTime;
-            LastWeaponShot = Sync.World.ServerTime;
-
-            LastSentPedDamage = Sync.World.ServerTime;
-            LastSentVehicleDamage = Sync.World.ServerTime;
-
             _DisabledFiringCounter = 0;
 
             #region Render
@@ -588,26 +580,26 @@ namespace BCRPClient.Sync
             {
                 if (Player.LocalPlayer.HasWeapon() && RAGE.Game.Cam.IsAimCamActive())
                 {
-                    if (Settings.Aim.Type == Settings.Aim.Types.Default)
+                    if (Settings.User.Aim.Type == Settings.User.Aim.Types.Default)
                         return;
 
                     RAGE.Game.Ui.HideHudComponentThisFrame(14);
 
-                    if (Settings.Aim.Type == Settings.Aim.Types.Cross)
+                    if (Settings.User.Aim.Type == Settings.User.Aim.Types.Cross)
                     {
-                        var scale = 3f * Settings.Aim.Scale;
+                        var scale = 3f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
-                    else if (Settings.Aim.Type == Settings.Aim.Types.Dot)
+                    else if (Settings.User.Aim.Type == Settings.User.Aim.Types.Dot)
                     {
-                        var scale = 1f * Settings.Aim.Scale;
+                        var scale = 1f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -755,7 +747,7 @@ namespace BCRPClient.Sync
             Player.LocalPlayer.SetAmmo(weapon, curAmmo < 0 ? 9999 : Additional.AntiCheat.LastAllowedAmmo, 1);
 
             // AutoReload
-            if (curAmmo == 0 && RAGE.Game.Player.IsPlayerFreeAiming() && (RAGE.Game.Pad.IsControlPressed(32, 24) || RAGE.Game.Pad.IsDisabledControlPressed(32, 24)) && Settings.Interface.AutoReload)
+            if (curAmmo == 0 && RAGE.Game.Player.IsPlayerFreeAiming() && (RAGE.Game.Pad.IsControlPressed(32, 24) || RAGE.Game.Pad.IsDisabledControlPressed(32, 24)) && Settings.User.Interface.AutoReload)
             {
                 if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Crawl, Utils.Actions.Finger, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.Scenario, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.IsAttachedTo))
                     return;
@@ -922,7 +914,7 @@ namespace BCRPClient.Sync
                             {
                                 var randRes = Utils.Random.NextDouble();
 
-                                if (randRes <= Settings.DAMAGE_SYSTEM_WOUND_CHANCE) // wounded chance
+                                if (randRes <= Settings.App.Static.DAMAGE_SYSTEM_WOUND_CHANCE) // wounded chance
                                 {
                                     Events.CallRemote("dmswme");
                                 }

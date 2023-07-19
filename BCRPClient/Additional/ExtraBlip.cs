@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.Additional
 {
-    public class ExtraBlips : Events.Script
+    [Script(int.MaxValue)]
+    public class ExtraBlips 
     {
         public ExtraBlips()
         {

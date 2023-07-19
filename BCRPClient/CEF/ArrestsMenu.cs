@@ -8,7 +8,8 @@ using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
-    public class ArrestsMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class ArrestsMenu 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuArrest);
 

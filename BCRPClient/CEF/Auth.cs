@@ -5,7 +5,8 @@ using System;
 
 namespace BCRPClient.CEF
 {
-    class Auth : Events.Script
+    [Script(int.MaxValue)]
+    public class Auth 
     {
         private static DateTime LastTime;
 

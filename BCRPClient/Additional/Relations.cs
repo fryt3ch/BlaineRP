@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.Additional
 {
-    class Relations : Events.Script
+    [Script(int.MaxValue)]
+    public class Relations 
     {
         public enum Types
         {
@@ -24,12 +25,10 @@ namespace BCRPClient.Additional
             Enemy,
         }
 
-        private static Dictionary<Groups, uint> GroupHashes;
+        private static Dictionary<Groups, uint> GroupHashes = new Dictionary<Groups, uint>();
 
         public Relations()
         {
-            GroupHashes = new Dictionary<Groups, uint>();
-
             foreach (Groups group in (Groups[])Enum.GetValues(typeof(Groups)))
             {
                 int hash = -1;

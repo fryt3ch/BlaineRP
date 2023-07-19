@@ -12,7 +12,7 @@ namespace BCRPClient.Data.Jobs
 
         public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, Types.BusDriver)
         {
-            var blip = new Additional.ExtraBlip(513, Position.Position, "Автовокзал", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            var blip = new Additional.ExtraBlip(513, Position.Position, "Автовокзал", 1f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
             this.Routes = Routes;
         }

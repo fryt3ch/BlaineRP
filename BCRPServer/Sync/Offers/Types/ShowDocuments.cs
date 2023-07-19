@@ -22,7 +22,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             pData.ShowPassport(tPlayer);
@@ -57,7 +57,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             pData.ShowLicences(tPlayer);
@@ -92,7 +92,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (pData.Info.MedicalCard == null)
@@ -130,7 +130,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             if (offer.Data is VehicleData.VehicleInfo vInfo)
@@ -200,7 +200,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction);

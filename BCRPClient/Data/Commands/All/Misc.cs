@@ -24,22 +24,22 @@ namespace BCRPClient.Data
         public static void DebugLabels(bool? state = null)
         {
             if (state == null)
-                Settings.Other.DebugLabels = !Settings.Other.DebugLabels;
+                Settings.User.Other.DebugLabels = !Settings.User.Other.DebugLabels;
             else
-                Settings.Other.DebugLabels = (bool)state;
+                Settings.User.Other.DebugLabels = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
         }
 
         [Command("raytrace", false, "Показ дополнительных сведений о всех сущностях")]
         public static void Raytrace(bool? state = null)
         {
             if (state == null)
-                Settings.Other.RaytraceEnabled = !Settings.Other.RaytraceEnabled;
+                Settings.User.Other.RaytraceEnabled = !Settings.User.Other.RaytraceEnabled;
             else
-                Settings.Other.RaytraceEnabled = (bool)state;
+                Settings.User.Other.RaytraceEnabled = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
         }
 
         [Command("lock", false, "Блокировка транспорта")]

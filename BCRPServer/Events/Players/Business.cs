@@ -27,7 +27,7 @@ namespace BCRPServer.Events.Players
 
             pData.CurrentBusiness = null;
 
-            player.Teleport(ws.PositionShootingRangeEnter.Position, false, Settings.CurrentProfile.Game.MainDimension, ws.PositionShootingRangeEnter.RotationZ, true);
+            player.Teleport(ws.PositionShootingRangeEnter.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, ws.PositionShootingRangeEnter.RotationZ, true);
 
             pData.InventoryBlocked = false;
 
@@ -47,7 +47,7 @@ namespace BCRPServer.Events.Players
 
             var diff = score < maxScore ? -1 : 1;
 
-            var currentSkill = pData.Skills[PlayerData.SkillTypes.Shooting];
+            var currentSkill = pData.Info.Skills[PlayerData.SkillTypes.Shooting];
 
             diff = Utils.GetCorrectDiff(currentSkill, diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
 
@@ -74,7 +74,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -136,7 +136,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -172,7 +172,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -204,7 +204,7 @@ namespace BCRPServer.Events.Players
             if (amountI <= 0)
                 return null;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -247,7 +247,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -279,7 +279,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -319,7 +319,7 @@ namespace BCRPServer.Events.Players
             if (amountI <= 0)
                 return null;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -386,7 +386,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -449,7 +449,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)

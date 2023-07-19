@@ -76,7 +76,7 @@ namespace BCRPServer.Sync
                     {
                         Delete(true);
                     });
-                }, null, Settings.IOG_TIME_TO_AUTODELETE, Timeout.Infinite);
+                }, null, Properties.Settings.Static.IOG_TIME_TO_AUTODELETE, Timeout.Infinite);
             }
 
             public void CancelDeletionTask()
@@ -171,7 +171,7 @@ namespace BCRPServer.Sync
             {
                 if (item is IStackable itemStackable)
                 {
-                    var existingAll = ItemsOnGround.Values.Where(x => x.Type == type && x.Item.ID == item.ID && (x.Object.Dimension == dimension || x.Object.Dimension == Settings.CurrentProfile.Game.StuffDimension) && Vector3.Distance(x.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).ToList();
+                    var existingAll = ItemsOnGround.Values.Where(x => x.Type == type && x.Item.ID == item.ID && (x.Object.Dimension == dimension || x.Object.Dimension == Properties.Settings.Profile.Current.Game.StuffDimension) && Vector3.Distance(x.Object.Position, position) <= Properties.Settings.Static.IOG_MAX_DISTANCE_TO_STACK).ToList();
 
                     if (existingAll.Count > 0)
                     {
@@ -211,7 +211,7 @@ namespace BCRPServer.Sync
                 }
             }
 
-            var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Settings.CurrentProfile.Game.StuffDimension);
+            var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Properties.Settings.Profile.Current.Game.StuffDimension);
 
             var iog = new ItemOnGround(item, obj, type);
 

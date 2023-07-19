@@ -197,7 +197,7 @@ namespace BCRPServer.Game.Items
                                 var addWeightItems = toItem?.Weight ?? 0f;
                                 var addWeightBag = fromItem.Weight;
 
-                                if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
+                                if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     return ResultTypes.NoSpace;
 
                                 pData.Items[slotFrom] = toItem;
@@ -240,7 +240,7 @@ namespace BCRPServer.Game.Items
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
-                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     return ResultTypes.NoSpace;
 
                                 pData.Weapons[slotTo] = fromWeapon;
@@ -383,7 +383,7 @@ namespace BCRPServer.Game.Items
                                 if (fromWeapon.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
                                     return ResultTypes.PlaceRestricted;
 
-                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     return ResultTypes.NoSpace;
 
                                 pData.Holster.Items[0] = fromWeapon;
@@ -528,7 +528,7 @@ namespace BCRPServer.Game.Items
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
-                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Clothes[slotTo] = fromClothes;
@@ -577,7 +577,7 @@ namespace BCRPServer.Game.Items
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
-                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Accessories[slotTo] = fromClothes;
@@ -618,7 +618,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem.IsTemp || toItem?.Items[0]?.IsTemp == true)
                                 return ResultTypes.TempItem;
 
-                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Holster = fromHolster;
@@ -663,7 +663,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem.IsTemp)
                                 return ResultTypes.TempItem;
 
-                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Bag = fromBag;
@@ -698,13 +698,13 @@ namespace BCRPServer.Game.Items
 
                             var toItem = pData.Armour;
 
-                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Properties.Settings.Static.WOUNDED_USE_TIMEOUT)
                                 return ResultTypes.Wounded;
 
                             if (!(fromItem is Game.Items.Armour fromArmour))
                                 return ResultTypes.Error;
 
-                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Armour = fromArmour;
@@ -852,9 +852,9 @@ namespace BCRPServer.Game.Items
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
 
-                                if (curWeight + amount * fromItem.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                if (curWeight + amount * fromItem.BaseWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+                                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
                                         return ResultTypes.NoSpace;
@@ -889,9 +889,9 @@ namespace BCRPServer.Game.Items
                             #region Split To New
                             else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
                             {
-                                if (fromItem.BaseWeight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                if (fromItem.BaseWeight * amount + curWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+                                    amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
                                         return ResultTypes.NoSpace;
@@ -911,7 +911,7 @@ namespace BCRPServer.Game.Items
                                 var addWeightItems = toItem?.Weight ?? 0f;
                                 var addWeightBag = fromItem.Weight;
 
-                                if (addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + pData.Bag.Weight - pData.Bag.BaseWeight > pData.Bag.Data.MaxWeight)
+                                if (addWeightBag - addWeightItems + curWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + pData.Bag.Weight - pData.Bag.BaseWeight > pData.Bag.Data.MaxWeight)
                                     return ResultTypes.NoSpace;
 
                                 pData.Bag.Items[slotFrom] = toItem;
@@ -1377,7 +1377,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem == null)
                                 return ResultTypes.Error;
 
-                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Properties.Settings.Static.WOUNDED_USE_TIMEOUT)
                                 return ResultTypes.Wounded;
 
                             var toItem = pData.Armour;
@@ -1540,9 +1540,9 @@ namespace BCRPServer.Game.Items
 
                                     int maxStack = toAmmo.MaxAmount;
 
-                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    if (curWeight + amount * ammoWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     {
-                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+                                        amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
                                             return ResultTypes.NoSpace;
@@ -1564,9 +1564,9 @@ namespace BCRPServer.Game.Items
                                 }
                                 else if (toItem == null)
                                 {
-                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    if (curWeight + amount * ammoWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     {
-                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+                                        amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
                                             return ResultTypes.NoSpace;
@@ -1584,7 +1584,7 @@ namespace BCRPServer.Game.Items
                             #region Replace
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
-                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
+                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     return ResultTypes.NoSpace;
 
                                 pData.Items[slotTo] = fromItem;
@@ -1853,9 +1853,9 @@ namespace BCRPServer.Game.Items
 
                                     int maxStack = toAmmo.MaxAmount;
 
-                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    if (curWeight + amount * ammoWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     {
-                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+                                        amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
                                             return ResultTypes.NoSpace;
@@ -1877,9 +1877,9 @@ namespace BCRPServer.Game.Items
                                 }
                                 else if (toItem == null)
                                 {
-                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    if (curWeight + amount * ammoWeight > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     {
-                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+                                        amount = (int)Math.Floor((Properties.Settings.Static.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
                                             return ResultTypes.NoSpace;
@@ -1897,7 +1897,7 @@ namespace BCRPServer.Game.Items
                             #region Replace
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
-                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
+                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                     return ResultTypes.NoSpace;
 
                                 pData.Items[slotTo] = fromItem;
@@ -2091,7 +2091,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem == null)
                                 return ResultTypes.Error;
 
-                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Properties.Settings.Static.WOUNDED_USE_TIMEOUT)
                                 return ResultTypes.Wounded;
 
                             if (slotTo >= pData.Items.Length)
@@ -2102,7 +2102,7 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && (!(toItem is Game.Items.Armour)))
                                 return ResultTypes.Error;
 
-                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0)) > Settings.MAX_INVENTORY_WEIGHT)
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Armour = (Game.Items.Armour)toItem;
@@ -2134,7 +2134,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem == null)
                                 return ResultTypes.Error;
 
-                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Properties.Settings.Static.WOUNDED_USE_TIMEOUT)
                                 return ResultTypes.Wounded;
 
                             if (fromItem.IsTemp)
@@ -2204,7 +2204,7 @@ namespace BCRPServer.Game.Items
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
-                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Items[slotTo] = fromItem;
@@ -2314,7 +2314,7 @@ namespace BCRPServer.Game.Items
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
-                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Items[slotTo] = fromItem;
@@ -2418,7 +2418,7 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && !(toItem is Game.Items.Bag))
                                 return ResultTypes.Error;
 
-                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Bag = (Game.Items.Bag)toItem;
@@ -2466,7 +2466,7 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && !(toItem is Game.Items.Holster))
                                 return ResultTypes.Error;
 
-                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
                                 return ResultTypes.NoSpace;
 
                             pData.Holster = (Game.Items.Holster)toItem;

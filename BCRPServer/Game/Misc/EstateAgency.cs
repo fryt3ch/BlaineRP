@@ -57,7 +57,7 @@ namespace BCRPServer.Game.Misc
                 lines.Add($"new EstateAgency({i}, \"{All[i].Positions.SerializeToJson().Replace('\"', '\'')}\");");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "ESTAGENCIES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "ESTAGENCIES_TO_REPLACE", lines);
         }
 
         public EstateAgency()

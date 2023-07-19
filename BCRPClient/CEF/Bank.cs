@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF
 {
-    class Bank : Events.Script
+    [Script(int.MaxValue)]
+    public class Bank 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuBank);
 

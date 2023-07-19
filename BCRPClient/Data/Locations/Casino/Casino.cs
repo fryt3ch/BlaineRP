@@ -63,7 +63,7 @@ namespace BCRPClient.Data
 
                 if (Id == 0)
                 {
-                    MainColshape = new Additional.Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    MainColshape = new Additional.Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
 
                     };
@@ -130,7 +130,7 @@ namespace BCRPClient.Data
                         new SlotMachine(Id, 29, SlotMachine.ModelTypes.vw_prop_casino_slot_07a, 982.2607f, 46.56145f, 73.47611f, 291.9941f),
                     };
 
-                    var cashier = new Data.NPC($"Casino@Cashier_{Id}_0", "Эмили", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.MAIN_DIMENSION)
+                    var cashier = new Data.NPC($"Casino@Cashier_{Id}_0", "Эмили", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_CASINO_CASHIER",
 
@@ -170,7 +170,7 @@ namespace BCRPClient.Data
 
                         if (Id == 0)
                         {
-                            Vehicle = new RAGE.Elements.Vehicle(RAGE.Util.Joaat.Hash("reaper"), new Vector3(963.3792f, 47.93621f, 75.18184f + 1f), 238.3463f, "CASINO", 255, true, 0, 0, Settings.MAIN_DIMENSION);
+                            Vehicle = new RAGE.Elements.Vehicle(RAGE.Util.Joaat.Hash("reaper"), new Vector3(963.3792f, 47.93621f, 75.18184f + 1f), 238.3463f, "CASINO", 255, true, 0, 0, Settings.App.Static.MainDimension);
                         }
 
                         Vehicle.StreamInCustomActionsAdd((entity) =>
@@ -255,7 +255,7 @@ namespace BCRPClient.Data
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract,
 
@@ -293,7 +293,7 @@ namespace BCRPClient.Data
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract,
 
@@ -329,7 +329,7 @@ namespace BCRPClient.Data
 
                             var coords = x.BaseObj.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
 
@@ -355,7 +355,7 @@ namespace BCRPClient.Data
 
                             var coords = x.MachineObj.GetOffsetFromInWorldCoords(0f, -1.15f, 0f);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
 
@@ -619,7 +619,8 @@ namespace BCRPClient.Data
             }
         }
 
-        public class CasinoEvents : Events.Script
+        [Script(int.MaxValue)]
+        public class CasinoEvents 
         {
             public CasinoEvents()
             {

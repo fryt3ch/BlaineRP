@@ -90,7 +90,7 @@ namespace BCRPServer.Game.Casino
 
             pData.PlayAnim(Sync.Animations.FastTypes.FakeAnim, 4_500);
 
-            Utils.TriggerEventInDistance(Position, Settings.CurrentProfile.Game.MainDimension, 50f, "Casino::LCWS", casinoId, wheelId, pData.Player.Id, (byte)zoneType, spinOffset);
+            Utils.TriggerEventInDistance(Position, Properties.Settings.Profile.Current.Game.MainDimension, 50f, "Casino::LCWS", casinoId, wheelId, pData.Player.Id, (byte)zoneType, spinOffset);
 
             Timer = new Timer((obj) =>
             {

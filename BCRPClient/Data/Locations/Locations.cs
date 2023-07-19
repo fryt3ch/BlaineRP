@@ -3,7 +3,8 @@
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    [Script(int.MaxValue)]
+    public partial class Locations 
     {
         public Locations()
         {

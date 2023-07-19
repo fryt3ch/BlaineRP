@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    public partial class Locations
     {
         public class Garage
         {
@@ -164,11 +164,11 @@ namespace BCRPClient.Data
                 {
                     //gRoot.Blip.SetDisplay(0);
 
-                    OwnerBlip = new Additional.ExtraBlip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootId].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    OwnerBlip = new Additional.ExtraBlip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootId].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
-                    OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition.Position, "", 1f, 3, 125, 0f, true, 0, gRoot.VehicleEnterPosition.RotationZ, Settings.MAIN_DIMENSION);
+                    OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition.Position, "", 1f, 3, 125, 0f, true, 0, gRoot.VehicleEnterPosition.RotationZ, Settings.App.Static.MainDimension);
 
-                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition.Position, gRoot.VehicleEnterPosition.RotationZ, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition.Position, gRoot.VehicleEnterPosition.RotationZ, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
 
@@ -219,7 +219,7 @@ namespace BCRPClient.Data
 
                 this.VehicleEnterPosition = VehicleEnterPosition;
 
-                this.EnterColshape = new Additional.Cylinder(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                this.EnterColshape = new Additional.Cylinder(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                 {
                     ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
                     InteractionType = Additional.ExtraColshape.InteractionTypes.GarageRootEnter,
@@ -227,9 +227,9 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                this.Blip = new Additional.ExtraBlip(50, EnterPosition, Locale.Property.GarageRootNameDef, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(50, EnterPosition, Locale.Property.GarageRootNameDef, 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                this.TextLabel = new Additional.ExtraLabel(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 0.5f), Name, new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                this.TextLabel = new Additional.ExtraLabel(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 0.5f), Name, new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
                 All.Add(Id, this);
             }

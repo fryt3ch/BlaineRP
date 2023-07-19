@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,24 +32,26 @@ namespace BCRPServer.Events
         {
             var currentDir = Directory.GetCurrentDirectory();
 
-            Settings.SetProfile(Properties.SettingsProfile.GetDefault());
+            Properties.Settings.Profile.SetCurrentProfile(Properties.Settings.Profile.GetDefault());
 
-            Properties.SettingsProfile.SaveProfile(Settings.CurrentProfile, "brpSettings.json");
+            Properties.Settings.Profile.SaveProfile(Properties.Settings.Profile.Current, "brpSettings.json");
 
-            Settings.CurrentProfile.GetClientsideData();
+            // Properties.Settings.Static.Step
 
-            // Settings Step
+            CultureInfo.DefaultThreadCurrentCulture = Properties.Settings.Profile.Current.General.CultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = Properties.Settings.Profile.Current.General.CultureInfo;
+            CultureInfo.CurrentCulture = Properties.Settings.Profile.Current.General.CultureInfo;
 
-            CultureInfo.DefaultThreadCurrentCulture = Settings.CurrentProfile.General.CultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = Settings.CurrentProfile.General.CultureInfo;
-            CultureInfo.CurrentCulture = Settings.CurrentProfile.General.CultureInfo;
-
-            Properties.Language.Culture = Settings.CurrentProfile.General.CultureInfo;
+            Properties.Language.Culture = Properties.Settings.Profile.Current.General.CultureInfo;
 
             Events.Commands.Commands.LoadAll();
             Events.NPC.NPC.LoadAll();
 
             Sync.World.Initialize();
+
+            var clientSettings = Properties.Settings.Profile.Current.GetClientsideSettings();
+
+            Sync.World.SetSharedData("Settings", clientSettings);
 
             var currentTime = Utils.GetCurrentTime();
 
@@ -62,15 +65,15 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .js files to client_packages...");
 
-            var clientPackagesTarget = new DirectoryInfo(currentDir + Settings.ClientPackagesTargetPath);
+            var clientPackagesTarget = new DirectoryInfo(currentDir + Properties.Settings.Static.ClientPackagesTargetPath);
 
-            foreach (var script in (new DirectoryInfo(currentDir + Settings.ClientScriptsSourcePath + @"\Properties\JavaScript")).GetFiles("*.js"))
+            foreach (var script in (new DirectoryInfo(currentDir + Properties.Settings.Static.ClientScriptsSourcePath + @"\Properties\JavaScript")).GetFiles("*.js"))
                 File.Copy(script.FullName, clientPackagesTarget.FullName + "\\" + script.Name, true);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_packages/cs_packages...");
 
-            var clientCSPackagesTarget = new DirectoryInfo(currentDir + Settings.ClientScriptsTargetPath);
-            var clientCSPackagesSource = new DirectoryInfo(currentDir + Settings.ClientScriptsSourcePath);
+            var clientCSPackagesTarget = new DirectoryInfo(currentDir + Properties.Settings.Static.ClientScriptsTargetPath);
+            var clientCSPackagesSource = new DirectoryInfo(currentDir + Properties.Settings.Static.ClientScriptsSourcePath);
 
             clientCSPackagesTarget.Delete(true);
             clientCSPackagesTarget.Create();
@@ -87,14 +90,25 @@ namespace BCRPServer.Events
                 Utils.CloneDirectory(dir, newDir);
             }
 
-            var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", System.Reflection.Assembly.LoadFrom(currentDir + Settings.ResourcesPath + @"\BCRPClient.dll"));
+            var clientAssembly = System.Reflection.Assembly.LoadFrom(currentDir + Properties.Settings.Static.ResourcesPath + @"\BCRPClient.dll");
+
+            var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", clientAssembly);
 
             var langStrings = new Dictionary<string, string>();
 
-            foreach (DictionaryEntry x in clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, true, true))
-                langStrings.Add((string)x.Key, (string)x.Value);
+            using (var clientLangResSet = clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, true, true))
+            {
+                foreach (DictionaryEntry x in clientLangResSet)
+                    langStrings.Add((string)x.Key, (string)x.Value);
+            }
 
-            Utils.FillFileToReplaceRegion(currentDir + Settings.ClientScriptsTargetPath + @"\Language\Strings.cs", "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", \"{x.Value}\" }},").ToList());
+            Utils.FillFileToReplaceRegion(currentDir + Properties.Settings.Static.ClientScriptsTargetPath + @"\Language\Strings.cs", "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", \"{x.Value}\" }},").ToList());
+
+            Utils.FillFileToReplaceRegion(currentDir + Properties.Settings.Static.ClientScriptsTargetPath + @"\Settings\App\Static.cs", "TO_REPLACE", new List<string>() { $"private static JObject _otherSettings = JObject.Parse(\"{Properties.Settings.Static.GetClientSettings().SerializeToJson().Replace('\"', '\'')}\");" });
+
+            var clientScripts = clientAssembly.GetTypes().Where(x => x.IsClass && x.GetCustomAttribute<BCRPClient.ScriptAttribute>() != null).Select(x => (x, x.GetCustomAttribute<BCRPClient.ScriptAttribute>())).OrderBy(x => x.Item2.LoadOrder).Select(x => $"new {x.x.FullName.Replace('+', '.')}();").ToList();
+
+            Utils.FillFileToReplaceRegion(currentDir + Properties.Settings.Static.ClientScriptsTargetPath + @"\GameEvents.cs", "SCRIPTS_TO_REPLACE", clientScripts);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);
@@ -113,7 +127,7 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
-            Web.SocketIO.Service.Start(Settings.CurrentProfile.Web.SocketIOHost, Settings.CurrentProfile.Web.SocketIOUser, Settings.CurrentProfile.Web.SocketIOPassword);
+            Web.SocketIO.Service.Start(Properties.Settings.Profile.Current.Web.SocketIOHost, Properties.Settings.Profile.Current.Web.SocketIOUser, Properties.Settings.Profile.Current.Web.SocketIOPassword);
 
             // Local Data Load Step
 
@@ -310,7 +324,7 @@ namespace BCRPServer.Events
             {
                 var player = pData.Player;
 
-                if (isAuto && pData.LastData.SessionTime < Settings.CurrentProfile.Game.PayDayMinimalSessionTimeToReceive.TotalSeconds)
+                if (isAuto && pData.LastData.SessionTime < Properties.Settings.Profile.Current.Game.PayDayMinimalSessionTimeToReceive.TotalSeconds)
                 {
                     player.TriggerEvent("opday", pData.LastData.SessionTime);
 
@@ -402,7 +416,7 @@ namespace BCRPServer.Events
             foreach (var x in Game.Estates.Garage.All.Values)
                 MySQL.GarageUpdateOnRestart(x);
 
-            await Task.Delay(Settings.SERVER_STOP_DELAY);
+            await Task.Delay(Properties.Settings.Static.SERVER_STOP_DELAY);
 
             await MySQL.Wait();
 

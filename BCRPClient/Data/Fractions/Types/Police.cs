@@ -20,7 +20,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var pos = lockerPoses[i];
 
-                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract,
 
@@ -29,7 +29,7 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var lockerRoomText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var lockerRoomText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
@@ -43,7 +43,7 @@ namespace BCRPClient.Data.Fractions
 
                 pos.Z -= 1f;
 
-                var arrestMenuCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var arrestMenuCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionPoliceArrestMenuInteract,
 
@@ -52,7 +52,7 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var arrestMenuText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Управление задержанными\nв СИЗО", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var arrestMenuText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Управление задержанными\nв СИЗО", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
                 {
                     Font = 0,
                 };
@@ -160,11 +160,11 @@ namespace BCRPClient.Data.Fractions
 
             if (Type == Types.COP_BLAINE)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null) { Data = Types.COP_BLAINE });
+                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_BLAINE });
             }
             else if (Type == Types.COP_LS)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null) { Data = Types.COP_LS });
+                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_LS });
             }
 
             foreach (var x in arrestCs)
@@ -1270,7 +1270,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class PoliceEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class PoliceEvents 
     {
         public PoliceEvents()
         {

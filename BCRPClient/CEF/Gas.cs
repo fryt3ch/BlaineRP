@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Gas : Events.Script
+    [Script(int.MaxValue)]
+    public class Gas 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
 
@@ -324,7 +325,7 @@ namespace BCRPClient.CEF
 
         private static void Render()
         {
-            if (TargetVehicle?.Exists != true || Vector3.Distance(Player.LocalPlayer.Position, TargetVehicle.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER)
+            if (TargetVehicle?.Exists != true || Vector3.Distance(Player.LocalPlayer.Position, TargetVehicle.Position) > Settings.App.Static.EntityInteractionMaxDistance)
             {
                 Close();
             }

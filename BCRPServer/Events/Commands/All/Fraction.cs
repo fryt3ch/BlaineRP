@@ -28,12 +28,12 @@ namespace BCRPServer.Events.Commands
 
             if (mins < 1)
                 mins = 1;
-            else if (mins > Settings.FRACTION_MUTE_MAX_MINUTES)
-                mins = Settings.FRACTION_MUTE_MAX_MINUTES;
+            else if (mins > Properties.Settings.Static.FRACTION_MUTE_MAX_MINUTES)
+                mins = Properties.Settings.Static.FRACTION_MUTE_MAX_MINUTES;
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -69,7 +69,7 @@ namespace BCRPServer.Events.Commands
 
             var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.FractionMute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
 
-            if (allMutes.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
+            if (allMutes.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
                 var oldMute = allMutes.OrderBy(x => x.StartDate).FirstOrDefault();
 
@@ -120,7 +120,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Settings.CurrentProfile.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {

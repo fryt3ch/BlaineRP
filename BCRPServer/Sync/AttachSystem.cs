@@ -246,8 +246,8 @@ namespace BCRPServer.Sync
                                     if (vData == null)
                                         return;
 
-                                    var baseSpeed = Settings.PUSHING_VEHICLE_STRENGTH_MIN;
-                                    var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+                                    var baseSpeed = Properties.Settings.Static.PUSHING_VEHICLE_STRENGTH_MIN;
+                                    var strengthCoef = pData.Info.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
 
                                     if (syncData == "1")
                                     {
@@ -255,7 +255,7 @@ namespace BCRPServer.Sync
                                         strengthCoef = -strengthCoef;
                                     }
 
-                                    vData.ForcedSpeed = baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
+                                    vData.ForcedSpeed = baseSpeed + strengthCoef * (Properties.Settings.Static.PUSHING_VEHICLE_STRENGTH_MAX - Properties.Settings.Static.PUSHING_VEHICLE_STRENGTH_MIN);
 
                                     pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
                                 }

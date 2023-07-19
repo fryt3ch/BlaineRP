@@ -34,15 +34,15 @@ namespace BCRPServer.Additional
 
             //Console.WriteLine($"SpamCounter: {curSpams}");
 
-            if (curSpams > Settings.ANTISPAM_MAX_COUNT)
+            if (curSpams > Properties.Settings.Static.ANTISPAM_MAX_COUNT)
             {
                 Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
-            else if (curSpams >= Settings.ANTISPAM_WARNING_COUNT)
+            else if (curSpams >= Properties.Settings.Static.ANTISPAM_WARNING_COUNT)
             {
-                player.Notify("Spam::Warning", curSpams, Settings.ANTISPAM_MAX_COUNT);
+                player.Notify("Spam::Warning", curSpams, Properties.Settings.Static.ANTISPAM_MAX_COUNT);
             }
 
             if (decreaseDelay != -1)
@@ -87,15 +87,15 @@ namespace BCRPServer.Additional
 
             Console.WriteLine($"SpamCounter: {curSpams}");
 
-            if (curSpams > Settings.ANTISPAM_MAX_COUNT)
+            if (curSpams > Properties.Settings.Static.ANTISPAM_MAX_COUNT)
             {
                 Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
-            else if (curSpams >= Settings.ANTISPAM_WARNING_COUNT)
+            else if (curSpams >= Properties.Settings.Static.ANTISPAM_WARNING_COUNT)
             {
-                player.Notify("Spam::Warning", curSpams, Settings.ANTISPAM_MAX_COUNT);
+                player.Notify("Spam::Warning", curSpams, Properties.Settings.Static.ANTISPAM_MAX_COUNT);
             }
 
             if (decreaseDelay != -1)

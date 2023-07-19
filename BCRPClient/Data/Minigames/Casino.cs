@@ -7,7 +7,8 @@ using System.Security.Claims;
 
 namespace BCRPClient.Data.Minigames.Casino
 {
-    public class Casino : Events.Script
+    [Script(int.MaxValue)]
+    public class Casino 
     {
         public enum Types : sbyte
         {
@@ -226,7 +227,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CEF.Notification.SetOnTop(true);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
@@ -288,7 +289,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CEF.Notification.SetOnTop(true);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
@@ -354,7 +355,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CEF.Notification.SetOnTop(true);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
 
             //CEF.Chat.Show(false);
@@ -504,7 +505,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CEF.Cursor.Show(false, false);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);

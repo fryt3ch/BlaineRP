@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace BCRPClient.Sync
 {
-    public class Vehicles : Events.Script
+    [Script(int.MaxValue)]
+    public class Vehicles 
     {
         #region Last Times
         private static DateTime LastBeltToggled;
@@ -62,7 +63,7 @@ namespace BCRPClient.Sync
                 this.RemoteId = RemoteId;
                 this.VehicleData = VehicleData;
 
-                this.TimeToDelete = Settings.RENTED_VEHICLE_TIME_TO_AUTODELETE;
+                this.TimeToDelete = Settings.App.Static.RENTED_VEHICLE_TIME_TO_AUTODELETE;
 
                 this.TimeLeftToDelete = TimeToDelete;
             }
@@ -313,12 +314,10 @@ namespace BCRPClient.Sync
 
         public Vehicles()
         {
-            #region Default Settings
             RAGE.Game.Vehicle.DefaultEngineBehaviour = false;
             RAGE.Game.Vehicle.RepairOnExtraToggle = false;
 
             //Player.LocalPlayer.SetConfigFlag(184, true);
-            #endregion
 
             GameEvents.Update += ControlledTick;
 
@@ -346,7 +345,7 @@ namespace BCRPClient.Sync
                     if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         continue;
 
-                    if (Settings.Other.DebugLabels)
+                    if (Settings.User.Other.DebugLabels)
                     {
                         if (pData.AdminLevel > -1)
                         {
@@ -1077,15 +1076,15 @@ namespace BCRPClient.Sync
 
                 var speed = vehicle.GetSpeed();
 
-                if (speed < Settings.MIN_CRUISE_CONTROL_SPEED)
+                if (speed < Settings.App.Static.MIN_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MinSpeed, Math.Floor(Settings.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MinSpeed, Math.Floor(Settings.App.Static.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
-                else if (speed > Settings.MAX_CRUISE_CONTROL_SPEED)
+                else if (speed > Settings.App.Static.MAX_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MaxSpeed, Math.Floor(Settings.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MaxSpeed, Math.Floor(Settings.App.Static.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
@@ -1196,7 +1195,7 @@ namespace BCRPClient.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1390,7 +1389,7 @@ namespace BCRPClient.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1445,7 +1444,7 @@ namespace BCRPClient.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                    vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1545,7 +1544,7 @@ namespace BCRPClient.Sync
             if (vehicle == null)
                 return;
 
-            if (Vector3.Distance(Player.LocalPlayer.Position, vehicle.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(Player.LocalPlayer.Position, vehicle.Position) > Settings.App.Static.EntityInteractionMaxDistance)
                 return;
 
             var data = Players.GetData(Player.LocalPlayer);
@@ -1651,7 +1650,7 @@ namespace BCRPClient.Sync
 
             if (veh == null)
             {
-                veh = Utils.GetClosestVehicleToSeatIn(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE, seatId);
+                veh = Utils.GetClosestVehicleToSeatIn(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance, seatId);
 
                 if (veh == null)
                     return;
@@ -1691,7 +1690,7 @@ namespace BCRPClient.Sync
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
             var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
-            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 7500 || (timePassed > 1_000 && Utils.AnyOnFootMovingControlJustPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.App.Static.EntityInteractionMaxDistance || timePassed > 7500 || (timePassed > 1_000 && Utils.AnyOnFootMovingControlJustPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
                 if (tStatus != 7)
                     Player.LocalPlayer.ClearTasks();

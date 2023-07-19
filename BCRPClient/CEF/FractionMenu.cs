@@ -5,12 +5,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
-    public class FractionMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class FractionMenu 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuFraction);
 
@@ -46,7 +46,7 @@ namespace BCRPClient.CEF
                     if (coords == null)
                         return;
 
-                    Additional.ExtraBlips.CreateGPS(coords, Settings.MAIN_DIMENSION, true);
+                    Additional.ExtraBlips.CreateGPS(coords, Settings.App.Static.MainDimension, true);
                 }
                 else if (actionId == 1) // respawn
                 {

@@ -59,10 +59,6 @@ namespace BCRPServer
             }
         }
 
-        /// <summary>Знакомые игроки</summary>
-        /// <value>Список CID игроков</value>
-        public HashSet<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
-
         /// <summary>Сущность, к которой прикреплен игрок</summary>
         public Entity IsAttachedToEntity => Player.GetEntityIsAttachedTo();
 
@@ -129,12 +125,12 @@ namespace BCRPServer
 
         public Game.Estates.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootByDimension(Player.Dimension);
 
-        public int VehicleSlots => (Settings.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
+        public int VehicleSlots => (Properties.Settings.Static.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
 
-        public int HouseSlots => Settings.MAX_HOUSES - OwnedHouses.Count;
-        public int ApartmentsSlots => Settings.MAX_APARTMENTS - OwnedApartments.Count;
-        public int GaragesSlots => Settings.MAX_GARAGES - OwnedGarages.Count;
-        public int BusinessesSlots => Settings.MAX_BUSINESSES - OwnedBusinesses.Count;
+        public int HouseSlots => Properties.Settings.Static.MAX_HOUSES - OwnedHouses.Count;
+        public int ApartmentsSlots => Properties.Settings.Static.MAX_APARTMENTS - OwnedApartments.Count;
+        public int GaragesSlots => Properties.Settings.Static.MAX_GARAGES - OwnedGarages.Count;
+        public int BusinessesSlots => Properties.Settings.Static.MAX_BUSINESSES - OwnedBusinesses.Count;
 
         public Game.Data.Customization.UniformTypes? CurrentUniform { get => Player.GetData<Game.Data.Customization.UniformTypes?>("CUNIF"); set { if (value == null) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
 
@@ -207,25 +203,11 @@ namespace BCRPServer
         /// <value>Кол-во минут</value>
         public int TimePlayed { get => Info.TimePlayed; set => Info.TimePlayed = value; }
 
-        /// <summary>Дата создания игрока</summary>
-        public DateTime CreationDate { get => Info.CreationDate; set => Info.CreationDate = value; }
-
-        /// <summary>Дата рождения игрока</summary>
-        public DateTime BirthDate { get => Info.BirthDate; set => Info.BirthDate = value; }
-
         /// <summary>Имя игрока</summary>
         public string Name { get => Info.Name; set => Info.Name = value; }
 
         /// <summary>Фамилия игрока</summary>
         public string Surname { get => Info.Surname; set => Info.Surname = value; }
-
-        /// <summary>Навыки игрока</summary>
-        /// <value>Словарь, где ключ - enum SkilType, а значение - от 0 до 100</value>
-        public Dictionary<SkillTypes, int> Skills { get => Info.Skills; set => Info.Skills = value; }
-
-        /// <summary>Лицензии игрока</summary>
-        /// <value>Список enum LicenseType</value>
-        public List<LicenseTypes> Licenses { get => Info.Licenses; set => Info.Licenses = value; }
 
         public IEnumerable<Sync.World.ItemOnGround> OwnedItemsOnGround => Sync.World.GetItemsOnGroundByOwner(Info);
     }

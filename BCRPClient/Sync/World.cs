@@ -7,9 +7,10 @@ using System.Threading;
 
 namespace BCRPClient.Sync
 {
-    class World : Events.Script
+    [Script(int.MaxValue)]
+    public class World 
     {
-        public static DateTime ServerTime { get; private set; } = DateTime.UtcNow.AddHours(Settings.SERVER_TIME_UTC_OFFSET);
+        public static DateTime ServerTime { get; private set; } = DateTime.UtcNow;
 
         public static DateTime LocalTime { get; private set; } = DateTime.Now;
 
@@ -163,12 +164,12 @@ namespace BCRPClient.Sync
         /// <summary>Ближайший к игроку предмет на земле</summary>
         public static ItemOnGround ClosestItemOnGround { get; set; }
 
-        private static bool _EnabledItemsOnGround;
+        private static bool _enabledItemsOnGround;
 
         /// <summary>Включено ли взаимодействие с предметами на земле в данный момент?</summary>
-        public static bool EnabledItemsOnGround { get => _EnabledItemsOnGround; set { if (!_EnabledItemsOnGround && value) { GameEvents.Render -= ItemsOnGroundRender; GameEvents.Render += ItemsOnGroundRender; } else if (_EnabledItemsOnGround && !value) GameEvents.Render -= ItemsOnGroundRender; _EnabledItemsOnGround = value; ClosestItemOnGround = null; } }
+        public static bool EnabledItemsOnGround { get => _enabledItemsOnGround; set { if (!_enabledItemsOnGround && value) { GameEvents.Render -= ItemsOnGroundRender; GameEvents.Render += ItemsOnGroundRender; } else if (_enabledItemsOnGround && !value) GameEvents.Render -= ItemsOnGroundRender; _enabledItemsOnGround = value; ClosestItemOnGround = null; } }
 
-        public static List<ItemOnGround> ItemsOnGround { get; set; }
+        public static List<ItemOnGround> ItemsOnGround { get; set; } = new List<ItemOnGround>();
 
         private static RAGE.Elements.Colshape ServerDataColshape { get; set; }
 
@@ -212,6 +213,11 @@ namespace BCRPClient.Sync
             });
         }
 
+        public static void LoadServerDataColshape()
+        {
+            ServerDataColshape = Entities.Colshapes.All.Where(x => x?.HasSharedData("ServerData") == true).FirstOrDefault();
+        }
+
         public static void Preload()
         {
             if (Preloaded)
@@ -224,7 +230,7 @@ namespace BCRPClient.Sync
                 var of = DateTimeOffset.FromUnixTimeMilliseconds((long)value);
 
                 ServerTime = of.DateTime;
-                LocalTime = of.AddHours(-Settings.SERVER_TIME_UTC_OFFSET).LocalDateTime;
+                LocalTime = of.Add(-Settings.App.Profile.Current.General.TimeUtcOffset).LocalDateTime;
             });
 
             for (int i = 0; i < RAGE.Elements.Entities.Objects.All.Count; i++)
@@ -244,13 +250,6 @@ namespace BCRPClient.Sync
                 if (x == null)
                     continue;
 
-                if (x.HasSharedData("ServerData"))
-                {
-                    ServerDataColshape = x;
-
-                    continue;
-                }
-
                 if (x.HasSharedData("Type") != true)
                     continue;
 
@@ -267,7 +266,7 @@ namespace BCRPClient.Sync
                 SetWeatherNow(weather);
             });
 
-            InvokeHandler("Weather", GetSharedData<int>("Weather"), null);
+            InvokeHandler("Weather", GetSharedData<int>("Weather"), 0);
 
             foreach (var x in Data.Locations.Business.All.Values)
             {
@@ -396,18 +395,6 @@ namespace BCRPClient.Sync
 
         public World()
         {
-            ItemOnGround.LastShowed = Sync.World.ServerTime;
-            ItemOnGround.LastSent = Sync.World.ServerTime;
-
-            Preloaded = false;
-
-            ItemsOnGround = new List<ItemOnGround>();
-
-            ClosestItemOnGround = null;
-
-            _EnabledItemsOnGround = false;
-
-            #region Events
             Events.AddDataHandler("IOG", (Entity entity, object value, object oldValue) =>
             {
                 if (entity is MapObject obj)
@@ -445,10 +432,8 @@ namespace BCRPClient.Sync
             }, 1_000, true, 0);
 
             closestIogTask.Run();
-            #endregion
         }
 
-        #region IOG Render
         private static void ItemsOnGroundRender()
         {
             float screenX = 0f, screenY = 0f;
@@ -460,7 +445,7 @@ namespace BCRPClient.Sync
                 if (temp.Type != ItemOnGround.Types.Default || temp.Object?.Exists != true)
                     continue;
 
-                if (temp.Object.GetData<float>("Dist") > Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER)
+                if (temp.Object.GetData<float>("Dist") > Settings.App.Static.EntityInteractionMaxDistance)
                 {
                     if (ClosestItemOnGround == temp)
                     {
@@ -478,16 +463,15 @@ namespace BCRPClient.Sync
                 if (!Utils.GetScreenCoordFromWorldCoord(temp.Object.GetCoords(true), ref screenX, ref screenY))
                     continue;
 
-                if (!Settings.Interface.HideIOGNames)
+                if (!Settings.User.Interface.HideIOGNames)
                 {
                     Utils.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
 
-                if (temp == ClosestItemOnGround && !Settings.Interface.HideInteractionBtn)
-                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                if (temp == ClosestItemOnGround && !Settings.User.Interface.HideInteractionBtn)
+                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
-        #endregion
 
         public static void SetSpecialWeather(WeatherTypes? weather)
         {
@@ -510,7 +494,5 @@ namespace BCRPClient.Sync
             RAGE.Game.Misc.SetWeatherTypeNow(str);
             //RAGE.Game.Misc.SetOverrideWeather(str);
         }
-
-
     }
 }

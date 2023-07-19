@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class RadioApp : Events.Script
+    [Script(int.MaxValue)]
+    public class RadioApp 
     {
         public RadioApp()
         {
@@ -75,11 +76,11 @@ namespace BCRPClient.CEF.PhoneApps
 
                     if (localStreamData == null)
                     {
-                        //CEF.Browser.Window.ExecuteJs("Phone.setSliderVal", "phone-value", Settings.Audio.PlayerLocalRadioVolume);
+                        //CEF.Browser.Window.ExecuteJs("Phone.setSliderVal", "phone-value", Settings.User.Audio.PlayerLocalRadioVolume);
                     }
                     else
                     {
-                        Settings.Audio.PlayerLocalRadioVolume = volume;
+                        Settings.User.Audio.PlayerLocalRadioVolume = volume;
 
                         localStreamData.SetVolume(volume);
                     }
@@ -104,7 +105,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             Sync.Radio.GetCurrentRadioTrackDetails(out trackName1, out trackName2);
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawRadioApp", new List<object> { (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2, Sync.Radio.IsMobilePhoneRadioEnabled, Settings.Audio.PlayerLocalRadioVolume });
+            CEF.Browser.Window.ExecuteJs("Phone.drawRadioApp", new List<object> { (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2, Sync.Radio.IsMobilePhoneRadioEnabled, Settings.User.Audio.PlayerLocalRadioVolume });
         }
 
         public static void UpdateRadioStation(Sync.Radio.StationTypes sType)

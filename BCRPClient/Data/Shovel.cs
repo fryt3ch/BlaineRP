@@ -3,7 +3,8 @@ using RAGE.Elements;
 
 namespace BCRPClient.Data
 {
-    public class Shovel : Events.Script
+    [Script(int.MaxValue)]
+    public class Shovel 
     {
         public Shovel()
         {

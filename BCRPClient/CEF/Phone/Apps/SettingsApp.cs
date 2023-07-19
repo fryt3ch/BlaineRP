@@ -3,7 +3,8 @@ using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class SettingsApp : Events.Script
+    [Script(int.MaxValue)]
+    public class SettingsApp 
     {
         public SettingsApp()
         {
@@ -14,7 +15,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var wpNum = (int)args[0];
 
-                if (Settings.Other.PhoneWallpaperNum == wpNum)
+                if (Settings.User.Other.PhoneWallpaperNum == wpNum)
                 {
                     return;
                 }
@@ -25,7 +26,7 @@ namespace BCRPClient.CEF.PhoneApps
                     {
                         LastSent = Sync.World.ServerTime;
 
-                        Settings.Other.PhoneWallpaperNum = wpNum;
+                        Settings.User.Other.PhoneWallpaperNum = wpNum;
 
                         CEF.Browser.Window.ExecuteCachedJs("Phone.updateWallpaper", wpNum);
                     }

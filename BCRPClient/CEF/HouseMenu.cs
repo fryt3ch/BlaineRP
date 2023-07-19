@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class HouseMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class HouseMenu 
     {
         public static bool IsActive => CEF.Browser.IsRendered(Browser.IntTypes.MenuHome);
 
@@ -647,7 +648,8 @@ namespace BCRPClient.CEF
         }
     }
 
-    public class Elevator : Events.Script
+    [Script(int.MaxValue)]
+    public class Elevator 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Elevator);
 

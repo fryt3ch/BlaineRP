@@ -7,7 +7,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Interaction : Events.Script
+    [Script(int.MaxValue)]
+    public class Interaction 
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction, Browser.IntTypes.Interaction_Passengers); }
 
@@ -635,7 +636,7 @@ namespace BCRPClient.CEF
         #region Renders
         private static void CheckEntityDistance()
         {
-            if (BCRPClient.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, BCRPClient.Interaction.CurrentEntity.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (BCRPClient.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, BCRPClient.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
             {
                 CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
 

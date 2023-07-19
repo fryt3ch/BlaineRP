@@ -86,7 +86,7 @@ namespace BCRPServer.Events.Vehicles
 
             ulong newBalance;
 
-            if (!pData.BankAccount.TryRemoveMoneyDebit(Settings.VEHICLE_EVACUATION_COST, out newBalance, true))
+            if (!pData.BankAccount.TryRemoveMoneyDebit(Properties.Settings.Static.VEHICLE_EVACUATION_COST, out newBalance, true))
                 return;
 
             if (toHouse)

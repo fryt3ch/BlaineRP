@@ -22,7 +22,7 @@ namespace BCRPClient.Data
 
                     centerPos += x;
 
-                    var cs = new Additional.Cylinder(new Vector3(x.X, x.Y, x.Z - 1f), 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    var cs = new Additional.Cylinder(new Vector3(x.X, x.Y, x.Z - 1f), 1.5f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         InteractionType = Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract,
 
@@ -31,12 +31,12 @@ namespace BCRPClient.Data
                         ActionType = Additional.ExtraColshape.ActionTypes.EstateAgencyInteract,
                     };
 
-                    var marker = new RAGE.Elements.Marker(2, new Vector3(x.X, x.Y, x.Z - 0.5f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 125), true, Settings.MAIN_DIMENSION);
+                    var marker = new RAGE.Elements.Marker(2, new Vector3(x.X, x.Y, x.Z - 0.5f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 125), true, Settings.App.Static.MainDimension);
                 }
 
                 centerPos /= poses.Count;
 
-                var blip = new Additional.ExtraBlip(837, centerPos, "Агенство недвижимости", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(837, centerPos, "Агенство недвижимости", 1f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             }
         }
     }

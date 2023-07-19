@@ -17,7 +17,7 @@ namespace BCRPServer.Events.NPC
             if (vehsOnPound.Count == 0)
                 return null;
 
-            return $"{Settings.VEHICLEPOUND_PAY_PRICE}_{string.Join('_', vehsOnPound.Select(x => x.VID))}";
+            return $"{Properties.Settings.Static.VEHICLEPOUND_PAY_PRICE}_{string.Join('_', vehsOnPound.Select(x => x.VID))}";
         }
 
         [NPC.Action("vpound_p", "vpound_w_0")]
@@ -43,7 +43,7 @@ namespace BCRPServer.Events.NPC
 
             ulong newCash;
 
-            if (!pData.TryRemoveCash(Settings.VEHICLEPOUND_PAY_PRICE, out newCash, true))
+            if (!pData.TryRemoveCash(Properties.Settings.Static.VEHICLEPOUND_PAY_PRICE, out newCash, true))
                 return false;
 
             pData.SetCash(newCash);
@@ -55,7 +55,7 @@ namespace BCRPServer.Events.NPC
             vInfo.LastData.Position = newPos.Position;
             vInfo.LastData.Heading = newPos.RotationZ;
 
-            vInfo.LastData.Dimension = Settings.CurrentProfile.Game.MainDimension;
+            vInfo.LastData.Dimension = Properties.Settings.Profile.Current.Game.MainDimension;
 
             vInfo.LastData.GarageSlot = int.MinValue;
 
@@ -63,7 +63,7 @@ namespace BCRPServer.Events.NPC
 
             MySQL.VehicleDeletionUpdate(vInfo);
 
-            pData.Player.CreateGPSBlip(newPos.Position, Settings.CurrentProfile.Game.MainDimension, true);
+            pData.Player.CreateGPSBlip(newPos.Position, Properties.Settings.Profile.Current.Game.MainDimension, true);
 
             return true;
         }
@@ -71,7 +71,7 @@ namespace BCRPServer.Events.NPC
         [NPC.Action("vrent_s_d", "vrent_s_0")]
         private static object VehicleRentSGetData(PlayerData pData, string npcId, string[] data)
         {
-            return Settings.VEHICLERENT_S_PAY_PRICE;
+            return Properties.Settings.Static.VEHICLERENT_S_PAY_PRICE;
         }
 
         [NPC.Action("vrent_s_p", "vrent_s_0")]
@@ -95,14 +95,14 @@ namespace BCRPServer.Events.NPC
 
             ulong newCash;
 
-            if (!pData.TryRemoveCash(Settings.VEHICLERENT_S_PAY_PRICE, out newCash, true))
+            if (!pData.TryRemoveCash(Properties.Settings.Static.VEHICLERENT_S_PAY_PRICE, out newCash, true))
                 return false;
 
             pData.SetCash(newCash);
 
             var vTypeData = Game.Data.Vehicles.GetData("faggio");
 
-            var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Settings.CurrentProfile.Game.MainDimension);
+            var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Properties.Settings.Profile.Current.Game.MainDimension);
 
             return true;
         }

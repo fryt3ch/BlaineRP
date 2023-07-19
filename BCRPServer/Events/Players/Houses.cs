@@ -245,7 +245,7 @@ namespace BCRPServer.Events.Players
             if (curFloorPos == null)
                 return;
 
-            if (Vector3.Distance(player.Position, curFloorPos.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, curFloorPos.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             curFloorPos = shell.GetFloorPosition(destFloor, subIdx);
@@ -274,7 +274,7 @@ namespace BCRPServer.Events.Players
             if (aRoot == null)
                 return;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             aRoot.SetPlayersInside(true, player);
@@ -298,7 +298,7 @@ namespace BCRPServer.Events.Players
             if (aRoot == null)
                 return;
 
-            if (Vector3.Distance(player.Position, aRoot.Shell.EnterPosition.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, aRoot.Shell.EnterPosition.Position) > Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             aRoot.SetPlayersOutside(true, player);
@@ -442,7 +442,7 @@ namespace BCRPServer.Events.Players
 
             if (slot >= 0)
             {
-                if (player.Dimension != Settings.CurrentProfile.Game.MainDimension)
+                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
                     return;
 
                 var house = Game.Estates.House.Get(houseId);
@@ -499,7 +499,7 @@ namespace BCRPServer.Events.Players
             if (!vData.IsFullOwner(pData))
                 return;
 
-            if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!player.AreEntitiesNearby(veh, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var house = Game.Estates.House.Get(houseId);
@@ -760,9 +760,9 @@ namespace BCRPServer.Events.Players
 
             if (pData.Furniture.Contains(furniture))
             {
-                if (houseBase.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
+                if (houseBase.Furniture.Count + 1 >= Properties.Settings.Static.HOUSE_MAX_FURNITURE)
                 {
-                    player.Notify("Inv::HMPF", Settings.HOUSE_MAX_FURNITURE);
+                    player.Notify("Inv::HMPF", Properties.Settings.Static.HOUSE_MAX_FURNITURE);
 
                     return false;
                 }
@@ -828,9 +828,9 @@ namespace BCRPServer.Events.Players
 
             if (pData.Furniture.Contains(furniture))
             {
-                if (houseBase.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
+                if (houseBase.Furniture.Count + 1 >= Properties.Settings.Static.HOUSE_MAX_FURNITURE)
                 {
-                    player.Notify("Inv::HMPF", Settings.HOUSE_MAX_FURNITURE);
+                    player.Notify("Inv::HMPF", Properties.Settings.Static.HOUSE_MAX_FURNITURE);
 
                     return 255;
                 }

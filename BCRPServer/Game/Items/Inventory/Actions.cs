@@ -188,7 +188,7 @@ namespace BCRPServer.Game.Items
                                         }
                                     }
 
-                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Properties.Settings.Static.MAX_INVENTORY_WEIGHT))
                                         return ResultTypes.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
@@ -236,7 +236,7 @@ namespace BCRPServer.Game.Items
                                         }
                                     }
 
-                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Properties.Settings.Static.MAX_INVENTORY_WEIGHT))
                                         return ResultTypes.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
@@ -284,7 +284,7 @@ namespace BCRPServer.Game.Items
                                         }
                                     }
 
-                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Properties.Settings.Static.MAX_INVENTORY_WEIGHT))
                                         return ResultTypes.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
@@ -332,7 +332,7 @@ namespace BCRPServer.Game.Items
                                         }
                                     }
 
-                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Properties.Settings.Static.MAX_INVENTORY_WEIGHT))
                                         return ResultTypes.NoSpace;
 
                                     pData.Items[freeIdx] = wc;

@@ -204,7 +204,7 @@ namespace BCRPServer.Game.Businesses
 
         public bool IsPlayerNearInteractPosition(PlayerData pData)
         {
-            return PositionInteract != null && pData.Player.Dimension == Settings.CurrentProfile.Game.MainDimension && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
+            return PositionInteract != null && pData.Player.Dimension == Properties.Settings.Profile.Current.Game.MainDimension && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
         }
 
         public static Utils.Vector4 GetNextExitProperty(IEnterable enterable)
@@ -522,7 +522,7 @@ namespace BCRPServer.Game.Businesses
 
         public bool BuyFromGov(PlayerData pData)
         {
-            if (Settings.NEED_BUSINESS_LICENSE && !pData.HasLicense(PlayerData.LicenseTypes.Business))
+            if (Properties.Settings.Static.NEED_BUSINESS_LICENSE && !pData.HasLicense(PlayerData.LicenseTypes.Business))
                 return false;
 
             ulong newCash;
@@ -555,7 +555,7 @@ namespace BCRPServer.Game.Businesses
             {
                 pInfo.PlayerData?.AddBusinessProperty(this);
 
-                var minBalance = Settings.MIN_PAID_HOURS_BUSINESS * Rent;
+                var minBalance = Properties.Settings.Static.MIN_PAID_HOURS_BUSINESS * Rent;
 
                 if (buyGov && Bank < minBalance)
                     SetBank(minBalance);

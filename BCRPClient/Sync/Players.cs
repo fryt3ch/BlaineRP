@@ -9,7 +9,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    public class Players : Events.Script
+    [Script(int.MaxValue)]
+    public class Players 
     {
         /// <summary>Готов ли персонаж к игре?</summary>
         public static bool CharacterLoaded { get; set; }
@@ -458,16 +459,7 @@ namespace BCRPClient.Sync
 
                 data.FastAnim = Animations.FastTypes.None;
 
-                var settings = RAGE.Util.Json.Deserialize<(float, float, float, float, float, float)>((string)args[0]);
-
-                BCRPClient.Settings.STREAM_DISTANCE = settings.Item1;
-                BCRPClient.Settings.ENTITY_INTERACTION_MAX_DISTANCE = settings.Item2;
-                BCRPClient.Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER = settings.Item3;
-                BCRPClient.Settings.MIN_CRUISE_CONTROL_SPEED = settings.Item4;
-                BCRPClient.Settings.MAX_CRUISE_CONTROL_SPEED = settings.Item5;
-                BCRPClient.Settings.MAX_INVENTORY_WEIGHT = settings.Item6;
-
-                var sData = (JObject)args[1];
+                var sData = (JObject)args[0];
 
                 data.Familiars = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Familiars"]);
 
@@ -648,14 +640,14 @@ namespace BCRPClient.Sync
                 if (data.WeaponSkins.Count > 0)
                     CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.WeaponSkinsMenu);
 
-                Settings.Load();
+                Settings.User.Initialization.Load();
                 KeyBinds.LoadAll();
 
                 CEF.Phone.Preload();
 
                 await CEF.Animations.Load();
 
-                await Events.CallRemoteProc("Players::CRI", data.IsInvalid, Settings.Other.CurrentEmotion, Settings.Other.CurrentWalkstyle);
+                await Events.CallRemoteProc("Players::CRI", data.IsInvalid, Settings.User.Other.CurrentEmotion, Settings.User.Other.CurrentWalkstyle);
 
                 CharacterLoaded = true;
 
@@ -676,7 +668,7 @@ namespace BCRPClient.Sync
 
                 timeUpdateTask.Run();
 
-                CEF.HUD.ShowHUD(!Settings.Interface.HideHUD);
+                CEF.HUD.ShowHUD(!Settings.User.Interface.HideHUD);
 
                 Interaction.Enabled = true;
                 Sync.World.EnabledItemsOnGround = true;
@@ -722,11 +714,11 @@ namespace BCRPClient.Sync
 
                     if (res != null)
                     {
-                        var ped = new Data.NPC($"house_h_{x.Key}", $"{x.Key}", Data.NPC.Types.Static, "u_m_y_abner", new Vector3(x.Value.Position.X, x.Value.Position.Y, x.Value.Position.Z + 1f), float.Parse(res[0]), Settings.MAIN_DIMENSION);
+                        var ped = new Data.NPC($"house_h_{x.Key}", $"{x.Key}", Data.NPC.Types.Static, "u_m_y_abner", new Vector3(x.Value.Position.X, x.Value.Position.Y, x.Value.Position.Z + 1f), float.Parse(res[0]), Settings.Profile.MAIN_DIMENSION);
 
                         if (x.Value.GaragePosition != null)
                         {
-                            var car = new Vehicle(carhash, x.Value.GaragePosition, float.Parse(res[1]), $"{x.Key}", 255, false, 0, 0, Settings.MAIN_DIMENSION);
+                            var car = new Vehicle(carhash, x.Value.GaragePosition, float.Parse(res[1]), $"{x.Key}", 255, false, 0, 0, Settings.Profile.MAIN_DIMENSION);
 
                             car.SetData("HOUSE_ID", x.Key);
                         }
@@ -735,7 +727,7 @@ namespace BCRPClient.Sync
                     if (x.Value.GaragePosition != null)
                         continue;
 
-                    new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
+                    new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.Profile.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
                 }*/
 
 /*                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
@@ -1685,7 +1677,7 @@ namespace BCRPClient.Sync
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    Settings.Other.CurrentEmotion = emotion;
+                    Settings.User.Other.CurrentEmotion = emotion;
 
                     CEF.Animations.ToggleAnim("e-" + emotion.ToString(), true);
                 }
@@ -1701,7 +1693,7 @@ namespace BCRPClient.Sync
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    Settings.Other.CurrentWalkstyle = wStyle;
+                    Settings.User.Other.CurrentWalkstyle = wStyle;
 
                     CEF.Animations.ToggleAnim("w-" + wStyle.ToString(), true);
                 }
@@ -1712,7 +1704,6 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Anim::Other", (pData, value, oldValue) =>
             {
-                Utils.ConsoleOutput($"O {value?.ToString() ?? "null"}, {oldValue?.ToString() ?? "null"}");
                 var player = pData.Player;
 
                 var anim = (Sync.Animations.OtherTypes)((int?)value ?? -1);
@@ -1755,7 +1746,6 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Anim::General", (pData, value, oldValue) =>
             {
-                Utils.ConsoleOutput($"G {value?.ToString() ?? "null"}, {oldValue?.ToString() ?? "null"}");
                 var player = pData.Player;
 
                 var anim = (Sync.Animations.GeneralTypes)((int?)value ?? -1);
@@ -1876,7 +1866,7 @@ namespace BCRPClient.Sync
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    Settings.Special.DisabledPerson = state;
+                    Settings.User.Special.DisabledPerson = state;
                 }
             });
 

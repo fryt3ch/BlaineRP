@@ -37,7 +37,8 @@ namespace BCRPClient.Data.Fractions
         }
     }
 
-    public class WeazelNewsEvents : Events.Script
+    [Script(int.MaxValue)]
+    public class WeazelNewsEvents 
     {
         public WeazelNewsEvents()
         {

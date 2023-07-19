@@ -28,11 +28,11 @@ namespace BCRPClient.Data
         public static void AutoTeleportMarker(bool? state = null)
         {
             if (state == null)
-                Settings.Other.AutoTeleportMarker = !Settings.Other.AutoTeleportMarker;
+                Settings.User.Other.AutoTeleportMarker = !Settings.User.Other.AutoTeleportMarker;
             else
-                Settings.Other.AutoTeleportMarker = (bool)state;
+                Settings.User.Other.AutoTeleportMarker = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.AutoTeleportMarker ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "AutoTPMarker"));
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.AutoTeleportMarker ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "AutoTPMarker"));
         }
 
         [Command("teleportpos", true, "Телепорт по координатам", "tppos", "tpp")]

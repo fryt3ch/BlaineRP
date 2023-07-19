@@ -31,7 +31,7 @@ namespace BCRPServer.Game.Misc
                 lines.Add($"new VehicleDestruction({x.Id}, {x.Position.ToCSharpStr()});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "VEHICLEDESTR_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "VEHICLEDESTR_TO_REPLACE", lines);
         }
 
         public VehicleDestruction(Vector3 Position)

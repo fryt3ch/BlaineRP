@@ -16,7 +16,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
             if (pData.HasJob(true))
@@ -71,7 +71,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
                 return 0;
 
             var job = pData.CurrentJob as Game.Jobs.Farmer;
@@ -193,7 +193,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
                 return 0;
 
             var job = pData.CurrentJob as Game.Jobs.Farmer;
@@ -314,7 +314,7 @@ namespace BCRPServer.Events.Players.Jobs
             if (Game.Businesses.Farm.OrangeTreeData.GetGrowTime(business, treeIdx) != 0)
                 return;
 
-            if (pData.GeneralAnim != Sync.Animations.GeneralTypes.TreeCollect0 || player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.OrangeTrees[treeIdx].Position.DistanceTo(player.Position) > 10f)
+            if (pData.GeneralAnim != Sync.Animations.GeneralTypes.TreeCollect0 || player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.OrangeTrees[treeIdx].Position.DistanceTo(player.Position) > 10f)
             {
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.TreeCollect0)
                     pData.StopGeneralAnim();
@@ -357,7 +357,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (player.DetachObject(Sync.AttachSystem.Types.FarmOrangeBoxCarry))
             {
-                if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || farmBusiness.OrangeTreeBoxPositions[boxIdx].DistanceTo(player.Position) > 5f)
+                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || farmBusiness.OrangeTreeBoxPositions[boxIdx].DistanceTo(player.Position) > 5f)
                     return;
 
                 farmBusiness.OrangeTrees[treeIdx].UpdateGrowTime(farmBusiness, treeIdx, null, true);
@@ -380,7 +380,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
+            if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
                 return 0;
 
             var job = pData.CurrentJob as Game.Jobs.Farmer;
@@ -483,7 +483,7 @@ namespace BCRPServer.Events.Players.Jobs
             if (Game.Businesses.Farm.CowData.GetGrowTime(business, cowIdx) != 0)
                 return;
 
-            if (pData.GeneralAnim != Sync.Animations.GeneralTypes.MilkCow0 || player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.Cows[cowIdx].Position.Position.DistanceTo(player.Position) > 10f)
+            if (pData.GeneralAnim != Sync.Animations.GeneralTypes.MilkCow0 || player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.Cows[cowIdx].Position.Position.DistanceTo(player.Position) > 10f)
             {
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.MilkCow0)
                     pData.StopGeneralAnim();
@@ -526,7 +526,7 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (player.DetachObject(Sync.AttachSystem.Types.FarmMilkBucketCarry))
             {
-                if (player.Dimension != Settings.CurrentProfile.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || farmBusiness.CowBucketPositions[bucketIdx].DistanceTo(player.Position) > 5f)
+                if (player.Dimension != Properties.Settings.Profile.Current.Game.MainDimension || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || farmBusiness.CowBucketPositions[bucketIdx].DistanceTo(player.Position) > 5f)
                     return;
 
                 farmBusiness.Cows[cowIdx].UpdateGrowTime(farmBusiness, cowIdx, Utils.GetCurrentTime().GetUnixTimestamp() + Game.Jobs.Farmer.GetGrowTimeForCrop(Game.Businesses.Farm.CropField.Types.Cow), true);

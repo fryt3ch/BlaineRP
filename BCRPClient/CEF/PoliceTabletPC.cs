@@ -9,7 +9,8 @@ using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
-    public class PoliceTabletPC : Events.Script
+    [Script(int.MaxValue)]
+    public class PoliceTabletPC 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.PoliceTabletPC);
 

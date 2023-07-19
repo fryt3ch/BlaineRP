@@ -3,7 +3,8 @@ using RAGE.Elements;
 
 namespace BCRPClient.Data.Minigames
 {
-    public class Farm : Events.Script
+    [Script(int.MaxValue)]
+    public class Farm 
     {
         private static AsyncTask TempTask { get; set; }
 
@@ -85,7 +86,7 @@ namespace BCRPClient.Data.Minigames
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, true, true);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
@@ -112,7 +113,7 @@ namespace BCRPClient.Data.Minigames
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
-            if (!Settings.Interface.HideHUD)
+            if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);

@@ -7,7 +7,8 @@ using System.Threading;
 
 namespace BCRPClient.Sync
 {
-    public class Radio : Events.Script
+    [Script(int.MaxValue)]
+    public class Radio 
     {
         public enum StationTypes : byte
         {
@@ -230,7 +231,7 @@ namespace BCRPClient.Sync
                     {
                         audioData.Stop();
 
-                        audioData.Play(trackType, Settings.Audio.PlayerLocalRadioVolume, false, 0);
+                        audioData.Play(trackType, Settings.User.Audio.PlayerLocalRadioVolume, false, 0);
                     }
                 }
                 else

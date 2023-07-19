@@ -6,12 +6,13 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    public class Microphone : Events.Script
+    [Script(int.MaxValue)]
+    public class Microphone 
     {
         private static bool Use3D = true;
 
-        private static List<Player> Listeners;
-        private static List<Player> Talkers;
+        private static List<Player> _listeners = new List<Player>();
+        private static List<Player> _talkers = new List<Player>();
 
         private static DateTime LastSwitched;
         private static DateTime LastReloaded;
@@ -19,23 +20,14 @@ namespace BCRPClient.Sync
 
         public static AsyncTask UpdateListenersTask;
 
-        #region Anims
         private static string AnimDict = "mp_facial";
         private static string AnimDictNormal = "facials@gen_male@variations@normal";
 
         private static string AnimName = "mic_chatter";
         private static string AnimNameNormal = "mood_normal_1";
-        #endregion
 
         public Microphone()
         {
-            LastSwitched = DateTime.MinValue;
-            LastReloaded = DateTime.MinValue;
-            LastSent = DateTime.MinValue;
-
-            Listeners = new List<Player>();
-            Talkers = new List<Player>();
-
             // Changing Volume Of Talkers
             new AsyncTask(() =>
             {
@@ -46,9 +38,9 @@ namespace BCRPClient.Sync
 
                 var activeCall = pData.ActiveCall;
 
-                for (int i = 0; i < Talkers.Count; i++)
+                for (int i = 0; i < _talkers.Count; i++)
                 {
-                    var player = Talkers[i];
+                    var player = _talkers[i];
 
                     var tData = Sync.Players.GetData(player);
 
@@ -69,7 +61,7 @@ namespace BCRPClient.Sync
                         var dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
 
                         if (dist <= vRange)
-                            player.VoiceVolume = ((Settings.Audio.VoiceVolume / 100f) / vRange) * (vRange - dist);
+                            player.VoiceVolume = ((Settings.User.Audio.VoiceVolume / 100f) / vRange) * (vRange - dist);
                         else
                             player.VoiceVolume = 0f;
                     }
@@ -87,7 +79,7 @@ namespace BCRPClient.Sync
                 if (pData.VoiceRange > 0f)
                     SetTalkingAnim(Player.LocalPlayer, true);
 
-                Talkers.ForEach(x =>
+                _talkers.ForEach(x =>
                 {
                     SetTalkingAnim(x, true);
                 });
@@ -105,8 +97,8 @@ namespace BCRPClient.Sync
 
             Utils.ReloadVoiceChat();
 
-            Listeners.Clear();
-            Talkers.Clear();
+            _listeners.Clear();
+            _talkers.Clear();
 
             var streamed = RAGE.Elements.Entities.Players.Streamed;
 
@@ -170,7 +162,7 @@ namespace BCRPClient.Sync
         #region Updaters
         public static void StartUpdateListeners()
         {
-            Listeners.Clear();
+            _listeners.Clear();
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -204,7 +196,7 @@ namespace BCRPClient.Sync
 
                     var dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
 
-                    if (Listeners.Contains(player))
+                    if (_listeners.Contains(player))
                     {
                         if (dist > vRange)
                         {
@@ -228,7 +220,7 @@ namespace BCRPClient.Sync
 
         public static void StopUpdateListeners()
         {
-            Listeners.Clear();
+            _listeners.Clear();
 
             UpdateListenersTask?.Cancel();
 
@@ -245,13 +237,13 @@ namespace BCRPClient.Sync
         #region Listeners & Talkers Stuff
         private static bool AddListener(Player player)
         {
-            if (Listeners.Contains(player))
+            if (_listeners.Contains(player))
                 return true;
 
             if (LastSent.IsSpam(50))
                 return false;
 
-            Listeners.Add(player);
+            _listeners.Add(player);
 
             Events.CallRemote("mal", player);
 
@@ -262,13 +254,13 @@ namespace BCRPClient.Sync
 
         public static bool RemoveListener(Player player, bool checkTime = true)
         {
-            if (!Listeners.Contains(player))
+            if (!_listeners.Contains(player))
                 return true;
 
             if (checkTime && LastSent.IsSpam(50))
                 return false;
 
-            Listeners.Remove(player);
+            _listeners.Remove(player);
 
             Events.CallRemote("mrl", player);
 
@@ -279,21 +271,21 @@ namespace BCRPClient.Sync
 
         public static void AddTalker(Player player)
         {
-            if (Talkers.Contains(player))
+            if (_talkers.Contains(player))
                 return;
 
             player.AutoVolume = false;
             player.Voice3d = Use3D;
             player.VoiceVolume = 0f;
 
-            Talkers.Add(player);
+            _talkers.Add(player);
 
             SetTalkingAnim(player, true);
         }
 
         public static void RemoveTalker(Player player)
         {
-            Talkers.Remove(player);
+            _talkers.Remove(player);
 
             player.AutoVolume = false;
             player.Voice3d = false;

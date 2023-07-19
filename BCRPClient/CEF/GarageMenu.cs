@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class GarageMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class GarageMenu 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuGarage);
 

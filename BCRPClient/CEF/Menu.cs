@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class Menu : Events.Script
+    [Script(int.MaxValue)]
+    public class Menu 
     {
         private static DateTime LastSwitched;
         private static DateTime LastSent;
@@ -89,67 +90,67 @@ namespace BCRPClient.CEF
                 switch (id)
                 {
                     case "sett-time":
-                        Settings.Interface.UseServerTime = (bool)args[1];
+                        Settings.User.Interface.UseServerTime = (bool)args[1];
                         break;
 
                     case "sett-help":
-                        Settings.Interface.HideHints = (bool)args[1];
+                        Settings.User.Interface.HideHints = (bool)args[1];
                         break;
 
                     case "sett-names":
-                        Settings.Interface.HideNames = (bool)args[1];
+                        Settings.User.Interface.HideNames = (bool)args[1];
                         break;
 
                     case "sett-cid":
-                        Settings.Interface.HideCID = (bool)args[1];
+                        Settings.User.Interface.HideCID = (bool)args[1];
                         break;
 
                     case "sett-hud":
-                        Settings.Interface.HideHUD = (bool)args[1];
+                        Settings.User.Interface.HideHUD = (bool)args[1];
                         break;
 
                     case "sett-quest":
-                        Settings.Interface.HideQuest = (bool)args[1];
+                        Settings.User.Interface.HideQuest = (bool)args[1];
                         break;
 
                     case "sett-interact":
-                        Settings.Interface.HideInteractionBtn = (bool)args[1];
+                        Settings.User.Interface.HideInteractionBtn = (bool)args[1];
                         break;
 
                     case "sett-items":
-                        Settings.Interface.HideIOGNames = (bool)args[1];
+                        Settings.User.Interface.HideIOGNames = (bool)args[1];
                         break;
 
                     case "sett-reload":
-                        Settings.Interface.AutoReload = (bool)args[1];
+                        Settings.User.Interface.AutoReload = (bool)args[1];
                         break;
 
                     case "sett-finger":
-                        Settings.Interface.FingerOn = (bool)args[1];
+                        Settings.User.Interface.FingerOn = (bool)args[1];
                         break;
 
                     case "sett-filter":
-                        Settings.Chat.UseFilter = (bool)args[1];
+                        Settings.User.Chat.UseFilter = (bool)args[1];
                         break;
 
                     case "sett-timestamp":
-                        Settings.Chat.ShowTime = (bool)args[1];
+                        Settings.User.Chat.ShowTime = (bool)args[1];
                         break;
 
                     case "sett-chat":
-                        Settings.Chat.Height = int.Parse((string)args[1]);
+                        Settings.User.Chat.Height = int.Parse((string)args[1]);
                         break;
 
                     case "sett-font":
-                        Settings.Chat.FontSize = int.Parse((string)args[1]);
+                        Settings.User.Chat.FontSize = int.Parse((string)args[1]);
                         break;
 
                     case "sett-speak":
-                        Settings.Audio.VoiceVolume = int.Parse((string)args[1]);
+                        Settings.User.Audio.VoiceVolume = int.Parse((string)args[1]);
                         break;
 
                     case "sett-3D":
-                        Settings.Audio.SoundVolume = int.Parse((string)args[1]);
+                        Settings.User.Audio.SoundVolume = int.Parse((string)args[1]);
                         break;
 
                     case "sett-special":
@@ -162,19 +163,19 @@ namespace BCRPClient.CEF
                         break;
 
                     case "sett-aimType":
-                        Settings.Aim.Type = (Settings.Aim.Types)int.Parse((string)args[1]);
+                        Settings.User.Aim.Type = (Settings.User.Aim.Types)int.Parse((string)args[1]);
                         break;
 
                     case "sett-aimScale":
-                        Settings.Aim.Scale = args[1] is float ? (float)args[1] : (int)args[1];
+                        Settings.User.Aim.Scale = args[1] is float ? (float)args[1] : (int)args[1];
                         break;
                 }
             });
 
             Events.Add("Menu::UpdateAimColor", (object[] args) =>
             {
-                Settings.Aim.Color = ((string)args[0]).ToColour();
-                Settings.Aim.Alpha = args[1] is float ? (float)args[1] : (int)args[1];
+                Settings.User.Aim.Color = ((string)args[0]).ToColour();
+                Settings.User.Aim.Alpha = args[1] is float ? (float)args[1] : (int)args[1];
             });
             #endregion
 
@@ -207,7 +208,7 @@ namespace BCRPClient.CEF
                     if (LastSent.IsSpam(1000, false, false))
                         return;
 
-                    Settings.DefaultAll();
+                    Settings.User.Initialization.DefaultAll();
 
                     UpdateSettingsData();
                 }
@@ -340,7 +341,7 @@ namespace BCRPClient.CEF
 
             Browser.Switch(Browser.IntTypes.Menu, true);
 
-            //Browser.Window.ExecuteJs("switchEsc", !Settings.Interface.HideHints);
+            //Browser.Window.ExecuteJs("switchEsc", !Settings.User.Interface.HideHints);
 
             LastSwitched = Sync.World.ServerTime;
 
@@ -363,14 +364,14 @@ namespace BCRPClient.CEF
         #region Updaters
         public static void UpdateSettingsData()
         {
-            UpdateInput("sett-chat", Settings.Chat.Height);
-            UpdateInput("sett-font", Settings.Chat.FontSize);
-            UpdateInput("sett-speak", Settings.Audio.VoiceVolume);
-            UpdateInput("sett-3D", Settings.Audio.SoundVolume);
+            UpdateInput("sett-chat", Settings.User.Chat.Height);
+            UpdateInput("sett-font", Settings.User.Chat.FontSize);
+            UpdateInput("sett-speak", Settings.User.Audio.VoiceVolume);
+            UpdateInput("sett-3D", Settings.User.Audio.SoundVolume);
 
-            Browser.Window.ExecuteJs("Menu.setAim", Settings.Aim.Type);
-            Browser.Window.ExecuteJs("Menu.setAimSize", Settings.Aim.Scale);
-            Browser.Window.ExecuteJs($"Menu.setColor", Settings.Aim.Color.HEX, Settings.Aim.Alpha);
+            Browser.Window.ExecuteJs("Menu.setAim", Settings.User.Aim.Type);
+            Browser.Window.ExecuteJs("Menu.setAimSize", Settings.User.Aim.Scale);
+            Browser.Window.ExecuteJs($"Menu.setColor", Settings.User.Aim.Color.HEX, Settings.User.Aim.Alpha);
         }
 
         public static void UpdateKeyBindsData()

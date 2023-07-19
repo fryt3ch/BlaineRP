@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Additional
 {
-    class SkyCamera : Events.Script
+    [Script(int.MaxValue)]
+    public class SkyCamera 
     {
         public static bool IsFadedOut { get => RAGE.Game.Cam.IsScreenFadedOut() || RAGE.Game.Cam.IsScreenFadingOut(); }
         public static bool ShouldBeFadedOut { get; set; }
@@ -29,7 +30,6 @@ namespace BCRPClient.Additional
 
         public SkyCamera()
         {
-            #region Events
             Events.Add("SkyCamera::Move", async (object[] args) =>
             {
                 SwitchType sType = (SwitchType)(int)args[0];
@@ -62,12 +62,13 @@ namespace BCRPClient.Additional
                         FadeScreen(state, (int)args[1]);
                 }
                 else
-                    FadeScreen(state);
+                {
+                    FadeScreen(state, 500);
+                }
             });
-            #endregion
         }
 
-        public static void FadeScreen(bool state, int speed = Settings.DEFAULT_FADE_IN_OUT_SPEED, int inTime = -1)
+        public static void FadeScreen(bool state, int speed, int inTime = -1)
         {
             if (state)
             {
@@ -99,7 +100,7 @@ namespace BCRPClient.Additional
             Player.LocalPlayer.FreezePosition(true);
 
             if (fade)
-                FadeScreen(true);
+                FadeScreen(true, 500);
 
             int counter = 0;
 

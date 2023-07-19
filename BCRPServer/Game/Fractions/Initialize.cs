@@ -629,7 +629,7 @@ namespace BCRPServer.Game.Fractions
                 lines.Add($"Fractions.Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Settings.ClientScriptsTargetLocationsLoaderPath, "FRACTIONS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "FRACTIONS_TO_REPLACE", lines);
         }
     }
 }

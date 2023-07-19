@@ -1,13 +1,13 @@
 ﻿using RAGE;
-using System.Threading;
 
 namespace BCRPClient
 {
-    class Minimap : Events.Script
+    [Script(int.MaxValue)]
+    public class Minimap 
     {
         public static byte MinimapZoomState { get; private set; } = 0;
 
-        private static AsyncTask zoomTask;
+        private static AsyncTask _zoomTask;
 
         public Minimap()
         {
@@ -31,32 +31,32 @@ namespace BCRPClient
 
                 MinimapZoomState = 1;
 
-                zoomTask?.Cancel();
+                _zoomTask?.Cancel();
 
-                zoomTask = new AsyncTask(() =>
+                _zoomTask = new AsyncTask(() =>
                 {
                     RAGE.Game.Ui.SetRadarBigmapEnabled(false, true);
                     RAGE.Game.Ui.SetRadarZoom(1);
 
                     MinimapZoomState = 0;
 
-                    if (zoomTask != null)
+                    if (_zoomTask != null)
                     {
-                        zoomTask.Cancel();
+                        _zoomTask.Cancel();
 
-                        zoomTask = null;
+                        _zoomTask = null;
                     }
                 }, 10_000, false, 0);
 
-                zoomTask.Run();
+                _zoomTask.Run();
             }
             else if (MinimapZoomState == 1)
             {
-                if (zoomTask != null)
+                if (_zoomTask != null)
                 {
-                    zoomTask.Cancel();
+                    _zoomTask.Cancel();
 
-                    zoomTask = null;
+                    _zoomTask = null;
                 }
 
                 RAGE.Game.Ui.SetRadarBigmapEnabled(true, false);
@@ -69,11 +69,11 @@ namespace BCRPClient
             }
             else
             {
-                if (zoomTask != null)
+                if (_zoomTask != null)
                 {
-                    zoomTask.Cancel();
+                    _zoomTask.Cancel();
 
-                    zoomTask = null;
+                    _zoomTask = null;
                 }
 
                 MinimapZoomState = 0;

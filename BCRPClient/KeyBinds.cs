@@ -815,7 +815,7 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(false, true))
                 {
-                    Settings.Interface.HideHUD = !Settings.Interface.HideHUD;
+                    Settings.User.Interface.HideHUD = !Settings.User.Interface.HideHUD;
                 }
             }, true, true)
             { Description = "HUD" });

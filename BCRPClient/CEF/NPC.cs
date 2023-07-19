@@ -2,7 +2,8 @@
 
 namespace BCRPClient.CEF
 {
-    class NPC : Events.Script
+    [Script(int.MaxValue)]
+    public class NPC 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.NPC); }
 

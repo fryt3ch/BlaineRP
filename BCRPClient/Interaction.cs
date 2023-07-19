@@ -20,7 +20,7 @@ namespace BCRPClient
 
         private static void Render()
         {
-            var entity = Player.LocalPlayer.Vehicle ?? Utils.GetEntityPlayerLookAt(Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER);
+            var entity = Player.LocalPlayer.Vehicle ?? Utils.GetEntityPlayerLookAt(Settings.App.Static.EntityInteractionMaxDistance);
 
             if (entity == null)
             {

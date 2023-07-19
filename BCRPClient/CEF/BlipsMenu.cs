@@ -8,7 +8,8 @@ using System.Threading;
 
 namespace BCRPClient.CEF
 {
-    class BlipsMenu : Events.Script
+    [Script(int.MaxValue)]
+    public class BlipsMenu 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.BlipsMenu); }
 
@@ -104,7 +105,7 @@ namespace BCRPClient.CEF
 
                 var name = (string)args[0];
 
-                var allBlips = Settings.Other.LocalBlips;
+                var allBlips = Settings.User.Other.LocalBlips;
 
                 var blip = new LocalBlip(CurrentSprite, name, CurrentColour, CurrentScale, CurrentAlpha, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, false, true);
 
@@ -114,7 +115,7 @@ namespace BCRPClient.CEF
 
                 allBlips.Add(blip);
 
-                Settings.Other.LocalBlips = allBlips;
+                Settings.User.Other.LocalBlips = allBlips;
 
                 blip.Toggle(true);
 
@@ -130,7 +131,7 @@ namespace BCRPClient.CEF
 
                 var name = (string)args[1];
 
-                var allBlips = Settings.Other.LocalBlips;
+                var allBlips = Settings.User.Other.LocalBlips;
 
                 var blip = allBlips[idx];
 
@@ -150,7 +151,7 @@ namespace BCRPClient.CEF
 
                 LastEdited = -1;
 
-                Settings.Other.LocalBlips = allBlips;
+                Settings.User.Other.LocalBlips = allBlips;
 
                 allBlips[idx].Toggle(blip.Enabled);
 
@@ -161,13 +162,13 @@ namespace BCRPClient.CEF
             {
                 var idx = (int)args[0];
 
-                var allBlips = Settings.Other.LocalBlips;
+                var allBlips = Settings.User.Other.LocalBlips;
 
                 allBlips[idx].Toggle(false);
 
                 allBlips.RemoveAt(idx);
 
-                Settings.Other.LocalBlips = allBlips;
+                Settings.User.Other.LocalBlips = allBlips;
 
                 CEF.Browser.Window.ExecuteJs("Blips.removeBlip", idx);
 
@@ -185,7 +186,7 @@ namespace BCRPClient.CEF
             {
                 var state = (bool)args[1];
 
-                var allBlips = Settings.Other.LocalBlips;
+                var allBlips = Settings.User.Other.LocalBlips;
 
                 var idx1 = (int)args[0];
                 var idx2 = (int)args[2];
@@ -208,7 +209,7 @@ namespace BCRPClient.CEF
 
                         allBlips[idx2].Enabled = state;
 
-                        Settings.Other.LocalBlips = allBlips;
+                        Settings.User.Other.LocalBlips = allBlips;
                     }
                     else
                     {
@@ -228,7 +229,7 @@ namespace BCRPClient.CEF
 
                             allBlips[idx1].Enabled = state;
 
-                            Settings.Other.LocalBlips = allBlips;
+                            Settings.User.Other.LocalBlips = allBlips;
                         }
                     }
                 }
@@ -249,7 +250,7 @@ namespace BCRPClient.CEF
                 {
                     if (LastEdited != -1)
                     {
-                        var blipT = Settings.Other.LocalBlips[LastEdited];
+                        var blipT = Settings.User.Other.LocalBlips[LastEdited];
 
                         blipT.Toggle(blipT.Enabled);
 
@@ -280,11 +281,11 @@ namespace BCRPClient.CEF
 
                     if (TempBlip == null)
                     {
-                        Settings.Other.LocalBlips[idx].Toggle(false);
+                        Settings.User.Other.LocalBlips[idx].Toggle(false);
 
-                        CurrentShortRange = Settings.Other.LocalBlips[idx].ShortRange;
+                        CurrentShortRange = Settings.User.Other.LocalBlips[idx].ShortRange;
 
-                        TempBlip = new Additional.ExtraBlip(0, Settings.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                        TempBlip = new Additional.ExtraBlip(0, Settings.User.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
                     }
                 }
 
@@ -328,7 +329,7 @@ namespace BCRPClient.CEF
 
             if (FirstOpen)
             {
-                var data = Settings.Other.LocalBlips.Select(x => new object[] { x.Name, x.Enabled, x.Colour, x.Sprite, x.Scale, x.Alpha, !x.ShortRange });
+                var data = Settings.User.Other.LocalBlips.Select(x => new object[] { x.Name, x.Enabled, x.Colour, x.Sprite, x.Scale, x.Alpha, !x.ShortRange });
 
                 CEF.Browser.Window.ExecuteJs("Blips.fillBlips", new object[] { data });
 
@@ -341,7 +342,7 @@ namespace BCRPClient.CEF
             }
             else if (LastEdited != -1)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.User.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
             }
 
             CEF.Cursor.Show(true, true);

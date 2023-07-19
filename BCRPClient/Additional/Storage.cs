@@ -2,7 +2,8 @@
 
 namespace BCRPClient.Additional
 {
-    class Storage : Events.Script
+    [Script(int.MaxValue)]
+    public class Storage 
     {
         public static string LastData = null;
         public static bool GotData = false;

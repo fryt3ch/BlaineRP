@@ -6,7 +6,8 @@ using System.Runtime.InteropServices;
 
 namespace BCRPClient.CEF
 {
-    class CharacterCreation : Events.Script
+    [Script(int.MaxValue)]
+    public class CharacterCreation 
     {
         public static DateTime LastSent;
 

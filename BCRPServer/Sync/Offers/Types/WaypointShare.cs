@@ -22,7 +22,7 @@ namespace BCRPServer.Sync.Offers
             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                 return;
 
-            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (!sPlayer.AreEntitiesNearby(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
             var pos = offer.Data as Vector3;

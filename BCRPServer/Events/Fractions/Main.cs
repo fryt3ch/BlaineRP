@@ -59,7 +59,7 @@ namespace BCRPServer.Events.Fractions
             if (!fData.AllVehicles.ContainsKey(vInfo))
                 return null;
 
-            if (vInfo.VehicleData == null || vInfo.VehicleData.Vehicle.Dimension != Settings.CurrentProfile.Game.MainDimension)
+            if (vInfo.VehicleData == null || vInfo.VehicleData.Vehicle.Dimension != Properties.Settings.Profile.Current.Game.MainDimension)
             {
                 return null;
             }
@@ -748,12 +748,12 @@ namespace BCRPServer.Events.Fractions
             if (text == null)
                 return false;
 
-            if (text.Length < Settings.FRACTION_NEWS_MIN_CHAR || text.Length > Settings.FRACTION_NEWS_MAX_CHAR || text.Where(x => x == '\n').Count() > Settings.FRACTION_NEWS_MAX_NL)
+            if (text.Length < Properties.Settings.Static.FRACTION_NEWS_MIN_CHAR || text.Length > Properties.Settings.Static.FRACTION_NEWS_MAX_CHAR || text.Where(x => x == '\n').Count() > Properties.Settings.Static.FRACTION_NEWS_MAX_NL)
                 return false;
 
             if (newsId < 0)
             {
-                if (fData.News.All.Count >= Settings.FRACTION_NEWS_MAX_COUNT)
+                if (fData.News.All.Count >= Properties.Settings.Static.FRACTION_NEWS_MAX_COUNT)
                 {
                     player.Notify("Fraction::NEWSMC");
 

@@ -8,7 +8,8 @@ using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class PhoneApp : Events.Script
+    [Script(int.MaxValue)]
+    public class PhoneApp 
     {
         private static AsyncTask ActiveCallUpdateTask { get; set; }
 
@@ -133,18 +134,18 @@ namespace BCRPClient.CEF.PhoneApps
 
                                 Additional.ExtraColshape cs2 = null;
 
-                                cs1 = new Additional.Cylinder(pos, Settings.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION)
+                                cs1 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
                                         if (cs1?.Exists != true)
                                             return;
 
-                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_W_0", Settings.POLICE_CALL_MAX_WAIT_RANGE / 2));
+                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_W_0", Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2));
                                     }
                                 };
 
-                                cs2 = new Additional.Cylinder(pos, Settings.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
+                                cs2 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.App.Static.MainDimension)
                                 {
                                     OnExit = async (cancel) =>
                                     {
@@ -385,7 +386,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                         pData.ActiveCall = callInfo;
 
-                        if (Settings.Other.PhoneNotDisturb)
+                        if (Settings.User.Other.PhoneNotDisturb)
                         {
                             Events.CallRemote("Phone::CA", false);
                         }

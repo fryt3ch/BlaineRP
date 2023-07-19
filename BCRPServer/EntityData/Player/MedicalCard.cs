@@ -42,5 +42,22 @@ namespace BCRPServer
                 target.TriggerEvent("Documents::Show", 3, holder.Name, holder.Surname, Diagnose, IssueFraction, DoctorName, IssueDate.SerializeToJson());
             }
         }
+
+        public class MilitaryTag
+        {
+            [JsonProperty(PropertyName = "I")]
+            public DateTime IssueDate { get; set; }
+
+            [JsonProperty(PropertyName = "F")]
+            public Game.Fractions.Types IssueFraction { get; set; }
+
+            [JsonProperty(PropertyName = "N")]
+            public string GiverName { get; set; }
+
+            public MilitaryTag()
+            {
+
+            }
+        }
     }
 }

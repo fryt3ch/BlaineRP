@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace BCRPClient.Data
 {
-    public partial class Locations : Events.Script
+    public partial class Locations
     {
         public class Bank
         {
@@ -28,7 +28,7 @@ namespace BCRPClient.Data
                 {
                     posBlip += NPCs[i].Position;
 
-                    var npc = new NPC($"bank_{this.Id}_{i}", "", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
+                    var npc = new NPC($"bank_{this.Id}_{i}", "", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_BANK_WORKER",
 
@@ -42,7 +42,7 @@ namespace BCRPClient.Data
 
                 var pos = posBlip / NPCs.Length;
 
-                Blip = new Additional.ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 CEF.PhoneApps.GPSApp.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
             }
@@ -64,7 +64,7 @@ namespace BCRPClient.Data
 
                 All.Add(Id, this);
 
-                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                 {
                     Data = this,
 
@@ -74,7 +74,7 @@ namespace BCRPClient.Data
                     Name = $"atm_{Id}",
                 };
 
-                Blip = new Additional.ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 CEF.PhoneApps.GPSApp.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
             }

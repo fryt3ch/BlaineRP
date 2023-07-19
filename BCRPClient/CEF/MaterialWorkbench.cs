@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class MaterialWorkbench : Events.Script
+    [Script(int.MaxValue)]
+    public class MaterialWorkbench 
     {
         public static bool IsActive => CurrentType != Types.None && CEF.Browser.IsActive(Browser.IntTypes.Retail);
 

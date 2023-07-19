@@ -6,7 +6,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Job : Events.Script
+    [Script(int.MaxValue)]
+    public class Job 
     {
         public Job()
         {

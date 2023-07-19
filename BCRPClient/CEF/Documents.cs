@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 namespace BCRPClient.CEF
 {
-    class Documents : Events.Script
+    [Script(int.MaxValue)]
+    public class Documents 
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.Documents); }
 

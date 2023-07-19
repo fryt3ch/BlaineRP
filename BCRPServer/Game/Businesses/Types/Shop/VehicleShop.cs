@@ -82,11 +82,11 @@ namespace BCRPServer.Game.Businesses
 
             var vPos = AfterBuyPositions[AfterBuyPositions.Length == 1 ? 0 : AfterBuyPositions.Length < LastExitUsed + 1 ? ++LastExitUsed : LastExitUsed = 0];
 
-            var vData = VehicleData.New(pData, vType, new Utils.Colour(r1, g1, b1), new Utils.Colour(r2, g2, b2), vPos.Position, vPos.RotationZ, Settings.CurrentProfile.Game.MainDimension, true);
+            var vData = VehicleData.New(pData, vType, new Utils.Colour(r1, g1, b1), new Utils.Colour(r2, g2, b2), vPos.Position, vPos.RotationZ, Properties.Settings.Profile.Current.Game.MainDimension, true);
 
             Sync.Players.ExitFromBuiness(pData, false);
 
-            pData.Player.Teleport(vPos.Position, false, Settings.CurrentProfile.Game.MainDimension, vPos.RotationZ, true);
+            pData.Player.Teleport(vPos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, vPos.RotationZ, true);
 
             return true;
         }

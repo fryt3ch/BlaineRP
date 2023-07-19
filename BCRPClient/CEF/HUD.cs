@@ -6,10 +6,12 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    public class HUD : Events.Script
+    [Script(int.MaxValue)]
+    public class HUD 
     {
         #region HUD Menu
-        public class Menu : Events.Script
+        [Script(int.MaxValue)]
+        public class Menu 
         {
             public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.HUD_Menu); }
 
@@ -70,7 +72,6 @@ namespace BCRPClient.CEF
 
             public Menu()
             {
-
                 Events.Add("HUD::Menu::Action", (object[] args) =>
                 {
                     Switch(false);
@@ -238,9 +239,9 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.HUD_Left, true);
 
                 if (!CEF.Phone.IsActive)
-                    Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.Interface.HideHints);
+                    Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.User.Interface.HideHints);
 
-                if (!Settings.Interface.HideQuest && Sync.Quest.ActualQuest != null)
+                if (!Settings.User.Interface.HideQuest && Sync.Quest.ActualQuest != null)
                 {
                     EnableQuest(true);
                 }
@@ -281,9 +282,9 @@ namespace BCRPClient.CEF
 
         public static void UpdateTime()
         {
-            var time = Settings.Interface.UseServerTime ? Sync.World.ServerTime : Sync.World.LocalTime;
+            var time = Settings.User.Interface.UseServerTime ? Sync.World.ServerTime : Sync.World.LocalTime;
 
-            Browser.Window.ExecuteJs("Hud.setTime", Settings.Interface.UseServerTime, time.ToString("HH:mm"), time.ToString("dd.MM.yyyy"));
+            Browser.Window.ExecuteJs("Hud.setTime", Settings.User.Interface.UseServerTime, time.ToString("HH:mm"), time.ToString("dd.MM.yyyy"));
         }
 
         /// <summary>Переключить иконку микрофона</summary>
@@ -520,7 +521,7 @@ namespace BCRPClient.CEF
                 if (spd != LastSpeed)
                     Browser.Window.ExecuteJs("Hud.updateSpeed", LastSpeed = spd);
 
-                await RAGE.Game.Invoker.WaitAsync(Settings.SPEEDOMETER_UPDATE_SPEED);
+                await RAGE.Game.Invoker.WaitAsync(Settings.App.Static.SPEEDOMETER_UPDATE_SPEED);
             }
 
             //HUD.SwitchSpeedometer(false);

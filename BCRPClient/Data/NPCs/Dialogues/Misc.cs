@@ -4,7 +4,8 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Misc : Events.Script
+    [Script(int.MaxValue)]
+    public class Misc 
     {
         public Misc()
         {

@@ -7,7 +7,8 @@ using System.Text;
 
 namespace BCRPClient.CEF
 {
-    public class AutoschoolTest : Events.Script
+    [Script(int.MaxValue)]
+    public class AutoschoolTest 
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.AutoschoolTest);
 

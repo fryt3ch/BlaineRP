@@ -39,7 +39,7 @@ namespace BCRPServer.Events.Players
 
             if (!bench.AddPlayerObserving(pData))
             {
-                player.Notify("Container::Wait", Settings.WORKBENCH_MAX_PLAYERS);
+                player.Notify("Container::Wait", Properties.Settings.Static.WORKBENCH_MAX_PLAYERS);
 
                 return;
             }

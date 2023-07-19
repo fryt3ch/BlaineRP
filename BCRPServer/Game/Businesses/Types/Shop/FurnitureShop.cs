@@ -747,9 +747,9 @@ namespace BCRPServer.Game.Businesses
 
         public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
-            if (pData.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
+            if (pData.Furniture.Count + 1 >= Properties.Settings.Static.HOUSE_MAX_FURNITURE)
             {
-                pData.Player.Notify("Inv::PMPF", Settings.HOUSE_MAX_FURNITURE);
+                pData.Player.Notify("Inv::PMPF", Properties.Settings.Static.HOUSE_MAX_FURNITURE);
 
                 return false;
             }

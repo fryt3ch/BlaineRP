@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    class IPLManager : Events.Script
+    [Script(int.MaxValue)]
+    public class IPLManager 
     {
         public class IPLInfo
         {

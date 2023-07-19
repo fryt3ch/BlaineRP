@@ -1,8 +1,12 @@
-﻿using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;
+﻿using RAGE;
+using RAGE.Elements;
+using System;
+using System.Collections.Generic;
 
 namespace BCRPClient.Sync
 {
-    public class Animations : Events.Script
+    [Script(int.MaxValue)]
+    public class Animations 
     {
         public static DateTime LastSent;
 
@@ -910,8 +914,6 @@ namespace BCRPClient.Sync
 
         public Animations()
         {
-            LastSent = Sync.World.ServerTime;
-
             #region Events
             Events.Add("Players::PlayFastAnim", async (args) =>
             {

@@ -29,7 +29,7 @@ namespace BCRPClient.Data
 
                 this.Position = Position;
 
-                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyByFoot,
 
@@ -77,7 +77,7 @@ namespace BCRPClient.Data
                     Additional.ExtraColshape subCs = null;
                     Additional.ExtraColshape mainCs = null;
 
-                    subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -90,7 +90,7 @@ namespace BCRPClient.Data
                         },
                     };
 
-                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 

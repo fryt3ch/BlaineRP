@@ -778,7 +778,7 @@ namespace BCRPServer.Game.Estates
 
                 this.EnterParams = EnterParams;
 
-                this.Dimension = Settings.CurrentProfile.Game.ApartmentsRootDimensionBaseOffset + Id;
+                this.Dimension = Properties.Settings.Profile.Current.Game.ApartmentsRootDimensionBaseOffset + Id;
 
                 All.Add(Id, this);
             }
@@ -805,7 +805,7 @@ namespace BCRPServer.Game.Estates
                 {
                     var pos = EnterParams;
 
-                    Utils.TeleportPlayers(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, true, players);
+                    Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, true, players);
                 }
                 else
                 {
@@ -839,7 +839,7 @@ namespace BCRPServer.Game.Estates
 
             this.Price = Price;
 
-            this.Dimension = HID + Settings.CurrentProfile.Game.ApartmentsDimensionBaseOffset;
+            this.Dimension = HID + Properties.Settings.Profile.Current.Game.ApartmentsDimensionBaseOffset;
 
             All.Add(HID, this);
         }
@@ -853,7 +853,7 @@ namespace BCRPServer.Game.Estates
             Sync.World.SetSharedData($"Apartments::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
-        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Root.Dimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Root.Dimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
 
         public override void SetPlayersInside(bool teleport, params Player[] players)
         {
@@ -893,7 +893,7 @@ namespace BCRPServer.Game.Estates
 
                 var pos = root.EnterParams;
 
-                Utils.TeleportPlayers(pos.Position, false, Settings.CurrentProfile.Game.MainDimension, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Properties.Settings.Profile.Current.Game.MainDimension, pos.RotationZ, true, players);
             }
             else
             {
@@ -912,7 +912,7 @@ namespace BCRPServer.Game.Estates
             {
                 pInfo.PlayerData?.AddApartmentsProperty(this);
 
-                var minBalance = Settings.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
+                var minBalance = Properties.Settings.Static.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
 
                 if (buyGov && Balance < minBalance)
                     SetBalance(minBalance, null);

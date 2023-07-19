@@ -163,7 +163,7 @@ namespace BCRPServer.Game.Items
 
             if (Entity?.Exists == true)
             {
-                return player.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                return player.AreEntitiesNearby(Entity, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE);
             }
             else
             {
@@ -199,7 +199,7 @@ namespace BCRPServer.Game.Items
         {
             ClearAllWrongObservers();
 
-            if (PlayersObserving.Count >= Settings.CONTAINER_MAX_PLAYERS)
+            if (PlayersObserving.Count >= Properties.Settings.Static.CONTAINER_MAX_PLAYERS)
                 return false;
 
             PlayersObserving.Add(pData);

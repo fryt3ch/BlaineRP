@@ -3,7 +3,8 @@ using System;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-    public class BankApp : Events.Script
+    [Script(int.MaxValue)]
+    public class BankApp 
     {
         public static Action<int> CurrentTransactionAction { get; set; }
 
