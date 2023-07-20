@@ -34,9 +34,18 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            return base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
+
+            if (!baseRes)
+                return false;
+
+            text = Language.Strings.Get("OFFER_CARRY_TEXT");
+
+            offer = Offer.Create(pData, tData, type, -1, null);
+
+            return true;
         }
     }
 }

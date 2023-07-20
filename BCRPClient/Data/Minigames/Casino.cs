@@ -64,7 +64,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     if (Utils.IsTaskStillPending($"CASINO_SLOTMACHINE_{casinoId}_{machineId}", null))
                     {
-                        CEF.Notification.ShowError("Сейчас нельзя сделать это!");
+                        CEF.Notification.ShowErrorDefault();
 
                         return;
                     }
@@ -73,7 +73,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     if (bet < Data.Locations.Casino.SlotMachine.MinBet || bet > Data.Locations.Casino.SlotMachine.MaxBet)
                     {
-                        CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.SplitToNumberOf(Data.Locations.Casino.SlotMachine.MinBet.ToString())} до {Utils.SplitToNumberOf(Data.Locations.Casino.SlotMachine.MaxBet.ToString())} фишек!", -1);
+                        CEF.Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MinBet), Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MaxBet)));
 
                         return;
                     }
@@ -177,7 +177,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                         if (bet < table.MinBet || bet > table.MaxBet)
                         {
-                            CEF.Notification.ShowError($"На этом автомате разрешены ставки от {Utils.SplitToNumberOf(table.MinBet.ToString())} до {Utils.SplitToNumberOf(table.MaxBet.ToString())} фишек!", -1);
+                            CEF.Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", table.MinBet), Locale.Get("CASINO_CHIPS_1", table.MaxBet)));
 
                             return;
                         }
@@ -186,7 +186,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                         if (curStateData == null || (curStateData[0] != 'I' && curStateData[0] != 'S'))
                         {
-                            CEF.Notification.ShowError("Сейчас нельзя сделать это!");
+                            CEF.Notification.ShowErrorDefault();
 
                             return;
                         }

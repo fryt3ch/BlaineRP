@@ -70,7 +70,7 @@ namespace BCRPServer.Game.Items
 
             var hp = player.Health;
 
-            var healthDiff = Utils.GetCorrectDiff(hp, data.Health, 0, 100);
+            var healthDiff = Utils.CalculateDifference(hp, data.Health, 0, 100);
 
             if (healthDiff != 0)
             {
@@ -91,7 +91,7 @@ namespace BCRPServer.Game.Items
 
             var hp = target.Health;
 
-            var healthDiff = Utils.GetCorrectDiff(hp, data.Health, 0, 100);
+            var healthDiff = Utils.CalculateDifference(hp, data.Health, 0, 100);
 
             if (healthDiff != 0)
             {

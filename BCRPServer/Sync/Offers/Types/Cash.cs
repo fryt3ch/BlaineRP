@@ -46,9 +46,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -84,11 +84,9 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            offer.Data = amountU;
+            offer = Offer.Create(pData, tData, type, -1, amountU);
 
-            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, amountU);
-
-            customTargetShow = true;
+            text = Language.Strings.Get("OFFER_CASH_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", amountU));
 
             return true;
         }

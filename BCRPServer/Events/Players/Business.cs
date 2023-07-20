@@ -49,16 +49,16 @@ namespace BCRPServer.Events.Players
 
             var currentSkill = pData.Info.Skills[PlayerData.SkillTypes.Shooting];
 
-            diff = Utils.GetCorrectDiff(currentSkill, diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
+            diff = Utils.CalculateDifference(currentSkill, diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
 
-            if (diff != 0)
-            {
-                currentSkill += diff;
+            if (diff == 0)
+                return;
 
-                pData.UpdateSkill(PlayerData.SkillTypes.Shooting, diff);
+            currentSkill += diff;
 
-                pData.Info.Achievements[PlayerData.Achievement.Types.SR1].UpdateProgress(pData.Info, (uint)currentSkill);
-            }
+            pData.UpdateSkill(PlayerData.SkillTypes.Shooting, diff);
+
+            pData.Info.Achievements[PlayerData.Achievement.Types.SR1].UpdateProgress(pData.Info, (uint)currentSkill);
 
             if (currentSkill == 100)
                 pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (uint)Math.Round(accuracy < 0 ? 0f : accuracy > 100f ? 100f : accuracy));
@@ -93,10 +93,14 @@ namespace BCRPServer.Events.Players
 
             var curTime = Utils.GetCurrentTime();
 
-            var cdSRangeType = NAPI.Util.GetHashKey("SRANGE_SHOP");
+            var cdSRangeHash = NAPI.Util.GetHashKey("SRANGE_SHOP");
 
-            if (pData.HasCooldown(cdSRangeType, curTime, Game.Businesses.WeaponShop.ShootingRangeTryCooldownTime, out _, out _, out _, 2, false))
+            if (pData.Info.HasCooldown(cdSRangeHash, curTime, out _, out _, out _, 1d))
+            {
+                player.NotifyError(Language.Strings.Get("NTFC_COOLDOWN_GEN_1"));
+
                 return;
+            }
 
             if (!ws.TryBuyShootingRange(pData))
                 return;
@@ -121,7 +125,7 @@ namespace BCRPServer.Events.Players
 
             pData.CurrentBusiness = ws;
 
-            pData.Info.SetCooldown(cdSRangeType, curTime, true);
+            pData.Info.SetCooldown(cdSRangeHash, curTime, Game.Businesses.WeaponShop.ShootingRangeTryCooldownTime, true);
 
             player.SetData("INSRANGE", true);
         }

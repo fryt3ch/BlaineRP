@@ -101,7 +101,7 @@ namespace BCRPClient.CEF
                         var fractionType = (Data.Fractions.Types)Utils.ToDecimal(cData[5]);
 
                         cData[5] = Data.Fractions.Fraction.Get(fractionType)?.Name ?? Data.Fractions.Fraction.NoFractionStr;
-                        cData[6] = (Utils.ToDecimal(cData[6]) / 60m).ToString("0.0");
+                        cData[6] = TimeSpan.FromMinutes(Convert.ToDouble(cData[6])).TotalHours.ToString("0.0");
 
                         if (cData[10] != null)
                         {

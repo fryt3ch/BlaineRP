@@ -659,7 +659,7 @@ namespace BCRPClient.Data
 
                         if (table.TextLabel != null)
                         {
-                            table.TextLabel.Text = $"Мин. ставка: {Utils.SplitToNumberOf(table.MinBet.ToString())} фишек\nМакс. ставка: {Utils.SplitToNumberOf(table.MaxBet.ToString())} фишек\n\n{str}";
+                            table.TextLabel.Text = $"Мин. ставка: {Locale.Get("GEN_CHIPS_0", table.MinBet)}\nМакс. ставка: {Locale.Get("GEN_CHIPS_0", table.MaxBet)}\n\n{str}";
                         }
 
                         if (CurrentTable == table)
@@ -1407,7 +1407,7 @@ namespace BCRPClient.Data
 
                             if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
                             {
-                                Utils.DrawText($"{Utils.SplitToNumberOf(myBet.Amount.ToString())} фишек", x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Utils.DrawText($"{Locale.Get("GEN_CHIPS_0", myBet.Amount)}", x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                         }
                     }

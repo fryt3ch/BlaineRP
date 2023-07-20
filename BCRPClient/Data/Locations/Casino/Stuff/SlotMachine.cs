@@ -1,9 +1,5 @@
 ﻿using RAGE;
 using RAGE.Elements;
-using RAGE.NUI;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -244,7 +240,7 @@ namespace BCRPClient.Data
 
                 public static string GetJackpotString(decimal currentJackpot)
                 {
-                    var baseStr = Utils.SplitToNumberOf(currentJackpot.ToString());
+                    var baseStr = Locale.Get("GEN_CHIPS_1", currentJackpot);
 
                     if (currentJackpot < JackpotMinValue)
                         return $"&#9940; {baseStr}";

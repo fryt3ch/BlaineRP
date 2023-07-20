@@ -177,12 +177,16 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Properties.Settings.Static.MainDimension || luckyWheel.Position.DistanceTo(player.Position) > 5f)
                 return;
 
-            var freeLuckyWheelCdId = NAPI.Util.GetHashKey("CASINO_LW_FREE_0");
+            var freeLuckyWheelCdHash = NAPI.Util.GetHashKey("CASINO_LW_FREE_0");
 
             var curTime = Utils.GetCurrentTime();
 
-            if (pData.HasCooldown(freeLuckyWheelCdId, curTime, Game.Casino.LuckyWheel.SpinDefaultCooldown, out _, out _, out _, 3, true))
+            if (pData.Info.HasCooldown(freeLuckyWheelCdHash, curTime, out _, out _, out _, 1d))
+            {
+                player.NotifyError(Language.Strings.Get("NTFC_COOLDOWN_GEN_3"));
+
                 return;
+            }
 
             if (!luckyWheel.IsAvailableNow())
             {
@@ -202,7 +206,7 @@ namespace BCRPServer.Events.Players
 
             luckyWheel.Spin(casinoId, luckyWheelId, pData);
 
-            pData.Info.SetCooldown(freeLuckyWheelCdId, curTime, true);
+            pData.Info.SetCooldown(freeLuckyWheelCdHash, curTime, Game.Casino.LuckyWheel.SpinDefaultCooldown, true);
         }
 
         [RemoteProc("Casino::SLME")]

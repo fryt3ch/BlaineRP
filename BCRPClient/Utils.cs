@@ -1251,29 +1251,6 @@ namespace BCRPClient
 
         public static string GetPriceString(object price) => Locale.Get("GEN_MONEY_0", price);
 
-        public static string SplitToNumberOf(string str)
-        {
-            var len = str.Length;
-
-            for (var i = 0; i < len; i++)
-            {
-                if (!char.IsDigit(str[i]))
-                    return str;
-            }
-
-            var result = new StringBuilder();
-
-            for (var i = 0; i < len; i++)
-            {
-                if (i > 0 && i % 3 == 0)
-                    result.Insert(0, " ");
-
-                result.Insert(0, str[len - 1 - i]);
-            }
-
-            return result.ToString();
-        }
-
         public static void ToggleInteriorEntitySet(int intId, string entitySetName, bool state)
         {
             if (state)

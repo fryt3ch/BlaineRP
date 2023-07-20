@@ -931,14 +931,14 @@ namespace BCRPServer
 
         public static T GetRandom<T>(this List<T> list) => list.Count == 0 ? default(T) : list[(new Random()).Next(0, list.Count - 1)];
 
-        public static int GetCorrectDiff(int currentValue, int diff, int minValue = 0, int maxValue = 100)
+        public static int CalculateDifference(int currentValue, int difference, int minValue, int maxValue)
         {
-            if (currentValue + diff > maxValue)
-                diff = maxValue - currentValue;
-            else if (currentValue + diff < minValue)
-                diff = -currentValue;
+            var maxDifference = maxValue - currentValue;
+            var minDifference = minValue - currentValue;
 
-            return diff;
+            var actualDifference = Math.Min(Math.Max(difference, minDifference), maxDifference);
+
+            return actualDifference;
         }
 
         public static uint ToUInt32(this int value)
@@ -946,17 +946,6 @@ namespace BCRPServer
             unchecked
             {
                 return (uint)value;
-            }
-        }
-
-        public static uint? ToUInt32(this int? value)
-        {
-            if (value == null)
-                return null;
-
-            unchecked
-            {
-                return (uint)value.Value;
             }
         }
 

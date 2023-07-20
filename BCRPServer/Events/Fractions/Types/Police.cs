@@ -647,19 +647,27 @@ namespace BCRPServer.Events.Fractions
 
             var cdHash = NAPI.Util.GetHashKey("POLICE_EXTRA_CODE");
 
+            var curTime = Utils.GetCurrentTime();
+
             if (existingCall != null)
             {
-                if (pData.HasCooldown(cdHash, Utils.GetCurrentTime(), Game.Fractions.Police.CallExtraCooldownTime, out _, out _, out _, 3, true))
+                TimeSpan timeLeft;
+
+                if (pData.Info.HasCooldown(cdHash, curTime, out _, out timeLeft, out _, 1d))
+                {
+                    player.NotifyError(Language.Strings.Get("NTFC_COOLDOWN_GEN_2", timeLeft.GetBeautyString()));
+
                     return false;
+                }
 
                 Game.Fractions.Police.RemoveCall(player.Id, existingCall, 0, null);
             }
 
-            var callInfo = new Game.Fractions.Police.CallInfo() { Type = code, Position = player.Position, Message = string.Empty, Time = Utils.GetCurrentTime(), FractionType = code == 0 ? Game.Fractions.Types.None : fData.Type };
+            var callInfo = new Game.Fractions.Police.CallInfo() { Type = code, Position = player.Position, Message = string.Empty, Time = curTime, FractionType = code == 0 ? Game.Fractions.Types.None : fData.Type };
 
             Game.Fractions.Police.AddCall(player.Id, callInfo);
 
-            pData.Info.SetCooldown(cdHash, Utils.GetCurrentTime(), false);
+            pData.Info.SetCooldown(cdHash, curTime, Game.Fractions.Police.CallExtraCooldownTime, false);
 
             return true;
         }

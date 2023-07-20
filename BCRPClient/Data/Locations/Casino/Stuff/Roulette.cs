@@ -237,7 +237,7 @@ namespace BCRPClient.Data
 
                         if (roulette.TextLabel != null)
                         {
-                            roulette.TextLabel.Text = $"Мин. ставка: {Utils.SplitToNumberOf(roulette.MinBet.ToString())} фишек\nМакс. ставка: {Utils.SplitToNumberOf(roulette.MaxBet.ToString())} фишек\n\n{str}";
+                            roulette.TextLabel.Text = $"Мин. ставка: {Locale.Get("GEN_CHIPS_0", roulette.MinBet)}nМакс. ставка: {Locale.Get("GEN_CHIPS_0", roulette.MaxBet)}\n\n{str}";
                         }
 
                         if (CurrentRoulette == roulette)
@@ -806,7 +806,7 @@ namespace BCRPClient.Data
 
                     if (bet < roulette.MinBet || bet > roulette.MaxBet)
                     {
-                        CEF.Notification.ShowError($"На этом столе разрешены ставки от {Utils.SplitToNumberOf(CurrentRoulette.MinBet.ToString())} до {Utils.SplitToNumberOf(CurrentRoulette.MaxBet.ToString())} фишек!", -1);
+                        CEF.Notification.ShowError($"На этом столе разрешены ставки от {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MinBet)} до {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MaxBet)}", -1);
 
                         return;
                     }
@@ -854,7 +854,7 @@ namespace BCRPClient.Data
                                 continue;
 
                             //Utils.DrawText(hData.DisplayName, screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.25f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
-                            Utils.DrawText(Utils.SplitToNumberOf(x.Amount.ToString()), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            Utils.DrawText(Locale.Get("GEN_CHIPS_0", x.Amount), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }
                     }
 

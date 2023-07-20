@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Items;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -54,6 +53,16 @@ namespace BCRPServer.Sync.Offers
         PoliceFine,
         /// <summary>Лечение от врача</summary>
         EmsHeal,
+        /// <summary>Лечение (психики) от врача</summary>
+        EmsPsychHeal,
+        /// <summary>Лечение (наркозавимиости) от врача</summary>
+        EmsDrugHeal,
+        /// <summary>Проверка здоровья от врача</summary>
+        EmsDiagnostics,
+        /// <summary>Выдача мед. карты от врача</summary>
+        EmsMedicalCard,
+        /// <summary>Продажа мед. маски от врача</summary>
+        EmsSellMask,
     }
 
     public enum ReplyTypes

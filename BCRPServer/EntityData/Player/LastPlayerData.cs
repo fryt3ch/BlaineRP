@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace BCRPServer
 {
@@ -19,15 +20,18 @@ namespace BCRPServer
             public int Health { get; set; }
 
             [JsonProperty(PropertyName = "ST")]
-            /// <summary>Время в секундах, наигранное за последнюю сессию</summary>
+            /// <summary>Время, наигранное за последнюю сессию</summary>
             /// <remarks>Обнуляется каждый час</remarks>
-            public int SessionTime { get; set; }
+            public TimeSpan SessionTime { get; set; }
 
             [JsonProperty(PropertyName = "S")]
-            public int Satiety { get; set; }
+            public byte Satiety { get; set; }
 
             [JsonProperty(PropertyName = "M")]
-            public int Mood { get; set; }
+            public byte Mood { get; set; }
+
+            [JsonProperty(PropertyName = "DA")]
+            public byte DrugAddiction { get; set; }
 
             public void UpdatePosition(Utils.Vector4 position, uint dimension, bool updateDb)
             {

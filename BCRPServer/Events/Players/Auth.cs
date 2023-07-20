@@ -253,7 +253,7 @@ namespace BCRPServer.Events.Players
                             pInfo.Sex,
                             pInfo.BirthDate.GetTotalYears(),
                             (int)pInfo.Fraction,
-                            pInfo.TimePlayed,
+                            pInfo.TimePlayed.TotalMinutes,
                             pInfo.CID,
                             lastBan != null,
                             pInfo.IsOnline,

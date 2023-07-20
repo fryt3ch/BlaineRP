@@ -66,7 +66,7 @@ namespace BCRPServer
 
             public bool IsOnline => PlayerData != null;
 
-            public int TimePlayed { get; set; }
+            public TimeSpan TimePlayed { get; set; }
 
             public string Name { get; set; }
 
@@ -166,7 +166,7 @@ namespace BCRPServer
             /// <summary>Скины на оружие игрока</summary>
             public List<Game.Items.WeaponSkin> WeaponSkins { get; set; }
 
-            public Dictionary<uint, DateTime> Cooldowns { get; set; }
+            public Dictionary<uint, Sync.Cooldown> Cooldowns { get; set; }
 
             public List<Sync.Phone.SMS> AllSMS { get; set; }
 
@@ -208,60 +208,53 @@ namespace BCRPServer
                 return TempData.Remove(key);
             }
 
-            public bool HasCooldown(uint cdType, DateTime curDate, TimeSpan cdTime, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, bool removeIfExists)
+            public bool HasCooldown(uint hash, DateTime currentDate, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime startDate, double timeFactor = 1d)
             {
-                if (!TryGetCooldownTimePassed(cdType, curDate, out timePassed, out cdDate))
+                Sync.Cooldown cdObj;
+
+                if (Cooldowns.TryGetValue(hash, out cdObj))
                 {
-                    timeLeft = TimeSpan.Zero;
-
-                    if (removeIfExists)
-                    {
-                        RemoveCooldown(cdType);
-                    }
-
-                    return false;
-                }
-
-                timeLeft = cdTime.Subtract(timePassed);
-
-                return timeLeft.TotalSeconds > 0;
-            }
-
-            public bool TryGetCooldownTimePassed(uint cdType, DateTime curDate, out TimeSpan timePassed, out DateTime cdDate)
-            {
-                if (!Cooldowns.TryGetValue(cdType, out cdDate))
-                {
-                    timePassed = TimeSpan.Zero;
-
-                    return false;
-                }
-
-                timePassed = curDate.Subtract(cdDate);
-
-                return true;
-            }
-
-            public void SetCooldown(uint cdType, DateTime date, bool saveDb)
-            {
-                if (!Cooldowns.TryAdd(cdType, date))
-                {
-                    Cooldowns[cdType] = date;
-
-                    if (saveDb)
-                        MySQL.CharacterCooldownSet(this, cdType, date, false);
+                    return cdObj.IsActive(currentDate, out timePassed, out timeLeft, out startDate, timeFactor);
                 }
                 else
                 {
-                    if (saveDb)
-                        MySQL.CharacterCooldownSet(this, cdType, date, true);
+                    timeLeft = TimeSpan.Zero;
+                    timePassed = TimeSpan.MaxValue;
+                    startDate = DateTime.MinValue;
+
+                    return false;
                 }
             }
 
-            public bool RemoveCooldown(uint cdType)
+            public void SetCooldown(uint hash, DateTime startDate, TimeSpan time, bool saveDb)
             {
-                if (Cooldowns.Remove(cdType))
+                var cdObj = Cooldowns.GetValueOrDefault(hash);
+
+                if (cdObj != null)
                 {
-                    MySQL.CharacterCooldownRemove(this, cdType);
+                    cdObj.Update(startDate, time);
+
+                    if (saveDb)
+                        MySQL.CharacterCooldownSet(this, hash, cdObj, false);
+                }
+                else
+                {
+                    cdObj = new Sync.Cooldown(startDate, time);
+
+                    Cooldowns.Add(hash, cdObj);
+
+                    if (saveDb)
+                        MySQL.CharacterCooldownSet(this, hash, cdObj, true);
+                }
+            }
+
+            public bool RemoveCooldown(uint hash)
+            {
+                Sync.Cooldown cdObj;
+
+                if (Cooldowns.Remove(hash, out cdObj))
+                {
+                    MySQL.CharacterCooldownRemoveByGuid(this, cdObj.Guid);
 
                     return true;
                 }

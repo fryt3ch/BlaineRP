@@ -907,6 +907,42 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на {0:n0} фишек.
+        /// </summary>
+        public static string GEN_CHIPS_0 {
+            get {
+                return ResourceManager.GetString("GEN_CHIPS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0:n0}.
+        /// </summary>
+        public static string GEN_CHIPS_1 {
+            get {
+                return ResourceManager.GetString("GEN_CHIPS_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ${0:n0}.
+        /// </summary>
+        public static string GEN_MONEY_0 {
+            get {
+                return ResourceManager.GetString("GEN_MONEY_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0:n0}.
+        /// </summary>
+        public static string GEN_MONEY_1 {
+            get {
+                return ResourceManager.GetString("GEN_MONEY_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Аккаунт с таким логином уже зарегистрирован на проекте!.
         /// </summary>
         public static string NTFC_AUTH_LOGINEXISTS_0 {
@@ -988,11 +1024,326 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы должны подождать некоторое время, прежде чем вновь сможете сделать это!.
+        /// </summary>
+        public static string NTFC_COOLDOWN_GEN_0 {
+            get {
+                return ResourceManager.GetString("NTFC_COOLDOWN_GEN_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы устали, подождите некоторое время и возвращайтесь!.
+        /// </summary>
+        public static string NTFC_COOLDOWN_GEN_1 {
+            get {
+                return ResourceManager.GetString("NTFC_COOLDOWN_GEN_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Подождите еще {0}, прежде чем сделать это!.
+        /// </summary>
+        public static string NTFC_COOLDOWN_GEN_2 {
+            get {
+                return ResourceManager.GetString("NTFC_COOLDOWN_GEN_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Сегодня вы уже делали это, ждите до завтра!.
+        /// </summary>
+        public static string NTFC_COOLDOWN_GEN_3 {
+            get {
+                return ResourceManager.GetString("NTFC_COOLDOWN_GEN_3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Что-то пошло не так! {0}.
         /// </summary>
         public static string NTFC_GEN_ERROR_0 {
             get {
                 return ResourceManager.GetString("NTFC_GEN_ERROR_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этот человек не является наркозависимым!.
+        /// </summary>
+        public static string NTFC_OFFER_EMS_DRUGHEAL_0 {
+            get {
+                return ResourceManager.GetString("NTFC_OFFER_EMS_DRUGHEAL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этот человек полностью здоров!.
+        /// </summary>
+        public static string NTFC_OFFER_EMS_HEAL_0 {
+            get {
+                return ResourceManager.GetString("NTFC_OFFER_EMS_HEAL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этому человеку пока что не требуется помощь психолога!.
+        /// </summary>
+        public static string NTFC_OFFER_EMS_PSYCHHEAL_0 {
+            get {
+                return ResourceManager.GetString("NTFC_OFFER_EMS_PSYCHHEAL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этот человек сейчас не может принять ваше предложение!.
+        /// </summary>
+        public static string NTFC_OFFER_ERROR_0 {
+            get {
+                return ResourceManager.GetString("NTFC_OFFER_ERROR_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Информация об этом предложении устарела!.
+        /// </summary>
+        public static string NTFC_OFFER_ERROR_1 {
+            get {
+                return ResourceManager.GetString("NTFC_OFFER_ERROR_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает понести вас.
+        /// </summary>
+        public static string OFFER_CARRY_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_CARRY_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам взять {1}.
+        /// </summary>
+        public static string OFFER_CASH_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_CASH_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам пройти обследование организма.
+        /// </summary>
+        public static string OFFER_EMS_DIAGNOSTICS_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_DIAGNOSTICS_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам пройти курс лечения наркозависимости, его стоимость: {1}.
+        /// </summary>
+        public static string OFFER_EMS_DRUGHEAL_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_DRUGHEAL_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам приобрести лечебную таблетку, её стоимость: {1}.
+        /// </summary>
+        public static string OFFER_EMS_HEAL_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_HEAL_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам оформить медицинскую карту.
+        /// </summary>
+        public static string OFFER_EMS_MEDCARD_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_MEDCARD_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам пройти психологическую консультацию, её стоимость: {1}.
+        /// </summary>
+        public static string OFFER_EMS_PSYCHHEAL_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_PSYCHHEAL_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам приобрести медицинскую маску, её стоимость: {1}.
+        /// </summary>
+        public static string OFFER_EMS_SELLMASK_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EMS_SELLMASK_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам обменяться.
+        /// </summary>
+        public static string OFFER_EXCHANGE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_EXCHANGE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам поздороваться.
+        /// </summary>
+        public static string OFFER_HANDSHAKE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_HANDSHAKE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам сыграть в орел и решку.
+        /// </summary>
+        public static string OFFER_HEADSORTAILS_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_HEADSORTAILS_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам вступить во фракцию {1}.
+        /// </summary>
+        public static string OFFER_INVITEFRACTION_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_INVITEFRACTION_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам вступить в организацию {1}.
+        /// </summary>
+        public static string OFFER_INVITEORGANISATION_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_INVITEORGANISATION_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} выписал вам штраф в размере {1}. Причина: {2}. Будете оплачивать?.
+        /// </summary>
+        public static string OFFER_POLICE_FINE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_POLICE_FINE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам продажу бизнеса, хотите ознакомиться?.
+        /// </summary>
+        public static string OFFER_SELL_BUSINESS_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SELL_BUSINESS_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам продажу недвижимости, хотите ознакомиться?.
+        /// </summary>
+        public static string OFFER_SELL_ESTATE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SELL_ESTATE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам продажу транспорта, хотите ознакомиться?.
+        /// </summary>
+        public static string OFFER_SELL_VEHICLE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SELL_VEHICLE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам подселиться в свой дом.
+        /// </summary>
+        public static string OFFER_SETTLE_TEXT_0 {
+            get {
+                return ResourceManager.GetString("OFFER_SETTLE_TEXT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам подселиться в свою квартиру.
+        /// </summary>
+        public static string OFFER_SETTLE_TEXT_1 {
+            get {
+                return ResourceManager.GetString("OFFER_SETTLE_TEXT_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть удостоверение.
+        /// </summary>
+        public static string OFFER_SHOWFRACTIONDOCS_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWFRACTIONDOCS_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть лицензии.
+        /// </summary>
+        public static string OFFER_SHOWLICENSES_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWLICENSES_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть мед. карту.
+        /// </summary>
+        public static string OFFER_SHOWMEDICALCARD_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWMEDICALCARD_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть паспорт.
+        /// </summary>
+        public static string OFFER_SHOWPASSPORT_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWPASSPORT_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть трудовую книжку.
+        /// </summary>
+        public static string OFFER_SHOWRESUME_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWRESUME_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам посмотреть тех. паспорт.
+        /// </summary>
+        public static string OFFER_SHOWVEHICLEPASSPORT_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_SHOWVEHICLEPASSPORT_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает передать вам координаты.
+        /// </summary>
+        public static string OFFER_WAYPOINTSHARE_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_WAYPOINTSHARE_TEXT", resourceCulture);
             }
         }
     }

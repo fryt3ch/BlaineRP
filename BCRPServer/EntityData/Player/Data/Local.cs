@@ -199,10 +199,6 @@ namespace BCRPServer
         /// <summary>Время получения последнего урона от оружия</summary>
         public DateTime LastDamageTime { get; set; }
 
-        /// <summary>Наигранное время игрока</summary>
-        /// <value>Кол-во минут</value>
-        public int TimePlayed { get => Info.TimePlayed; set => Info.TimePlayed = value; }
-
         /// <summary>Имя игрока</summary>
         public string Name { get => Info.Name; set => Info.Name = value; }
 

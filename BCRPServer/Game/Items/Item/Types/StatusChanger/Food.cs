@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Items
 
             if (Data.Satiety > 0)
             {
-                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, data.Satiety, 0, 100);
+                var satietyDiff = (byte)Utils.CalculateDifference(pData.Satiety, data.Satiety, 0, Properties.Settings.Static.PlayerMaxSatiety);
 
                 if (satietyDiff != 0)
                 {
@@ -74,7 +74,7 @@ namespace BCRPServer.Game.Items
 
             if (Data.Mood > 0)
             {
-                var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
+                var moodDiff = (byte)Utils.CalculateDifference(pData.Mood, data.Mood, 0, Properties.Settings.Static.PlayerMaxMood);
 
                 if (moodDiff != 0)
                 {

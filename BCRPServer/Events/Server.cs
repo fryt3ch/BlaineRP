@@ -324,14 +324,14 @@ namespace BCRPServer.Events
             {
                 var player = pData.Player;
 
-                if (isAuto && pData.LastData.SessionTime < Properties.Settings.Profile.Current.Game.PayDayMinimalSessionTimeToReceive.TotalSeconds)
+                if (isAuto && pData.LastData.SessionTime < Properties.Settings.Profile.Current.Game.PayDayMinimalSessionTimeToReceive)
                 {
                     player.TriggerEvent("opday", pData.LastData.SessionTime);
 
                     continue;
                 }
 
-                pData.LastData.SessionTime = 0;
+                pData.LastData.SessionTime = TimeSpan.Zero;
 
                 if (pData.BankAccount == null)
                 {

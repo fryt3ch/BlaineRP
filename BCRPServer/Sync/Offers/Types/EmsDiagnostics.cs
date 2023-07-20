@@ -4,8 +4,8 @@ using System.Text;
 
 namespace BCRPServer.Sync.Offers
 {
-    [Offer(Types.Handshake)]
-    internal class Handshake : OfferBase
+    [Offer(Types.EmsDiagnostics)]
+    internal class EmsDiagnostics : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
         {
@@ -23,17 +23,17 @@ namespace BCRPServer.Sync.Offers
             if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && pData.CanPlayAnimNow() && tData.CanPlayAnimNow())
-            {
-                tPlayer.Position = sPlayer.GetFrontOf(0.85f);
-                tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
+            var sourceFractionType = (Game.Fractions.Types)offer.Data;
 
-                pData.PlayAnim(Animations.FastTypes.Handshake);
-                tData.PlayAnim(Animations.FastTypes.Handshake);
+            if (pData.Fraction != sourceFractionType)
+            {
+                tPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_1"));
+                sPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_1"));
+
+                return;
             }
 
-            pData.AddFamiliar(tData.Info);
-            tData.AddFamiliar(pData.Info);
+            return; //todo
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -48,9 +48,18 @@ namespace BCRPServer.Sync.Offers
             if (!baseRes)
                 return false;
 
-            text = Language.Strings.Get("OFFER_HANDSHAKE_TEXT");
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.EMS;
 
-            offer = Offer.Create(pData, tData, type, -1, null);
+            if (fData == null)
+            {
+                returnObj = 0;
+
+                return false;
+            }
+
+            offer = Offer.Create(pData, tData, type, -1, fData.Type);
+
+            text = Language.Strings.Get("OFFER_EMS_DIAGNOSTICS_TEXT");
 
             return true;
         }

@@ -44,7 +44,7 @@ namespace BCRPClient.CEF
                 {
                     var name = (string)args[1];
                     var surname = (string)args[2];
-                    var lics = ((JArray)args[3]).ToObject<List<Sync.Players.LicenseTypes>>();
+                    var lics = ((JArray)args[3]).ToObject<HashSet<Sync.Players.LicenseTypes>>();
 
                     ShowLicenses(name, surname, lics);
                 }
@@ -137,7 +137,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 0, new object[] { GetPasportData(name, surname, sex, birthDate, married, cid, dateOfIssue, boundToMilitaryService, losSantosAllowed) });
         }
 
-        public static async System.Threading.Tasks.Task ShowLicenses(string name, string surname, List<Sync.Players.LicenseTypes> licenses)
+        public static async System.Threading.Tasks.Task ShowLicenses(string name, string surname, HashSet<Sync.Players.LicenseTypes> licenses)
         {
             if (IsActive)
                 return;
@@ -207,7 +207,7 @@ namespace BCRPClient.CEF
 
         public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, Locale.Get(sex ? "DOCS_SEX_MALE" : "DOCS_SEX_FEMALE"), birthDate.ToString("dd.MM.yyyy"), married ?? Locale.Get(sex ? "DOCS_NOTMARRIED_MALE" : "DOCS_NOTMARRIED_FEMALE"), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
         public static object[] GetResumeData(string name, string surname, string[] data1) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" } }, new object[] { new object[] { "side2-a", "side2-b" } } } };
-        public static object[] GetLicensesData(string name, string surname, List<Sync.Players.LicenseTypes> licenses)
+        public static object[] GetLicensesData(string name, string surname, HashSet<Sync.Players.LicenseTypes> licenses)
         {
             return new object[] { name, surname, new object[] { new object[] { licenses.Contains(Sync.Players.LicenseTypes.M), licenses.Contains(Sync.Players.LicenseTypes.A), licenses.Contains(Sync.Players.LicenseTypes.B), licenses.Contains(Sync.Players.LicenseTypes.C), licenses.Contains(Sync.Players.LicenseTypes.D), licenses.Contains(Sync.Players.LicenseTypes.Fly), licenses.Contains(Sync.Players.LicenseTypes.Sea) },
                 new object[] { licenses.Contains(Sync.Players.LicenseTypes.Weapons), licenses.Contains(Sync.Players.LicenseTypes.Business), licenses.Contains(Sync.Players.LicenseTypes.Hunting), licenses.Contains(Sync.Players.LicenseTypes.Lawyer), false, false, false } } };
@@ -215,7 +215,7 @@ namespace BCRPClient.CEF
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.Get("DOCS_VEHPASS_NOPLATE"), dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, diagnose.ToString(), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get($"MEDCARD_DIAGNOSIS_{(int)diagnose}"), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
 
         public static object[] GetFractionDocsData(string name, string surname, Data.Fractions.Fraction fData, byte rank) => new object[]
         {

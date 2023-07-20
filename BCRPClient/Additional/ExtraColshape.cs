@@ -895,11 +895,11 @@ namespace BCRPClient.Additional
 
                     var lics = pData.Licenses;
 
-                    var notOwnedLics = BCRPClient.Data.Locations.Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToList();
+                    var notOwnedLics = BCRPClient.Data.Locations.Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToHashSet();
 
                     if (notOwnedLics.Count == 0)
                     {
-                        CEF.Notification.ShowError("Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
+                        CEF.Notification.ShowError("Вы уже владеете всеми лицензиями для транспорта!", -1);
 
                         return;
                     }

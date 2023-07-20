@@ -61,8 +61,8 @@ namespace BCRPClient.CEF
             { SectionTypes.Help, "menu-help" },
         };
 
-        private static int _TimePlayed;
-        public static int TimePlayed { get => _TimePlayed; set { _TimePlayed = value; Browser.Window.ExecuteJs("Menu.setPlayed", (value / 60f).ToString("0.0")); } }
+        private static TimeSpan _TimePlayed;
+        public static TimeSpan TimePlayed { get => _TimePlayed; set { _TimePlayed = value; Browser.Window.ExecuteJs("Menu.setPlayed", value.TotalHours.ToString("0.0")); } }
 
         public static DateTime CreationDate { get; set; }
         public static DateTime BirthDate { get; set; }
@@ -75,8 +75,6 @@ namespace BCRPClient.CEF
         public Menu()
         {
             TempBindEsc = -1;
-
-            _TimePlayed = 0;
 
             OwnedVehicles = new List<(uint, Data.Vehicles.Vehicle)>();
             Gifts = new Dictionary<uint, (string Reason, string Name)>();
@@ -436,7 +434,7 @@ namespace BCRPClient.CEF
 
         public static void UpdateQuestProgress() => Browser.Window.ExecuteJs("Menu.updateQuestProgress"); // id, new_progress
 
-        public static void Load(Sync.Players.PlayerData pData, int timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
+        public static void Load(Sync.Players.PlayerData pData, TimeSpan timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
         {
             Browser.Window.ExecuteJs("Menu.setOrganisation", "none"); // temp
 

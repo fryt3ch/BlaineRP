@@ -35,9 +35,18 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            return base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
+
+            if (!baseRes)
+                return false;
+
+            text = Language.Strings.Get("OFFER_SHOWPASSPORT_TEXT");
+
+            offer = Offer.Create(pData, tData, type, -1, null);
+
+            return true;
         }
     }
 
@@ -70,9 +79,18 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            return base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
+
+            if (!baseRes)
+                return false;
+
+            text = Language.Strings.Get("OFFER_SHOWLICENSES_TEXT");
+
+            offer = Offer.Create(pData, tData, type, -1, null);
+
+            return true;
         }
     }
 
@@ -108,9 +126,18 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            return base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
+
+            if (!baseRes)
+                return false;
+
+            text = Language.Strings.Get("OFFER_MEDICALCARD_TEXT");
+
+            offer = Offer.Create(pData, tData, type, -1, null);
+
+            return true;
         }
     }
 
@@ -147,9 +174,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -169,16 +196,18 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            var found = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
+            var vInfo = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
 
-            if (found == null)
+            if (vInfo == null)
             {
                 returnObj = 0;
 
                 return false;
             }
 
-            offer.Data = found;
+            offer = Offer.Create(pData, tData, type, -1, vInfo);
+
+            text = Language.Strings.Get("OFFER_SHOWVEHICLEPASSPORT_TEXT");
 
             return true;
         }
@@ -218,9 +247,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -241,7 +270,9 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            offer.Data = fData.Type;
+            offer = Offer.Create(pData, tData, type, -1, fData.Type);
+
+            text = Language.Strings.Get("OFFER_SHOWFRACTIONDOCS_TEXT");
 
             return true;
         }

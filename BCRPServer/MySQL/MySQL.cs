@@ -568,7 +568,7 @@ namespace BCRPServer
                         }
                     }
 
-                    var allCooldowns = new Dictionary<uint, Dictionary<uint, DateTime>>();
+                    var allCooldowns = new Dictionary<uint, Dictionary<uint, Sync.Cooldown>>();
 
                     cmd.CommandText = "SELECT * FROM cooldowns;";
 
@@ -578,22 +578,26 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
+                                var guid = Guid.Parse((string)reader["ID"]);
                                 var cid = Convert.ToUInt32(reader["CID"]);
-                                var type = Convert.ToUInt32(reader["Type"]);
+                                var hash = Convert.ToUInt32(reader["Hash"]);
 
-                                var dateTime = (DateTime)reader["Date"];
+                                var startDate = (DateTime)reader["StartDate"];
+                                var time = TimeSpan.FromSeconds(Utils.ToUInt64(reader["Time"]));
 
                                 var pCd = allCooldowns.GetValueOrDefault(cid);
 
+                                var cdObj = new Sync.Cooldown(startDate, time, guid);
+
                                 if (pCd == null)
                                 {
-                                    pCd = new Dictionary<uint, DateTime>() { { type, dateTime }, };
+                                    pCd = new Dictionary<uint, Sync.Cooldown>() { { hash, cdObj }, };
 
                                     allCooldowns.Add(cid, pCd);
                                 }
                                 else
                                 {
-                                    pCd.TryAdd(type, dateTime);
+                                    pCd.TryAdd(hash, cdObj);
                                 }
                             }
                         }
@@ -657,7 +661,7 @@ namespace BCRPServer
 
                                 var lastJoinDate = (DateTime)reader["LastJoinDate"];
 
-                                var timePlayed = (int)reader["TimePlayed"];
+                                var timePlayed = TimeSpan.FromMinutes(Convert.ToUInt64(reader["TimePlayed"]));
 
                                 var name = (string)reader["Name"];
 
@@ -781,7 +785,7 @@ namespace BCRPServer
 
                                     Quests = quests,
 
-                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<uint, DateTime>(),
+                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<uint, Sync.Cooldown>(),
                                 };
 
                                 PlayerData.PlayerInfo.AddOnLoad(pInfo);

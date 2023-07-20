@@ -4,8 +4,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static BCRPClient.Data.Fractions.Police;
 
 namespace BCRPClient.Data.Fractions
 {
@@ -186,6 +184,11 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "player_from_veh");
 
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_heal", (entity) => { var player = entity as Player; if (player == null) return; PlayerHeal(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_diag", (entity) => { var player = entity as Player; if (player == null) return; PlayerDiagnostics(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_medcard", (entity) => { var player = entity as Player; if (player == null) return; PlayerMedicalCard(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_narco", (entity) => { var player = entity as Player; if (player == null) return; PlayerDrugHeal(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_psych", (entity) => { var player = entity as Player; if (player == null) return; PlayerPsychHeal(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_sellmask", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellMask(player); });
 
 /*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
@@ -201,6 +204,31 @@ namespace BCRPClient.Data.Fractions
         private void PlayerHeal(Player player)
         {
             Sync.Offers.Request(player, Sync.Offers.Types.EmsHeal, null);
+        }
+
+        private void PlayerDiagnostics(Player player)
+        {
+
+        }
+
+        private void PlayerMedicalCard(Player player)
+        {
+
+        }
+
+        private void PlayerDrugHeal(Player player)
+        {
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsDrugHeal, null);
+        }
+
+        private void PlayerPsychHeal(Player player)
+        {
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsPsychHeal, null);
+        }
+
+        private void PlayerSellMask(Player player)
+        {
+
         }
 
         private static async void OnHealingBedPress(MapObject obj)

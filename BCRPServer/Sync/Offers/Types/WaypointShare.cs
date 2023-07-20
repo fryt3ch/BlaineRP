@@ -38,9 +38,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -56,14 +56,14 @@ namespace BCRPServer.Sync.Offers
             }
             catch (Exception ex)
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
 
-            var offerData = new Vector3(posX, posY, 0f);
+            offer = Offer.Create(pData, tData, type, -1, new Vector3(posX, posY, 0f));
 
-            offer.Data = offerData;
+            text = Language.Strings.Get("OFFER_WAYPOINTSHARE_TEXT");
 
             return true;
         }

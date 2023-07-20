@@ -149,7 +149,7 @@ namespace BCRPServer.Events.Fractions
 
             if (cdTimeDiff.TotalSeconds > 0)
             {
-                player.Notify("CDown::3", cdTimeDiff.GetBeautyString());
+                player.NotifyError(Language.Strings.Get("NTFC_COOLDOWN_GEN_2", cdTimeDiff.GetBeautyString()));
 
                 return false;
             }

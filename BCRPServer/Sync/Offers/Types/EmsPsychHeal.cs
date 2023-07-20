@@ -4,8 +4,8 @@ using System.Text;
 
 namespace BCRPServer.Sync.Offers
 {
-    [Offer(Types.EmsHeal)]
-    internal class EmsHeal : OfferBase
+    [Offer(Types.EmsPsychHeal)]
+    internal class EmsPsychHeal : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
         {
@@ -33,14 +33,12 @@ namespace BCRPServer.Sync.Offers
                 return;
             }
 
-            var hpToRestore = (int)((object[])offer.Data)[1];
+            var moodToSet = (byte)((object[])offer.Data)[1];
             var price = (uint)((object[])offer.Data)[0];
 
-            var curHealth = tData.Player.Health;
+            var curMood = tData.Mood;
 
-            var hpDiff = Utils.CalculateDifference(curHealth, hpToRestore, 1, Properties.Settings.Static.PlayerMaxHealth);
-
-            if (hpDiff != hpToRestore)
+            if (curMood >= moodToSet)
             {
                 tPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_1"));
                 sPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_0"));
@@ -53,7 +51,7 @@ namespace BCRPServer.Sync.Offers
             if (!tData.TryRemoveCash(price, out newBalanceT, true, pData))
                 return;
 
-            var totalEarn = (uint)Math.Round(Game.Fractions.EMS.PlayerHealPricePlayerGetCoef * price);
+            var totalEarn = (uint)Math.Round(Game.Fractions.EMS.PlayerPsychHealPricePlayerGetCoef * price);
 
             ulong newBalanceP;
 
@@ -63,7 +61,7 @@ namespace BCRPServer.Sync.Offers
             tData.SetCash(newBalanceT);
             pData.SetCash(newBalanceP);
 
-            tData.Player.SetHealth(curHealth + hpToRestore);
+            tData.Mood = moodToSet;
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -87,24 +85,24 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            var curHealth = tData.Player.Health;
+            var curMood = tData.Mood;
 
-            var diff = Utils.CalculateDifference(curHealth, Properties.Settings.Static.PlayerMaxHealth, 1, Properties.Settings.Static.PlayerMaxHealth);
+            var setMoodAmount = Game.Fractions.EMS.PlayerPsychHealSetAmount;
 
-            if (diff <= 0)
+            if (curMood >= setMoodAmount)
             {
-                pData.Player.NotifyError(Language.Strings.Get("NTFC_OFFER_EMS_HEAL_0"));
+                pData.Player.NotifyError("NTFC_OFFER_EMS_PSYCHHEAL_0");
 
                 returnObj = 1;
 
                 return false;
             }
 
-            var price = (uint)Math.Round(Game.Fractions.EMS.PlayerHealMaxPrice - ((Game.Fractions.EMS.PlayerHealMaxPrice - Game.Fractions.EMS.PlayerHealMinPrice) * (curHealth - 1d) / (Game.Fractions.EMS.PlayerHealMinPrice - 1d)));
+            var price = Game.Fractions.EMS.PlayerPsychHealPrice;
 
-            offer = Offer.Create(pData, tData, type, -1, new object[] { price, diff, fData.Type, });
+            offer = Offer.Create(pData, tData, type, -1, new object[] { price, setMoodAmount, fData.Type, });
 
-            text = Language.Strings.Get("OFFER_EMS_HEAL_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", price));
+            text = Language.Strings.Get("OFFER_EMS_PSYCHHEAL_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", price));
 
             return true;
         }

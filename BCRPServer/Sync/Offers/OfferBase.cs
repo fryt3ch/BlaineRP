@@ -21,10 +21,10 @@ namespace BCRPServer.Sync.Offers
 
         public abstract void OnCancel(PlayerData pData, PlayerData tData, Offer offer);
 
-        public virtual bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public virtual bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
             offer = null;
-            customTargetShow = false;
+            text = string.Empty;
 
             if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
             {
@@ -68,8 +68,6 @@ namespace BCRPServer.Sync.Offers
             }
 
             returnObj = 255;
-
-            offer = Offer.Create(pData, tData, type, -1, null);
 
             return true;
         }

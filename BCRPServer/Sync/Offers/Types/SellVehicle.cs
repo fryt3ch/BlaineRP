@@ -60,9 +60,9 @@ namespace BCRPServer.Sync.Offers
             }
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -79,14 +79,14 @@ namespace BCRPServer.Sync.Offers
             }
             catch (Exception ex)
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
 
             if (price <= 0)
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
@@ -100,7 +100,9 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            offer.Data = new Offer.PropertySellData(vInfo, (ulong)price);
+            offer = Offer.Create(pData, tData, type, -1, new Offer.PropertySellData(vInfo, (ulong)price));
+
+            text = Language.Strings.Get("OFFER_SELL_VEHICLE_TEXT");
 
             return true;
         }

@@ -7,39 +7,39 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        public static void CharacterCooldownSet(PlayerData.PlayerInfo pInfo, uint cdType, DateTime date, bool insert)
+        public static void CharacterCooldownSet(PlayerData.PlayerInfo pInfo, uint hash, Sync.Cooldown cooldown, bool insert)
         {
             var cmd = new MySqlCommand();
 
             if (insert)
             {
-                cmd.CommandText = "INSERT INTO cooldowns (ID, CID, Type, Date) VALUES (@ID, @CID, @T, @D);";
+                cmd.CommandText = "INSERT INTO cooldowns (ID, CID, Hash, StartDate, Time) VALUES (@ID, @CID, @H, @D, @T);";
 
-                cmd.Parameters.AddWithValue("@ID", Guid.NewGuid().ToString());
+                cmd.Parameters.AddWithValue("@ID", cooldown.Guid);
                 cmd.Parameters.AddWithValue("@CID", pInfo.CID);
-                cmd.Parameters.AddWithValue("@T", cdType);
-                cmd.Parameters.AddWithValue("@D", date);
+                cmd.Parameters.AddWithValue("@H", hash);
+                cmd.Parameters.AddWithValue("@D", cooldown.StartDate);
+                cmd.Parameters.AddWithValue("@T", cooldown.Time.TotalSeconds);
             }
             else
             {
-                cmd.CommandText = "UPDATE cooldowns SET Date=@D WHERE CID=@CID AND Type=@T;";
+                cmd.CommandText = "UPDATE cooldowns SET StartDate=@D, Time = @T WHERE ID=@ID;";
 
-                cmd.Parameters.AddWithValue("@CID", pInfo.CID);
-                cmd.Parameters.AddWithValue("@T", cdType);
-                cmd.Parameters.AddWithValue("@D", date);
+                cmd.Parameters.AddWithValue("@ID", cooldown.Guid);
+                cmd.Parameters.AddWithValue("@T", cooldown.Time.TotalSeconds);
+                cmd.Parameters.AddWithValue("@D", cooldown.StartDate);
             }
 
             PushQuery(cmd);
         }
 
-        public static void CharacterCooldownRemove(PlayerData.PlayerInfo pInfo, uint cdType)
+        public static void CharacterCooldownRemoveByGuid(PlayerData.PlayerInfo pInfo, Guid guid)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"DELETE FROM cooldowns WHERE CID=@CID AND Type=@T;";
+            cmd.CommandText = $"DELETE FROM cooldowns WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
-            cmd.Parameters.AddWithValue("@T", cdType);
+            cmd.Parameters.AddWithValue("@ID", guid.ToString());
 
             PushQuery(cmd);
         }

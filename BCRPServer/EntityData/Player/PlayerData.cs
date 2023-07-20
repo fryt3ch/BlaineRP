@@ -43,7 +43,6 @@ namespace BCRPServer
             Player.ResetData();
         }
 
-        #region Enums
         public enum LicenseTypes
         {
             /// <summary>Мопеды</summary>
@@ -95,7 +94,6 @@ namespace BCRPServer
             /// <summary>Бизнес</summary>
             Business,
         }
-        #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
         {
@@ -275,7 +273,6 @@ namespace BCRPServer
             MySQL.CharacterMedicalCardUpdate(Info);
         }
 
-        #region Own Shared Data
 
         public bool TryAddCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null) => Info.TryAddCash(amount, out newBalance, notifyOnFault, tData);
 
@@ -317,9 +314,6 @@ namespace BCRPServer
         }
 
         public PlayerInfo Info { get; set; }
-        #endregion
-
-        #region Stuff
 
         public bool BlockRemoteCalls { get => Player.GetData<bool?>("BlockRC") ?? false; set { if (value) Player.SetData("BlockRC", true); else Player.ResetData("BlockRC"); } }
 
@@ -328,7 +322,6 @@ namespace BCRPServer
         public AccountData AccountData { get; set; }
 
         public VehicleData CurrentTuningVehicle { get => Player.GetData<VehicleData>("tsvdata"); set { if (value == null) Player.ResetData("tsvdata"); else Player.SetData("tsvdata", value); } }
-        #endregion
 
         public PlayerData(Player Player)
         {
@@ -398,7 +391,7 @@ namespace BCRPServer
             BankAccount = null;
             LastJoinDate = Utils.GetCurrentTime();
             Info.CreationDate = LastJoinDate;
-            TimePlayed = 0;
+            Info.TimePlayed = TimeSpan.Zero;
 
             OwnedVehicles = new List<VehicleData.VehicleInfo>();
 
@@ -507,7 +500,7 @@ namespace BCRPServer
 
                 { "Skills", Info.Skills.SerializeToJson() },
 
-                { "TimePlayed", TimePlayed },
+                { "TimePlayed", Info.TimePlayed },
                 { "CreationDate", Info.CreationDate },
                 { "BirthDate", Info.BirthDate },
                 { "Org", OrganisationID == -1 ? null : "todo" },
@@ -644,24 +637,6 @@ namespace BCRPServer
             return true;
         }
 
-        public bool HasCooldown(uint cdType, DateTime curDate, TimeSpan cdTime, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, int notifyType = -1, bool removeIfExists = true)
-        {
-            if (Info.HasCooldown(cdType, curDate, cdTime, out timePassed, out timeLeft, out cdDate, removeIfExists))
-            {
-                if (notifyType >= 0)
-                {
-                    if (notifyType != 3)
-                        Player.Notify($"CDown::{notifyType}");
-                    else
-                        Player.Notify("CDown::3", timeLeft.GetBeautyString());
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         public bool CanBeSettled(Game.Estates.HouseBase houseBase, bool notifyIfNot = true)
         {
             if (SettledHouseBase != null)
@@ -714,10 +689,12 @@ namespace BCRPServer
                     if (Player?.Exists != true)
                         return;
 
-                    TimePlayed += 1;
-                    LastData.SessionTime += 60;
+                    var minuteTimeSpan = TimeSpan.FromMinutes(1);
 
-                    if (TimePlayed % 2 == 0)
+                    Info.TimePlayed = Info.TimePlayed.Add(minuteTimeSpan);
+                    LastData.SessionTime = LastData.SessionTime.Add(minuteTimeSpan);
+
+                    if (Info.TimePlayed.TotalMinutes % 2 == 0)
                     {
                         if (Satiety > 0)
                             Satiety--;

@@ -1,5 +1,4 @@
-﻿using BCRPClient.CEF;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -61,7 +60,6 @@ namespace BCRPClient.Sync
             DataActions.Add(dataKey, action);
         }
 
-        #region Enums
         public enum LicenseTypes
         {
             /// <summary>Мопеды</summary>
@@ -131,7 +129,6 @@ namespace BCRPClient.Sync
             /// <summary>Телефон используется с анимацией камеры 0</summary>
             Camera,
         }
-        #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
         {
@@ -146,6 +143,9 @@ namespace BCRPClient.Sync
             public enum DiagnoseTypes
             {
                 Healthy = 0,
+                DrugAddicted1,
+                DrugAddicted2,
+                DrugAddicted3,
             }
 
             [JsonProperty(PropertyName = "I")]
@@ -169,7 +169,6 @@ namespace BCRPClient.Sync
 
             public PlayerData(Player Player) => this.Player = Player;
 
-            #region Player Data
             public uint CID => Utils.ToUInt32(Player.GetSharedData<object>("CID", 0));
 
             public ulong Cash => Utils.ToUInt64(Player.GetSharedData<object>("Cash", 0));
@@ -180,9 +179,9 @@ namespace BCRPClient.Sync
 
             public Data.Fractions.Types Fraction => (Data.Fractions.Types)Player.GetSharedData<int>("Fraction", 0);
 
-            public int Satiety => Player.GetSharedData<int>("Satiety", 0);
+            public int Satiety => Utils.ToByte(Player.GetSharedData<object>("Satiety", 0));
 
-            public int Mood => Player.GetSharedData<int>("Mood", 0);
+            public int Mood => Utils.ToByte(Player.GetSharedData<object>("Mood", 0));
 
             public bool IsMasked => Player.GetDrawableVariation(1) > 0;
 
@@ -256,11 +255,11 @@ namespace BCRPClient.Sync
 
             public Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkins { get => Player.LocalPlayer.GetData<Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>>("WeaponSkins"); set => Player.LocalPlayer.SetData("WeaponSkins", value); }
 
-            public List<uint> Familiars { get => Player.LocalPlayer.GetData<List<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
+            public HashSet<uint> Familiars { get => Player.LocalPlayer.GetData<HashSet<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
 
             public Dictionary<SkillTypes, int> Skills { get => Player.LocalPlayer.GetData<Dictionary<SkillTypes, int>>("Skills"); set => Player.LocalPlayer.SetData("Skills", value); }
 
-            public List<LicenseTypes> Licenses { get => Player.LocalPlayer.GetData<List<LicenseTypes>>("Licenses"); set => Player.LocalPlayer.SetData("Licenses", value); }
+            public HashSet<LicenseTypes> Licenses { get => Player.LocalPlayer.GetData<HashSet<LicenseTypes>>("Licenses"); set => Player.LocalPlayer.SetData("Licenses", value); }
 
             public MedicalCard MedicalCard { get => Player.LocalPlayer.GetData<MedicalCard>("MedicalCard"); set { if (value == null) Player.LocalPlayer.ResetData("MedicalCard"); else Player.LocalPlayer.SetData("MedicalCard", value); } }
 
@@ -295,7 +294,6 @@ namespace BCRPClient.Sync
             public Data.Jobs.Job CurrentJob { get => Player.GetData<Data.Jobs.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
 
             public Data.Fractions.Fraction CurrentFraction { get => Player.GetData<Data.Fractions.Fraction>("CFraction"); set { if (value == null) Player.ResetData("CFraction"); Player.SetData("CFraction", value); } }
-            #endregion
 
             public void Reset()
             {
@@ -422,7 +420,6 @@ namespace BCRPClient.Sync
                 }
             }, 2_500, true, 0)).Run();
 
-            #region LocalPlayer Ready
             Events.Add("Players::CloseAuth", async (object[] args) =>
             {
                 CEF.Auth.CloseAll();
@@ -461,9 +458,9 @@ namespace BCRPClient.Sync
 
                 var sData = (JObject)args[0];
 
-                data.Familiars = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Familiars"]);
+                data.Familiars = RAGE.Util.Json.Deserialize<HashSet<uint>>((string)sData["Familiars"]);
 
-                data.Licenses = RAGE.Util.Json.Deserialize<List<LicenseTypes>>((string)sData["Licenses"]);
+                data.Licenses = RAGE.Util.Json.Deserialize<HashSet<LicenseTypes>>((string)sData["Licenses"]);
 
                 data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
 
@@ -588,7 +585,7 @@ namespace BCRPClient.Sync
 
                 CEF.Inventory.Load((JArray)sData["Inventory"]);
 
-                CEF.Menu.Load(data, (int)sData["TimePlayed"], (DateTime)sData["CreationDate"], (DateTime)sData["BirthDate"], RAGE.Util.Json.Deserialize<Dictionary<uint, (int, string, int, int)>>((string)sData["Gifts"]));
+                CEF.Menu.Load(data, (TimeSpan)sData["TimePlayed"], (DateTime)sData["CreationDate"], (DateTime)sData["BirthDate"], RAGE.Util.Json.Deserialize<Dictionary<uint, (int, string, int, int)>>((string)sData["Gifts"]));
 
                 CEF.Menu.SetOrganisation((string)sData["Org"]);
 
@@ -632,10 +629,12 @@ namespace BCRPClient.Sync
                 {
                     //Events.CallRemote("Player::UpdateTime");
 
-                    CEF.Menu.TimePlayed += 1;
+                    var minuteTimeSpan = TimeSpan.FromMinutes(1);
+
+                    CEF.Menu.TimePlayed = CEF.Menu.TimePlayed.Add(minuteTimeSpan);
                 }, 60_000, true, 60_000)).Run();
 
-                CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
+                CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu, CEF.HUD.Menu.Types.Documents, CEF.HUD.Menu.Types.BlipsMenu);
 
                 if (data.WeaponSkins.Count > 0)
                     CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.WeaponSkinsMenu);
@@ -755,9 +754,6 @@ namespace BCRPClient.Sync
                     }
                 });*/
             });
-            #endregion
-
-            #region Local Player Events
 
             Events.Add("Player::Knocked", (args) =>
             {
@@ -1078,7 +1074,7 @@ namespace BCRPClient.Sync
                 var aData = Locale.General.Players.AchievementTexts.ContainsKey(aType) ? Locale.General.Players.AchievementTexts[aType] : ("null", "null");
 
                 if (value >= maxValue)
-                    CEF.Notification.Show(Notification.Types.Achievement, aData.Item1, Locale.Notifications.General.AchievementUnlockedText, 5000);
+                    CEF.Notification.Show(CEF.Notification.Types.Achievement, aData.Item1, Locale.Notifications.General.AchievementUnlockedText, 5000);
             });
 
             Events.Add("Player::Skills::Update", (object[] args) =>
@@ -1099,7 +1095,7 @@ namespace BCRPClient.Sync
 
                 UpdateSkill(sType, value);
 
-                CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
             });
 
             Events.Add("Player::WSkins::Update", (args) =>
@@ -1161,16 +1157,13 @@ namespace BCRPClient.Sync
                 if (data == null)
                     return;
 
-                bool state = (bool)args[0];
+                var state = (bool)args[0];
 
-                LicenseTypes lType = (LicenseTypes)(int)args[1];
+                var lType = (LicenseTypes)(int)args[1];
 
                 if (state)
                 {
-                    if (!data.Licenses.Contains(lType))
-                    {
-                        data.Licenses.Add(lType);
-                    }
+                    data.Licenses.Add(lType);
                 }
                 else
                 {
@@ -1198,13 +1191,12 @@ namespace BCRPClient.Sync
                 if (data == null)
                     return;
 
-                bool add = (bool)args[0];
-                uint cid = (uint)(int)args[1];
+                var add = (bool)args[0];
+                var cid = Utils.ToUInt32(args[1]);
 
                 if (add)
                 {
-                    if (!data.Familiars.Contains(cid))
-                        data.Familiars.Add(cid);
+                    data.Familiars.Add(cid);
                 }
                 else
                 {
@@ -1230,17 +1222,17 @@ namespace BCRPClient.Sync
 
                     if (state)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments, playerInit.GetName(true, false, true)));
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments, playerInit.GetName(true, false, true)));
                     }
                     else
                     {
                         if (playerInit?.Handle == Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf);
+                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf);
                         }
                         else
                         {
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments, playerInit.GetName(true, false, true)));
+                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments, playerInit.GetName(true, false, true)));
                         }
                     }
                 }
@@ -1248,11 +1240,11 @@ namespace BCRPClient.Sync
                 {
                     if (state)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto);
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto);
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto);
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto);
                     }
                 }
             });
@@ -1484,11 +1476,11 @@ namespace BCRPClient.Sync
 
                 if (cash > oldCash)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Cash, string.Format(Locale.Notifications.Money.Cash.AddHeader, cash - oldCash), string.Format(Locale.Notifications.Money.Cash.Balance, cash));
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_ADD_0", cash - oldCash), Locale.Get("NTFC_MONEY_CASH_0", Utils.GetPriceString(cash)));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Cash, string.Format(Locale.Notifications.Money.Cash.LossHeader, oldCash - cash), string.Format(Locale.Notifications.Money.Cash.Balance, cash));
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldCash - cash), Locale.Get("NTFC_MONEY_CASH_0", Utils.GetPriceString(cash)));
                 }
             });
 
@@ -1506,18 +1498,18 @@ namespace BCRPClient.Sync
                 CEF.Bank.UpdateMoney(bank);
                 CEF.PhoneApps.BankApp.UpdateBalance(bank);
 
-                var oldCash = oldValue == null ? bank : Utils.ToUInt64(oldValue);
+                var oldBank = oldValue == null ? bank : Utils.ToUInt64(oldValue);
 
-                if (bank == oldCash)
+                if (bank == oldBank)
                     return;
 
-                if (bank > oldCash)
+                if (bank > oldBank)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Bank, string.Format(Locale.Notifications.Money.Bank.AddHeader, bank - oldCash), string.Format(Locale.Notifications.Money.Bank.Balance, bank));
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_ADD_0", bank - oldBank), Locale.Get("NTFC_MONEY_BANK_0", Utils.GetPriceString(bank)));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Bank, string.Format(Locale.Notifications.Money.Bank.LossHeader, oldCash - bank), string.Format(Locale.Notifications.Money.Bank.Balance, bank));
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldBank - bank), Locale.Get("NTFC_MONEY_BANK_0", Utils.GetPriceString(bank)));
                 }
             });
 
@@ -1531,7 +1523,7 @@ namespace BCRPClient.Sync
                 {
                     if (state)
                     {
-                        CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, true);
+                        CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Wounded, true);
 
                         CEF.Notification.ShowHint(Locale.Notifications.Players.States.Wounded, false);
 
@@ -1556,7 +1548,7 @@ namespace BCRPClient.Sync
                     {
                         RAGE.Game.Graphics.StopScreenEffect("DeathFailMPDark");
 
-                        CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, false);
+                        CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Wounded, false);
 
                         if (WoundedTask != null)
                         {
@@ -1593,21 +1585,21 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Mood", (pData, value, oldValue) =>
             {
-                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                if (pData.Player != Player.LocalPlayer)
                     return;
 
-                var mood = (int)value;
+                var mood = Utils.ToByte(value);
 
                 if (mood <= 25)
                 {
-                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, true);
+                    CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Mood, true);
 
                     if (mood % 5 == 0)
                         CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5_000);
                 }
                 else
                 {
-                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
+                    CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Mood, false);
                 }
 
                 CEF.Inventory.UpdateStates();
@@ -1615,14 +1607,14 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Satiety", (pData, value, oldValue) =>
             {
-                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                if (pData.Player != Player.LocalPlayer)
                     return;
 
-                var satiety = (int)value;
+                var satiety = Utils.ToByte(value);
 
                 if (satiety <= 25)
                 {
-                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, true);
+                    CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Food, true);
 
                     if (satiety % 5 == 0)
                         CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5_000);
@@ -1660,14 +1652,11 @@ namespace BCRPClient.Sync
                         HungerTask = null;
                     }
 
-                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, false);
+                    CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.Food, false);
                 }
 
                 CEF.Inventory.UpdateStates();
             });
-            #endregion
-
-            #region Streamed Players Data Change
 
             AddDataHandler("Emotion", (pData, value, oldValue) =>
             {
@@ -1812,7 +1801,7 @@ namespace BCRPClient.Sync
 
                 player.SetConfigFlag(32, !state);
 
-                HUD.SwitchBeltIcon(state);
+                CEF.HUD.SwitchBeltIcon(state);
             });
 
             AddDataHandler("PST", (pData, value, oldValue) =>
@@ -2009,7 +1998,7 @@ namespace BCRPClient.Sync
                                 }
                                 else
                                 {
-                                    HUD.SwitchSpeedometer(true);
+                                    CEF.HUD.SwitchSpeedometer(true);
 
                                     if (seat == 0)
                                         Vehicles.StartDriverSync();
@@ -2021,7 +2010,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            HUD.SwitchSpeedometer(false);
+                            CEF.HUD.SwitchSpeedometer(false);
                         }
                     }
                 }
@@ -2030,8 +2019,6 @@ namespace BCRPClient.Sync
                     Sync.Players.UpdateHat(player);
                 }
             });
-
-            #endregion
         }
 
         public static void UpdateHat(Player player)

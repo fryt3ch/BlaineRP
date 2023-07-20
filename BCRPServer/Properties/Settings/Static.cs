@@ -20,6 +20,13 @@ namespace BCRPServer.Properties.Settings
         public const uint DemorganDimension = 2;
 
         public const int PlayerMaxHealth = 100;
+        public const byte PlayerMaxMood = 100;
+        public const byte PlayerMaxSatiety = 100;
+
+        public const byte PlayerMaxDrugAddiction = 100;
+        public const byte PlayerDrugAddictionStage1 = 25;
+        public const byte PlayerDrugAddictionStage2 = 50;
+        public const byte PlayerDrugAddictionStage3 = 75;
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;

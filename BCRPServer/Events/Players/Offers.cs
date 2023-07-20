@@ -34,20 +34,17 @@ namespace BCRPServer.Events.Players
 
             Offer offer;
             object returnObj;
-            bool customTargetShow;
+            string text;
 
-            var isRequestCorrect = offerBaseData.IsRequestCorrect(pData, tData, oType, dataStr, out offer, out returnObj, out customTargetShow);
+            var isRequestCorrect = offerBaseData.IsRequestCorrect(pData, tData, oType, dataStr, out offer, out returnObj, out text);
 
-            if (!isRequestCorrect)
+            if (!isRequestCorrect || offer == null)
             {
                 return returnObj;
             }
             else
             {
-                if (!customTargetShow)
-                {
-                    tData.Player.TriggerEvent("Offer::Show", player.Handle, typeNum);
-                }
+                tData.Player.TriggerEvent("Offer::Show", player.Id, typeNum, text);
 
                 return returnObj;
             }

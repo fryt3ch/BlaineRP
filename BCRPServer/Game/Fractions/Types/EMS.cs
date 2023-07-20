@@ -19,13 +19,28 @@ namespace BCRPServer.Game.Fractions
 
         public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", {(uint)MetaFlags}, \"{Beds.Select(x => x.Position).ToList().SerializeToJson().Replace('"', '\'')}\"";
 
-        private const int HEALING_BED_TIMEOUT = 20_000;
-        private const byte HEALING_BED_HP_DIFF = 10;
+        private static TimeSpan HealingBedTimeout = TimeSpan.FromSeconds(20);
+        private const byte HealingBedHealthIncrease = 10;
 
-        public const uint PlayerHealOn1HpPrice = 200;
-        public const uint PlayerHealOn99HpPrice = 80;
+        public const uint PlayerPsychHealPrice = 200;
+        public const byte PlayerPsychHealSetAmount = 90;
+        public const decimal PlayerPsychHealPricePlayerGetCoef = 0.90m;
 
-        public const decimal PlayerHealPriceFee = 0.90m;
+        public static TimeSpan PlayerDrugHealCooldownA { get; } = TimeSpan.FromHours(1);
+
+        public const uint PlayerDrugHealPrice = 2_000;
+        public const int PlayerDrugHealAmount = 20;
+        public const decimal PlayerDrugHealPriceFractionGetCoef = 0.00m;
+        public const decimal PlayerDrugHealPricePlayerGetCoef = 0.90m;
+
+        public const uint PlayerHealMaxPrice = 200;
+        public const uint PlayerHealMinPrice = 80;
+        public const decimal PlayerHealPriceFractionGetCoef = 0.00m;
+        public const decimal PlayerHealPricePlayerGetCoef = 0.90m;
+
+        public const uint PlayerSellMaskPrice = 2_000;
+        public const decimal PlayerSellMaskPriceFractionGetCoef = 0.00m;
+        public const decimal PlayerSellMaskPricePlayerGetCoef = 0.30m;
 
         private static Dictionary<ushort, CallInfo> AllCalls { get; set; } = new Dictionary<ushort, CallInfo>();
 
@@ -283,7 +298,7 @@ namespace BCRPServer.Game.Fractions
 
                     var curHealth = pData.Player.Health;
 
-                    var diff = Utils.GetCorrectDiff(pData.Player.Health, HEALING_BED_HP_DIFF, 0, 100);
+                    var diff = Utils.CalculateDifference(pData.Player.Health, HealingBedHealthIncrease, 0, Properties.Settings.Static.PlayerMaxHealth);
 
                     var stopHealing = false;
 
@@ -293,7 +308,7 @@ namespace BCRPServer.Game.Fractions
 
                         pData.Player.SetHealth(newHealth);
 
-                        if (newHealth >= 100)
+                        if (newHealth >= Properties.Settings.Static.PlayerMaxHealth)
                             stopHealing = true;
                     }
                     else
@@ -311,7 +326,7 @@ namespace BCRPServer.Game.Fractions
                         return;
                     }
                 });
-            }, null, HEALING_BED_TIMEOUT, HEALING_BED_TIMEOUT);
+            }, null, HealingBedTimeout, HealingBedTimeout);
         }
 
         public BedInfo GetBedInfoById(int idx) => idx < 0 || idx >= Beds.Length ? null : Beds[idx];

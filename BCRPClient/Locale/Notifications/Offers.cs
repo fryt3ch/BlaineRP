@@ -11,9 +11,6 @@ namespace BCRPClient
                 public static string Header = "Предложение";
                 public static string HeaderTrade = "Обмен";
 
-                public static string OfferSettleHouse = "в свой дом";
-                public static string OfferSettleApartments = "в свою квартиру";
-
                 public static string Cancel = "Предложение было отменено!";
                 public static string CancelBy = "Игрок отменил предложение!";
 

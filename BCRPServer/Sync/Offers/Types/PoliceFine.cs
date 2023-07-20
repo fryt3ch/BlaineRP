@@ -32,11 +32,9 @@ namespace BCRPServer.Sync.Offers
             if (!fData.HasMemberPermission(pData.Info, 14, true))
                 return;
 
-            var d = ((string)offer.Data).Split('_');
+            var amount = (uint)((object[])offer.Data)[0];
 
-            var amount = uint.Parse(d[0]);
-
-            var reason = d[1];
+            var reason = (string)((object[])offer.Data)[1];
 
             ulong newBalanceT, newBalanceS;
 
@@ -57,9 +55,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -92,30 +90,28 @@ namespace BCRPServer.Sync.Offers
             }
             catch (Exception ex)
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
 
             if (amount < Game.Fractions.Police.FineMinAmount || amount > Game.Fractions.Police.FineMaxAmount)
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
 
             if (!Game.Fractions.Police.FineReasonRegex.IsMatch(reason))
             {
-                returnObj = null;
+                returnObj = 0;
 
                 return false;
             }
 
-            offer.Data = $"{amount}_{reason}";
+            offer = Offer.Create(pData, tData, type, -1, new object[] { (uint)amount, reason, });
 
-            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, offer.Data);
-
-            customTargetShow = true;
+            text = Language.Strings.Get("OFFER_POLICE_FINE_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", amount), reason);
 
             return true;
         }

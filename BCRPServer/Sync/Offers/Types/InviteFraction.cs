@@ -39,9 +39,9 @@ namespace BCRPServer.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -69,11 +69,9 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            offer.Data = fData.Type;
+            offer = Offer.Create(pData, tData, type, -1, fData.Type);
 
-            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, fData.Type);
-
-            customTargetShow = true;
+            text = Language.Strings.Get("OFFER_INVITEFRACTION_TEXT", "{0}", fData.Name);
 
             return true;
         }

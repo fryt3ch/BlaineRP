@@ -29,7 +29,7 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@AID", pInfo.AID);
 
             cmd.Parameters.AddWithValue("@IsOnline", true);
-            cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed);
+            cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed.TotalMinutes);
             cmd.Parameters.AddWithValue("@Fraction", pInfo.Fraction);
             cmd.Parameters.AddWithValue("@OrgID", pInfo.OrganisationID);
 
@@ -102,7 +102,7 @@ namespace BCRPServer
             cmd.CommandText = "UPDATE characters SET IsOnline=false, TimePlayed=@TimePlayed, LastData=@LastData, Familiars=@Familiars WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
-            cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed);
+            cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed.TotalMinutes);
             cmd.Parameters.AddWithValue("@LastData", pInfo.LastData.SerializeToJson());
             cmd.Parameters.AddWithValue("@Familiars", pInfo.Familiars.SerializeToJson());
 

@@ -430,4 +430,121 @@
   <data name="CHAT_EMS_PHEAL_1" xml:space="preserve">
     <value>принял(а) и употребил(а) лекарство от {0}</value>
   </data>
+  <data name="NTFC_COOLDOWN_GEN_0" xml:space="preserve">
+    <value>Вы должны подождать некоторое время, прежде чем вновь сможете сделать это!</value>
+  </data>
+  <data name="NTFC_COOLDOWN_GEN_1" xml:space="preserve">
+    <value>Вы устали, подождите некоторое время и возвращайтесь!</value>
+  </data>
+  <data name="NTFC_COOLDOWN_GEN_2" xml:space="preserve">
+    <value>Подождите еще {0}, прежде чем сделать это!</value>
+  </data>
+  <data name="NTFC_COOLDOWN_GEN_3" xml:space="preserve">
+    <value>Сегодня вы уже делали это, ждите до завтра!</value>
+  </data>
+  <data name="NTFC_OFFER_ERROR_0" xml:space="preserve">
+    <value>Этот человек сейчас не может принять ваше предложение!</value>
+  </data>
+  <data name="OFFER_CARRY_TEXT" xml:space="preserve">
+    <value>{0} предлагает понести вас</value>
+  </data>
+  <data name="OFFER_CASH_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам взять {1}</value>
+  </data>
+  <data name="OFFER_EMS_HEAL_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам приобрести лечебную таблетку, её стоимость: {1}</value>
+  </data>
+  <data name="OFFER_EXCHANGE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам обменяться</value>
+  </data>
+  <data name="OFFER_HANDSHAKE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам поздороваться</value>
+  </data>
+  <data name="OFFER_HEADSORTAILS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам сыграть в орел и решку</value>
+  </data>
+  <data name="OFFER_INVITEFRACTION_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам вступить во фракцию {1}</value>
+  </data>
+  <data name="OFFER_INVITEORGANISATION_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам вступить в организацию {1}</value>
+  </data>
+  <data name="OFFER_POLICE_FINE_TEXT" xml:space="preserve">
+    <value>{0} выписал вам штраф в размере {1}. Причина: {2}. Будете оплачивать?</value>
+  </data>
+  <data name="OFFER_SELL_BUSINESS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу бизнеса, хотите ознакомиться?</value>
+  </data>
+  <data name="OFFER_SELL_ESTATE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу недвижимости, хотите ознакомиться?</value>
+  </data>
+  <data name="OFFER_SELL_VEHICLE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу транспорта, хотите ознакомиться?</value>
+  </data>
+  <data name="OFFER_SETTLE_TEXT_0" xml:space="preserve">
+    <value>{0} предлагает вам подселиться в свой дом</value>
+  </data>
+  <data name="OFFER_SHOWFRACTIONDOCS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть удостоверение</value>
+  </data>
+  <data name="OFFER_SHOWLICENSES_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть лицензии</value>
+  </data>
+  <data name="OFFER_SHOWMEDICALCARD_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть мед. карту</value>
+  </data>
+  <data name="OFFER_SHOWPASSPORT_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть паспорт</value>
+  </data>
+  <data name="OFFER_SHOWRESUME_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть трудовую книжку</value>
+  </data>
+  <data name="OFFER_SHOWVEHICLEPASSPORT_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть тех. паспорт</value>
+  </data>
+  <data name="OFFER_WAYPOINTSHARE_TEXT" xml:space="preserve">
+    <value>{0} предлагает передать вам координаты</value>
+  </data>
+  <data name="OFFER_EMS_DRUGHEAL_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам пройти курс лечения наркозависимости, его стоимость: {1}</value>
+  </data>
+  <data name="OFFER_EMS_PSYCHHEAL_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам пройти психологическую консультацию, её стоимость: {1}</value>
+  </data>
+  <data name="OFFER_SETTLE_TEXT_1" xml:space="preserve">
+    <value>{0} предлагает вам подселиться в свою квартиру</value>
+  </data>
+  <data name="GEN_MONEY_0" xml:space="preserve">
+    <value>${0:n0}</value>
+  </data>
+  <data name="GEN_MONEY_1" xml:space="preserve">
+    <value>{0:n0}</value>
+  </data>
+  <data name="GEN_CHIPS_0" xml:space="preserve">
+    <value>{0:n0} фишек</value>
+  </data>
+  <data name="GEN_CHIPS_1" xml:space="preserve">
+    <value>{0:n0}</value>
+  </data>
+  <data name="NTFC_OFFER_ERROR_1" xml:space="preserve">
+    <value>Информация об этом предложении устарела!</value>
+  </data>
+  <data name="NTFC_OFFER_EMS_DRUGHEAL_0" xml:space="preserve">
+    <value>Этот человек не является наркозависимым!</value>
+  </data>
+  <data name="NTFC_OFFER_EMS_HEAL_0" xml:space="preserve">
+    <value>Этот человек полностью здоров!</value>
+  </data>
+  <data name="NTFC_OFFER_EMS_PSYCHHEAL_0" xml:space="preserve">
+    <value>Этому человеку пока что не требуется помощь психолога!</value>
+  </data>
+  <data name="OFFER_EMS_DIAGNOSTICS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам пройти обследование организма</value>
+  </data>
+  <data name="OFFER_EMS_SELLMASK_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам приобрести медицинскую маску, её стоимость: {1}</value>
+  </data>
+  <data name="OFFER_EMS_MEDCARD_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам оформить медицинскую карту</value>
+  </data>
 </root>

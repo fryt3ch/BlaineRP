@@ -152,8 +152,8 @@ namespace BCRPServer.Events.Commands
 
             if (value < 0)
                 value = 0;
-            else if (value > 100)
-                value = 100;
+            else if (value > Properties.Settings.Static.PlayerMaxHealth)
+                value = Properties.Settings.Static.PlayerMaxHealth;
 
             var tData = pData;
 
@@ -179,15 +179,15 @@ namespace BCRPServer.Events.Commands
                 return;
 
             uint pid;
-            int value;
+            byte value;
 
-            if (!uint.TryParse(args[0], out pid) || !int.TryParse(args[1], out value))
+            if (!uint.TryParse(args[0], out pid) || !byte.TryParse(args[1], out value))
                 return;
 
             if (value < 0)
                 value = 0;
-            else if (value > 100)
-                value = 100;
+            else if (value > Properties.Settings.Static.PlayerMaxMood)
+                value = Properties.Settings.Static.PlayerMaxMood;
 
             var tData = pData;
 
@@ -213,15 +213,15 @@ namespace BCRPServer.Events.Commands
                 return;
 
             uint pid;
-            int value;
+            byte value;
 
-            if (!uint.TryParse(args[0], out pid) || !int.TryParse(args[1], out value))
+            if (!uint.TryParse(args[0], out pid) || !byte.TryParse(args[1], out value))
                 return;
 
             if (value < 0)
                 value = 0;
-            else if (value > 100)
-                value = 100;
+            else if (value > Properties.Settings.Static.PlayerMaxSatiety)
+                value = Properties.Settings.Static.PlayerMaxSatiety;
 
             var tData = pData;
 

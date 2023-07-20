@@ -23,9 +23,12 @@ namespace BCRPServer.Sync.Offers
             if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            var houseBase = pData.CurrentHouseBase;
+            var houseBase = (Game.Estates.HouseBase)offer.Data;
 
-            if (houseBase == null || houseBase.Owner != pData.Info)
+            if (houseBase == null || houseBase != pData.CurrentHouseBase)
+                return;
+
+            if (houseBase.Owner != pData.Info)
                 return;
 
             if (!tData.CanBeSettled(houseBase, true))
@@ -38,9 +41,9 @@ namespace BCRPServer.Sync.Offers
         {
 
         }
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out bool customTargetShow)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
-            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out customTargetShow);
+            var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 
             if (!baseRes)
                 return false;
@@ -63,9 +66,16 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            tData.Player.TriggerEvent("Offer::Show", pData.Player.Handle, type, curHouseBase.Type);
+            if (curHouseBase.Type == Game.Estates.HouseBase.Types.House)
+            {
+                text = Language.Strings.Get("OFFER_SETTLE_TEXT_0");
+            }
+            else if (curHouseBase is Game.Estates.Apartments aps)
+            {
+                text = Language.Strings.Get("OFFER_SETTLE_TEXT_1");
+            }
 
-            customTargetShow = true;
+            offer = Offer.Create(pData, tData, type, -1, curHouseBase);
 
             return true;
         }

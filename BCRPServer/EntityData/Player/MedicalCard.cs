@@ -11,6 +11,9 @@ namespace BCRPServer
             public enum DiagnoseTypes
             {
                 Healthy = 0,
+                DrugAddicted1,
+                DrugAddicted2,
+                DrugAddicted3,
             }
 
             [JsonProperty(PropertyName = "I")]

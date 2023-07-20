@@ -9,12 +9,13 @@ namespace BCRPServer
         /// <summary>Сытость игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>От 0 до 100</value>
-        public int Satiety { get => Info.LastData.Satiety; set { Player.SetOwnSharedData("Satiety", value); Info.LastData.Satiety = value; } }
+        public byte Satiety { get => Info.LastData.Satiety; set { Player.SetOwnSharedData("Satiety", value); Info.LastData.Satiety = value; } }
 
         /// <summary>Настроение игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>От 0 до 100</value>
-        public int Mood { get => Info.LastData.Mood; set { Player.SetOwnSharedData("Mood", value); Info.LastData.Mood = value; } }
+        public byte Mood { get => Info.LastData.Mood; set { Player.SetOwnSharedData("Mood", value); Info.LastData.Mood = value; } }
+        public byte DrugAddiction { get => Info.LastData.DrugAddiction; set { Player.SetOwnSharedData("DrugAd", value); Info.LastData.DrugAddiction = value; } }
 
         public ulong BankBalance { get => Info.BankAccount?.Balance ?? 0; set { Player.SetOwnSharedData("BankBalance", value); if (Info.BankAccount != null) Info.BankAccount.Balance = value; } }
 

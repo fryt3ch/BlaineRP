@@ -9,8 +9,9 @@ namespace BCRPClient.CEF
     [Script(int.MaxValue)]
     public class Notification 
     {
-        public const int DefTimeout = 2500;
-        public const int MaxNotifications = 5;
+        private static TimeSpan TextReadMinTime { get; } = TimeSpan.FromSeconds(2.5d);
+
+        public const byte MaxNotifications = 5;
 
         private static DateTime LastAntiSpamShowed { get; set; }
 
@@ -296,10 +297,6 @@ namespace BCRPClient.CEF
             { "Report::S", new Instance(Types.Error, "Вы сможете отправить новое сообщение к этому запросу через {0}", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Report::AT", new Instance(Types.Information, "Администратор {0} начал заниматься Вашим запросом!", Locale.Get("NOTIFICATION_HEADER_DEF")) },
 
-            { "CDown::1", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText1, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { "CDown::2", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText2, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { "CDown::3", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText3, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-
             { "Cuffs::0_0", new Instance(Types.Cuffs, Locale.Get("POLICE_CUFFS_N_2"), Locale.Get("NOTIFICATION_HEADER_DEF")) },
             { "Cuffs::0_1", new Instance(Types.Cuffs, Locale.Get("POLICE_CUFFS_N_3"), Locale.Get("NOTIFICATION_HEADER_DEF")) },
 
@@ -445,7 +442,6 @@ namespace BCRPClient.CEF
             });
         }
 
-        #region Showers
         public static void Show(string type, params object[] args)
         {
             var inst = Prepared.GetValueOrDefault(type);
@@ -505,9 +501,7 @@ namespace BCRPClient.CEF
         {
             Show(Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), content, timeout);
         }
-        #endregion
 
-        #region Stuff
         public static void ClearAll()
         {
             if (!IsActive)
@@ -515,9 +509,7 @@ namespace BCRPClient.CEF
 
             Browser.Window.ExecuteCachedJs("Notific.clearAll();");
         }
-        #endregion
 
-        #region Spam Check
         public static bool SpamCheck(ref DateTime dateTime, int timeout = 500, bool updateTime = false, bool notify = false)
         {
             var spam = Sync.World.ServerTime.Subtract(dateTime).TotalMilliseconds < timeout;
@@ -534,13 +526,12 @@ namespace BCRPClient.CEF
 
             return spam;
         }
-        #endregion
 
         public static int GetTextReadingTime(string text)
         {
             var optimalTime = text.Where(x => char.IsLetterOrDigit(x)).Count() * 100;
 
-            return optimalTime < DefTimeout ? DefTimeout : optimalTime;
+            return optimalTime < (int)TextReadMinTime.TotalMilliseconds ? (int)TextReadMinTime.TotalMilliseconds : optimalTime;
         }
 
         public enum FiveNotificImgTypes

@@ -1,11 +1,13 @@
-﻿using System;
+﻿using GTANetworkAPI;
+using GTANetworkMethods;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace BCRPServer.Sync.Offers
 {
-    [Offer(Types.EmsHeal)]
-    internal class EmsHeal : OfferBase
+    [Offer(Types.EmsDrugHeal)]
+    internal class EmsDrugHeal : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
         {
@@ -23,7 +25,7 @@ namespace BCRPServer.Sync.Offers
             if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            var sourceFractionType = (Game.Fractions.Types)((object[])offer.Data)[2];
+            var sourceFractionType = (Game.Fractions.Types)((object[])offer.Data)[1];
 
             if (pData.Fraction != sourceFractionType)
             {
@@ -33,16 +35,29 @@ namespace BCRPServer.Sync.Offers
                 return;
             }
 
-            var hpToRestore = (int)((object[])offer.Data)[1];
             var price = (uint)((object[])offer.Data)[0];
 
-            var curHealth = tData.Player.Health;
+            var curDrugAddiction = tData.DrugAddiction;
 
-            var hpDiff = Utils.CalculateDifference(curHealth, hpToRestore, 1, Properties.Settings.Static.PlayerMaxHealth);
+            var diff = (byte)Math.Abs(Utils.CalculateDifference(curDrugAddiction, -Game.Fractions.EMS.PlayerDrugHealAmount, 0, Properties.Settings.Static.PlayerMaxDrugAddiction));
 
-            if (hpDiff != hpToRestore)
+            if (diff == 0)
             {
                 tPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_1"));
+                sPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_0"));
+
+                return;
+            }
+
+            var cdHashA = NAPI.Util.GetHashKey("EMS_DRUGAD_HEAL_A");
+
+            var curTime = Utils.GetCurrentTime();
+
+            TimeSpan cdATimeLeft;
+
+            if (tData.Info.HasCooldown(cdHashA, curTime, out _, out cdATimeLeft, out _, 1d))
+            {
+                tPlayer.NotifyError(Language.Strings.Get("NTFC_COOLDOWN_GEN_2", cdATimeLeft.GetBeautyString()));
                 sPlayer.NotifyError(Language.Strings.Get("NTFC_OFFER_ERROR_0"));
 
                 return;
@@ -53,7 +68,7 @@ namespace BCRPServer.Sync.Offers
             if (!tData.TryRemoveCash(price, out newBalanceT, true, pData))
                 return;
 
-            var totalEarn = (uint)Math.Round(Game.Fractions.EMS.PlayerHealPricePlayerGetCoef * price);
+            var totalEarn = (uint)Math.Round(Game.Fractions.EMS.PlayerDrugHealPricePlayerGetCoef * price);
 
             ulong newBalanceP;
 
@@ -63,7 +78,9 @@ namespace BCRPServer.Sync.Offers
             tData.SetCash(newBalanceT);
             pData.SetCash(newBalanceP);
 
-            tData.Player.SetHealth(curHealth + hpToRestore);
+            tData.DrugAddiction -= diff;
+
+            tData.Info.SetCooldown(cdHashA, curTime, Game.Fractions.EMS.PlayerDrugHealCooldownA, true);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -87,24 +104,24 @@ namespace BCRPServer.Sync.Offers
                 return false;
             }
 
-            var curHealth = tData.Player.Health;
+            var curDrugAddiction = tData.DrugAddiction;
 
-            var diff = Utils.CalculateDifference(curHealth, Properties.Settings.Static.PlayerMaxHealth, 1, Properties.Settings.Static.PlayerMaxHealth);
+            var diff = (byte)Math.Abs(Utils.CalculateDifference(curDrugAddiction, -Game.Fractions.EMS.PlayerDrugHealAmount, 0, Properties.Settings.Static.PlayerMaxDrugAddiction));
 
-            if (diff <= 0)
+            if (diff == 0)
             {
-                pData.Player.NotifyError(Language.Strings.Get("NTFC_OFFER_EMS_HEAL_0"));
+                pData.Player.NotifyError(Language.Strings.Get("NTFC_OFFER_EMS_DRUGHEAL_0"));
 
                 returnObj = 1;
 
                 return false;
             }
 
-            var price = (uint)Math.Round(Game.Fractions.EMS.PlayerHealMaxPrice - ((Game.Fractions.EMS.PlayerHealMaxPrice - Game.Fractions.EMS.PlayerHealMinPrice) * (curHealth - 1d) / (Game.Fractions.EMS.PlayerHealMinPrice - 1d)));
+            var price = Game.Fractions.EMS.PlayerDrugHealPrice;
 
-            offer = Offer.Create(pData, tData, type, -1, new object[] { price, diff, fData.Type, });
+            offer = Offer.Create(pData, tData, type, -1, new object[] { price, fData.Type, });
 
-            text = Language.Strings.Get("OFFER_EMS_HEAL_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", price));
+            text = Language.Strings.Get("OFFER_EMS_DRUGHEAL_TEXT", "{0}", Language.Strings.Get("GEN_MONEY_0", price));
 
             return true;
         }

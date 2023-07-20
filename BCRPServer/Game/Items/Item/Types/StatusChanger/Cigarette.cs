@@ -75,7 +75,7 @@ namespace BCRPServer.Game.Items
 
             player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, null, data.MaxTime, data.MaxPuffs);
 
-            var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
+            var moodDiff = (byte)Utils.CalculateDifference(pData.Mood, data.Mood, 0, Properties.Settings.Static.PlayerMaxMood);
 
             if (moodDiff != 0)
             {
