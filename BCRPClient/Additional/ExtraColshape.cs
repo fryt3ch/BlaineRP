@@ -1270,11 +1270,11 @@ namespace BCRPClient.Additional
                     if (bVehData == null)
                         return;
 
-                    var trVehHandle = baseVeh.GetTrailerVehicle();
+                    var trailerVehHandle = baseVeh.GetTrailerVehicle();
 
-                    if (trVehHandle > 0 && Utils.GetVehicleByHandle(trVehHandle, true) is Vehicle trVeh)
+                    if (trailerVehHandle > 0 && Utils.GetVehicleByHandle(trailerVehHandle, false) is Vehicle trailerVeh)
                     {
-                        if (trVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
+                        if (trailerVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
                         {
                             var boatData = Sync.Vehicles.GetData(boat);
 

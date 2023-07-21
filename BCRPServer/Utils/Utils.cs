@@ -564,23 +564,6 @@ namespace BCRPServer
         }
 
 
-        /// <summary>Метод для того, чтобы игрок перестал использовать текущее оружие</summary>
-        /// <param name="pData">PlayerData игрока</param>
-        /// <returns></returns>
-        public static bool UnequipActiveWeapon(this PlayerData pData)
-        {
-            var weapon = pData.ActiveWeapon;
-
-            if (weapon != null)
-            {
-                pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 5);
-
-                return true;
-            }
-            else
-                return false;
-        }
-
         public static List<(Game.Items.Item Item, Game.Items.Inventory.GroupTypes Group, int Slot)> TakeWeapons(this PlayerData pData)
         {
             pData.UnequipActiveWeapon();
@@ -900,7 +883,7 @@ namespace BCRPServer
         public static void PlayAnim(this PlayerData pData, Sync.Animations.GeneralTypes type) => Sync.Animations.Play(pData, type);
 
         /// <inheritdoc cref="Sync.Animations.Play(Player, Sync.Animations.FastTypes)"/>
-        public static void PlayAnim(this PlayerData pData, Sync.Animations.FastTypes type, int customTimeout = -1) => Sync.Animations.Play(pData, type, customTimeout);
+        public static void PlayAnim(this PlayerData pData, Sync.Animations.FastTypes type, TimeSpan timeout) => Sync.Animations.Play(pData, type, timeout);
 
         /// <inheritdoc cref="Sync.Animations.Play(Player, Sync.Animations.OtherTypes)"/>
         public static void PlayAnim(this PlayerData pData, Sync.Animations.OtherTypes type) => Sync.Animations.Play(pData, type);
@@ -1149,18 +1132,6 @@ namespace BCRPServer
         public static bool IsAnyAnimOn(this PlayerData pData) => pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None || pData.OtherAnim != Animations.OtherTypes.None;
 
         public static bool CanPlayAnimNow(this PlayerData pData) => !IsAnyAnimOn(pData) && !pData.CrawlOn;
-
-        public static bool StopUseCurrentItem(this PlayerData pData)
-        {
-            var curItem = pData.CurrentItemInUse;
-
-            if (curItem == null)
-                return false;
-
-            curItem.Value.Item.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
-
-            return true;
-        }
 
         public static void CloneDirectory(DirectoryInfo source, DirectoryInfo dest)
         {

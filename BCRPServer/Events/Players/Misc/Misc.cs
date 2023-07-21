@@ -45,7 +45,12 @@ namespace BCRPServer.Events.Players.Misc
             }
             else
             {
-                atPlayer.DetachEntity(player);
+                var atData = atPlayer.GetAttachmentData(pData.Player);
+
+                if (atData != null && atData.Type == Sync.AttachSystem.Types.Carry)
+                {
+                    atPlayer.DetachEntity(player);
+                }
             }
         }
 
@@ -141,7 +146,7 @@ namespace BCRPServer.Events.Players.Misc
             {
                 if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
                 {
-                    pData.PlayAnim(Sync.Animations.FastTypes.SmokePuffCig);
+                    pData.PlayAnim(Sync.Animations.FastTypes.SmokePuffCig, Game.Items.Cigarette.SmokePuffAnimationTime);
 
                     player.TriggerEvent("Player::Smoke::Puff");
 
@@ -166,7 +171,7 @@ namespace BCRPServer.Events.Players.Misc
             {
                 if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
                 {
-                    pData.PlayAnim(Sync.Animations.FastTypes.SmokeTransitionCig);
+                    pData.PlayAnim(Sync.Animations.FastTypes.SmokeTransitionCig, Game.Items.Cigarette.SmokeTransitionAnimationTime);
 
                     attachData = x;
 
@@ -186,7 +191,7 @@ namespace BCRPServer.Events.Players.Misc
 
                 if (player.DetachObject(attachData.Type, false))
                     player.AttachObject(attachData.Model, oppositeType, -1, null);
-            }, 500);
+            }, (int)Game.Items.Cigarette.SmokeTransitionTime.TotalMilliseconds);
         }
 
         [RemoteEvent("Player::NRPP::TPME")]

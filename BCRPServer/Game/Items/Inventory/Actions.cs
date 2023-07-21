@@ -482,7 +482,7 @@ namespace BCRPServer.Game.Items
                         {
                             var player = pData.Player;
 
-                            if (pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                            if (pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyItemInUse() || pData.HasAnyHandAttachedObject)
                             {
                                 player.Notify("ASP::ARN");
 
@@ -687,7 +687,7 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyItemInUse() || pData.HasAnyHandAttachedObject)
                                 {
                                     player.Notify("ASP::ARN");
 
@@ -721,7 +721,7 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyItemInUse() || pData.HasAnyHandAttachedObject)
                                 {
                                     player.Notify("ASP::ARN");
 
@@ -804,7 +804,7 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyItemInUse() || pData.HasAnyHandAttachedObject)
                                 {
                                     player.Notify("ASP::ARN");
 
@@ -845,7 +845,7 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyItemInUse() || pData.HasAnyHandAttachedObject)
                                 {
                                     player.Notify("ASP::ARN");
 
@@ -886,7 +886,7 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ParachuteSync).Any() || pData.CurrentItemInUse != null)
+                                if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ParachuteSync).Any() || pData.HasAnyItemInUse())
                                 {
                                     player.Notify("ASP::ARN");
 

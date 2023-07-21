@@ -437,8 +437,8 @@ namespace BCRPClient.Additional
 
             state.OnAction?.Invoke(null);
 
-            var sEntity = Utils.GetGameEntity(sourceEntity);
-            var tEntity = Utils.GetGameEntity(targetEntity);
+            var sEntity = (GameEntity)sourceEntity;
+            var tEntity = (GameEntity)targetEntity;
 
             MinFov = state.MinFov;
             MaxFov = state.MaxFov;

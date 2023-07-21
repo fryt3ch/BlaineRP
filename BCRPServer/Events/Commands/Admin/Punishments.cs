@@ -37,10 +37,10 @@ namespace BCRPServer.Events.Commands
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Name} {tData.Surname} ({target.Id})");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Info.Name} {tData.Info.Surname} ({target.Id})");
             }
 
-            target.Notify("KickA", $"{pData.Name} {pData.Surname} #{pData.CID}", reason);
+            target.Notify("KickA", $"{pData.Info.Name} {pData.Info.Surname} #{pData.CID}", reason);
 
             Utils.Kick(target, null);
         }
@@ -71,14 +71,14 @@ namespace BCRPServer.Events.Commands
 
             if (tData == null)
             {
-                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Name} {pData.Surname} #{pData.CID}", $"NOT_AUTH ({target.Id})", reason));
+                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Info.Name} {pData.Info.Surname} #{pData.CID}", $"NOT_AUTH ({target.Id})", reason));
             }
             else
             {
-                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Name} {pData.Surname} #{pData.CID}", $"{tData.Name} {tData.Surname} #{tData.CID}", reason));
+                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Info.Name} {pData.Info.Surname} #{pData.CID}", $"{tData.Info.Name} {tData.Info.Surname} #{tData.CID}", reason));
             }
 
-            target.Notify("KickA", $"{pData.Name} {pData.Surname} #{pData.CID}", reason);
+            target.Notify("KickA", $"{pData.Info.Name} {pData.Info.Surname} #{pData.CID}", reason);
 
             Utils.Kick(target, null);
         }

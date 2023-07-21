@@ -37,12 +37,14 @@ namespace BCRPServer.Events.Vehicles
                 return;
             }
 
-            var curWeapon = pData.ActiveWeapon;
+            Game.Items.Weapon activeWeapon;
+            Game.Items.Inventory.GroupTypes activeWeaponGroup;
+            int activeWeaponSlot;
 
-            if (curWeapon != null)
+            if (pData.TryGetActiveWeapon(out activeWeapon, out activeWeaponGroup, out activeWeaponSlot))
             {
-                if (!curWeapon.Value.WeaponItem.Data.CanUseInVehicle)
-                    pData.InventoryAction(curWeapon.Value.Group, curWeapon.Value.Slot, 5);
+                if (!activeWeapon.Data.CanUseInVehicle)
+                    pData.InventoryAction(activeWeaponGroup, activeWeaponSlot, 5);
             }
 
             player.TriggerEvent("Vehicles::Enter", vData.FuelLevel, vData.Mileage);

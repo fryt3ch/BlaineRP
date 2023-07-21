@@ -34,9 +34,7 @@ namespace BCRPServer.Events.Players
 
                     if (callTarget.Player?.Exists == true)
                     {
-                        player.EnableVoiceTo(callTarget.Player);
-
-                        pData.Listeners.Add(callTarget.Player);
+                        pData.AddMicrophoneListener(callTarget.Player);
                     }
                 }
             }
@@ -59,12 +57,10 @@ namespace BCRPServer.Events.Players
             if (voiceRange <= 0f)
                 return;
 
-            if (pData.Listeners.Contains(target) || !player.IsNearToEntity(target, voiceRange + 5f))
+            if (!player.IsNearToEntity(target, voiceRange + 5f))
                 return;
 
-            player.EnableVoiceTo(target);
-
-            pData.Listeners.Add(target);
+            pData.AddMicrophoneListener(target);
         }
 
         [RemoteEvent("mrl")]
@@ -72,10 +68,10 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (pData == null || target == null || !pData.Listeners.Remove(target))
+            if (pData == null || target == null)
                 return;
 
-            player.DisableVoiceTo(target);
+            pData.RemoveMicrophoneListener(target);
         }
     }
 }

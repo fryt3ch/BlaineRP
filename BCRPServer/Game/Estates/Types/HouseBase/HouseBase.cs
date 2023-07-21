@@ -2507,7 +2507,7 @@ namespace BCRPServer.Game.Estates
 
 			if (Type == Types.House)
 			{
-				if (pData.HouseSlots <= 0)
+				if (pData.FreeHouseSlots <= 0)
 				{
 					pData.Player.Notify("Trade::MHOW", pData.OwnedHouses.Count);
 
@@ -2516,7 +2516,7 @@ namespace BCRPServer.Game.Estates
 			}
 			else
 			{
-				if (pData.ApartmentsSlots <= 0)
+				if (pData.FreeApartmentsSlots <= 0)
 				{
 					pData.Player.Notify("Trade::MAOW", pData.OwnedApartments.Count);
 

@@ -114,7 +114,7 @@ namespace BCRPServer
 
                     var owner = FullOwnerPlayer;
 
-                    var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
+                    var freeGarageSlots = owner.PlayerData.FreeVehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
 
                     if (LastData.Dimension != Properties.Settings.Static.MainDimension && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                     {

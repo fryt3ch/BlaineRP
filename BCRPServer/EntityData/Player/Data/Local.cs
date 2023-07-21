@@ -22,43 +22,6 @@ namespace BCRPServer
 
         private Timer UpdateTimer { get; set; }
 
-        /// <summary>Текущее оружие</summary>
-        /// <value>Объект класса Game.Items.Weapon, null - если ничего</value>
-        public (Game.Items.Weapon WeaponItem, Game.Items.Inventory.GroupTypes Group, int Slot)? ActiveWeapon
-        {
-            get
-            {
-                if (Weapons[0]?.Equiped == true)
-                {
-                    return (Weapons[0], Game.Items.Inventory.GroupTypes.Weapons, 0);
-                }
-                else if (Weapons[1]?.Equiped == true)
-                {
-                    return (Weapons[1], Game.Items.Inventory.GroupTypes.Weapons, 1);
-                }
-                else if (Holster?.Items[0] is Game.Items.Weapon weapon && weapon.Equiped)
-                {
-                    return (weapon, Game.Items.Inventory.GroupTypes.Holster, 2);
-                }
-
-                return null;
-            }
-        }
-
-        public (Game.Items.IUsable Item, int Slot)? CurrentItemInUse
-        {
-            get
-            {
-                for (int i = 0; i < Items.Length; i++)
-                {
-                    if (Items[i] is Game.Items.IUsable itemU && itemU.InUse)
-                        return (itemU, i);
-                }
-
-                return null;
-            }
-        }
-
         /// <summary>Сущность, к которой прикреплен игрок</summary>
         public Entity IsAttachedToEntity => Player.GetEntityIsAttachedTo();
 
@@ -90,76 +53,30 @@ namespace BCRPServer
         /// <summary>Текущий бизнес, с которым взаимодействует игрок</summary>
         public Game.Businesses.Business CurrentBusiness { get => Player.GetData<Game.Businesses.Business>("CBusiness"); set { if (value == null) Player.ResetData("CBusiness"); else Player.SetData("CBusiness", value); } }
 
-        /// <summary>Текущий дом, с которым взаимодействует игрок</summary>
-        public Game.Estates.House CurrentHouse
-        {
-            get
-            {
-                var id = Utils.GetHouseIdByDimension(Player.Dimension);
-
-                return id == 0 ? null : Game.Estates.House.Get(id);
-            }
-        }
-
-        public Game.Estates.Apartments CurrentApartments
-        {
-            get
-            {
-                var id = Utils.GetApartmentsIdByDimension(Player.Dimension);
-
-                return id == 0 ? null : Game.Estates.Apartments.Get(id);
-            }
-        }
-
-        public Game.Estates.Garage CurrentGarage
-        {
-            get
-            {
-                var id = Utils.GetGarageIdByDimension(Player.Dimension);
-
-                return id == 0 ? null : Game.Estates.Garage.Get(id);
-            }
-        }
+        public Game.Estates.Garage CurrentGarage => Utils.GetGarageByDimension(Player.Dimension);
 
         public Game.Estates.HouseBase CurrentHouseBase => Utils.GetHouseBaseByDimension(Player.Dimension);
 
         public Game.Estates.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootByDimension(Player.Dimension);
 
-        public int VehicleSlots => (Properties.Settings.Static.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
+        public int FreeVehicleSlots => (Properties.Settings.Static.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
 
-        public int HouseSlots => Properties.Settings.Static.MAX_HOUSES - OwnedHouses.Count;
-        public int ApartmentsSlots => Properties.Settings.Static.MAX_APARTMENTS - OwnedApartments.Count;
-        public int GaragesSlots => Properties.Settings.Static.MAX_GARAGES - OwnedGarages.Count;
-        public int BusinessesSlots => Properties.Settings.Static.MAX_BUSINESSES - OwnedBusinesses.Count;
+        public int FreeHouseSlots => Properties.Settings.Static.MAX_HOUSES - OwnedHouses.Count;
+        public int FreeApartmentsSlots => Properties.Settings.Static.MAX_APARTMENTS - OwnedApartments.Count;
+        public int FreeGaragesSlots => Properties.Settings.Static.MAX_GARAGES - OwnedGarages.Count;
+        public int FreeBusinessesSlots => Properties.Settings.Static.MAX_BUSINESSES - OwnedBusinesses.Count;
 
-        public Game.Data.Customization.UniformTypes? CurrentUniform { get => Player.GetData<Game.Data.Customization.UniformTypes?>("CUNIF"); set { if (value == null) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
+        public Game.Data.Customization.UniformTypes CurrentUniform { get => Player.GetData<Game.Data.Customization.UniformTypes?>("CUNIF") ?? Game.Data.Customization.UniformTypes.None; set { if (value == Game.Data.Customization.UniformTypes.None) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
 
-        #region Customization
-        public Game.Data.Customization.HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
-
-        public Dictionary<int, Game.Data.Customization.HeadOverlay> HeadOverlays { get => Info.HeadOverlays; set => Info.HeadOverlays = value; }
-
-        public float[] FaceFeatures { get => Info.FaceFeatures; set => Info.FaceFeatures = value; }
-
-        public List<int> Decorations { get => Info.Decorations; set => Info.Decorations = value; }
-
-        public Game.Data.Customization.HairStyle HairStyle { get => Info.HairStyle; set => Info.HairStyle = value; }
-
-        public byte EyeColor { get => Info.EyeColor; set => Info.EyeColor = value; }
-        #endregion
-
-        #region Inventory
-        /// <summary>Предметы игрока в карманах</summary>
-        /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
-        public Game.Items.Item[] Items { get => Info.Items; set => Info.Items = value; }
+        public Game.Items.Item[] Items => Info.Items;
 
         /// <summary>Текущая одежда игрока</summary>
         /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - шапка, 1 - верх, 2 - низ, 3 - штаны, 4 - обувь</value>
-        public Game.Items.Clothes[] Clothes { get => Info.Clothes; set => Info.Clothes = value; }
+        public Game.Items.Clothes[] Clothes => Info.Clothes;
 
         /// <summary>Текущие аксессуары игрока</summary>
         /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - очки, 1 - маска, 2 - серьги, 3 - шея, 4 - часы, 5 - браслет, 6 - кольцо, 7 - перчатки</value>
-        public Game.Items.Clothes[] Accessories { get => Info.Accessories; set => Info.Accessories = value; }
+        public Game.Items.Clothes[] Accessories => Info.Accessories;
 
         /// <summary>Текущая сумка игрока</summary>
         /// <value>Объект класса Game.Items.Bag, null - если отсутствует</value>
@@ -171,7 +88,7 @@ namespace BCRPServer
 
         /// <summary>Текущее оружие игрока (не включает в себя кобуру)</summary>
         /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
-        public Game.Items.Weapon[] Weapons { get => Info.Weapons; set => Info.Weapons = value; }
+        public Game.Items.Weapon[] Weapons => Info.Weapons;
 
         /// <summary>Текущий бронежилет игрока</summary>
         /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
@@ -182,8 +99,7 @@ namespace BCRPServer
         /// <summary>Текущие предметы игрока, которые времено забрал сервер</summary>
         public List<(Game.Items.Item Item, Game.Items.Inventory.GroupTypes Group, int Slot)> TempItems { get => Player.GetData<List<(Game.Items.Item, Game.Items.Inventory.GroupTypes, int)>>("TempItems"); set { if (value == null) Player.ResetData("TempItems"); else Player.SetData("TempItems", value); } }
 
-        public bool InventoryBlocked { get => Player.GetData<bool?>("Inventory::Blocked") == true; set { if (!value) Player.ResetData("Inventory::Blocked"); else Player.SetData("Inventory::Blocked", value); } }
-        #endregion
+        public bool IsInventoryBlocked { get => Player.GetData<bool?>("Inventory::Blocked") == true; set { if (!value) Player.ResetData("Inventory::Blocked"); else Player.SetData("Inventory::Blocked", value); } }
 
         public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
 
@@ -193,18 +109,141 @@ namespace BCRPServer
         /// <summary>Активный звонок игрока</summary>
         public Sync.Phone.Call ActiveCall => Sync.Phone.Call.GetByPlayer(this);
 
-        /// <summary>Список игроков, которые являются слушателями (микрофон)</summary>
-        public List<Player> Listeners { get; set; }
-
         /// <summary>Время получения последнего урона от оружия</summary>
         public DateTime LastDamageTime { get; set; }
 
-        /// <summary>Имя игрока</summary>
-        public string Name { get => Info.Name; set => Info.Name = value; }
-
-        /// <summary>Фамилия игрока</summary>
-        public string Surname { get => Info.Surname; set => Info.Surname = value; }
-
         public IEnumerable<Sync.World.ItemOnGround> OwnedItemsOnGround => Sync.World.GetItemsOnGroundByOwner(Info);
+
+        private HashSet<Player> _microphoneListeners = new HashSet<Player>();
+
+        public bool AddMicrophoneListener(Player target)
+        {
+            if (_microphoneListeners.Add(target))
+            {
+                Player.EnableVoiceTo(target);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool RemoveMicrophoneListener(Player target)
+        {
+            if (_microphoneListeners.Remove(target))
+            {
+                Player.DisableVoiceTo(target);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool HasMicrophoneListener(Player target) => _microphoneListeners.Contains(target);
+
+        public void RemoveAllMicrophoneListeners()
+        {
+            foreach (var x in  _microphoneListeners)
+            {
+                Player.DisableVoiceTo(x);
+            }
+
+            _microphoneListeners.Clear();
+        }
+
+        public bool TryGetCurrentItemInUse(out Game.Items.IUsable item, out int slot)
+        {
+            for (int i = 0; i < Items.Length; i++)
+            {
+                if (Items[i] is Game.Items.IUsable itemU && itemU.InUse)
+                {
+                    item = itemU;
+                    slot = i;
+
+                    return true;
+                }
+            }
+
+            item = null;
+            slot = -1;
+
+            return false;
+        }
+
+        public bool HasAnyItemInUse() => TryGetCurrentItemInUse(out _, out _);
+
+        public bool StopUseCurrentItem()
+        {
+            Game.Items.IUsable item;
+            int slot;
+
+            if (TryGetCurrentItemInUse(out item, out slot))
+            {
+                item.StopUse(this, Game.Items.Inventory.GroupTypes.Items, slot, true);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool TryGetActiveWeapon(out Game.Items.Weapon weaponItem, out Game.Items.Inventory.GroupTypes group, out int slot)
+        {
+            for (int i = 0; i < Weapons.Length; i++)
+            {
+                var weapon = Weapons[i];
+
+                if (weapon?.Equiped == true)
+                {
+                    weaponItem = weapon;
+                    group = Game.Items.Inventory.GroupTypes.Weapons;
+                    slot = i;
+
+                    return true;
+                }
+            }
+
+            if (Holster?.Weapon is Game.Items.Weapon holsterWeapon && holsterWeapon.Equiped)
+            {
+                weaponItem = holsterWeapon;
+                group = Game.Items.Inventory.GroupTypes.Holster;
+                slot = 2;
+
+                return true;
+            }
+            else
+            {
+                weaponItem = null;
+                group = Game.Items.Inventory.GroupTypes.Items;
+                slot = -1;
+
+                return false;
+            }
+        }
+
+        public bool HasAnyActiveWeapon() => TryGetActiveWeapon(out _, out _, out _);
+
+        public bool UnequipActiveWeapon()
+        {
+            Game.Items.Weapon weapon; Game.Items.Inventory.GroupTypes group; int slot;
+
+            if (TryGetActiveWeapon(out weapon, out group, out slot))
+            {
+                this.InventoryAction(group, slot, 5);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

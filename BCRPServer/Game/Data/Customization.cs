@@ -87,7 +87,8 @@ namespace BCRPServer.Game.Data
 
         public enum UniformTypes
         {
-            Farmer = 0,
+            None = 0,
+            Farmer,
 
             FractionPaletoPolice_0,
             FractionPaletoPolice_1,
@@ -99,7 +100,7 @@ namespace BCRPServer.Game.Data
         }
 
         // if >= 1000 -> prop
-        public static Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>> Uniforms = new Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>>()
+        private static Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>> _allUniforms = new Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>>()
         {
             {
                 UniformTypes.Farmer,
@@ -202,7 +203,7 @@ namespace BCRPServer.Game.Data
 
         public static void ApplyUniform(PlayerData pData, UniformTypes uType)
         {
-            var data = Uniforms.GetValueOrDefault(uType);
+            var data = _allUniforms.GetValueOrDefault(uType);
 
             if (data == null)
                 return;
@@ -239,9 +240,11 @@ namespace BCRPServer.Game.Data
 
         public static bool IsUniformElementActive(PlayerData pData, int elementIdx, bool notifyIf)
         {
-            if (pData.CurrentUniform is UniformTypes uType)
+            var currentUniformType = pData.CurrentUniform;
+
+            if (currentUniformType != UniformTypes.None)
             {
-                var data = Uniforms.GetValueOrDefault(uType);
+                var data = _allUniforms.GetValueOrDefault(currentUniformType);
 
                 if (data == null)
                     return false;
@@ -262,7 +265,7 @@ namespace BCRPServer.Game.Data
 
         public static bool IsInUniform(PlayerData pData, bool notifyIf)
         {
-            if (pData.CurrentUniform == null)
+            if (pData.CurrentUniform == UniformTypes.None)
                 return false;
 
             if (notifyIf)
@@ -275,7 +278,7 @@ namespace BCRPServer.Game.Data
 
         public static void SetNoUniform(PlayerData pData)
         {
-            pData.CurrentUniform = null;
+            pData.CurrentUniform = UniformTypes.None;
 
             pData.UpdateClothes();
         }

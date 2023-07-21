@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace BCRPServer.Properties.Settings
@@ -15,10 +17,13 @@ namespace BCRPServer.Properties.Settings
 
         public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Data\Locations\Locations.cs";
 
+        [ClientSync("mainDimension")]
         public const uint MainDimension = 7;
+        [ClientSync("stuffDimension")]
         public const uint StuffDimension = 1;
         public const uint DemorganDimension = 2;
 
+        [ClientSync("playerMaxHealth")]
         public const int PlayerMaxHealth = 100;
         public const byte PlayerMaxMood = 100;
         public const byte PlayerMaxSatiety = 100;
@@ -27,6 +32,14 @@ namespace BCRPServer.Properties.Settings
         public const byte PlayerDrugAddictionStage1 = 25;
         public const byte PlayerDrugAddictionStage2 = 50;
         public const byte PlayerDrugAddictionStage3 = 75;
+
+        public static Dictionary<PlayerData.SkillTypes, int> MaxSkills = new Dictionary<PlayerData.SkillTypes, int>()
+        {
+            { PlayerData.SkillTypes.Strength, 100 },
+            { PlayerData.SkillTypes.Shooting, 100 },
+            { PlayerData.SkillTypes.Cooking, 100 },
+            { PlayerData.SkillTypes.Fishing, 100 },
+        };
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
@@ -222,6 +235,10 @@ namespace BCRPServer.Properties.Settings
 
         public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
 
+        public static TimeSpan InventoryPutdownAnimationTime { get; } = TimeSpan.FromMilliseconds(1_500);
+        public static TimeSpan InventoryPickupAnimationTime { get; } = TimeSpan.FromMilliseconds(1_500);
+        public static TimeSpan WhistleAnimationTime { get; } = TimeSpan.FromMilliseconds(2_500);
+
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CharacterDefaultSkills => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
 
@@ -232,11 +249,30 @@ namespace BCRPServer.Properties.Settings
         {
             var jObj = new JObject();
 
-            jObj["mainDimension"] = Static.MainDimension;
-            jObj["stuffDimension"] = Static.StuffDimension;
-            jObj["playerMaxHealth"] = Static.PlayerMaxHealth;
+            foreach (var x in typeof(Static).GetProperties().Cast<MemberInfo>().Concat(typeof(Static).GetFields()))
+            {
+                var syncAttr = x.GetCustomAttribute<ClientSyncAttribute>();
+
+                if (syncAttr == null)
+                    continue;
+
+                var value = x is PropertyInfo propertyInfo ? propertyInfo.GetValue(null) : x is FieldInfo fieldInfo ? fieldInfo.GetValue(null) : null;
+
+                jObj[syncAttr.PropertyName ?? x.Name] = JToken.FromObject(value);
+            }
 
             return jObj;
+        }
+
+        [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+        private class ClientSyncAttribute : Attribute
+        {
+            public readonly string PropertyName;
+
+            public ClientSyncAttribute(string propertyName = null)
+            {
+                this.PropertyName = propertyName;
+            }
         }
     }
 }

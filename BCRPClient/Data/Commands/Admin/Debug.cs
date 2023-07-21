@@ -540,7 +540,7 @@ namespace BCRPClient.Data
         [Command("prop_del", true, "Установить сытость игроку")]
         public static void DelProp(int? handle = null)
         {
-            var gEntity = handle is int handleInt ? Utils.GetMapObjectByHandle(handleInt) as GameEntity : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+            var gEntity = handle is int handleInt ? Utils.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
 
             if (gEntity == null)
                 return;

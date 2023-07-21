@@ -399,7 +399,7 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            var house = pData.CurrentHouse;
+            var house = pData.CurrentHouseBase as Game.Estates.House;
 
             if (house == null || house.GarageData == null)
                 return;

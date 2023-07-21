@@ -70,7 +70,7 @@ namespace BCRPClient.CEF
                     var docName = (string)args[5];
                     var issueDate = RAGE.Util.Json.Deserialize<DateTime>((string)args[6]);
 
-                    ShowMedicalCard(name, surname, diagnose, issueFraction, docName, issueDate);
+                    ShowMedicalCard(name, surname, diagnose, Data.Fractions.Fraction.Get(issueFraction), docName, issueDate);
                 }
                 else if (type == 4)
                 {
@@ -118,7 +118,7 @@ namespace BCRPClient.CEF
             var pas = GetPasportData(ns.Name, ns.Surname, pData.Sex, CEF.Menu.BirthDate, null, pData.CID, CEF.Menu.CreationDate, false, false);
             var lic = GetLicensesData(ns.Name, ns.Surname, pData.Licenses);
 
-            var med = medCard == null ? null : GetMedicalCardData(ns.Name, ns.Surname, medCard.Diagnose, medCard.IssueFraction, medCard.DoctorName, medCard.IssueDate);
+            var med = medCard == null ? null : GetMedicalCardData(ns.Name, ns.Surname, medCard.Diagnose, Data.Fractions.Fraction.Get(medCard.IssueFraction), medCard.DoctorName, medCard.IssueDate);
 
             var res = GetResumeData(ns.Name, ns.Surname, null);
 
@@ -147,7 +147,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 1, new object[] { null, GetLicensesData(name, surname, licenses) });
         }
 
-        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue)
+        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue)
         {
             if (IsActive)
                 return;
@@ -215,7 +215,7 @@ namespace BCRPClient.CEF
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.Get("DOCS_VEHPASS_NOPLATE"), dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get($"MEDCARD_DIAGNOSIS_{(int)diagnose}"), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get(Sync.Players.MedicalCard.GetDiagnoseNameId(diagnose)), issueFraction.Name, docName, dateOfIssue.ToString("dd.MM.yyyy") };
 
         public static object[] GetFractionDocsData(string name, string surname, Data.Fractions.Fraction fData, byte rank) => new object[]
         {

@@ -152,7 +152,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.Error, null);
                 }
 
-                var pFreeVehSlots = pData.VehicleSlots;
+                var pFreeVehSlots = pData.FreeVehicleSlots;
 
                 if (pFreeVehSlots < 0)
                     pFreeVehSlots = 0;
@@ -165,7 +165,7 @@ namespace BCRPServer.Sync.Offers
                     return (Game.Items.Inventory.ResultTypes.NotEnoughVehicleSlots, pData);
                 }
 
-                var tFreeVehSlots = tData.VehicleSlots;
+                var tFreeVehSlots = tData.FreeVehicleSlots;
 
                 if (tFreeVehSlots < 0)
                     tFreeVehSlots = 0;
@@ -187,7 +187,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.NoBusinessLicense, pData);
                     }
 
-                    if ((pData.BusinessesSlots + SenderBusinesses.Count - ReceiverBusinesses.Count) < 0)
+                    if ((pData.FreeBusinessesSlots + SenderBusinesses.Count - ReceiverBusinesses.Count) < 0)
                     {
                         pData.Player.Notify("Trade::MBOW", pData.OwnedBusinesses.Count);
                         tData.Player.Notify("Trade::EOP");
@@ -205,7 +205,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.NoBusinessLicense, tData);
                     }
 
-                    if ((tData.BusinessesSlots + ReceiverBusinesses.Count - SenderBusinesses.Count) < 0)
+                    if ((tData.FreeBusinessesSlots + ReceiverBusinesses.Count - SenderBusinesses.Count) < 0)
                     {
                         tData.Player.Notify("Trade::MBOW", tData.OwnedBusinesses.Count);
                         pData.Player.Notify("Trade::EOP");
@@ -214,7 +214,7 @@ namespace BCRPServer.Sync.Offers
                     }
                 }
 
-                if (ReceiverGarages.Count > 0 && (pData.GaragesSlots + SenderGarages.Count - ReceiverGarages.Count) < 0)
+                if (ReceiverGarages.Count > 0 && (pData.FreeGaragesSlots + SenderGarages.Count - ReceiverGarages.Count) < 0)
                 {
                     pData.Player.Notify("Trade::MGOW", pData.OwnedGarages.Count);
                     tData.Player.Notify("Trade::EOP");
@@ -222,7 +222,7 @@ namespace BCRPServer.Sync.Offers
                     return (Game.Items.Inventory.ResultTypes.NotEnoughGarageSlots, pData);
                 }
 
-                if (SenderGarages.Count > 0 && (tData.GaragesSlots + ReceiverGarages.Count - SenderGarages.Count) < 0)
+                if (SenderGarages.Count > 0 && (tData.FreeGaragesSlots + ReceiverGarages.Count - SenderGarages.Count) < 0)
                 {
                     tData.Player.Notify("Trade::MGOW", tData.OwnedGarages.Count);
                     pData.Player.Notify("Trade::EOP");
@@ -240,7 +240,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.SettledToHouse, pData);
                     }
 
-                    if ((pData.HouseSlots + sHCount - rHCount) < 0)
+                    if ((pData.FreeHouseSlots + sHCount - rHCount) < 0)
                     {
                         pData.Player.Notify("Trade::MHOW", pData.OwnedHouses.Count);
                         tData.Player.Notify("Trade::EOP");
@@ -259,7 +259,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.SettledToHouse, tData);
                     }
 
-                    if ((tData.HouseSlots + rHCount - sHCount) < 0)
+                    if ((tData.FreeHouseSlots + rHCount - sHCount) < 0)
                     {
                         tData.Player.Notify("Trade::MHOW", tData.OwnedHouses.Count);
                         pData.Player.Notify("Trade::EOP");
@@ -281,7 +281,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.SettledToApartments, pData);
                     }
 
-                    if ((pData.ApartmentsSlots + sHCount - rHCount) < 0)
+                    if ((pData.FreeApartmentsSlots + sHCount - rHCount) < 0)
                     {
                         pData.Player.Notify("Trade::MAOW", pData.OwnedApartments.Count);
                         tData.Player.Notify("Trade::EOP");
@@ -300,7 +300,7 @@ namespace BCRPServer.Sync.Offers
                         return (Game.Items.Inventory.ResultTypes.SettledToApartments, tData);
                     }
 
-                    if ((tData.ApartmentsSlots + rHCount - sHCount) < 0)
+                    if ((tData.FreeApartmentsSlots + rHCount - sHCount) < 0)
                     {
                         tData.Player.Notify("Trade::MAOW", tData.OwnedApartments.Count);
                         pData.Player.Notify("Trade::EOP");

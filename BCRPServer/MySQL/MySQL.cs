@@ -578,7 +578,7 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var guid = Guid.Parse((string)reader["ID"]);
+                                var guid = (Guid)reader["ID"];
                                 var cid = Convert.ToUInt32(reader["CID"]);
                                 var hash = Convert.ToUInt32(reader["Hash"]);
 

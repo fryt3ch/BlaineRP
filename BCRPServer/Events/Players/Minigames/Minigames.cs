@@ -18,17 +18,19 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            var curItem = pData.CurrentItemInUse;
+            Game.Items.IUsable item;
+            int slot;
 
-            var fRod = curItem?.Item as Game.Items.FishingRod;
+            if (pData.TryGetCurrentItemInUse(out item, out slot))
+            {
+                if (item is Game.Items.FishingRod fRod)
+                {
+                    if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ItemFishG).Any())
+                        return;
 
-            if (fRod == null)
-                return;
-
-            if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ItemFishG).Any())
-                return;
-
-            fRod.StartCatchProcess(pData, 10000, 0.00095f, 3, fishZCoord);
+                    fRod.StartCatchProcess(pData, 10000, 0.00095f, 3, fishZCoord);
+                }
+            }
         }
 
         [RemoteEvent("MG::F::F")]
@@ -44,26 +46,28 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            var curItem = pData.CurrentItemInUse;
+            Game.Items.IUsable item;
+            int slot;
 
-            var fRod = curItem?.Item as Game.Items.FishingRod;
-
-            if (fRod == null)
-                return;
-
-            fRod.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
-
-            if (success)
+            if (pData.TryGetCurrentItemInUse(out item, out slot))
             {
-                var rItem = Game.Items.FishingRod.ItemData.GetRandomItem();
+                if (item is Game.Items.FishingRod fRod)
+                {
+                    fRod.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, slot, true);
 
-                pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
+                    if (success)
+                    {
+                        var rItem = Game.Items.FishingRod.ItemData.GetRandomItem();
 
-                player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
-            }
-            else
-            {
-                player.Notify("Inventory::FGNC");
+                        pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
+
+                        player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
+                    }
+                    else
+                    {
+                        player.Notify("Inventory::FGNC");
+                    }
+                }
             }
         }
 
@@ -80,20 +84,22 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            var curItem = pData.CurrentItemInUse;
+            Game.Items.IUsable item;
+            int slot;
 
-            var shovel = curItem?.Item as Game.Items.Shovel;
+            if (pData.TryGetCurrentItemInUse(out item, out slot))
+            {
+                if (item is Game.Items.Shovel shovel)
+                {
+                    shovel.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, slot, true);
 
-            if (shovel == null)
-                return;
+                    var rItem = Game.Items.Shovel.ItemData.GetRandomItem();
 
-            shovel.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
+                    pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
 
-            var rItem = Game.Items.Shovel.ItemData.GetRandomItem();
-
-            pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
-
-            player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
+                    player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
+                }
+            }
         }
 
         [RemoteProc("MG::LOCKPICK::Cuffs")]

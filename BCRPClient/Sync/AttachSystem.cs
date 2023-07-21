@@ -121,6 +121,8 @@ namespace BCRPClient.Sync
 
             VehicleTrunk,
 
+            PlayerResurrect,
+
             #endregion
         }
 
@@ -279,13 +281,13 @@ namespace BCRPClient.Sync
 
             public uint Model { get; set; }
 
-            public AttachmentObject(GameEntity Object, Types Type, uint Model, string SyncData)
+            public AttachmentObject(GameEntity @object, AttachmentObjectNet attachmentNet)
             {
-                this.SyncData = SyncData;
-                this.Object = Object;
-                this.Type = Type;
+                this.SyncData = attachmentNet.SyncData;
+                this.Object = @object;
+                this.Type = attachmentNet.Type;
 
-                this.Model = Model;
+                this.Model = attachmentNet.Model;
             }
         }
 
@@ -299,11 +301,15 @@ namespace BCRPClient.Sync
 
             public bool WasAttached { get; set; }
 
-            public AttachmentEntity(ushort RemoteID, RAGE.Elements.Type EntityType, Types Type)
+            public string SyncData { get; set; }
+
+            public AttachmentEntity(AttachmentEntityNet attachmentNet)
             {
-                this.RemoteID = RemoteID;
-                this.EntityType = EntityType;
-                this.Type = Type;
+                this.RemoteID = attachmentNet.Id;
+                this.EntityType = attachmentNet.EntityType;
+                this.Type = attachmentNet.Type;
+
+                this.SyncData = attachmentNet.SyncData;
             }
         }
 
@@ -516,7 +522,7 @@ namespace BCRPClient.Sync
             entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
 
             foreach (var x in listObjectsNet)
-                await AttachObject(x.Model, entity, x.Type, x.SyncData);
+                await AttachObject(entity, x);
 
             entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
@@ -528,7 +534,7 @@ namespace BCRPClient.Sync
             var listEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>(entities);
 
             foreach (var x in listEntitiesNet)
-                await AttachEntity(entity, x.Type, x.Id, x.EntityType, x.SyncData);
+                await AttachEntity(entity, x);
         }
 
         public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
@@ -582,6 +588,9 @@ namespace BCRPClient.Sync
 
             var listEntities = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
 
+            if (listEntities == null)
+                return;
+
             foreach (var obj in listEntities.ToList())
                 DetachEntity(entity, obj.Type, obj.RemoteID, obj.EntityType);
 
@@ -594,7 +603,7 @@ namespace BCRPClient.Sync
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
-            Events.AddDataHandler(AttachedEntitiesKey, (Entity entity, object value, object oldValue) =>
+            Events.AddDataHandler(AttachedEntitiesKey, async (entity, value, oldValue) =>
             {
                 if (entity.IsLocal)
                     return;
@@ -612,14 +621,14 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachEntity(entity, x.Type, x.Id, x.EntityType, x.SyncData);
+                            await AttachEntity(entity, x);
                     }
                     else
                         DetachEntity(entity, x.Type, x.Id, x.EntityType);
                 }
             });
 
-            Events.AddDataHandler(AttachedObjectsKey, (Entity entity, object value, object oldValue) =>
+            Events.AddDataHandler(AttachedObjectsKey, async (entity, value, oldValue) =>
             {
                 if (entity.IsLocal)
                     return;
@@ -639,7 +648,7 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachObject(x.Model, entity, x.Type, x.SyncData);
+                            await AttachObject(entity, x);
                     }
                     else
                         DetachObject(entity, x.Type);
@@ -647,10 +656,10 @@ namespace BCRPClient.Sync
             });
         }
 
-        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType, string syncData)
+        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, AttachmentEntityNet attachmentNet)
         {
             GameEntity gTarget = null;
-            var gEntity = Utils.GetGameEntity(entity);
+            var gEntity = (GameEntity)entity;
 
             if (gEntity == null)
                 return;
@@ -660,7 +669,7 @@ namespace BCRPClient.Sync
             if (list == null)
                 return;
 
-            var aObj = new AttachmentEntity(remoteId, eType, type);
+            var aObj = new AttachmentEntity(attachmentNet);
 
             list.Add(aObj);
 
@@ -669,11 +678,11 @@ namespace BCRPClient.Sync
                 if (gEntity?.Exists != true || entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey)?.Contains(aObj) != true)
                     return;
 
-                gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
+                gTarget = Utils.GetGameEntityAtRemoteId(attachmentNet.EntityType, attachmentNet.Id);
 
                 if (gTarget?.Exists != true)
                 {
-                    await RAGE.Game.Invoker.WaitAsync(50);
+                    await RAGE.Game.Invoker.WaitAsync(15);
 
                     continue;
                 }
@@ -683,11 +692,11 @@ namespace BCRPClient.Sync
 
             var positionBase = Vector3.Zero;
 
-            var props = Attachments.GetValueOrDefault(type);
+            var props = Attachments.GetValueOrDefault(attachmentNet.Type);
 
             if (entity is Vehicle veh)
             {
-                if (type == Types.VehicleTrailer)
+                if (attachmentNet.Type == Types.VehicleTrailer)
                 {
 
                 }
@@ -695,9 +704,9 @@ namespace BCRPClient.Sync
                 {
                     (Vector3 Min, Vector3 Max) vehSize = entity.GetModelDimensions();
 
-                    if (type == Types.PushVehicle)
+                    if (attachmentNet.Type == Types.PushVehicle)
                     {
-                        if (syncData == "1")
+                        if (attachmentNet.SyncData == "1")
                         {
                             positionBase.Y = vehSize.Max.Y;
                             positionBase.Z = vehSize.Min.Z;
@@ -714,7 +723,7 @@ namespace BCRPClient.Sync
                             props.Rotation.Z = 0f;
                         }
                     }
-                    else if (type == Types.VehicleTrunk)
+                    else if (attachmentNet.Type == Types.VehicleTrunk)
                     {
                         positionBase.Y = -(vehSize.Max.Y - vehSize.Min.Y) / 2f;
                     }
@@ -730,11 +739,11 @@ namespace BCRPClient.Sync
                 attachMethod();
             }
 
-            if (type == Types.VehicleTrailer)
+            if (attachmentNet.Type == Types.VehicleTrailer)
             {
                 RAGE.Game.Vehicle.AttachVehicleToTrailer(gEntity.Handle, gTarget.Handle, float.MaxValue);
             }
-            else if (type == Types.VehicleTrailerObjBoat)
+            else if (attachmentNet.Type == Types.VehicleTrailerObjBoat)
             {
                 var trailerObj = gEntity.GetData<List<AttachmentObject>>(AttachedObjectsKey)?.Where(x => x.Type == Types.TrailerObjOnBoat).FirstOrDefault()?.Object;
 
@@ -748,7 +757,7 @@ namespace BCRPClient.Sync
 
             if (gTarget == Player.LocalPlayer)
             {
-                TargetAction(type, entity, true);
+                TargetAction(attachmentNet.Type, entity, true);
 
                 if (props != null && (props.DisableInteraction == 1 || props.DisableInteraction == 2))
                 {
@@ -757,7 +766,7 @@ namespace BCRPClient.Sync
             }
             else if (gEntity  == Player.LocalPlayer)
             {
-                RootAction(type, gTarget, true);
+                RootAction(attachmentNet.Type, gTarget, true);
 
                 if (props != null && (props.DisableInteraction == 1 || props.DisableInteraction == 3))
                 {
@@ -768,7 +777,7 @@ namespace BCRPClient.Sync
 
         public static void DetachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType)
         {
-            var gEntity = Utils.GetGameEntity(entity);
+            var gEntity = (GameEntity)entity;
 
             if (gEntity == null)
                 return;
@@ -821,18 +830,18 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static async System.Threading.Tasks.Task AttachObject(uint hash, Entity target, Types type, string syncData)
+        public static async System.Threading.Tasks.Task AttachObject(Entity target, AttachmentObjectNet attachmentNet)
         {
-            var res = await Utils.RequestModel(hash);
+            var res = await Utils.RequestModel(attachmentNet.Model);
 
-            var gTarget = Utils.GetGameEntity(target);
+            var gTarget = (GameEntity)target;
 
             if (gTarget == null)
                 return;
 
             if (gTarget.Handle == Player.LocalPlayer.Handle)
             {
-                if (type == Types.PhoneSync || type == Types.ParachuteSync)
+                if (attachmentNet.Type == Types.PhoneSync || attachmentNet.Type == Types.ParachuteSync)
                     return;
             }
 
@@ -845,16 +854,16 @@ namespace BCRPClient.Sync
 
             var positionBase = Vector3.Zero;
 
-            if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
+            if (attachmentNet.Type >= Types.WeaponRightTight && attachmentNet.Type <= Types.WeaponLeftBack)
             {
-                await Utils.RequestWeaponAsset(hash);
+                await Utils.RequestWeaponAsset(attachmentNet.Model);
 
-                gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(hash, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
+                gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(attachmentNet.Model, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
 
-                if (syncData != null)
-                    Sync.WeaponSystem.UpdateWeaponObjectComponents(gEntity.Handle, hash, syncData);
+                if (attachmentNet.SyncData != null)
+                    Sync.WeaponSystem.UpdateWeaponObjectComponents(gEntity.Handle, attachmentNet.Model, attachmentNet.SyncData);
             }
-            else if (type == Types.TrailerObjOnBoat)
+            else if (attachmentNet.Type == Types.TrailerObjOnBoat)
             {
                 var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
 
@@ -862,7 +871,7 @@ namespace BCRPClient.Sync
 
                 RAGE.Game.Entity.SetEntityCoordsNoOffset(gTarget.Handle, pos.X, pos.Y, pos.Z + 5f, false, false, false);
 
-                var veh = new Vehicle(hash, pos, rot.Z, "", 255, true, 0, 0, target.Dimension);
+                var veh = new Vehicle(attachmentNet.Model, pos, rot.Z, "", 255, true, 0, 0, target.Dimension);
 
                 var targetVeh = target as Vehicle;
 
@@ -888,9 +897,9 @@ namespace BCRPClient.Sync
 
                 gEntity.SetData("TrailerSync::Owner", targetVeh);
             }
-            else if (type == Types.TractorTrailFarmHarv)
+            else if (attachmentNet.Type == Types.TractorTrailFarmHarv)
             {
-                var veh = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
+                var veh = new Vehicle(attachmentNet.Model, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
 
                 veh.StreamInCustomActionsAdd((entity) =>
                 {
@@ -907,13 +916,13 @@ namespace BCRPClient.Sync
             {
                 if (res)
                 {
-                    gEntity = Utils.CreateObjectNoOffsetImmediately(hash, target.Position.X, target.Position.Y, target.Position.Z);
+                    gEntity = Utils.CreateObjectNoOffsetImmediately(attachmentNet.Model, target.Position.X, target.Position.Y, target.Position.Z);
                 }
             }
 
-            var props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
+            var props = ModelDependentAttachments.GetValueOrDefault(attachmentNet.Model)?.GetValueOrDefault(attachmentNet.Type) ?? Attachments.GetValueOrDefault(attachmentNet.Type);
 
-            list.Add(new AttachmentObject(gEntity, type, hash, syncData));
+            list.Add(new AttachmentObject(gEntity, attachmentNet));
 
             target.SetData(AttachedObjectsKey, list);
 
@@ -921,11 +930,11 @@ namespace BCRPClient.Sync
             {
                 if (props.BoneID == int.MinValue)
                 {
-                    if (type == Types.ItemFishG)
+                    if (attachmentNet.Type == Types.ItemFishG)
                     {
                         if (gEntity != null)
                         {
-                            var pos = syncData.Split('&');
+                            var pos = attachmentNet.SyncData.Split('&');
 
                             RAGE.Game.Entity.SetEntityCoordsNoOffset(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false);
 
@@ -937,7 +946,7 @@ namespace BCRPClient.Sync
                 {
                     if (gEntity != null)
                     {
-                        if (type == Types.TrailerObjOnBoat)
+                        if (attachmentNet.Type == Types.TrailerObjOnBoat)
                         {
                             AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
@@ -956,7 +965,7 @@ namespace BCRPClient.Sync
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
-                RootAction(type, gEntity, true);
+                RootAction(attachmentNet.Type, gEntity, true);
             }
         }
 
@@ -1035,9 +1044,9 @@ namespace BCRPClient.Sync
                     continue;
 
                 DetachObject(target, x.Type);
-
-                AttachObject(x.Model, target, x.Type, x.SyncData);
             }
+
+            AttachAllObjects(target);
         }
 
         public static void DetachAllObjects(Entity target)
@@ -1056,7 +1065,7 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static async System.Threading.Tasks.Task AttachAllObjects(Entity target)
+        public static async void AttachAllObjects(Entity target)
         {
             var objects = target.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
 
@@ -1069,7 +1078,7 @@ namespace BCRPClient.Sync
 
             foreach (var x in listObjectsNet)
             {
-                await AttachObject(x.Model, target, x.Type, x.SyncData);
+                await AttachObject(target, x);
             }
         }
 
@@ -1297,7 +1306,7 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
-                        var target = Player.LocalPlayer.GetData<List<AttachmentEntity>>(AttachedEntitiesKey).Where(x => x.Type == Types.Carry).Select(x => Utils.GetPlayerByRemoteId(x.RemoteID, true)).FirstOrDefault();
+                        var target = Player.LocalPlayer.GetData<List<AttachmentEntity>>(AttachedEntitiesKey).Where(x => x.Type == Types.Carry).Select(x => Entities.Players.GetAtRemote(x.RemoteID)).FirstOrDefault();
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
@@ -1312,7 +1321,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }
                     })
                 )
@@ -1768,6 +1777,74 @@ namespace BCRPClient.Sync
                     }
                 )
             },
+
+            {
+                Types.PlayerResurrect,
+
+                (
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Disable();
+
+                        var taskKey = "ATTACH_PLAYER_RESURRECT_TASK";
+
+                        Utils.CancelPendingTask(taskKey);
+
+                        var attach = Sync.Players.GetData(Player.LocalPlayer).AttachedEntities.Where(x => x.Type == Types.PlayerResurrect).FirstOrDefault();
+
+                        if (attach == null)
+                            return;
+
+                        var targetEntity = Utils.GetGameEntityAtRemoteId(attach.EntityType, attach.RemoteID);
+
+                        if (targetEntity?.Exists == true)
+                        {
+                            var targetPos = RAGE.Game.Entity.GetEntityCoords(targetEntity.Handle, false);
+
+                            var pos = Additional.Camera.GetFrontOf(RAGE.Game.Entity.GetEntityCoords(targetEntity.Handle, false), 90f, 0.5f);
+
+                            if (Player.LocalPlayer.GetCoords(false).DistanceTo(pos) < 10f)
+                                Player.LocalPlayer.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+
+                            Player.LocalPlayer.SetHeading(Utils.GetRotationZToFacePointTo(pos, targetPos));
+                        }
+
+                        AsyncTask task = null;
+
+                        task = new AsyncTask(async () =>
+                        {
+                            await RAGE.Game.Invoker.WaitAsync(int.Parse(attach.SyncData.Split('_')[0]));
+
+                            if (!Utils.IsTaskStillPending(taskKey, task))
+                                return;
+
+                            Events.CallRemote("Player::ResurrectFinish");
+
+                            Utils.CancelPendingTask(taskKey);
+                        }, 0, false, 0);
+
+                        Utils.SetTaskAsPending(taskKey, task);
+                    },
+
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Enable();
+
+                        Utils.CancelPendingTask("ATTACH_PLAYER_RESURRECT_TASK");
+                    },
+
+                    async () =>
+                    {
+
+                    }
+                )
+            },
         };
 
         private static (Action On, Action Off, Action Loop)? GetTargetActions(Types type)
@@ -1874,7 +1951,7 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, Types type)
         {
-            GameEntity gTarget = Utils.GetGameEntity(target);
+            GameEntity gTarget = (GameEntity)target;
 
             if (gTarget == null)
                 return null;

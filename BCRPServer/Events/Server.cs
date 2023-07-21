@@ -326,7 +326,7 @@ namespace BCRPServer.Events
 
                 if (isAuto && pData.LastData.SessionTime < Properties.Settings.Profile.Current.Game.PayDayMinimalSessionTimeToReceive)
                 {
-                    player.TriggerEvent("opday", pData.LastData.SessionTime);
+                    player.TriggerEvent("opday", pData.LastData.SessionTime.TotalSeconds, Properties.Settings.Profile.Current.Game.PayDayMinimalSessionTimeToReceive.TotalSeconds);
 
                     continue;
                 }

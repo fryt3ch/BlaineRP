@@ -536,7 +536,7 @@ namespace BCRPClient.CEF
                 Browser.Window.ExecuteJs("Hud.setFuel", Utils.ToInt32(data.FuelLevel));
                 Browser.Window.ExecuteJs("Hud.setMileage", Utils.ToInt32(data.Mileage) / 1000);
 
-                Player driver = Utils.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0));
+                Player driver = Utils.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0), true);
 
                 bool isCruiseControlOn = driver != null ? data.ForcedSpeed >= 8.3f : false;
 

@@ -332,7 +332,7 @@ namespace BCRPClient.CEF
                 if (tFData == null)
                     return;
 
-                var player = Utils.GetPlayerByRemoteId(rid);
+                var player = Entities.Players.GetAtRemote(rid);
 
                 AddToQueue("Messages.showDepartment", timeStr, tFData.Name, $"{tFData.GetRankName(fRank)} [{fRank + 1}]", player?.Name ?? "null", rid, message);
 

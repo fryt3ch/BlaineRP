@@ -37,24 +37,12 @@ namespace BCRPServer.Sync
 
         public static void DisableMicrophone(PlayerData pData)
         {
-            if (pData.VoiceRange == 0f)
+            if (pData.VoiceRange <= 0f)
                 return;
 
             pData.VoiceRange = 0f;
 
-            var player = pData.Player;
-
-            for (int i = 0; i < pData.Listeners.Count; i++)
-            {
-                var target = pData.Listeners[i];
-
-                if (target == null)
-                    continue;
-
-                player.DisableVoiceTo(target);
-            }
-
-            pData.Listeners.Clear();
+            pData.RemoveAllMicrophoneListeners();
         }
 
         public static void StopUsePhone(PlayerData pData)

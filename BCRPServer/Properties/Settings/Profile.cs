@@ -219,8 +219,6 @@ namespace BCRPServer.Properties.Settings
         [AttributeUsage(AttributeTargets.Property)]
         private class ClientSyncAttribute : Attribute
         {
-            public string PropertyName { get; set; }
-
             public ClientSyncAttribute()
             {
 

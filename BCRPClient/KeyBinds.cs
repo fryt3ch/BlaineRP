@@ -861,7 +861,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.Whistle, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle, 3000);
+                    Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle);
             }, true, true)
             { Description = "Свистеть" });
 

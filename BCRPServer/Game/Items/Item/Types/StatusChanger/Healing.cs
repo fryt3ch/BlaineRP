@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Game.Items
@@ -13,13 +14,17 @@ namespace BCRPServer.Game.Items
 
             public Sync.AttachSystem.Types AttachType { get; set; }
 
-            public bool RemovesWounded { get; set; }
+            public double ResurrectionChance { get; set; }
 
-            public bool RemovesKnocked { get; set; }
+            public bool ClearWoundedState { get; set; }
+
+            public TimeSpan ResurrectionTime { get; set; }
+
+            public TimeSpan UsageTime { get; set; }
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Health}, {MaxAmount}";
 
-            public ItemData(string Name, float Weight, string Model, int Health, bool RemovesWounded, bool RemovesKnocked, int MaxAmount, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
+            public ItemData(string Name, float Weight, string Model, int Health, bool ClearWoundedState, double ResurrectiondChance, int MaxAmount, TimeSpan UsageTime, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
             {
                 this.MaxAmount = MaxAmount;
 
@@ -27,18 +32,19 @@ namespace BCRPServer.Game.Items
 
                 this.AttachType = AttachType;
 
-                this.RemovesWounded = RemovesWounded;
-                this.RemovesKnocked = RemovesKnocked;
+                this.ClearWoundedState = ClearWoundedState;
+                this.ResurrectionChance = ResurrectiondChance;
+
+                this.UsageTime = UsageTime;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, false, 256, Sync.Animations.FastTypes.ItemBandage, Sync.AttachSystem.Types.ItemBandage) },
+            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, -1.0d, 64, TimeSpan.FromMilliseconds(4_000), Sync.Animations.FastTypes.ItemBandage, Sync.AttachSystem.Types.ItemBandage) },
 
-            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, false, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
-            { "med_kit_1", new ItemData("Аптечка ПП", 0.25f, "prop_ld_health_pack", 50, true, true, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
-            { "med_kit_2", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", 85, true, true, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
+            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, 0.50d, 3, TimeSpan.FromMilliseconds(7_000), Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(10), } },
+            { "med_kit_ems_0", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", Properties.Settings.Static.PlayerMaxHealth, true, 0.75d, 64, TimeSpan.FromMilliseconds(7_000), Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(8), } },
         };
 
         [JsonIgnore]
@@ -58,11 +64,11 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation], null);
+            player.AttachObject(data.Model, data.AttachType, (int)data.UsageTime.TotalMilliseconds, null);
 
-            pData.PlayAnim(data.Animation);
+            pData.PlayAnim(data.Animation, data.UsageTime);
 
-            if (data.RemovesWounded)
+            if (data.ClearWoundedState)
             {
                 if (pData.IsWounded)
                     pData.IsWounded = false;
@@ -70,7 +76,7 @@ namespace BCRPServer.Game.Items
 
             var hp = player.Health;
 
-            var healthDiff = Utils.CalculateDifference(hp, data.Health, 0, 100);
+            var healthDiff = Utils.CalculateDifference(hp, data.Health, 0, Properties.Settings.Static.PlayerMaxHealth);
 
             if (healthDiff != 0)
             {
@@ -78,25 +84,15 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public void ApplyToOther(PlayerData pData, PlayerData tData)
+        public void ResurrectPlayer(PlayerData pData, PlayerData tData, double? overrideResurrectChance = null, TimeSpan? overrideResurrectTime = null)
         {
-            var player = pData.Player;
-            var target = tData.Player;
-
             var data = Data;
 
-            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation], null);
+            var resurrectionChance = overrideResurrectChance ?? data.ResurrectionChance;
 
-            pData.PlayAnim(data.Animation);
+            var result = resurrectionChance <= 0d ? false : SRandom.NextDoubleS() <= resurrectionChance;
 
-            var hp = target.Health;
-
-            var healthDiff = Utils.CalculateDifference(hp, data.Health, 0, 100);
-
-            if (healthDiff != 0)
-            {
-                target.SetHealth(hp + healthDiff);
-            }
+            pData.Player.AttachEntity(tData.Player, Sync.AttachSystem.Types.PlayerResurrect, $"{(int)data.ResurrectionTime.TotalMilliseconds}_{(result ? 1 : 0)}_{0}");
         }
 
         public Healing(string ID) : base(ID, IDList[ID], typeof(Healing))

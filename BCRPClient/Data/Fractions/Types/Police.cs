@@ -1111,7 +1111,7 @@ namespace BCRPClient.Data.Fractions
 
             for (int i = 0; i < vehicle.GetMaxNumberOfPassengers(); i++)
             {
-                var player = Utils.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0));
+                var player = Utils.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0), true);
 
                 if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
                     players.Add(player);
@@ -1121,7 +1121,7 @@ namespace BCRPClient.Data.Fractions
 
             if (trunkAttach != null)
             {
-                var player = Utils.GetPlayerByRemoteId(trunkAttach.RemoteID);
+                var player = Entities.Players.GetAtRemote(trunkAttach.RemoteID);
 
                 if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
                     players.Add(player);

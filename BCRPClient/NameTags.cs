@@ -14,11 +14,11 @@ namespace BCRPClient
 
         public const float Interval = 0.045f;
 
-        private static Vector3 VoiceTextureResolution = new Vector3(32, 32, 0);
+        private static Vector3 VoiceTextureResolution { get; } = new Vector3(32, 32, 0);
 
-        private static bool _Enabled = false;
+        private static bool _enabled = false;
 
-        public static bool Enabled { get => _Enabled; set { if (!_Enabled && value) { Events.Tick -= Render; Events.Tick += Render; } else if (_Enabled && !value) Events.Tick -= Render; _Enabled = value; } }
+        public static bool Enabled { get => _enabled; set { if (!_enabled && value) { Events.Tick -= Render; Events.Tick += Render; } else if (_enabled && !value) Events.Tick -= Render; _enabled = value; } }
 
         public NameTags()
         {
@@ -27,8 +27,6 @@ namespace BCRPClient
             RAGE.Game.Graphics.RequestStreamedTextureDict("mpleaderboard", true);
         }
 
-        #region Renders
-        #region Main Render
         private static void Render(List<Events.TickNametagData> nametags)
         {
             if (nametags == null)
@@ -40,6 +38,8 @@ namespace BCRPClient
                 return;
 
             float screenX = 0f, screenY = 0f;
+
+            var playerMaxHealth = Settings.App.Static.PlayerMaxHealth;
 
             nametags.ForEach(nametag =>
             {
@@ -87,7 +87,7 @@ namespace BCRPClient
                 if (scale < 0.5f)
                     scale = 0.5f;
 
-                float healthScale = player.GetRealHealth() / 100f;
+                float healthScale = player.GetRealHealth() / playerMaxHealth;
                 float armourScale = player.GetArmour() / 100f;
 
                 y += scale * (0.05f * (GameEvents.ScreenResolution.Y / 1080));
@@ -137,7 +137,5 @@ namespace BCRPClient
                 }
             });
         }
-        #endregion
-        #endregion
     }
 }

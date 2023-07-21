@@ -12,18 +12,18 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    if (house == null || house.Locker != cont.ID)
+                    if (houseBase == null || houseBase.Locker != cont.ID)
                         return false;
 
-                    if (house.Owner == pData.Info)
+                    if (houseBase.Owner == pData.Info)
                         return true;
 
-                    if (!house.ContainersLocked)
+                    if (!houseBase.ContainersLocked)
                         return true;
 
-                    if (house.Settlers.GetValueOrDefault(pData.Info)?[2] == true)
+                    if (houseBase.Settlers.GetValueOrDefault(pData.Info)?[2] == true)
                         return true;
 
                     pData.Player.Notify("House::NotAllowed");
@@ -37,15 +37,15 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    if (house == null || house.Wardrobe != cont.ID)
+                    if (houseBase == null || houseBase.Wardrobe != cont.ID)
                         return false;
 
-                    if (!house.ContainersLocked)
+                    if (!houseBase.ContainersLocked)
                         return true;
 
-                    if (house.Settlers.GetValueOrDefault(pData.Info)?[3] == true)
+                    if (houseBase.Settlers.GetValueOrDefault(pData.Info)?[3] == true)
                         return true;
 
                     pData.Player.Notify("House::NotAllowed");
@@ -59,15 +59,15 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    if (house == null || house.Fridge != cont.ID)
+                    if (houseBase == null || houseBase.Fridge != cont.ID)
                         return false;
 
-                    if (!house.ContainersLocked)
+                    if (!houseBase.ContainersLocked)
                         return true;
 
-                    if (house.Settlers.GetValueOrDefault(pData.Info)?[4] == true)
+                    if (houseBase.Settlers.GetValueOrDefault(pData.Info)?[4] == true)
                         return true;
 
                     pData.Player.Notify("House::NotAllowed");
@@ -109,9 +109,9 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    return house != null && house.Locker == cont.ID;
+                    return houseBase != null && houseBase.Locker == cont.ID;
                 }
             },
 
@@ -120,9 +120,9 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    return house != null && house.Wardrobe == cont.ID;
+                    return houseBase != null && houseBase.Wardrobe == cont.ID;
                 }
             },
 
@@ -131,9 +131,9 @@ namespace BCRPServer.Game.Items
 
                 (cont, pData, args) =>
                 {
-                    var house = pData.CurrentHouse;
+                    var houseBase = pData.CurrentHouseBase;
 
-                    return house != null && house.Fridge == cont.ID;
+                    return houseBase != null && houseBase.Fridge == cont.ID;
                 }
             },
 

@@ -18,8 +18,6 @@ namespace BCRPClient
 
         public static Random Random { get; } = new Random();
 
-        public static long ServerTimestamp { get; set; } = long.MinValue;
-
         #region Colours
         public class Colour
         {
@@ -108,7 +106,7 @@ namespace BCRPClient
             GravelDeep = 3938260814,
         }
 
-        public static List<uint> DiggableMaterials { get; private set; } = new List<MaterialTypes>()
+        public static HashSet<uint> DiggableMaterials { get; } = new HashSet<MaterialTypes>()
         {
             MaterialTypes.SandLoose, MaterialTypes.SandCompact, MaterialTypes.SandWet, MaterialTypes.SandDryDeep, MaterialTypes.SandWetDeep,
             MaterialTypes.MudHard, MaterialTypes.MudPothole, MaterialTypes.MudSoft, MaterialTypes.MudDeep,
@@ -120,7 +118,7 @@ namespace BCRPClient
             MaterialTypes.GrassLong, MaterialTypes.Grass, MaterialTypes.GrassShort,
 
             MaterialTypes.GravelSmall, MaterialTypes.GravelLarge, MaterialTypes.GravelDeep,
-        }.Select(x => (uint)x).ToList();
+        }.Select(x => (uint)x).ToHashSet();
 
         public class Vector4
         {
@@ -157,40 +155,7 @@ namespace BCRPClient
 
         /// <summary>Вектор для ненужных данных</summary>
         /// <remarks>Использовать везде, где необходимо передавать вектор в качестве параметра, но его изменения нам не нужны</remarks>
-        private static Vector3 GarbageVector = new Vector3(0f, 0f, 0f);
-
-        public static RAGE.Elements.Vehicle GetVehicleByHandle(int handle, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.Handle == handle).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.All.Where(x => x.Handle == handle).FirstOrDefault();
-
-        public static RAGE.Elements.Player GetPlayerByHandle(int handle, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Players.Streamed.Where(x => x.Handle == handle).FirstOrDefault() : RAGE.Elements.Entities.Players.All.Where(x => x.Handle == handle).FirstOrDefault();
-
-        public static RAGE.Elements.Ped GetPedByHandle(int handle, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Peds.Streamed.Where(x => x.Handle == handle).FirstOrDefault() : RAGE.Elements.Entities.Peds.All.Where(x => x.Handle == handle).FirstOrDefault();
-
-        public static RAGE.Elements.MapObject GetMapObjectByHandle(int handle, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Objects.Streamed.Where(x => x.Handle == handle).FirstOrDefault() : RAGE.Elements.Entities.Objects.All.Where(x => x.Handle == handle).FirstOrDefault();
-
-        public static RAGE.Elements.Vehicle GetVehicleByRemoteId(int id, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.All.Where(x => x.RemoteId == id).FirstOrDefault();
-
-        public static RAGE.Elements.Player GetPlayerByRemoteId(int id, bool streamedOnly = true) => streamedOnly ? RAGE.Elements.Entities.Players.Streamed.Where(x => x.RemoteId == id).FirstOrDefault() : RAGE.Elements.Entities.Players.All.Where(x => x.RemoteId == id).FirstOrDefault();
-
-        public static bool IsEntityStreamed(RAGE.Elements.Entity entity)
-        {
-            if (entity is Player player)
-            {
-                if (player.Handle == Player.LocalPlayer.Handle)
-                    return true;
-
-                return RAGE.Elements.Entities.Players.Streamed.Contains(entity);
-            }
-
-            if (entity.Type == RAGE.Elements.Type.Vehicle)
-                return RAGE.Elements.Entities.Vehicles.Streamed.Contains(entity);
-
-            if (entity.Type == RAGE.Elements.Type.Ped)
-                return RAGE.Elements.Entities.Peds.Streamed.Contains(entity);
-
-            return false;
-        }
-
-        public static RAGE.Elements.GameEntity GetGameEntity(RAGE.Elements.Entity entity) => entity as GameEntity;
+        private static Vector3 _garbageVector = new Vector3(0f, 0f, 0f);
 
         public static Vector3 GetBonePositionOfEntity(GameEntity entity, object boneId)
         {
@@ -210,18 +175,23 @@ namespace BCRPClient
             return null;
         }
 
-        public static RAGE.Elements.GameEntity GetGameEntityAtRemoteId(RAGE.Elements.Type type, int remoteId)
+        public static GameEntity GetGameEntityAtRemoteId(RAGE.Elements.Type type, ushort remoteId)
         {
             switch (type)
             {
-                case RAGE.Elements.Type.Ped: return RAGE.Elements.Entities.Peds.GetAtRemote((ushort)remoteId);
-                case RAGE.Elements.Type.Player: return RAGE.Elements.Entities.Players.GetAtRemote((ushort)remoteId);
-                case RAGE.Elements.Type.Vehicle: return RAGE.Elements.Entities.Vehicles.GetAtRemote((ushort)remoteId);
-                case RAGE.Elements.Type.Object: return RAGE.Elements.Entities.Objects.GetAtRemote((ushort)remoteId);
+                case RAGE.Elements.Type.Ped: return Entities.Peds.GetAtRemote(remoteId);
+                case RAGE.Elements.Type.Player: return Entities.Players.GetAtRemote(remoteId);
+                case RAGE.Elements.Type.Vehicle: return Entities.Vehicles.GetAtRemote(remoteId);
+                case RAGE.Elements.Type.Object: return Entities.Objects.GetAtRemote(remoteId);
             }
 
             return null;
         }
+
+        public static Player GetPlayerByHandle(int handle, bool streamedOnly) => (streamedOnly ? Entities.Players.Streamed : Entities.Players.All).Where(x => x.Handle == handle).FirstOrDefault();
+        public static Vehicle GetVehicleByHandle(int handle, bool streamedOnly) => (streamedOnly ? Entities.Vehicles.Streamed : Entities.Vehicles.All).Where(x => x.Handle == handle).FirstOrDefault();
+        public static Ped GetPedByHandle(int handle, bool streamedOnly) => (streamedOnly ? Entities.Peds.Streamed : Entities.Peds.All).Where(x => x.Handle == handle).FirstOrDefault();
+        public static MapObject GetMapObjectByHandle(int handle, bool streamedOnly) => (streamedOnly ? Entities.Objects.Streamed : Entities.Objects.All).Where(x => x.Handle == handle).FirstOrDefault();
 
         public static List<Ped> GetPedsOnScreen(int maxCount = 5) => RAGE.Elements.Entities.Peds.Streamed.Where(x => x.IsOnScreen()).OrderBy(x => Vector3.Distance(x.Position, Player.LocalPlayer.Position)).Take(maxCount).ToList();
         public static List<Vehicle> GetVehiclesOnScreen(int maxCount = 5) => RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.IsOnScreen()).OrderBy(x => Vector3.Distance(x.Position, Player.LocalPlayer.Position)).Take(maxCount).ToList();
@@ -296,7 +266,7 @@ namespace BCRPClient
         {
             int hit = -1, materialHash = 0;
 
-            var result = RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref hit);
+            var result = RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, _garbageVector, _garbageVector, ref materialHash, ref hit);
 
             if (result != 2 || materialHash == 0)
                 return 0;
@@ -316,7 +286,7 @@ namespace BCRPClient
                         if (materialHash > 0)
                             Utils.ConsoleOutputLimited(materialHash.ToUInt32());*/
 
-            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestCapsule(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 0.25f, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
+            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestCapsule(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 0.25f, flags, ignoreHandle, 4), ref hit, _garbageVector, _garbageVector, ref endEntity);
 
             if (result != 2 || endEntity <= 0)
                 return null;
@@ -326,27 +296,17 @@ namespace BCRPClient
             if (type <= 0)
                 return null;
 
-            // Ped
-            if (type == 1)
+            if (type == 1)  // Ped
             {
-                Entity entity = GetPlayerByHandle(endEntity, true);
-
-                if (entity != null)
-                    return entity;
-
-                entity = GetPedByHandle(endEntity, true);
-
-                return entity;
+                return (Entity)GetPlayerByHandle(endEntity, true) ?? GetPedByHandle(endEntity, true);
             }
-            // Vehicle
-            else if (type == 2)
+            else if (type == 2) // Vehicle
             {
                 return GetVehicleByHandle(endEntity, true);
             }
-            // Object
-            else if (type == 3)
+            else if (type == 3) // Object
             {
-                return GetMapObjectByHandle(endEntity, false);
+                return GetMapObjectByHandle(endEntity, true);
             }
 
             return null;
@@ -360,7 +320,7 @@ namespace BCRPClient
             {
                 int hit = -1, materialHash = 0, eHit = -1;
 
-                RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, pos.X, pos.Y, pos.Z, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref eHit);
+                RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, pos.X, pos.Y, pos.Z, flags, ignoreHandle, 4), ref hit, _garbageVector, _garbageVector, ref materialHash, ref eHit);
 
                 if (eHit > 0 || materialHash != 0)
                     return null;

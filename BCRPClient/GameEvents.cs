@@ -128,6 +128,8 @@ namespace BCRPClient
 
                 RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
+                RAGE.Game.Graphics.StopAllScreenEffects();
+
                 RAGE.Game.Misc.DisableAutomaticRespawn(true);
                 RAGE.Game.Misc.IgnoreNextRestart(true);
 

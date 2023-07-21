@@ -208,12 +208,12 @@ namespace BCRPClient.Data.Fractions
 
         private void PlayerDiagnostics(Player player)
         {
-
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsDiagnostics, null);
         }
 
         private void PlayerMedicalCard(Player player)
         {
-
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsMedicalCard, null);
         }
 
         private void PlayerDrugHeal(Player player)
@@ -228,7 +228,7 @@ namespace BCRPClient.Data.Fractions
 
         private void PlayerSellMask(Player player)
         {
-
+            Sync.Offers.Request(player, Sync.Offers.Types.EmsSellMask, null);
         }
 
         private static async void OnHealingBedPress(MapObject obj)
@@ -299,7 +299,32 @@ namespace BCRPClient.Data.Fractions
     {
         public EMSEvents()
         {
+            Events.Add("Ems::ShowPlayerDiagnostics", async (args) =>
+            {
+                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
 
+                if (player == null)
+                    return;
+
+                var infoObj = (JObject)args[1];
+
+                var health = infoObj["hp"].ToObject<decimal>();
+                var mood = infoObj["mood"].ToObject<decimal>();
+                var satiety = infoObj["satiety"].ToObject<decimal>();
+
+                var drugAddiction = infoObj["da"].ToObject<decimal>();
+
+                var isWounded = infoObj["ws"].ToObject<bool>();
+
+                var preDiagnosisType = infoObj["dType"].ToObject<Sync.Players.MedicalCard.DiagnoseTypes>();
+
+                var text = Locale.Get("EMS_DIAGNOSTICS_TEXT_0", health, mood, satiety, drugAddiction, isWounded ? Locale.Get("GEN_TEXT_YES_0") : Locale.Get("GEN_TEXT_NO_0"), Locale.Get(Sync.Players.MedicalCard.GetDiagnoseNameId(preDiagnosisType)));
+
+                await CEF.ActionBox.ShowText("EMS_SHOWPLAYERDIAGNOSTICS", Locale.Get("EMS_DIAGNOSTICS_TEXT_L", player.GetName(true, false, true)), text, null, null, CEF.ActionBox.DefaultBindAction, (rType) =>
+                {
+                    CEF.ActionBox.Close(true);
+                }, null);
+            });
         }
     }
 }

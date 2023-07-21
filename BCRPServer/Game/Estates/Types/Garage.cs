@@ -334,7 +334,7 @@ namespace BCRPServer.Game.Estates
             if (!pData.TryRemoveCash(Price, out newCash, true))
                 return false;
 
-            if (pData.GaragesSlots <= 0)
+            if (pData.FreeGaragesSlots <= 0)
             {
                 pData.Player.Notify("Trade::MGOW", pData.OwnedGarages.Count);
 

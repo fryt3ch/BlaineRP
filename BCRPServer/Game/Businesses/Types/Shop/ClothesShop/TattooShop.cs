@@ -797,7 +797,7 @@ namespace BCRPServer.Game.Businesses
 
                 var tattooIdx = -1;
 
-                foreach (var x in pData.Decorations)
+                foreach (var x in pData.Info.Decorations)
                 {
                     var data = Data.Customization.GetTattooData(x);
 
@@ -809,7 +809,7 @@ namespace BCRPServer.Game.Businesses
                     }
                 }
 
-                if (tattooIdx < 0 || !pData.Decorations.Remove(tattooIdx))
+                if (tattooIdx < 0 || !pData.Info.Decorations.Remove(tattooIdx))
                     return false;
             }
             else if (iData.Length == 2)
@@ -826,7 +826,7 @@ namespace BCRPServer.Game.Businesses
 
                 var tattooToDelete = -1;
 
-                foreach (var x in pData.Decorations)
+                foreach (var x in pData.Info.Decorations)
                 {
                     var data = Data.Customization.GetTattooData(x);
 
@@ -839,9 +839,9 @@ namespace BCRPServer.Game.Businesses
                 }
 
                 if (tattooToDelete >= 0)
-                    pData.Decorations.Remove(tattooToDelete);
+                    pData.Info.Decorations.Remove(tattooToDelete);
 
-                pData.Decorations.Add(tattooIdx);
+                pData.Info.Decorations.Add(tattooIdx);
             }
             else
             {

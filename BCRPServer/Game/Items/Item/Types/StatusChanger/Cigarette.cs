@@ -1,10 +1,15 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Game.Items
 {
     public class Cigarette : StatusChanger, IStackable
     {
+        public static TimeSpan SmokePuffAnimationTime { get; } = TimeSpan.FromMilliseconds(3_000);
+        public static TimeSpan SmokeTransitionAnimationTime { get; } = TimeSpan.FromMilliseconds(1_000);
+        public static TimeSpan SmokeTransitionTime { get; } = TimeSpan.FromMilliseconds(500);
+
         public static Dictionary<Sync.AttachSystem.Types, Sync.AttachSystem.Types> DependentTypes = new Dictionary<Sync.AttachSystem.Types, Sync.AttachSystem.Types>()
         {
             { Sync.AttachSystem.Types.ItemCigMouth, Sync.AttachSystem.Types.ItemCigHand },

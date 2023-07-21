@@ -41,30 +41,7 @@ namespace BCRPServer.Sync.Offers
                 return;
             }
 
-            PlayerData.MedicalCard.DiagnoseTypes diagType;
-
-            if (pData.DrugAddiction >= Properties.Settings.Static.PlayerDrugAddictionStage1)
-            {
-                if (pData.DrugAddiction >= Properties.Settings.Static.PlayerDrugAddictionStage2)
-                {
-                    if (pData.DrugAddiction >= Properties.Settings.Static.PlayerDrugAddictionStage3)
-                    {
-                        diagType = PlayerData.MedicalCard.DiagnoseTypes.DrugAddicted3;
-                    }
-                    else
-                    {
-                        diagType = PlayerData.MedicalCard.DiagnoseTypes.DrugAddicted3;
-                    }
-                }
-                else
-                {
-                    diagType = PlayerData.MedicalCard.DiagnoseTypes.DrugAddicted1;
-                }
-            }
-            else
-            {
-                diagType = PlayerData.MedicalCard.DiagnoseTypes.Healthy;
-            }
+            PlayerData.MedicalCard.DiagnoseTypes diagType = PlayerData.MedicalCard.GetPlayerDiagnose(tData);
 
             var curTime = Utils.GetCurrentTime();
 

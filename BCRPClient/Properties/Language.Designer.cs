@@ -325,6 +325,32 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Здоровье: {0}%
+        ///Настроение: {1}%
+        ///Сытость: {2}%
+        ///
+        ///Уровень наркотической зависимости: {3}%
+        ///
+        ///Есть ли видимые ранения: {4}
+        ///
+        ///Предварительное заключение: {5}.
+        /// </summary>
+        public static string EMS_DIAGNOSTICS_TEXT_0 {
+            get {
+                return ResourceManager.GetString("EMS_DIAGNOSTICS_TEXT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Проверка {0}.
+        /// </summary>
+        public static string EMS_DIAGNOSTICS_TEXT_L {
+            get {
+                return ResourceManager.GetString("EMS_DIAGNOSTICS_TEXT_L", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Этот человек уже состоит в какой-то фракции!.
         /// </summary>
         public static string FRACTION_INV_E_0 {
@@ -469,11 +495,29 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на нет.
+        /// </summary>
+        public static string GEN_TEXT_NO_0 {
+            get {
+                return ResourceManager.GetString("GEN_TEXT_NO_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Введенное Вами значение не соответствует правилу!.
         /// </summary>
         public static string GEN_TEXT_NOTMATCH_0 {
             get {
                 return ResourceManager.GetString("GEN_TEXT_NOTMATCH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на да.
+        /// </summary>
+        public static string GEN_TEXT_YES_0 {
+            get {
+                return ResourceManager.GetString("GEN_TEXT_YES_0", resourceCulture);
             }
         }
         
@@ -1267,6 +1311,15 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на У Вас в инвентаре нет ни одного предмета, с помощью которого можно реанимировать человека!.
+        /// </summary>
+        public static string NTFC_ITEMS_NO_MED_KIT_RESURRECT_0 {
+            get {
+                return ResourceManager.GetString("NTFC_ITEMS_NO_MED_KIT_RESURRECT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Всего на счёте: {0}.
         /// </summary>
         public static string NTFC_MONEY_BANK_0 {
@@ -1281,6 +1334,15 @@ namespace BCRPClient.Properties {
         public static string NTFC_MONEY_CASH_0 {
             get {
                 return ResourceManager.GetString("NTFC_MONEY_CASH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этот игрок сейчас не нуждается в первой медицинской помощи!.
+        /// </summary>
+        public static string NTFC_PLAYER_RESURRECT_E_0 {
+            get {
+                return ResourceManager.GetString("NTFC_PLAYER_RESURRECT_E_0", resourceCulture);
             }
         }
         

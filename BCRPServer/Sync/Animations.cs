@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BCRPServer.Sync
 {
@@ -85,6 +86,8 @@ namespace BCRPServer.Sync
 
             CasinoSlotMachineIdle0,
             CasinoBlackjackIdle0,
+
+            MedicalRevive,
         }
 
         public enum OtherTypes
@@ -324,27 +327,11 @@ namespace BCRPServer.Sync
                         Injured,*/
         }
 
-        public static Dictionary<FastTypes, int> FastTimeouts = new Dictionary<FastTypes, int>()
-        {
-            { FastTypes.VehLocking, 1500 },
-            { FastTypes.Handshake, 4000 },
-            { FastTypes.Pickup, 1500 }, { FastTypes.Putdown, 1500 },
-            { FastTypes.Whistle, 2500 },
-
-            { FastTypes.ItemBurger, 6000 },
-
-            { FastTypes.SmokePuffCig, 3000 },
-            { FastTypes.SmokeTransitionCig, 1000 },
-
-            { FastTypes.ItemBandage, 4000 },
-            { FastTypes.ItemMedKit, 7000 },
-        };
-
         /// <summary>Проиграть быструю анимацию на игроке</summary>
         /// <remarks>Быстрая анимация НЕ проигрывается у игроков, которые вошли в зону стрима данного игрока после того, как она была запущена</remarks>
         /// <param name="pData">Сущность игрока</param>
         /// <param name="type">Тип анимации</param>
-        public static void Play(PlayerData pData, FastTypes type, int customTimeout = -1)
+        public static void Play(PlayerData pData, FastTypes type, TimeSpan time)
         {
             var player = pData.Player;
 
@@ -357,16 +344,11 @@ namespace BCRPServer.Sync
                 pData.StopOtherAnim();
             }
 
-            player.TriggerEventToStreamed("Players::PlayFastAnim", player.Handle, (int)type);
-
             pData.FastAnim = type;
 
-            var timeout = customTimeout < 0 ? FastTimeouts.GetValueOrDefault(type) : customTimeout;
+            var timeout = time.TotalMilliseconds;
 
-            if (timeout > 0)
-            {
-                player.TriggerEvent("Players::FAST", timeout);
-            }
+            player.TriggerEventToStreamed("Players::PlayFastAnim", player.Handle, (int)type, timeout);
         }
 
         /// <summary>Проиграть обычную анимацию на игроке</summary>
@@ -413,7 +395,7 @@ namespace BCRPServer.Sync
             {
                 pData.FastAnim = FastTypes.None;
 
-                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Id);
+                pData.Player.TriggerEventToStreamed("Players::StopFastAnim", pData.Player.Id);
 
                 return true;
             }

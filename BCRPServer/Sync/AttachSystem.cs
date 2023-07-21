@@ -21,7 +21,6 @@ namespace BCRPServer.Sync
 
         public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type < Types.VehicleTrailer;
 
-        #region Types
         public enum Types
         {
             #region Entity-Object Attach | Типы, которые прикрепляют серверную сущность к клиентскому объекту (создается у всех клиентов в зоне стрима)
@@ -117,9 +116,10 @@ namespace BCRPServer.Sync
 
             VehicleTrunk,
 
+            PlayerResurrect,
+
             #endregion
         }
-        #endregion
 
         public static class Models
         {
@@ -381,25 +381,30 @@ namespace BCRPServer.Sync
 
                         (root, target, type, syncData, args) =>
                         {
-                            if (target is Player tPlayer)
-                            {
-                                var tData = tPlayer.GetMainData();
-
-                                if (tData != null)
-                                {
-                                    if (tData.GeneralAnim == Animations.GeneralTypes.CarryA)
-                                        tData.StopGeneralAnim();
-                                }
-                            }
-
                             if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
                                 if (pData != null)
                                 {
-                                    if (pData.GeneralAnim == Animations.GeneralTypes.CarryB)
+                                    if (pData.GeneralAnim == Animations.GeneralTypes.CarryA)
                                         pData.StopGeneralAnim();
+                                }
+                            }
+
+                            if (target is Player tPlayer)
+                            {
+                                var tData = tPlayer.GetMainData();
+
+                                if (tData != null)
+                                {
+                                    if (tData.GeneralAnim == Animations.GeneralTypes.CarryB)
+                                    {
+                                        if (tData.IsCuffed)
+                                        {
+                                            tData.PlayAnim(Animations.GeneralTypes.CuffedStatic0);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -911,6 +916,48 @@ namespace BCRPServer.Sync
                     },
                 }
             },
+
+            {
+                Types.PlayerResurrect,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
+                {
+                    {
+                        true,
+
+                        (root, target, type, syncData, args) =>
+                        {
+                            if (root is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                pData.PlayAnim(Animations.GeneralTypes.MedicalRevive);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (root, target, type, syncData, args) =>
+                        {
+                            if (root is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                if (pData.GeneralAnim == Animations.GeneralTypes.MedicalRevive)
+                                    pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
         };
 
         private static Action<Entity, Entity, Types, string, object[]> GetOffAction(Types type)
@@ -947,7 +994,6 @@ namespace BCRPServer.Sync
             return action.GetValueOrDefault(true);
         }
 
-        #region Entities
         /// <summary>Получить информацию о привязке сущности к другой сущности</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность-владелец</param>
@@ -1034,9 +1080,7 @@ namespace BCRPServer.Sync
 
             return true;
         }
-        #endregion
 
-        #region Objects
         /// <summary>Прикрепить объект к сущности</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность</param>
@@ -1181,6 +1225,5 @@ namespace BCRPServer.Sync
         }
 
         public static Entity GetEntityIsAttachedToEntity(Entity entity) => entity.GetData<Entity>(EntityIsAttachedToKey);
-        #endregion
     }
 }

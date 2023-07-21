@@ -7,6 +7,8 @@ namespace BCRPServer.Sync.Offers
     [Offer(Types.Handshake)]
     internal class Handshake : OfferBase
     {
+        private static TimeSpan AnimationTime { get; } = TimeSpan.FromMilliseconds(4_000);
+
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
         {
             offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
@@ -28,8 +30,8 @@ namespace BCRPServer.Sync.Offers
                 tPlayer.Position = sPlayer.GetFrontOf(0.85f);
                 tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
 
-                pData.PlayAnim(Animations.FastTypes.Handshake);
-                tData.PlayAnim(Animations.FastTypes.Handshake);
+                pData.PlayAnim(Animations.FastTypes.Handshake, AnimationTime);
+                tData.PlayAnim(Animations.FastTypes.Handshake, AnimationTime);
             }
 
             pData.AddFamiliar(tData.Info);

@@ -71,7 +71,7 @@ namespace BCRPServer.Game.Businesses
                     return false;
             }
 
-            if (pData.VehicleSlots <= 0)
+            if (pData.FreeVehicleSlots <= 0)
             {
                 pData.Player.Notify("Trade::MVOW", pData.OwnedVehicles.Count);
 

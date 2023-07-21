@@ -148,7 +148,7 @@ namespace BCRPServer.Events.Players
             }
 
             if (pData.CanPlayAnimNow())
-                pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
+                pData.PlayAnim(Sync.Animations.FastTypes.Pickup, Properties.Settings.Static.InventoryPickupAnimationTime);
 
             if (amount == curAmount)
             {
@@ -275,12 +275,14 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            var weapon = pData.ActiveWeapon;
+            Game.Items.Weapon weapon;
+            Game.Items.Inventory.GroupTypes group;
+            int slot;
 
-            if (weapon == null)
-                return;
-
-            pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 6);
+            if (pData.TryGetActiveWeapon(out weapon, out group, out slot))
+            {
+                pData.InventoryAction(group, slot, 6);
+            }
         }
 
         [RemoteEvent("Gift::Collect")]
@@ -404,12 +406,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var item = pData.CurrentItemInUse;
+            Game.Items.IUsable item;
+            int slot;
 
-            if (item == null)
-                return;
-
-            item.Value.Item.StopUse(pData, GroupTypes.Items, item.Value.Slot, true);
+            if (pData.TryGetCurrentItemInUse(out item, out slot))
+            {
+                item.StopUse(pData, GroupTypes.Items, slot, true);
+            }
         }
 
         [RemoteEvent("Player::ParachuteS")]
@@ -507,6 +510,113 @@ namespace BCRPServer.Events.Players
             {
                 return false;
             }
+        }
+
+        [RemoteProc("Player::ResurrectItem")]
+        private static byte ResurrectItem(Player player, Player target, int itemIdx)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (itemIdx < 0 || itemIdx >= pData.Items.Length)
+                return 0;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Any())
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || pData == tData)
+                return 0;
+
+            if (!tData.Player.IsNearToEntity(pData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
+                return 0;
+
+            if (!tData.IsKnocked || tData.IsAttachedToEntity != null)
+                return 0;
+
+            var healingItem = pData.Items[itemIdx] as Game.Items.Healing;
+
+            if (healingItem == null || healingItem.Data.ResurrectionChance <= 0)
+                return 1;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.EMS;
+
+            var overrideResurrectChance = fData == null ? (double?)null : 1d;
+
+            healingItem.ResurrectPlayer(pData, tData, overrideResurrectChance, null);
+
+            healingItem.Amount--;
+
+            if (healingItem.Amount <= 0)
+            {
+                healingItem.Delete();
+
+                pData.Items[itemIdx] = null;
+
+                MySQL.CharacterItemsUpdate(pData.Info);
+            }
+            else
+            {
+                healingItem.Update();
+            }
+
+            pData.Player.InventoryUpdate(GroupTypes.Items, itemIdx, Game.Items.Item.ToClientJson(pData.Items[itemIdx], GroupTypes.Items));
+
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_0"), tData.Player);
+
+            return 255;
+        }
+
+        [RemoteEvent("Player::ResurrectFinish")]
+        private static void ResurrectFinish(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var attach = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.PlayerResurrect && x.EntityType == EntityType.Player).FirstOrDefault();
+
+            if (attach == null)
+                return;
+
+            var dataD = attach.SyncData.Split('_');
+
+            var targetPlayer = Utils.GetPlayerByID(attach.Id);
+
+            var tData = targetPlayer.GetMainData();
+
+            if (tData == null)
+                return;
+
+            pData.Player.DetachEntity(targetPlayer);
+
+            var resurrect = dataD[1] == "1";
+
+            if (resurrect)
+            {
+                if (tData.IsKnocked)
+                {
+                    tData.SetAsNotKnocked();
+
+                    player.NotifySuccess(Language.Strings.Get("NTFC_PLAYER_RESURRECT_0", tData.GetNameForPlayer(pData)));
+                    targetPlayer.NotifySuccess(Language.Strings.Get("NTFC_PLAYER_RESURRECT_1", pData.GetNameForPlayer(tData)));
+                }
+            }
+            else
+            {
+                player.NotifySuccess(Language.Strings.Get("NTFC_PLAYER_RESURRECT_2", tData.GetNameForPlayer(pData)));
+                targetPlayer.NotifySuccess(Language.Strings.Get("NTFC_PLAYER_RESURRECT_3", pData.GetNameForPlayer(tData)));
+            }
+
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Try, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_1"), tData.Player, resurrect);
         }
     }
 }

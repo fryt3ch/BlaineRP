@@ -133,7 +133,7 @@ namespace BCRPServer.Sync.Offers
             if (!baseRes)
                 return false;
 
-            text = Language.Strings.Get("OFFER_MEDICALCARD_TEXT");
+            text = Language.Strings.Get("OFFER_SHOWMEDICALCARD_TEXT");
 
             offer = Offer.Create(pData, tData, type, -1, null);
 

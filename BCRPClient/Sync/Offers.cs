@@ -62,6 +62,8 @@ namespace BCRPClient.Sync
             EmsMedicalCard,
             /// <summary>Продажа мед. маски от врача</summary>
             EmsSellMask,
+            /// <summary>Использовать мед. предмет для лечения</summary>
+            GiveHealingItem,
         }
 
         public enum ReplyTypes
@@ -105,7 +107,7 @@ namespace BCRPClient.Sync
         {
             Events.Add("Offer::Show", (args) =>
             {
-                var player = Utils.GetPlayerByRemoteId(Utils.ToUInt16(args[0]));
+                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
 
                 if (player == null)
                     return;

@@ -161,6 +161,8 @@ namespace BCRPClient.Sync
             public DiagnoseTypes Diagnose { get; set; }
 
             public MedicalCard() { }
+
+            public static string GetDiagnoseNameId(DiagnoseTypes diagType) => $"MEDCARD_DIAGNOSIS_{(int)diagType}";
         }
 
         public class PlayerData
@@ -702,57 +704,6 @@ namespace BCRPClient.Sync
                 }
 
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer);
-
-                var carhash = RAGE.Util.Joaat.Hash("sandking2");
-
-/*                foreach (var x in Data.Locations.House.All)
-                {
-                    //x.Value.ToggleOwnerBlip(true);
-
-                    var res = ((string)await Events.CallRemoteProc("debug_gethouseinfo", x.Key))?.Split('_');
-
-                    if (res != null)
-                    {
-                        var ped = new Data.NPC($"house_h_{x.Key}", $"{x.Key}", Data.NPC.Types.Static, "u_m_y_abner", new Vector3(x.Value.Position.X, x.Value.Position.Y, x.Value.Position.Z + 1f), float.Parse(res[0]), Settings.Profile.MAIN_DIMENSION);
-
-                        if (x.Value.GaragePosition != null)
-                        {
-                            var car = new Vehicle(carhash, x.Value.GaragePosition, float.Parse(res[1]), $"{x.Key}", 255, false, 0, 0, Settings.Profile.MAIN_DIMENSION);
-
-                            car.SetData("HOUSE_ID", x.Key);
-                        }
-                    }
-
-                    if (x.Value.GaragePosition != null)
-                        continue;
-
-                    new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.Profile.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
-                }*/
-
-/*                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
-                {
-                    var pos = Player.LocalPlayer.Position;
-
-                    var nPos = Vector3.Zero;
-                    var nHeading = 0f;
-
-                    if (RAGE.Game.Pathfind.GetClosestVehicleNodeWithHeading(pos.X, pos.Y, pos.Z, nPos, ref nHeading, 1, 3f, 0))
-                    {
-                        if (true)
-                        {
-                            if (Player.LocalPlayer.Vehicle is Vehicle veh)
-                            {
-                                veh.Position = nPos;
-                                veh.SetHeading(nHeading);
-                            }
-                            else
-                            {
-                                Player.LocalPlayer.Position = nPos;
-                                Player.LocalPlayer.SetHeading(nHeading);
-                            }
-                        }
-                    }
-                });*/
             });
 
             Events.Add("Player::Knocked", (args) =>
@@ -791,9 +742,10 @@ namespace BCRPClient.Sync
                 }
                 else if (args.Length == 1)
                 {
-                    var playedTime = Utils.ToDecimal(args[0]);
+                    var playedTime = TimeSpan.FromSeconds(Utils.ToInt64(args[0]));
+                    var minTimeToGetPayday = TimeSpan.FromSeconds(Utils.ToInt64(args[1]));
 
-                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime / 60} минут из {10} необходимых!");
+                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime.GetBeautyString()} (необходимо - {minTimeToGetPayday.GetBeautyString()})!");
                 }
                 else
                 {
@@ -1887,8 +1839,6 @@ namespace BCRPClient.Sync
                 if (state)
                 {
                     player.SetCanRagdoll(false);
-
-                    Sync.Animations.Play(player, Animations.GeneralTypes.Knocked);
                 }
                 else
                 {

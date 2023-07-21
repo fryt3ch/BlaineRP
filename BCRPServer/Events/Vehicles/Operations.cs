@@ -7,6 +7,8 @@ namespace BCRPServer.Events.Vehicles
 {
     internal class Operations : Script
     {
+        private static TimeSpan VehicleLockAnimationTime { get; } = TimeSpan.FromMilliseconds(1_500);
+
         [RemoteProc("Vehicles::ET")]
         private static byte ToggleEngineRemote(Player player, Vehicle veh, byte state)
         {
@@ -45,7 +47,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (vData.Info.LastData.GarageSlot >= 0)
             {
-                if (pData.CurrentHouse is Game.Estates.House house)
+                if (pData.CurrentHouseBase is Game.Estates.House house)
                 {
                     if (house.GarageOutside == null)
                         return 3;
@@ -130,11 +132,11 @@ namespace BCRPServer.Events.Vehicles
             if (state == vData.Locked)
                 return 2;
 
-            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
                 player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
+                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)
@@ -284,11 +286,11 @@ namespace BCRPServer.Events.Vehicles
             if (vData.TrunkLocked == state)
                 return 2;
 
-            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
                 player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
+                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)
@@ -341,11 +343,11 @@ namespace BCRPServer.Events.Vehicles
             if (vData.HoodLocked == state)
                 return 2;
 
-            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
                 player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
+                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)

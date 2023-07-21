@@ -530,7 +530,7 @@ namespace BCRPServer.Game.Businesses
             if (!pData.TryRemoveCash(GovPrice, out newCash, true))
                 return false;
 
-            if (pData.BusinessesSlots <= 0)
+            if (pData.FreeBusinessesSlots <= 0)
             {
                 pData.Player.Notify("Trade::MBOW", pData.OwnedBusinesses.Count);
 

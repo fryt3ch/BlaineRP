@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using static BCRPServer.Game.Items.Weapon.ItemData;
 
 namespace BCRPServer.Events.Fractions
 {
@@ -171,7 +170,7 @@ namespace BCRPServer.Events.Fractions
             if (fData == null)
                 return 0;
 
-            var attachData = pData.AttachedEntities.Where(x => (x.Type == Sync.AttachSystem.Types.PoliceEscort || x.Type == Sync.AttachSystem.Types.Hostage) && x.EntityType == EntityType.Player).FirstOrDefault();
+            var attachData = pData.AttachedEntities.Where(x => (x.Type == Sync.AttachSystem.Types.PoliceEscort || x.Type == Sync.AttachSystem.Types.Hostage || x.Type == Sync.AttachSystem.Types.Carry) && x.EntityType == EntityType.Player).FirstOrDefault();
 
             if (attachData == null)
                 return 0;
@@ -188,10 +187,10 @@ namespace BCRPServer.Events.Fractions
             if (vData == null)
                 return 0;
 
-            if (!tData.Player.IsNearToEntity(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
-            if (!vData.Vehicle.IsNearToEntity(player, 10f))
+            if (!vData.Vehicle.IsNearToEntity(player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (seatIdx == 255)
@@ -254,10 +253,10 @@ namespace BCRPServer.Events.Fractions
             if (vData == null)
                 return 0;
 
-            if (!tData.Player.IsNearToEntity(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
-            if (!vData.Vehicle.IsNearToEntity(player, 10f))
+            if (!vData.Vehicle.IsNearToEntity(player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!tData.IsKnocked && !tData.IsCuffed)
@@ -318,7 +317,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!tData.Player.IsNearToEntity(player, 7.5f))
+            if (!tData.Player.IsNearToEntity(player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!tData.IsCuffed)
@@ -373,7 +372,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!tData.Player.IsNearToEntity(pData.Player, 7.5f))
+            if (!tData.Player.IsNearToEntity(pData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             reason1 = reason1.Trim();
@@ -1170,7 +1169,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return null;
 
             if (licTypeS == null || licTypeS.Length == 0)
@@ -1218,7 +1217,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return null;
 
             if (!tData.IsCuffed)
@@ -1383,7 +1382,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return null;
 
-            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return null;
 
             if (!tData.IsCuffed)
@@ -1470,7 +1469,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (!pData.Player.IsNearToEntity(tData.Player, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Player, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (!tData.IsCuffed)
@@ -1645,7 +1644,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null)
                 return null;
 
-            if (!pData.Player.IsNearToEntity(target, 10f))
+            if (!pData.Player.IsNearToEntity(target, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return null;
 
             if (sType == -1 || sType == -2)
@@ -1715,7 +1714,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null)
                 return 0;
 
-            if (!pData.Player.IsNearToEntity(tData.Vehicle, 7.5f))
+            if (!pData.Player.IsNearToEntity(tData.Vehicle, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return 0;
 
             if (tData.Info.TID == 0)

@@ -10,38 +10,38 @@ namespace BCRPClient.CEF.PhoneApps
     {
         public static bool IsActive { get; private set; }
 
-        public static bool FrontCamActive { get; private set; }
+        public static bool FrontCamIsActive { get; private set; }
 
-        public static bool BokehModeActive { get; private set; }
+        public static bool BokehModeIsActive { get; private set; }
 
-        public static Additional.Scaleform Scaleform { get; private set; }
+        private static Additional.Scaleform _scaleform;
 
-        private static DateTime LastSwitched;
+        private static DateTime _lastSwitched;
 
-        private static uint RenderTicks { get; set; }
+        private static uint _renderTicks;
 
-        private static int CurrentCameraFilter { get; set; }
-        private static int CurrentCameraAnimation { get; set; }
+        private static int _currentFilter;
+        private static int _currentAnimationIdx;
 
-        private static string CurrentCameraAnimationDict { get; set; }
-        private static string CurrentCameraAnimationName { get; set; }
+        private static string _currentAnimationDict;
+        private static string _currentAnimationName;
 
-        private static float CurrentHorizontalOffset { get; set; }
-        private static float CurrentVerticalOffset { get; set; }
-        private static float CurrentRoll { get; set; }
-        private static float CurrentHeadPitch { get; set; }
-        private static float CurrentHeadRoll { get; set; }
-        private static float CurrentHeadHeight { get; set; }
+        private static float _currentHorizontalOffset;
+        private static float _currentVerticalOffset;
+        private static float _currentRoll;
+        private static float _currentHeadPitch;
+        private static float _currentHeadRoll;
+        private static float _currentHeadHeight;
 
-        private static byte PhotoStartCounter { get; set; }
+        private static byte _photoStartCounter;
 
-        private static bool r { get; set; }
+        private static bool _isPlayingAnimFlag;
 
-        private static Sync.Animations.EmotionTypes CurrentCameraEmotion { get; set; }
+        private static Sync.Animations.EmotionTypes _currentCameraEmotion;
 
-        private static string[] CameraFilters { get; set; } = new string[] { "NG_filmic01", "NG_filmic02", "NG_filmic03", "NG_filmic04", "NG_filmic05", "NG_filmic06", "NG_filmic07", "NG_filmic08", "NG_filmic09", "NG_filmic10", "NG_filmic11", "NG_filmic12", "NG_filmic13", "NG_filmic14", "NG_filmic15", "NG_filmic16", "NG_filmic17", "NG_filmic18", "NG_filmic19", "NG_filmic20", "NG_filmic21", "NG_filmic22", "NG_filmic23", "NG_filmic24", "NG_filmic25" };
+        private static string[] _cameraFilters = new string[] { "NG_filmic01", "NG_filmic02", "NG_filmic03", "NG_filmic04", "NG_filmic05", "NG_filmic06", "NG_filmic07", "NG_filmic08", "NG_filmic09", "NG_filmic10", "NG_filmic11", "NG_filmic12", "NG_filmic13", "NG_filmic14", "NG_filmic15", "NG_filmic16", "NG_filmic17", "NG_filmic18", "NG_filmic19", "NG_filmic20", "NG_filmic21", "NG_filmic22", "NG_filmic23", "NG_filmic24", "NG_filmic25" };
 
-        private static (string Dict, string Name, string LocaleName)[] CameraAnims = new (string, string, string)[]
+        private static (string Dict, string Name, string LocaleName)[] _cameraAnims = new (string, string, string)[]
         {
             ("cellphone@self@franklin@", "chest_bump", "Кулак у груди"),
             ("cellphone@self@franklin@", "peace", "Мир"),
@@ -81,28 +81,28 @@ namespace BCRPClient.CEF.PhoneApps
 
             Sync.Crouch.Off(false, Player.LocalPlayer);
 
-            PhotoStartCounter = 0;
+            _photoStartCounter = 0;
 
-            CurrentCameraFilter = -1;
-            CurrentCameraAnimation = -1;
-            CurrentCameraEmotion = pData.Emotion;
+            _currentFilter = -1;
+            _currentAnimationIdx = -1;
+            _currentCameraEmotion = pData.Emotion;
 
-            CurrentCameraAnimationDict = "";
-            CurrentCameraAnimationName = "";
+            _currentAnimationDict = "";
+            _currentAnimationName = "";
 
-            CurrentHorizontalOffset = 0f;
-            CurrentVerticalOffset = 1f;
+            _currentHorizontalOffset = 0f;
+            _currentVerticalOffset = 1f;
 
-            CurrentRoll = 0f;
-            CurrentHeadPitch = 0f;
-            CurrentHeadRoll = 0f;
-            CurrentHeadHeight = 0f;
+            _currentRoll = 0f;
+            _currentHeadPitch = 0f;
+            _currentHeadRoll = 0f;
+            _currentHeadHeight = 0f;
 
-            r = false;
+            _isPlayingAnimFlag = false;
 
-            RenderTicks = 0;
+            _renderTicks = 0;
 
-            LastSwitched = Sync.World.ServerTime;
+            _lastSwitched = Sync.World.ServerTime;
 
             KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
 
@@ -118,14 +118,14 @@ namespace BCRPClient.CEF.PhoneApps
 
             RAGE.Game.Mobile.CellCamActivate(true, true);
 
-            ToggleFrontCam(FrontCamActive);
-            ToggleBokehMode(BokehModeActive = false);
+            ToggleFrontCam(FrontCamIsActive);
+            ToggleBokehMode(BokehModeIsActive = false);
 
             Player.LocalPlayer.SetConfigFlag(242, true);
             Player.LocalPlayer.SetConfigFlag(243, true);
             Player.LocalPlayer.SetConfigFlag(244, false);
 
-            Scaleform = new Additional.Scaleform("phone_camera_instbtns", "instructional_buttons");
+            _scaleform = new Additional.Scaleform("phone_camera_instbtns", "instructional_buttons");
 
             UpdateInstructionButtons();
 
@@ -147,11 +147,11 @@ namespace BCRPClient.CEF.PhoneApps
 
             CEF.Chat.Show(true);
 
-            if (Scaleform != null)
+            if (_scaleform != null)
             {
-                Scaleform.Destroy();
+                _scaleform.Destroy();
 
-                Scaleform = null;
+                _scaleform = null;
             }
 
             RAGE.Game.Mobile.CellCamActivate(false, false);
@@ -169,7 +169,7 @@ namespace BCRPClient.CEF.PhoneApps
                 Sync.Animations.Set(Player.LocalPlayer, pData.Emotion);
             }
 
-            if (CurrentCameraAnimationDict.Length > 0)
+            if (_currentAnimationDict.Length > 0)
             {
 
             }
@@ -188,10 +188,10 @@ namespace BCRPClient.CEF.PhoneApps
 
             Additional.ExtraColshape.InteractionColshapesDisabledThisFrame = true;
 
-            if (RenderTicks == uint.MaxValue)
-                RenderTicks = 0;
+            if (_renderTicks == uint.MaxValue)
+                _renderTicks = 0;
             else
-                RenderTicks++;
+                _renderTicks++;
 
             if (RAGE.Game.Pad.IsDisabledControlJustPressed(32, 200))
             {
@@ -200,28 +200,28 @@ namespace BCRPClient.CEF.PhoneApps
                 return;
             }
 
-            if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Return) && !LastSwitched.IsSpam(750, false, false) && PhotoStartCounter == 0)
+            if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Return) && !_lastSwitched.IsSpam(750, false, false) && _photoStartCounter == 0)
             {
-                PhotoStartCounter = 1;
+                _photoStartCounter = 1;
 
-                LastSwitched = Sync.World.ServerTime;
+                _lastSwitched = Sync.World.ServerTime;
 
                 return;
             }
 
-            if (PhotoStartCounter == 0)
+            if (_photoStartCounter == 0)
             {
-                Scaleform?.Render2D();
+                _scaleform?.Render2D();
             }
             else
             {
-                PhotoStartCounter++;
+                _photoStartCounter++;
 
-                if (PhotoStartCounter == 5)
+                if (_photoStartCounter == 5)
                 {
                     SavePicture(true, true, true);
 
-                    PhotoStartCounter = 0;
+                    _photoStartCounter = 0;
 
                     return;
                 }
@@ -231,19 +231,19 @@ namespace BCRPClient.CEF.PhoneApps
 
             if (RAGE.Game.Pad.IsControlJustPressed(32, 0))
             {
-                if (LastSwitched.IsSpam(500, false, false))
+                if (_lastSwitched.IsSpam(500, false, false))
                     return;
 
-                ToggleFrontCam(FrontCamActive = !FrontCamActive);
+                ToggleFrontCam(FrontCamIsActive = !FrontCamIsActive);
 
                 UpdateInstructionButtons();
 
-                LastSwitched = Sync.World.ServerTime;
+                _lastSwitched = Sync.World.ServerTime;
 
                 return;
             }
 
-            if (FrontCamActive)
+            if (FrontCamIsActive)
             {
                 if (true)
                 {
@@ -273,34 +273,34 @@ namespace BCRPClient.CEF.PhoneApps
 
                     if (RAGE.Game.Pad.IsDisabledControlPressed(32, 69))
                     {
-                        CurrentHorizontalOffset = Utils.GetLimitedValue(CurrentHorizontalOffset + normalA, 0f, 1f);
-                        CurrentVerticalOffset = Utils.GetLimitedValue(CurrentVerticalOffset + normalB, 0f, 2f);
-                        CurrentRoll = Utils.GetLimitedValue(CurrentRoll + normalC, -1f, 2f);
+                        _currentHorizontalOffset = Utils.GetLimitedValue(_currentHorizontalOffset + normalA, 0f, 1f);
+                        _currentVerticalOffset = Utils.GetLimitedValue(_currentVerticalOffset + normalB, 0f, 2f);
+                        _currentRoll = Utils.GetLimitedValue(_currentRoll + normalC, -1f, 2f);
                     }
                     else
                     {
-                        CurrentHeadPitch = Utils.GetLimitedValue(CurrentHeadPitch + normalA, -1f, 1f);
-                        CurrentHeadRoll = Utils.GetLimitedValue(CurrentHeadRoll + normalC, -1f, 1f);
-                        CurrentHeadHeight = Utils.GetLimitedValue(CurrentHeadHeight + normalB, -1f, 1f);
+                        _currentHeadPitch = Utils.GetLimitedValue(_currentHeadPitch + normalA, -1f, 1f);
+                        _currentHeadRoll = Utils.GetLimitedValue(_currentHeadRoll + normalC, -1f, 1f);
+                        _currentHeadHeight = Utils.GetLimitedValue(_currentHeadHeight + normalB, -1f, 1f);
                     }
                 }
 
-                RAGE.Game.Invoker.Invoke(0x1B0B4AEED5B9B41C, CurrentHorizontalOffset); // CellCamSetHorizontalOffset
-                RAGE.Game.Invoker.Invoke(0x3117D84EFA60F77B, CurrentVerticalOffset); // CellCamSetVerticalOffset
-                RAGE.Game.Invoker.Invoke(0x15E69E2802C24B8D, CurrentRoll); // CellCamSetRoll
-                RAGE.Game.Invoker.Invoke(0xD6ADE981781FCA09, CurrentHeadPitch); // CellCamSetHeadPitch
-                RAGE.Game.Invoker.Invoke(0xF1E22DC13F5EEBAD, CurrentHeadRoll); // CellCamSetHeadRoll
-                RAGE.Game.Invoker.Invoke(0x466DA42C89865553, CurrentHeadHeight); // CellCamSetHeadHeight
+                RAGE.Game.Invoker.Invoke(0x1B0B4AEED5B9B41C, _currentHorizontalOffset); // CellCamSetHorizontalOffset
+                RAGE.Game.Invoker.Invoke(0x3117D84EFA60F77B, _currentVerticalOffset); // CellCamSetVerticalOffset
+                RAGE.Game.Invoker.Invoke(0x15E69E2802C24B8D, _currentRoll); // CellCamSetRoll
+                RAGE.Game.Invoker.Invoke(0xD6ADE981781FCA09, _currentHeadPitch); // CellCamSetHeadPitch
+                RAGE.Game.Invoker.Invoke(0xF1E22DC13F5EEBAD, _currentHeadRoll); // CellCamSetHeadRoll
+                RAGE.Game.Invoker.Invoke(0x466DA42C89865553, _currentHeadHeight); // CellCamSetHeadHeight
 
                 var animAction = RAGE.Game.Pad.IsControlPressed(32, 61);
 
-                if (animAction && !r)
+                if (animAction && !_isPlayingAnimFlag)
                 {
-                    if (CurrentCameraAnimation >= 0)
+                    if (_currentAnimationIdx >= 0)
                     {
-                        var anim = CameraAnims[CurrentCameraAnimation];
+                        var anim = _cameraAnims[_currentAnimationIdx];
 
-                        r = true;
+                        _isPlayingAnimFlag = true;
 
                         await Utils.RequestAnimDict(anim.Dict);
 
@@ -311,8 +311,8 @@ namespace BCRPClient.CEF.PhoneApps
                         {
                             Player.LocalPlayer.TaskPlayAnim(anim.Dict, anim.Name, 4f, 4f, -1, 128, -1f, false, false, false);
 
-                            CurrentCameraAnimationDict = anim.Dict;
-                            CurrentCameraAnimationName = anim.Name;
+                            _currentAnimationDict = anim.Dict;
+                            _currentAnimationName = anim.Name;
                         }
                         else
                         {
@@ -325,20 +325,20 @@ namespace BCRPClient.CEF.PhoneApps
 
                             Player.LocalPlayer.TaskPlayAnim(anim.Dict, "idle_a", 8f, 4f, -1, 129, -1f, false, false, false);
 
-                            CurrentCameraAnimationDict = anim.Dict;
-                            CurrentCameraAnimationName = "";
+                            _currentAnimationDict = anim.Dict;
+                            _currentAnimationName = "";
                         }
                     }
                 }
-                else if (r && !animAction)
+                else if (_isPlayingAnimFlag && !animAction)
                 {
-                    r = false;
+                    _isPlayingAnimFlag = false;
 
-                    if (CurrentCameraAnimationDict.Length > 0 && CurrentCameraAnimationName.Length == 0)
+                    if (_currentAnimationDict.Length > 0 && _currentAnimationName.Length == 0)
                     {
-                        Player.LocalPlayer.TaskPlayAnim(CurrentCameraAnimationDict, "exit", 4f, 4f, -1, 128, -1f, false, false, false);
+                        Player.LocalPlayer.TaskPlayAnim(_currentAnimationDict, "exit", 4f, 4f, -1, 128, -1f, false, false, false);
 
-                        await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(CurrentCameraAnimationDict, "exit")));
+                        await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(_currentAnimationDict, "exit")));
 
                         if (!IsActive)
                             return;
@@ -347,7 +347,7 @@ namespace BCRPClient.CEF.PhoneApps
                     }
                     else
                     {
-                        Player.LocalPlayer.StopAnimTask(CurrentCameraAnimationDict, CurrentCameraAnimationName, 3f);
+                        Player.LocalPlayer.StopAnimTask(_currentAnimationDict, _currentAnimationName, 3f);
 
                         Player.LocalPlayer.TaskPlayAnim("", "", 4f, 4f, -1, 128, -1f, false, false, false);
                     }
@@ -355,7 +355,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (RAGE.Game.Pad.IsControlJustPressed(32, 73))
                 {
-                    ToggleBokehMode(BokehModeActive = !BokehModeActive);
+                    ToggleBokehMode(BokehModeIsActive = !BokehModeIsActive);
 
                     UpdateInstructionButtons();
 
@@ -364,7 +364,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (RAGE.Game.Pad.IsControlJustPressed(32, 89) || RAGE.Game.Pad.IsControlJustPressed(32, 90))
                 {
-                    var curCamEmotionNum = (int)CurrentCameraEmotion + (RAGE.Game.Pad.IsControlJustPressed(32, 89) ? -1 : 1);
+                    var curCamEmotionNum = (int)_currentCameraEmotion + (RAGE.Game.Pad.IsControlJustPressed(32, 89) ? -1 : 1);
 
                     if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), curCamEmotionNum))
                     {
@@ -374,9 +374,9 @@ namespace BCRPClient.CEF.PhoneApps
                             curCamEmotionNum = -1;
                     }
 
-                    CurrentCameraEmotion = (Sync.Animations.EmotionTypes)curCamEmotionNum;
+                    _currentCameraEmotion = (Sync.Animations.EmotionTypes)curCamEmotionNum;
 
-                    Sync.Animations.Set(Player.LocalPlayer, CurrentCameraEmotion);
+                    Sync.Animations.Set(Player.LocalPlayer, _currentCameraEmotion);
 
                     UpdateInstructionButtons();
 
@@ -385,12 +385,12 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (RAGE.Game.Pad.IsControlJustPressed(32, 187) || RAGE.Game.Pad.IsControlJustPressed(32, 188))
                 {
-                    CurrentCameraAnimation += RAGE.Game.Pad.IsControlJustPressed(32, 187) ? -1 : 1;
+                    _currentAnimationIdx += RAGE.Game.Pad.IsControlJustPressed(32, 187) ? -1 : 1;
 
-                    if (CurrentCameraAnimation < -1)
-                        CurrentCameraAnimation = CameraAnims.Length - 1;
-                    else if (CurrentCameraAnimation >= CameraAnims.Length)
-                        CurrentCameraAnimation = -1;
+                    if (_currentAnimationIdx < -1)
+                        _currentAnimationIdx = _cameraAnims.Length - 1;
+                    else if (_currentAnimationIdx >= _cameraAnims.Length)
+                        _currentAnimationIdx = -1;
 
                     UpdateInstructionButtons();
                 }
@@ -398,21 +398,21 @@ namespace BCRPClient.CEF.PhoneApps
 
             if (RAGE.Game.Pad.IsControlJustPressed(32, 189) || RAGE.Game.Pad.IsControlJustPressed(32, 190))
             {
-                CurrentCameraFilter += RAGE.Game.Pad.IsControlJustPressed(32, 189) ? -1 : 1;
+                _currentFilter += RAGE.Game.Pad.IsControlJustPressed(32, 189) ? -1 : 1;
 
-                if (CurrentCameraFilter < -1)
-                    CurrentCameraFilter = CameraFilters.Length - 1;
-                else if (CurrentCameraFilter >= CameraFilters.Length)
-                    CurrentCameraFilter = -1;
+                if (_currentFilter < -1)
+                    _currentFilter = _cameraFilters.Length - 1;
+                else if (_currentFilter >= _cameraFilters.Length)
+                    _currentFilter = -1;
 
-                if (CurrentCameraFilter < 0)
+                if (_currentFilter < 0)
                 {
                     RAGE.Game.Graphics.ClearTimecycleModifier();
                 }
                 else
                 {
                     RAGE.Game.Graphics.SetTimecycleModifierStrength(1f);
-                    RAGE.Game.Graphics.SetTimecycleModifier(CameraFilters[CurrentCameraFilter]);
+                    RAGE.Game.Graphics.SetTimecycleModifier(_cameraFilters[_currentFilter]);
                 }
 
                 UpdateInstructionButtons();
@@ -452,40 +452,40 @@ namespace BCRPClient.CEF.PhoneApps
 
         private static void UpdateInstructionButtons()
         {
-            if (Scaleform == null)
+            if (_scaleform == null)
                 return;
 
-            Scaleform.CallFunction("CLEAR_ALL");
-            Scaleform.CallFunction("TOGGLE_MOUSE_BUTTONS", 0);
-            Scaleform.CallFunction("CREATE_CONTAINER");
-            Scaleform.CallFunction("SET_CLEAR_SPACE", 200);
+            _scaleform.CallFunction("CLEAR_ALL");
+            _scaleform.CallFunction("TOGGLE_MOUSE_BUTTONS", 0);
+            _scaleform.CallFunction("CREATE_CONTAINER");
+            _scaleform.CallFunction("SET_CLEAR_SPACE", 200);
 
             var btnsCount = 0;
 
-            if (FrontCamActive)
+            if (FrontCamIsActive)
             {
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 73, true), $"{Locale.General.PhoneCamera.Bokeh} [{(BokehModeActive ? Locale.General.PhoneCamera.On : Locale.General.PhoneCamera.Off)}]");
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 69, true), Locale.General.PhoneCamera.CamOffset);
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 68, true), Locale.General.PhoneCamera.HeadOffset);
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 73, true), $"{Locale.General.PhoneCamera.Bokeh} [{(BokehModeIsActive ? Locale.General.PhoneCamera.On : Locale.General.PhoneCamera.Off)}]");
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 69, true), Locale.General.PhoneCamera.CamOffset);
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 68, true), Locale.General.PhoneCamera.HeadOffset);
 
-                if (CurrentCameraAnimation >= 0)
-                    Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(0, 61, true), $"{CameraAnims[CurrentCameraAnimation].LocaleName}");
+                if (_currentAnimationIdx >= 0)
+                    _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(0, 61, true), $"{_cameraAnims[_currentAnimationIdx].LocaleName}");
 
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 188, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 187, true)}", Locale.General.PhoneCamera.Animation);
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 90, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 89, true)}", $"{Locale.General.PhoneCamera.Emotion} [{Locale.General.Animations.Emotions.GetValueOrDefault(CurrentCameraEmotion) ?? "null"}]");
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 188, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 187, true)}", Locale.General.PhoneCamera.Animation);
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 90, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 89, true)}", $"{Locale.General.PhoneCamera.Emotion} [{Locale.General.Animations.Emotions.GetValueOrDefault(_currentCameraEmotion) ?? "null"}]");
             }
             else
             {
-                Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 181, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 180, true)}", Locale.General.PhoneCamera.Zoom);
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 181, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 180, true)}", Locale.General.PhoneCamera.Zoom);
             }
 
-            Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 190, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 189, true)}", $"{Locale.General.PhoneCamera.Filter} [{(CurrentCameraFilter < 0 ? Locale.General.PhoneCamera.Off : (CurrentCameraFilter + 1).ToString())}]");
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 190, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 189, true)}", $"{Locale.General.PhoneCamera.Filter} [{(_currentFilter < 0 ? Locale.General.PhoneCamera.Off : (_currentFilter + 1).ToString())}]");
 
-            Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 0, true), FrontCamActive ? Locale.General.PhoneCamera.BackCam : Locale.General.PhoneCamera.FrontCam);
-            Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, "w_Enter", Locale.General.PhoneCamera.Photo);
-            Scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 200, true), Locale.General.PhoneCamera.Exit);
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 0, true), FrontCamIsActive ? Locale.General.PhoneCamera.BackCam : Locale.General.PhoneCamera.FrontCam);
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, "w_Enter", Locale.General.PhoneCamera.Photo);
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 200, true), Locale.General.PhoneCamera.Exit);
 
-            Scaleform.CallFunction("DRAW_INSTRUCTIONAL_BUTTONS", -1);
+            _scaleform.CallFunction("DRAW_INSTRUCTIONAL_BUTTONS", -1);
         }
     }
 }

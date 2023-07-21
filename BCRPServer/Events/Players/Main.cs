@@ -291,10 +291,19 @@ namespace BCRPServer.Events.Players
                     }
                 }
 
-                pData.ActiveWeapon?.WeaponItem.Unequip(pData, false);
+                Game.Items.Weapon activeWeapon;
 
-                if (pData.CurrentItemInUse?.Item is Game.Items.IUsable ciiu)
-                    ciiu.InUse = false;
+                if (pData.TryGetActiveWeapon(out activeWeapon, out _, out _))
+                    activeWeapon.Unequip(pData, false);
+
+                for (int i = 0; i < pData.Items.Length; i++)
+                {
+                    var item = pData.Items[i];
+
+                    if (item is Game.Items.IUsable ciiu)
+                        if (ciiu.InUse)
+                            ciiu.InUse = false;
+                }
 
                 foreach (var x in pData.Weapons)
                 {
@@ -478,12 +487,7 @@ namespace BCRPServer.Events.Players
 
                 pData.SetAsKnocked(attacker);
 
-                if (pData.IsWounded)
-                    pData.IsWounded = false;
-
                 player.SetHealth(50);
-
-                pData.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
 
                 if (Properties.Settings.Profile.Current.Game.KnockedDropWeaponsEnabled)
                 {
@@ -898,10 +902,15 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Sync.Animations.FastTypes), anim))
                 return;
 
+            var aType = (Sync.Animations.FastTypes)anim;
+
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
                 return;
 
-            pData.PlayAnim((Sync.Animations.FastTypes)anim);
+            if (aType == Animations.FastTypes.Whistle)
+            {
+                pData.PlayAnim(aType, Properties.Settings.Static.WhistleAnimationTime);
+            }
         }
 
         [RemoteEvent("Players::SFTA")]

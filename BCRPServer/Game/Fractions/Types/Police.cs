@@ -121,8 +121,10 @@ namespace BCRPServer.Game.Fractions
 
         public bool IsPlayerInAnyUniform(PlayerData pData, bool notifyIfNot = false)
         {
-            if (pData.CurrentUniform is Customization.UniformTypes uType)
-                return UniformTypes.Contains(uType);
+            var res = UniformTypes.Contains(pData.CurrentUniform);
+
+            if (res)
+                return true;
 
             if (notifyIfNot)
             {

@@ -158,7 +158,7 @@ namespace BCRPServer.Events.Players
             cont.Update();
 
             if (pData.CanPlayAnimNow())
-                pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
+                pData.PlayAnim(Sync.Animations.FastTypes.Putdown, Properties.Settings.Static.InventoryPutdownAnimationTime);
 
             Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }

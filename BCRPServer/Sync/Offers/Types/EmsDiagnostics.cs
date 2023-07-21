@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -33,7 +34,15 @@ namespace BCRPServer.Sync.Offers
                 return;
             }
 
-            return; //todo
+            sPlayer.TriggerEvent("Ems::ShowPlayerDiagnostics", tPlayer.Id, JObject.FromObject(new
+            {
+                hp = tPlayer.Health,
+                mood = tData.Mood,
+                satiety = tData.Satiety,
+                da = tData.DrugAddiction,
+                ws = tData.IsWounded,
+                dType = PlayerData.MedicalCard.GetPlayerDiagnose(tData),
+            }));
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)

@@ -63,6 +63,8 @@ namespace BCRPServer.Sync.Offers
         EmsMedicalCard,
         /// <summary>Продажа мед. маски от врача</summary>
         EmsSellMask,
+        /// <summary>Использовать мед. предмет для лечения</summary>
+        GiveHealingItem,
     }
 
     public enum ReplyTypes

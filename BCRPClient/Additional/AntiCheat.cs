@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Linq;
+using System.Security.Principal;
 
 namespace BCRPClient.Additional
 {
@@ -631,7 +632,7 @@ namespace BCRPClient.Additional
 
                 if (veh.GetTrailerVehicle(ref trailerVehHandle))
                 {
-                    var trailerVeh = Utils.GetVehicleByHandle(trailerVehHandle, true);
+                    var trailerVeh = Utils.GetVehicleByHandle(trailerVehHandle, false);
 
                     if (trailerVeh?.Exists != true)
                     {

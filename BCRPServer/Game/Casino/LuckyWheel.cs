@@ -9,6 +9,9 @@ namespace BCRPServer.Game.Casino
 {
     public class LuckyWheel
     {
+        public static TimeSpan SpinWheelAnimationTime { get; } = TimeSpan.FromMilliseconds(4_500);
+        public static TimeSpan SpinWheelTime { get; } = TimeSpan.FromMilliseconds(22_000);
+
         public enum ZoneTypes : byte
         {
             Cash_0 = 0,
@@ -88,7 +91,7 @@ namespace BCRPServer.Game.Casino
 
             CurrentCID = pData.CID;
 
-            pData.PlayAnim(Sync.Animations.FastTypes.FakeAnim, 4_500);
+            pData.PlayAnim(Sync.Animations.FastTypes.FakeAnim, SpinWheelAnimationTime);
 
             Utils.TriggerEventInDistance(Position, Properties.Settings.Static.MainDimension, 50f, "Casino::LCWS", casinoId, wheelId, pData.Player.Id, (byte)zoneType, spinOffset);
 
@@ -111,7 +114,7 @@ namespace BCRPServer.Game.Casino
 
                     CurrentCID = 0;
                 });
-            }, null, 22_000, Timeout.Infinite);
+            }, null, SpinWheelTime, Timeout.InfiniteTimeSpan);
         }
     }
 }

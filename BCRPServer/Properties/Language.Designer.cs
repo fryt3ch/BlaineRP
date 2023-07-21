@@ -403,6 +403,24 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на начал(а) оказывать первую медицинскую помощь {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_RESURRECT_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_RESURRECT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на оказал(а) первую медицинскую помощь {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_RESURRECT_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_RESURRECT_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на подобрал(а) {0}.
         /// </summary>
         public static string CHAT_PLAYER_TAKEN {
@@ -943,6 +961,24 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Незнакомка.
+        /// </summary>
+        public static string NPC_NOTFAM_FEMALE {
+            get {
+                return ResourceManager.GetString("NPC_NOTFAM_FEMALE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Незнакомец.
+        /// </summary>
+        public static string NPC_NOTFAM_MALE {
+            get {
+                return ResourceManager.GetString("NPC_NOTFAM_MALE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Аккаунт с таким логином уже зарегистрирован на проекте!.
         /// </summary>
         public static string NTFC_AUTH_LOGINEXISTS_0 {
@@ -1114,6 +1150,42 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы успешно реанимировали {0}!.
+        /// </summary>
+        public static string NTFC_PLAYER_RESURRECT_0 {
+            get {
+                return ResourceManager.GetString("NTFC_PLAYER_RESURRECT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} успешно реанимировал Вас!.
+        /// </summary>
+        public static string NTFC_PLAYER_RESURRECT_1 {
+            get {
+                return ResourceManager.GetString("NTFC_PLAYER_RESURRECT_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы не смогли реанимировать {0}!.
+        /// </summary>
+        public static string NTFC_PLAYER_RESURRECT_2 {
+            get {
+                return ResourceManager.GetString("NTFC_PLAYER_RESURRECT_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} не смог реанимировать Вас!.
+        /// </summary>
+        public static string NTFC_PLAYER_RESURRECT_3 {
+            get {
+                return ResourceManager.GetString("NTFC_PLAYER_RESURRECT_3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на {0} предлагает понести вас.
         /// </summary>
         public static string OFFER_CARRY_TEXT {
@@ -1191,6 +1263,15 @@ namespace BCRPServer.Properties {
         public static string OFFER_EXCHANGE_TEXT {
             get {
                 return ResourceManager.GetString("OFFER_EXCHANGE_TEXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} предлагает вам взять у него и использовать {1}.
+        /// </summary>
+        public static string OFFER_GIVE_HEALINGITEM_TEXT {
+            get {
+                return ResourceManager.GetString("OFFER_GIVE_HEALINGITEM_TEXT", resourceCulture);
             }
         }
         

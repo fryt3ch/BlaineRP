@@ -29,7 +29,7 @@ namespace BCRPServer.Events.Players
 
             player.Teleport(ws.PositionShootingRangeEnter.Position, false, Properties.Settings.Static.MainDimension, ws.PositionShootingRangeEnter.RotationZ, true);
 
-            pData.InventoryBlocked = false;
+            pData.IsInventoryBlocked = false;
 
             if (pData.UnequipActiveWeapon())
             {
@@ -117,7 +117,7 @@ namespace BCRPServer.Events.Players
 
             player.TriggerEvent("SRange::Start", 0);
 
-            pData.InventoryBlocked = true;
+            pData.IsInventoryBlocked = true;
 
             pData.TakeWeapons();
 
@@ -647,7 +647,7 @@ namespace BCRPServer.Events.Players
 
                 if (business.Type == Game.Businesses.Business.Types.BarberShop)
                 {
-                    player.TriggerEvent("Shop::Show", (int)business.Type, (float)business.Margin, enterable.EnterProperties.RotationZ, pData.HairStyle, pData.HeadOverlays[1], pData.HeadOverlays[10], pData.HeadOverlays[2], pData.HeadOverlays[8], pData.HeadOverlays[5], pData.HeadOverlays[4]);
+                    player.TriggerEvent("Shop::Show", (int)business.Type, (float)business.Margin, enterable.EnterProperties.RotationZ, pData.Info.HairStyle, pData.Info.HeadOverlays[1], pData.Info.HeadOverlays[10], pData.Info.HeadOverlays[2], pData.Info.HeadOverlays[8], pData.Info.HeadOverlays[5], pData.Info.HeadOverlays[4]);
                 }
                 else
                 {

@@ -123,7 +123,7 @@ namespace BCRPClient.CEF
 
                 new List<string>() { null, null, null, null, null, "money_50", "money_150", "money_300", "money_1000", null, null, null, null, null, null, null, },
 
-                new List<string>() { null, null, null, null, null, null, null, null, "pulse", "bandage", "cure", null, null, null, null, null, },
+                new List<string>() { null, null, null, null, null, null, null, null, "pulse", "bandage", "cure_0", "cure_1", null, null, null, null, },
 
                 new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
 
@@ -231,7 +231,6 @@ namespace BCRPClient.CEF
 
             Events.Add("Interaction::Close", (args) => CloseMenu());
 
-            #region Out Vehicle Actions
             OutVehicleInteractionInfo.AddAction("doors", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(false, veh); });
             OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(true, veh); });
             OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(null, veh); });
@@ -315,9 +314,6 @@ namespace BCRPClient.CEF
 
             OutVehicleInteractionInfo.AddAction("other", "trailer", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.BoatFromTrailerToWater(veh); });
 
-            #endregion
-
-            #region In Vehicle Actions
 
             InVehicleInteractionInfo.AddAction("doors", "open", OutVehicleInteractionInfo.GetAction("doors", "open"));
             InVehicleInteractionInfo.AddAction("doors", "close", OutVehicleInteractionInfo.GetAction("doors", "close"));
@@ -344,10 +340,6 @@ namespace BCRPClient.CEF
 
             //InVehicleInteractionInfo.AddAction("other_down", "", OutVehicleInteractionInfo.GetAction("gas", ""));
 
-            #endregion
-
-            #region Player Actions
-
             CharacterInteractionInfo.AddAction("interact", "coin", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails, null); });
             CharacterInteractionInfo.AddAction("interact", "handshake", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Handshake, null); });
             CharacterInteractionInfo.AddAction("interact", "carry", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Carry, null); });
@@ -370,12 +362,15 @@ namespace BCRPClient.CEF
             CharacterInteractionInfo.AddAction("documents", "char_veh", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 2); });
             CharacterInteractionInfo.AddAction("documents", "license", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 3); });
 
-            #endregion
+            CharacterInteractionInfo.AddAction("heal", "pulse", (entity) => { var player = entity as Player; if (player == null) return; ResurrectPlayer(player); });
+            CharacterInteractionInfo.AddAction("heal", "bandage", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_b_0"); });
+            CharacterInteractionInfo.AddAction("heal", "cure_0", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_kit_0"); });
+            CharacterInteractionInfo.AddAction("heal", "cure_1", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_kit_ems_0"); });
 
-            Events.Add("Interaction::PassengersMenuSelect", (object[] args) =>
+            Events.Add("Interaction::PassengersMenuSelect", (args) =>
             {
                 var action = (PassengersMenuActions)(int)args[0];
-                var id = (int)args[1];
+                var id = Utils.ToUInt16(args[1]);
 
                 CloseMenu();
 
@@ -394,7 +389,6 @@ namespace BCRPClient.CEF
             });
         }
 
-        #region Showers
         public static bool TryShowMenu()
         {
             if (BCRPClient.Interaction.CurrentEntity == null || IsActive)
@@ -573,15 +567,13 @@ namespace BCRPClient.CEF
 
             Cursor.Show(true, true);
         }
-        #endregion
 
-        #region PassangersMenu Select
-        public static void PlayerInteraction(int id)
+        public static void PlayerInteraction(ushort id)
         {
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
-            var player = Utils.GetPlayerByRemoteId(id, true);
+            var player = Entities.Players.GetAtRemote(id);
 
             if (player?.Exists != true)
                 return;
@@ -595,12 +587,12 @@ namespace BCRPClient.CEF
             TryShowMenu();
         }
 
-        public static void PlayerKick(int id)
+        public static void PlayerKick(ushort id)
         {
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
-            var player = Utils.GetPlayerByRemoteId(id, true);
+            var player = Entities.Players.GetAtRemote(id);
 
             if (player?.Exists != true)
                 return;
@@ -609,7 +601,6 @@ namespace BCRPClient.CEF
 
             CloseMenu();
         }
-        #endregion
 
         public static void CloseMenu()
         {
@@ -633,7 +624,6 @@ namespace BCRPClient.CEF
             BCRPClient.Interaction.Enabled = true;
         }
 
-        #region Renders
         private static void CheckEntityDistance()
         {
             if (BCRPClient.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, BCRPClient.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
@@ -643,7 +633,6 @@ namespace BCRPClient.CEF
                 CloseMenu();
             }
         }
-        #endregion
 
         public static async void PlayerCashRequest(Player player, int amount)
         {
@@ -857,6 +846,93 @@ namespace BCRPClient.CEF
             {
                 Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses, null);
             }
+        }
+
+        public static async void ResurrectPlayer(Player player)
+        {
+            var pData = Sync.Players.GetData(player);
+
+            if (pData == null)
+                return;
+
+            if (!pData.IsKnocked)
+            {
+                CEF.Notification.ShowError(Locale.Get("NTFC_PLAYER_RESURRECT_E_0"));
+
+                return;
+            }
+
+            var items = new Dictionary<string, int>();
+
+            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            {
+                var item = CEF.Inventory.ItemsParams[i];
+
+                if (item == null)
+                    continue;
+
+                if (item.Id == "med_kit_0" || item.Id == "med_kit_ems_0")
+                    items.TryAdd(item.Id, i);
+            }
+
+            if (items.Count == 0)
+            {
+                CEF.Notification.ShowError(Locale.Get("NTFC_ITEMS_NO_MED_KIT_RESURRECT_0"));
+
+                return;
+            }
+            else if (items.Count == 1)
+            {
+                proceed(items.FirstOrDefault().Value);
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("RESURRECT_PLAYER_ITEM", "Реанимировать {0}", items.Select(x => ((decimal)x.Value, Data.Items.GetName(x.Key))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType == ActionBox.ReplyTypes.Cancel)
+                {
+                    CEF.ActionBox.Close(true);
+                }
+                else
+                {
+                    proceed((int)id);
+                }
+            }, null);
+
+            async void proceed(int itemIdx)
+            {
+                var res = (int)await Events.CallRemoteProc("Player::ResurrectItem", player, itemIdx);
+            }
+        }
+
+        public static void GivePlayerHealingItem(Player player, string itemId)
+        {
+            var pData = Sync.Players.GetData(player);
+
+            if (pData == null)
+                return;
+
+            int itemIdx = -1;
+
+            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            {
+                if (CEF.Inventory.ItemsParams[i]?.Id == itemId)
+                {
+                    itemIdx = i;
+
+                    break;
+                }
+            }
+
+            if (itemIdx < 0)
+            {
+                CEF.Notification.Show("Inventory::NoItem");
+
+                return;
+            }
+
+            Sync.Offers.Request(player, Sync.Offers.Types.GiveHealingItem, new { ItemIdx = itemIdx, });
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Items;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ namespace BCRPServer
 {
     public partial class PlayerData
     {
-        public static Dictionary<Player, PlayerData> All { get; private set; } = new Dictionary<Player, PlayerData>();
+        public static Dictionary<Player, PlayerData> All { get; } = new Dictionary<Player, PlayerData>();
 
         /// <summary>Получить PlayerData игрока</summary>
         /// <returns>Объект класса PlayerData если существует, иначе - null</returns>
@@ -331,7 +330,7 @@ namespace BCRPServer
 
             LastDamageTime = DateTime.MinValue;
 
-            Listeners = new List<Player>();
+            _microphoneListeners = new HashSet<Player>();
 
             VoiceRange = 0f;
 
@@ -380,8 +379,8 @@ namespace BCRPServer
 
             LastData = new LastPlayerData() { Dimension = Properties.Settings.Static.MainDimension, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
-            Name = name;
-            Surname = surname;
+            Info.Name = name;
+            Info.Surname = surname;
             Info.BirthDate = Utils.GetCurrentTime().Subtract(new TimeSpan(365 * age, 0, 0, 0, 0));
             Sex = sex;
 
@@ -402,22 +401,22 @@ namespace BCRPServer
             Info.Skills = Properties.Settings.Static.CharacterDefaultSkills;
             Info.Licenses = Properties.Settings.Static.CharacterDefaultLicenses;
 
-            Gifts = new List<Game.Items.Gift>();
+            Info.Gifts = new List<Game.Items.Gift>();
 
-            HeadBlend = hBlend;
-            HeadOverlays = hOverlays;
-            FaceFeatures = faceFeatures;
-            EyeColor = eyeColor;
-            HairStyle = hStyle;
-            Decorations = new List<int>();
+            Info.HeadBlend = hBlend;
+            Info.HeadOverlays = hOverlays;
+            Info.FaceFeatures = faceFeatures;
+            Info.EyeColor = eyeColor;
+            Info.HairStyle = hStyle;
+            Info.Decorations = new List<int>();
 
-            Items = new Game.Items.Item[20];
-            Clothes = clothes;
-            Accessories = new Game.Items.Clothes[8];
-            Weapons = new Game.Items.Weapon[2];
-            Bag = null;
-            Holster = null;
-            Armour = null;
+            Info.Items = new Game.Items.Item[20];
+            Info.Clothes = clothes;
+            Info.Accessories = new Game.Items.Clothes[8];
+            Info.Weapons = new Game.Items.Weapon[2];
+            Info.Bag = null;
+            Info.Holster = null;
+            Info.Armour = null;
 
             Info.PhoneNumber = Sync.Players.GenerateNewPhoneNumber();
             Info.PhoneBalance = 0;
@@ -425,13 +424,13 @@ namespace BCRPServer
             Info.Contacts = new Dictionary<uint, string>();
             Info.PhoneBlacklist = new List<uint>();
 
-            Furniture = new List<Game.Estates.Furniture>();
+            Info.Furniture = new List<Game.Estates.Furniture>();
 
-            Info.WeaponSkins = new List<WeaponSkin>();
+            Info.WeaponSkins = new List<Game.Items.WeaponSkin>();
 
             Info.Familiars = new HashSet<uint>();
 
-            Punishments = new List<Sync.Punishment>();
+            Info.Punishments = new List<Sync.Punishment>();
 
             Info.PlayerData = this;
 
@@ -457,7 +456,7 @@ namespace BCRPServer
         {
             Player.SetMainData(this);
 
-            Player.Name = $"{Name} {Surname}";
+            Player.Name = $"{Info.Name} {Info.Surname}";
 
             UpdateCustomization();
             UpdateClothes();
@@ -594,9 +593,9 @@ namespace BCRPServer
         /// <summary>Метод обновляет кастомизацию игрока</summary>
         public void UpdateCustomization()
         {
-            Player.SetCustomization(Sex, HeadBlend.RageHeadBlend, EyeColor, HairStyle.Color, HairStyle.Color2, FaceFeatures, HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay), Game.Data.Customization.Defaults.Decorations);
+            Player.SetCustomization(Sex, Info.HeadBlend.RageHeadBlend, Info.EyeColor, Info.HairStyle.Color, Info.HairStyle.Color2, Info.FaceFeatures, Info.HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay), Game.Data.Customization.Defaults.Decorations);
 
-            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, HairStyle.Id), 0);
+            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, Info.HairStyle.Id), 0);
 
             UpdateHairOverlay();
 
@@ -605,16 +604,16 @@ namespace BCRPServer
 
         public void UpdateHairOverlay()
         {
-            if (HairStyle.Overlay > 0)
-                Player.SetSharedData("CHO", HairStyle.Overlay);
+            if (Info.HairStyle.Overlay > 0)
+                Player.SetSharedData("CHO", Info.HairStyle.Overlay);
             else
                 Player.ResetSharedData("CHO");
         }
 
         public void UpdateDecorations()
         {
-            if (Decorations.Count > 0)
-                Player.SetSharedData("DCR", Decorations);
+            if (Info.Decorations.Count > 0)
+                Player.SetSharedData("DCR", Info.Decorations);
             else
                 Player.ResetSharedData("DCR");
         }
@@ -626,7 +625,7 @@ namespace BCRPServer
                 return false;
             }
 
-            if (InventoryBlocked)
+            if (IsInventoryBlocked)
             {
                 if (notifyIfNot)
                     Player.Notify("Inventory::Blocked");
@@ -744,6 +743,11 @@ namespace BCRPServer
 
         public void SetAsKnocked(Player attacker)
         {
+            if (IsWounded)
+                IsWounded = false;
+
+            this.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
+
             IsKnocked = true;
 
             Player.TriggerEvent("Player::Knocked", true, attacker?.Id ?? ushort.MaxValue);
@@ -754,6 +758,9 @@ namespace BCRPServer
             IsKnocked = false;
 
             Player.TriggerEvent("Player::Knocked", false);
+
+            if (GeneralAnim == Sync.Animations.GeneralTypes.Knocked)
+                this.StopGeneralAnim();
         }
 
         public bool Uncuff()
@@ -770,17 +777,27 @@ namespace BCRPServer
 
         public void ShowPassport(Player target)
         {
-            target.TriggerEvent("Documents::Show", 0, Name, Surname, Sex, Info.BirthDate.SerializeToJson(), null, CID, Info.CreationDate.SerializeToJson(), false, Info.LosSantosAllowed);
+            target.TriggerEvent("Documents::Show", 0, Info.Name, Info.Surname, Sex, Info.BirthDate.SerializeToJson(), null, CID, Info.CreationDate.SerializeToJson(), false, Info.LosSantosAllowed);
         }
 
         public void ShowLicences(Player target)
         {
-            target.TriggerEvent("Documents::Show", 1, Name, Surname, Info.Licenses);
+            target.TriggerEvent("Documents::Show", 1, Info.Name, Info.Surname, Info.Licenses);
         }
 
         public void ShowFractionDocs(Player target, Game.Fractions.Fraction fData, byte fRank)
         {
-            target.TriggerEvent("Documents::Show", 4, Name, Surname, fData.Type, fRank);
+            target.TriggerEvent("Documents::Show", 4, Info.Name, Info.Surname, fData.Type, fRank);
+        }
+
+        public string GetNameForPlayer(PlayerData tData, bool familiarOnly = true, bool dontMask = true, bool includeId = false)
+        {
+            var name = familiarOnly ? (tData.Info.Familiars.Contains(CID) && (dontMask || WearedMask == null) ? Player.Name : Language.Strings.Get(Sex ? "NPC_NOTFAM_MALE" : "NPC_NOTFAM_FEMALE")) : Player.Name;
+
+            if (includeId)
+                return name + $" ({Player.Id})";
+            else
+                return name;
         }
     }
 }

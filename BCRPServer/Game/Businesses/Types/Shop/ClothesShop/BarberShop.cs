@@ -223,10 +223,10 @@ namespace BCRPServer.Game.Businesses
 
                 // hair overlay & colours validation
 
-                pData.HairStyle.Id = variation;
-                pData.HairStyle.Overlay = hairOverlayIdx;
-                pData.HairStyle.Color = colour1;
-                pData.HairStyle.Color2 = colour2;
+                pData.Info.HairStyle.Id = variation;
+                pData.Info.HairStyle.Overlay = hairOverlayIdx;
+                pData.Info.HairStyle.Color = colour1;
+                pData.Info.HairStyle.Color2 = colour2;
 
                 MySQL.CharacterHairStyleUpdate(pData.Info);
             }
@@ -252,7 +252,7 @@ namespace BCRPServer.Game.Businesses
                 if (!HeadOverlayNums.TryGetValue(itemIdData[0], out headOverlayIdx))
                     return false;
 
-                var headOverlay = pData.HeadOverlays[headOverlayIdx];
+                var headOverlay = pData.Info.HeadOverlays[headOverlayIdx];
 
                 headOverlay.Color = colour;
                 headOverlay.SecondaryColor = colour;

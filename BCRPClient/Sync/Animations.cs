@@ -10,7 +10,6 @@ namespace BCRPClient.Sync
     {
         public static DateTime LastSent;
 
-        #region Supported Anims
 
         /// <summary>Класс анимации</summary>
         public class Animation
@@ -136,6 +135,8 @@ namespace BCRPClient.Sync
 
             CasinoSlotMachineIdle0,
             CasinoBlackjackIdle0,
+
+            MedicalRevive,
         }
 
         public enum OtherTypes
@@ -909,12 +910,12 @@ namespace BCRPClient.Sync
             { GeneralTypes.CasinoSlotMachineIdle0, new Animation("amb@code_human_in_bus_passenger_idles@male@sit@base", "base", 8f, -8f, -1, 1, 1f, false, false, false) },
 
             { GeneralTypes.CasinoBlackjackIdle0, new Animation("anim_casino_b@amb@casino@games@shared@player@", "idle_a", 8f, -8f, -1, 1, 1f, false, false, false) },
+
+            { GeneralTypes.MedicalRevive, new Animation("mini@cpr@char_a@cpr_str", "cpr_pumpchest", 8f, -8f, -1, 1, 1f, false, false, false) },
         };
-        #endregion
 
         public Animations()
         {
-            #region Events
             Events.Add("Players::PlayFastAnim", async (args) =>
             {
                 var player = (Player)args[0];
@@ -924,10 +925,14 @@ namespace BCRPClient.Sync
 
                 var type = (FastTypes)(int)args[1];
 
-                if (!FastAnimsList.ContainsKey(type))
+                var data = FastAnimsList.GetValueOrDefault(type);
+
+                if (data == null)
                     return;
 
-                if (player.Handle == Player.LocalPlayer.Handle)
+                var timeout = TimeSpan.FromMilliseconds(Utils.ToInt64(args[2]));
+
+                if (player == Player.LocalPlayer)
                 {
                     var pData = Sync.Players.GetData(player);
 
@@ -935,55 +940,46 @@ namespace BCRPClient.Sync
                     {
                         pData.FastAnim = type;
                     }
+
+                    Utils.CancelPendingTask("LPFATT");
+
+                    AsyncTask task = null;
+
+                    task = new AsyncTask(async () =>
+                    {
+                        await RAGE.Game.Invoker.WaitAsync((int)timeout.TotalMilliseconds);
+
+                        if (!Utils.IsTaskStillPending("LPFATT", task))
+                            return;
+
+                        Events.CallRemote("Players::SFTA");
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending("LPFATT", task);
                 }
 
-                var data = FastAnimsList.GetValueOrDefault(type);
-
-                Play(player, data);
+                Play(player, data, (int)timeout.TotalMilliseconds);
             });
 
-            Events.Add("Players::FAST", (args) =>
+            Events.Add("Players::StopFastAnim", (args) =>
             {
-                var timeout = Utils.ToInt32(args[0]);
-
-                Utils.CancelPendingTask("LPFATT");
-
-                if (timeout <= 0)
-                    return;
-
-                AsyncTask task = null;
-
-                task = new AsyncTask(async () =>
-                {
-                    await RAGE.Game.Invoker.WaitAsync(timeout);
-
-                    if (!Utils.IsTaskStillPending("LPFATT", task))
-                        return;
-
-                    Events.CallRemote("Players::SFTA");
-                }, 0, false, 0);
-
-                Utils.SetTaskAsPending("LPFATT", task);
-            });
-
-            Events.Add("Players::StopAnim", (args) =>
-            {
-                var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
+                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
 
                 if (player == null)
                     return;
 
-                if (player.Handle == Player.LocalPlayer.Handle)
+                if (player == Player.LocalPlayer)
                 {
                     var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                     if (pData != null)
                         pData.FastAnim = FastTypes.None;
+
+                    Utils.CancelPendingTask("LPFATT");
                 }
 
                 Stop(player);
             });
-            #endregion
         }
 
         public static void Set(Player player, EmotionTypes emotion)
@@ -1095,9 +1091,9 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static void PlayFastSync(FastTypes fastType, int delay = 1000)
+        public static void PlayFastSync(FastTypes fastType)
         {
-            if (LastSent.IsSpam(delay, false, false))
+            if (LastSent.IsSpam(1000, false, true))
                 return;
 
             if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))

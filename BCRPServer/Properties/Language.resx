@@ -547,4 +547,31 @@
   <data name="OFFER_EMS_MEDCARD_TEXT" xml:space="preserve">
     <value>{0} предлагает вам оформить медицинскую карту</value>
   </data>
+  <data name="NPC_NOTFAM_FEMALE" xml:space="preserve">
+    <value>Незнакомка</value>
+  </data>
+  <data name="NPC_NOTFAM_MALE" xml:space="preserve">
+    <value>Незнакомец</value>
+  </data>
+  <data name="NTFC_PLAYER_RESURRECT_0" xml:space="preserve">
+    <value>Вы успешно реанимировали {0}!</value>
+  </data>
+  <data name="NTFC_PLAYER_RESURRECT_1" xml:space="preserve">
+    <value>{0} успешно реанимировал Вас!</value>
+  </data>
+  <data name="NTFC_PLAYER_RESURRECT_2" xml:space="preserve">
+    <value>Вы не смогли реанимировать {0}!</value>
+  </data>
+  <data name="NTFC_PLAYER_RESURRECT_3" xml:space="preserve">
+    <value>{0} не смог реанимировать Вас!</value>
+  </data>
+  <data name="CHAT_PLAYER_RESURRECT_0" xml:space="preserve">
+    <value>начал(а) оказывать первую медицинскую помощь {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_RESURRECT_1" xml:space="preserve">
+    <value>оказал(а) первую медицинскую помощь {0}</value>
+  </data>
+  <data name="OFFER_GIVE_HEALINGITEM_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам взять у него и использовать {1}</value>
+  </data>
 </root>
