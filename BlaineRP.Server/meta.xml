@@ -1,0 +1,4 @@
+<meta>
+    <info name="Blaine Role Play Server Mode" type="gamemode" description="Server-side DLL" author="frytech" version="beta" />
+    <script src="BlaineRP.Server.dll" />
+</meta>
