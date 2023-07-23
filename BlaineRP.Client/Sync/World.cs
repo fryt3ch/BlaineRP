@@ -1,14 +1,17 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class World 
+    public class World
     {
         public static DateTime ServerTime { get; private set; } = DateTime.UtcNow;
 
@@ -40,7 +43,7 @@ namespace BlaineRP.Client.Sync
 
             public string Id => Object.GetSharedData<string>("I", null);
 
-            public uint Uid => Utils.ToUInt32(Object.GetSharedData<object>("U", 0));
+            public uint Uid => Utils.Convert.ToUInt32(Object.GetSharedData<object>("U", 0));
 
             public bool IsLocked => Object.GetSharedData<bool>("L", false);
 
@@ -66,13 +69,13 @@ namespace BlaineRP.Client.Sync
 
             public async void TakeItem()
             {
-                if (Utils.IsAnyCefActive(true))
+                if (Utils.Misc.IsAnyCefActive(true))
                     return;
 
                 if (Player.LocalPlayer.IsInAnyVehicle(false))
                     return;
 
-                if (!Utils.CanDoSomething(true, Utils.Actions.Cuffed, Utils.Actions.Frozen))
+                if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Cuffed, PlayerActions.Types.Frozen))
                     return;
 
                 if (Amount == 1)
@@ -117,7 +120,7 @@ namespace BlaineRP.Client.Sync
                             if (Player.LocalPlayer.IsInAnyVehicle(false))
                                 return;
 
-                            if (!Utils.CanDoSomething(true, Utils.Actions.Cuffed, Utils.Actions.Frozen))
+                            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Cuffed, PlayerActions.Types.Frozen))
                                 return;
 
                             if (rType == CEF.ActionBox.ReplyTypes.OK)
@@ -460,16 +463,16 @@ namespace BlaineRP.Client.Sync
                     continue;
                 }
 
-                if (!Utils.GetScreenCoordFromWorldCoord(temp.Object.GetCoords(true), ref screenX, ref screenY))
+                if (!Graphics.GetScreenCoordFromWorldCoord(temp.Object.GetCoords(true), ref screenX, ref screenY))
                     continue;
 
                 if (!Settings.User.Interface.HideIOGNames)
                 {
-                    Utils.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
 
                 if (temp == ClosestItemOnGround && !Settings.User.Interface.HideInteractionBtn)
-                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 

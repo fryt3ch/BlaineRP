@@ -1,8 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -57,7 +56,6 @@ namespace BlaineRP.Client.Data
                     {
                         NotifyStreaming = true,
                     };
-
                     ArrowObj.StreamInCustomActionsAdd(OnLightObjStreamIn);
 
                     ArrowObj.SetHeading(Heading);
@@ -66,7 +64,6 @@ namespace BlaineRP.Client.Data
                     {
                         NotifyStreaming = true,
                     };
-
                     LightsObj.StreamInCustomActionsAdd(OnLightObjStreamIn);
                 }
 
@@ -85,7 +82,7 @@ namespace BlaineRP.Client.Data
                 {
                     var taskKey = $"CASINO_LUCKYWHEEL_{casinoId}_{wheelId}";
 
-                    Utils.CancelPendingTask(taskKey);
+                    AsyncTask.Methods.CancelPendingTask(taskKey);
 
                     AsyncTask task = null;
 
@@ -107,11 +104,11 @@ namespace BlaineRP.Client.Data
                             player.TaskGoStraightToCoord(targetPos.X, targetPos.Y, targetPos.Z, 1f, -1, wheelRotation.Z, 0f);
                         }
 
-                        await Utils.RequestAnimDict("anim_casino_a@amb@casino@games@lucky7wheel@male");
+                        await Streaming.RequestAnimDict("anim_casino_a@amb@casino@games@lucky7wheel@male");
 
                         await RAGE.Game.Invoker.WaitAsync(2000);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         if (player?.Exists == true)
@@ -124,7 +121,7 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(2000);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         if (player?.Exists == true)
@@ -134,9 +131,9 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(250);
 
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
                             return;
 
                         RAGE.Game.Audio.PlaySoundFromEntity(-1, "Spin_Start", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
@@ -183,7 +180,7 @@ namespace BlaineRP.Client.Data
                                 if (resultOffset is float f)
                                     j = f;
                                 else
-                                    j = (float)Utils.Random.Next(win - 4, win + 10);
+                                    j = (float)Utils.Misc.Random.Next(win - 4, win + 10);
                             }
 
                             if (!timeout)
@@ -194,7 +191,7 @@ namespace BlaineRP.Client.Data
                                     await RAGE.Game.Invoker.WaitAsync(10);
                             }
 
-                            if (!Utils.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
                                 return;
                         }
 
@@ -218,10 +215,10 @@ namespace BlaineRP.Client.Data
                                                 await RAGE.Game.Invoker.WaitAsync(500);
                                             }*/
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
             }
         }

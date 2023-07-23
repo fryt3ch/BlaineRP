@@ -1,11 +1,14 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Phone 
+    public class Phone
     {
         public enum PhoneStateTypes : byte
         {
@@ -39,7 +42,7 @@ namespace BlaineRP.Client.Sync
             RAGE.Game.Mobile.DestroyMobilePhone();
         }
 
-        public static bool CanUsePhoneAnim(bool notify = false) => Utils.CanDoSomething(notify, Utils.Actions.Crawl, Utils.Actions.IsSwimming, Utils.Actions.Falling, Utils.Actions.Animation, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.FastAnimation, Utils.Actions.HasItemInHands, Utils.Actions.HasWeapon, Utils.Actions.IsAttachedTo, Utils.Actions.OtherAnimation);
+        public static bool CanUsePhoneAnim(bool notify = false) => !PlayerActions.IsAnyActionActive(notify, PlayerActions.Types.Crawl, PlayerActions.Types.IsSwimming, PlayerActions.Types.Falling, PlayerActions.Types.Animation, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.FastAnimation, PlayerActions.Types.HasItemInHands, PlayerActions.Types.HasWeapon, PlayerActions.Types.IsAttachedTo, PlayerActions.Types.OtherAnimation);
 
         public static void Toggle()
         {
@@ -55,7 +58,7 @@ namespace BlaineRP.Client.Sync
 
             if (!Toggled)
             {
-                if (Utils.IsAnyCefActive(true))
+                if (Utils.Misc.IsAnyCefActive(true))
                     return;
 
                 CallChangeState(pData, CanUsePhoneAnim() ? PhoneStateTypes.Idle : PhoneStateTypes.JustOn);
@@ -211,7 +214,7 @@ namespace BlaineRP.Client.Sync
                 }
                 else if (stateType == PhoneStateTypes.Idle)
                 {
-                    await Utils.RequestAnimDict(AnimDict);
+                    await Streaming.RequestAnimDict(AnimDict);
 
                     player.StopAnimTask(AnimDictSelf, AnimCameraSelfieBase, 3f);
                     player.StopAnimTask(AnimDict, AnimCallBase, 3f);
@@ -227,7 +230,7 @@ namespace BlaineRP.Client.Sync
                 }
                 else if (stateType == PhoneStateTypes.Camera)
                 {
-                    await Utils.RequestAnimDict(AnimDictSelf);
+                    await Streaming.RequestAnimDict(AnimDictSelf);
 
                     player.StopAnimTask(AnimDict, AnimTextReadBase, 3f);
                     player.StopAnimTask(AnimDict, AnimCallBase, 3f);
@@ -256,7 +259,7 @@ namespace BlaineRP.Client.Sync
 
         public static void LocalPhoneMoveFingerRandom()
         {
-            RAGE.Game.Mobile.MoveFinger(Utils.Random.Next(1, 6));
+            RAGE.Game.Mobile.MoveFinger(Utils.Misc.Random.Next(1, 6));
         }
 
         public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Sync.WeaponSystem.MobileHash;

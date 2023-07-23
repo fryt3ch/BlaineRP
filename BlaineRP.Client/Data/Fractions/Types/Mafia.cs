@@ -1,10 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -27,7 +21,7 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class MafiaEvents 
+    public class MafiaEvents
     {
         public MafiaEvents()
         {

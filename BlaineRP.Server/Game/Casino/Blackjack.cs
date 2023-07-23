@@ -265,7 +265,7 @@ namespace BlaineRP.Server.Game.Casino
                         if (i == 1 && IsCardTypeAce(cardType) && (dealerHandSum + value > LOOSE_AFTER))
                             value = 1;
 
-                        DealerHand.Add(new CardData() { CardType = cardType, Value = value});
+                        DealerHand.Add(new CardData() { CardType = cardType, Value = value });
 
                         CurrentDeck?.Remove(cardType);
 
@@ -433,7 +433,7 @@ namespace BlaineRP.Server.Game.Casino
 
                 return;
             }
-            
+
             if (CurrentPlayers[seatIdx] == null || CurrentPlayers[seatIdx].Bet <= 0 || CurrentPlayers[seatIdx].Hand == null)
             {
                 SetPlayerToDecisionState((byte)(seatIdx + 1));

@@ -1,10 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.Data
 {
@@ -39,7 +38,7 @@ namespace BlaineRP.Client.Data
 
             public Additional.ExtraColshape MainColshape { get; set; }
 
-            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Utils.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
+            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Utils.Convert.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
 
             public Roulette GetRouletteById(int id) => id < 0 || id >= Roulettes.Length ? null : Roulettes[id];
             public LuckyWheel GetLuckyWheelById(int id) => id < 0 || id >= LuckyWheels.Length ? null : LuckyWheels[id];
@@ -63,7 +62,7 @@ namespace BlaineRP.Client.Data
 
                 if (Id == 0)
                 {
-                    MainColshape = new Additional.Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    MainColshape = new Additional.Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
 
                     };
@@ -138,16 +137,15 @@ namespace BlaineRP.Client.Data
 
                         Data = this,
                     };
-
                     cashier.Ped.StreamInCustomActionsAdd((entity) =>
-                    {
-                        var ped = entity as Ped;
+                                        {
+                                            var ped = entity as Ped;
 
-                        if (ped == null)
-                            return;
+                                            if (ped == null)
+                                                return;
 
-                        Sync.Animations.Play(ped, new Sync.Animations.Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
-                    });
+                                            Sync.Animations.Play(ped, new Sync.Animations.Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
+                                        });
 
                     //new Additional.RadioEmitter("Casino_0", new Vector3(956.087f, 40.37049f, 79.03804f), 25f, uint.MaxValue, Additional.RadioEmitter.EmitterTypes.se_vw_dlc_casino_main_rm_shop_radio, Sync.Radio.StationTypes.NSPFM);
 
@@ -172,7 +170,6 @@ namespace BlaineRP.Client.Data
                         {
                             Vehicle = new RAGE.Elements.Vehicle(RAGE.Util.Joaat.Hash("reaper"), new Vector3(963.3792f, 47.93621f, 75.18184f + 1f), 238.3463f, "CASINO", 255, true, 0, 0, Settings.App.Static.MainDimension);
                         }
-
                         Vehicle.StreamInCustomActionsAdd((entity) =>
                         {
                             var veh = entity as Vehicle;
@@ -203,7 +200,6 @@ namespace BlaineRP.Client.Data
 
                             veh.SetData("SpinTask", spinTask);
                         });
-
                         Vehicle.StreamOutCustomActionsAdd((entity) =>
                         {
                             var veh = entity as Vehicle;
@@ -214,11 +210,11 @@ namespace BlaineRP.Client.Data
                             veh.GetData<AsyncTask>("SpinTask")?.Cancel();
                         });
 
-                        await Utils.RequestStreamedTextureDict("Prop_Screen_Vinewood");
+                        await Streaming.RequestStreamedTextureDict("Prop_Screen_Vinewood");
 
                         Blackjack.LoadAllRequired();
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var intId = RAGE.Game.Interior.GetInteriorAtCoords(MainColshape.Position.X, MainColshape.Position.Y, MainColshape.Position.Z);
@@ -229,10 +225,10 @@ namespace BlaineRP.Client.Data
                         while (!RAGE.Game.Interior.IsInteriorReady(intId))
                             await RAGE.Game.Invoker.WaitAsync(10);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
-                        var renderTargetHandle = Utils.CreateNamedRenderTargetForModel("casinoscreen_01", RAGE.Util.Joaat.Hash("vw_vwint01_video_overlay"));
+                        var renderTargetHandle = Misc.CreateNamedRenderTargetForModel("casinoscreen_01", RAGE.Util.Joaat.Hash("vw_vwint01_video_overlay"));
 
                         UpdateCasinoWalls(CurrentWallScreenType);
 
@@ -249,13 +245,13 @@ namespace BlaineRP.Client.Data
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract,
 
@@ -287,13 +283,13 @@ namespace BlaineRP.Client.Data
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract,
 
@@ -323,13 +319,13 @@ namespace BlaineRP.Client.Data
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
                             var coords = x.BaseObj.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
 
@@ -349,13 +345,13 @@ namespace BlaineRP.Client.Data
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
                             var coords = x.MachineObj.GetOffsetFromInWorldCoords(0f, -1.15f, 0f);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
 
@@ -369,15 +365,15 @@ namespace BlaineRP.Client.Data
 
                         SlotMachine.SoundId = RAGE.Game.Audio.GetSoundId();
 
-                        Utils.CancelPendingTask("CASINO_TASK");
+                        AsyncTask.Methods.CancelPendingTask("CASINO_TASK");
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 };
 
                 MainColshape.OnExit = (cancel) =>
                 {
-                    Utils.CancelPendingTask("CASINO_TASK");
+                    AsyncTask.Methods.CancelPendingTask("CASINO_TASK");
 
                     if (Vehicle != null)
                     {
@@ -396,7 +392,7 @@ namespace BlaineRP.Client.Data
                     {
                         var x = Roulettes[i];
 
-                        Utils.CancelPendingTask($"CASINO_ROULETTE_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_ROULETTE_{Id}_{i}");
 
                         if (x.TextLabel != null)
                         {
@@ -442,9 +438,9 @@ namespace BlaineRP.Client.Data
                     {
                         var x = Blackjacks[i];
 
-                        Utils.CancelPendingTask($"CASINO_BLJ_S_{Id}_{i}");
-                        Utils.CancelPendingTask($"CASINO_BLJ_F_{Id}_{i}");
-                        Utils.CancelPendingTask($"CASINO_BLJ_P_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_BLJ_S_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_BLJ_F_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_BLJ_P_{Id}_{i}");
 
                         if (x.TextLabel != null)
                         {
@@ -505,14 +501,14 @@ namespace BlaineRP.Client.Data
                     {
                         var x = LuckyWheels[i];
 
-                        Utils.CancelPendingTask($"CASINO_LUCKYWHEEL_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_LUCKYWHEEL_{Id}_{i}");
                     }
 
                     for (int i = 0; i < SlotMachines.Length; i++)
                     {
                         var x = SlotMachines[i];
 
-                        Utils.CancelPendingTask($"CASINO_SLOTMACHINE_{Id}_{i}");
+                        AsyncTask.Methods.CancelPendingTask($"CASINO_SLOTMACHINE_{Id}_{i}");
 
                         if (x.Reels != null)
                         {
@@ -536,21 +532,19 @@ namespace BlaineRP.Client.Data
                 {
                     var data = ((JArray)roulettesData[i]).ToObject<object[]>();
 
-                    Roulettes[i].MinBet = Utils.ToUInt32(data[0]);
-                    Roulettes[i].MaxBet = Utils.ToUInt32(data[1]);
+                    Roulettes[i].MinBet = Utils.Convert.ToUInt32(data[0]);
+                    Roulettes[i].MaxBet = Utils.Convert.ToUInt32(data[1]);
                 }
 
                 for (int i = 0; i < blackjacksData.Length; i++)
                 {
                     var data = ((JArray)blackjacksData[i]).ToObject<object[]>();
 
-                    Blackjacks[i].MinBet = Utils.ToUInt32(data[0]);
-                    Blackjacks[i].MaxBet = Utils.ToUInt32(data[1]);
+                    Blackjacks[i].MinBet = Utils.Convert.ToUInt32(data[0]);
+                    Blackjacks[i].MaxBet = Utils.Convert.ToUInt32(data[1]);
                 }
-
                 Roulettes[1].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(2));
                 Roulettes[0].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(3));
-
                 Blackjacks[1].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(2));
                 Blackjacks[0].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(3));
             }
@@ -574,8 +568,7 @@ namespace BlaineRP.Client.Data
 
                 if (wsType == WallScreenTypes.None)
                     return;
-
-                Utils.SetTvChannelPlaylist(0, wsType.ToString(), false);
+                Misc.SetTvChannelPlaylist(0, wsType.ToString(), false);
 
                 RAGE.Game.Graphics.SetTvAudioFrontend(true);
                 RAGE.Game.Graphics.SetTvVolume(-100f);
@@ -590,10 +583,10 @@ namespace BlaineRP.Client.Data
 
                 var casino = Casino.GetById(casinoId);
 
-                if (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null))
+                if (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null))
                     return;
 
-                var newType = (WallScreenTypes)Utils.ToByte(value ?? WallScreenTypes.None);
+                var newType = (WallScreenTypes)Utils.Convert.ToByte(value ?? WallScreenTypes.None);
 
                 UpdateCasinoWalls(newType);
             }
@@ -620,13 +613,13 @@ namespace BlaineRP.Client.Data
         }
 
         [Script(int.MaxValue)]
-        public class CasinoEvents 
+        public class CasinoEvents
         {
             public CasinoEvents()
             {
                 Events.Add("Casino::CB", (args) =>
                 {
-                    var newBalance = Utils.ToUInt32(args[0]);
+                    var newBalance = Utils.Convert.ToUInt32(args[0]);
 
                     if (Data.Minigames.Casino.Casino.IsActive)
                     {
@@ -658,13 +651,13 @@ namespace BlaineRP.Client.Data
 
                 Events.Add("Casino::BLJM", async (args) =>
                 {
-                    var type = Utils.ToByte(args[0]);
+                    var type = Utils.Convert.ToByte(args[0]);
 
                     if (type == 0) // player anim
                     {
-                        var animType = Utils.ToByte(args[1]);
+                        var animType = Utils.Convert.ToByte(args[1]);
 
-                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
 
                         if (player?.Exists != true)
                             return;
@@ -692,11 +685,11 @@ namespace BlaineRP.Client.Data
                         if (ped?.Exists != true || table.TableObject?.Exists != true)
                             return;
 
-                        var seatIdx = Utils.ToByte(args[3]);
+                        var seatIdx = Utils.Convert.ToByte(args[3]);
 
-                        var amount = Utils.ToUInt32(args[4]);
+                        var amount = Utils.Convert.ToUInt32(args[4]);
 
-                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[5]));
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[5]));
 
                         if (player?.Exists == true)
                         {
@@ -735,8 +728,7 @@ namespace BlaineRP.Client.Data
                         var objModelStr = Casino.GetChipPropByAmount(amount);
 
                         var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
-
-                        Utils.RequestModelNow(objModelhash);
+                        Streaming.RequestModelNow(objModelhash);
 
                         var coords = table.TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
 
@@ -758,16 +750,16 @@ namespace BlaineRP.Client.Data
 
                     var casino = Casino.GetById(casinoId);
 
-                    if (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null))
+                    if (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null))
                         return;
 
                     var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
-                    var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
+                    var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
 
-                    var targetZoneType = (Casino.LuckyWheel.ZoneTypes)Utils.ToByte(args[3]);
+                    var targetZoneType = (Casino.LuckyWheel.ZoneTypes)Utils.Convert.ToByte(args[3]);
 
-                    var resultOffset = Utils.ToSingle(args[4]);
+                    var resultOffset = Utils.Convert.ToSingle(args[4]);
 
                     luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                 });

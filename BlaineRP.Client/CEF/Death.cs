@@ -1,10 +1,11 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using RAGE;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Death 
+    public class Death
     {
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Death); }
 

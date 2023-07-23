@@ -1,10 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Utils;
 using RAGE;
-using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -18,7 +14,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var pos = lockerPoses[i];
 
-                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract,
 
@@ -58,7 +54,7 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class ArmyEvents 
+    public class ArmyEvents
     {
         public ArmyEvents()
         {

@@ -6,120 +6,103 @@ namespace BlaineRP.Client
 {
     public class AsyncTask
     {
-        public static Dictionary<string, AsyncTask> PendingTasksDict { get; set; } = new Dictionary<string, AsyncTask>();
+        private CancellationTokenSource _cancellationTokenSource;
 
-        private CancellationTokenSource CancellationTokenSource { get; set; }
+        private readonly Action _action;
+        private readonly Func<bool> _func;
 
-        private Action Action { get; set; }
-        private Func<bool> Func { get; set; }
+        private readonly int _delay;
+        private readonly bool _loop;
 
-        private int Delay { get; set; }
-        private bool Loop { get; set; }
-
-        private int DelayToStart { get; set; }
+        private readonly int _delayToStart;
 
         /// <summary>Завершено ли задание?</summary>
         public bool IsFinished { get; private set; }
 
-        public bool IsCancelled => CancellationTokenSource?.IsCancellationRequested != false;
+        public bool IsCancelled => _cancellationTokenSource?.IsCancellationRequested != false;
 
         /// <summary>Новое асинхронное задание с возвращаемым значением</summary>
-        /// <param name="Action">Действие</param>
-        /// <param name="Delay">Задержка в мс.</param>
-        /// <param name="Loop">Зациклить?</param>
-        /// <param name="DelayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
-        public AsyncTask(Action Action, int Delay = 0, bool Loop = false, int DelayToStart = 0)
+        /// <param name="action">Действие</param>
+        /// <param name="delay">Задержка в мс.</param>
+        /// <param name="loop">Зациклить?</param>
+        /// <param name="delayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
+        public AsyncTask(Action action, int delay = 0, bool loop = false, int delayToStart = 0)
         {
-            this.Func = null;
-            this.Action = Action;
+            this._func = null;
+            this._action = action;
 
-            this.Delay = Delay;
-            this.Loop = Loop;
+            this._delay = delay;
+            this._loop = loop;
 
-            this.DelayToStart = DelayToStart;
+            this._delayToStart = delayToStart;
         }
 
         /// <summary>Новое асинхронное задание без возвращаемого значения</summary>
-        /// <param name="Func">Действие</param>
-        /// <param name="Delay">Задержка в мс.</param>
-        /// <param name="Loop">Зациклить?</param>
-        /// <param name="DelayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
-        public AsyncTask(Func<bool> Func, int Delay = 0, bool Loop = false, int DelayToStart = 0)
+        /// <param name="func">Действие</param>
+        /// <param name="delay">Задержка в мс.</param>
+        /// <param name="loop">Зациклить?</param>
+        /// <param name="delayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
+        public AsyncTask(Func<bool> func, int delay = 0, bool loop = false, int delayToStart = 0)
         {
-            this.Action = null;
-            this.Func = Func;
+            this._action = null;
+            this._func = func;
 
-            this.Delay = Delay;
-            this.Loop = Loop;
+            this._delay = delay;
+            this._loop = loop;
 
-            this.DelayToStart = DelayToStart;
+            this._delayToStart = delayToStart;
         }
 
-        /// <summary>Запустить задание</summary>
         public void Run()
         {
-            if (Action == null && Func == null)
+            if (_action == null && _func == null)
                 return;
 
             IsFinished = false;
 
-            CancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = new CancellationTokenSource();
 
-            if (Action != null)
+            if (_action != null)
             {
-                if (Loop)
-                    ExecuteLoopAction(CancellationTokenSource.Token);
+                if (_loop)
+                    ExecuteLoopAction(_cancellationTokenSource.Token);
                 else
-                    ExecuteOnceAction(CancellationTokenSource.Token);
+                    ExecuteOnceAction(_cancellationTokenSource.Token);
             }
             else
             {
-                if (Loop)
-                    ExecuteLoopFunc(CancellationTokenSource.Token);
+                if (_loop)
+                    ExecuteLoopFunc(_cancellationTokenSource.Token);
                 else
-                    ExecuteOnceFunc(CancellationTokenSource.Token);
+                    ExecuteOnceFunc(_cancellationTokenSource.Token);
             }
         }
 
-        public static void RunSlim(Action action, int timeout) => ExecuteOnceAction(action, timeout);
-
-        /// <summary>Отменить задание</summary>
         public void Cancel()
         {
-            if (CancellationTokenSource == null)
-                return;
-
-            CancellationTokenSource.Cancel();
-        }
-
-        #region Sub Methods
-        private static async void ExecuteOnceAction(Action action, int timeout)
-        {
-            await RAGE.Game.Invoker.WaitAsync(timeout);
-
-            action.Invoke();
+            _cancellationTokenSource?.Cancel();
         }
 
         private async System.Threading.Tasks.Task ExecuteOnceAction(CancellationToken ct)
         {
-            await RAGE.Game.Invoker.WaitAsync(Delay);
+            await RAGE.Game.Invoker.WaitAsync(_delay);
 
             if (!ct.IsCancellationRequested)
-                Action.Invoke();
+                _action.Invoke();
 
             IsFinished = true;
         }
 
         private async System.Threading.Tasks.Task ExecuteLoopAction(CancellationToken ct)
         {
-            if (DelayToStart > 0)
-                await RAGE.Game.Invoker.WaitAsync(DelayToStart);
+            if (_delayToStart > 0)
+                await RAGE.Game.Invoker.WaitAsync(_delayToStart);
 
             while (!ct.IsCancellationRequested)
             {
-                Action.Invoke();
+                _action.Invoke();
 
-                await RAGE.Game.Invoker.WaitAsync(Delay);
+                await RAGE.Game.Invoker.WaitAsync(_delay);
             }
 
             IsFinished = true;
@@ -127,10 +110,10 @@ namespace BlaineRP.Client
 
         private async System.Threading.Tasks.Task ExecuteOnceFunc(CancellationToken ct)
         {
-            await RAGE.Game.Invoker.WaitAsync(Delay);
+            await RAGE.Game.Invoker.WaitAsync(_delay);
 
             if (!ct.IsCancellationRequested)
-                Func.Invoke();
+                _func.Invoke();
 
             IsFinished = true;
         }
@@ -138,19 +121,61 @@ namespace BlaineRP.Client
         // Return FALSE in delegate to continue loop, return TRUE - to stop it
         private async System.Threading.Tasks.Task ExecuteLoopFunc(CancellationToken ct)
         {
-            if (DelayToStart > 0)
-                await RAGE.Game.Invoker.WaitAsync(DelayToStart);
+            if (_delayToStart > 0)
+                await RAGE.Game.Invoker.WaitAsync(_delayToStart);
 
             while (!ct.IsCancellationRequested)
             {
-                if (Func.Invoke())
+                if (_func.Invoke())
                     return;
 
-                await RAGE.Game.Invoker.WaitAsync(Delay);
+                await RAGE.Game.Invoker.WaitAsync(_delay);
             }
 
             IsFinished = true;
         }
-        #endregion
+
+        public static class Methods
+        {
+            private static readonly Dictionary<string, AsyncTask> PendingTasksDict = new Dictionary<string, AsyncTask>();
+
+            public static void SetAsPending(AsyncTask asyncTask, string key)
+            {
+                if (!PendingTasksDict.TryAdd(key, asyncTask))
+                {
+                    PendingTasksDict[key] = asyncTask;
+                }
+
+                asyncTask.Run();
+            }
+
+            public static bool CancelPendingTask(string key)
+            {
+                if (!PendingTasksDict.Remove(key, out var aTask)) return false;
+
+                aTask.Cancel();
+
+                return true;
+            }
+
+            public static bool IsTaskStillPending(string key, AsyncTask aTask)
+            {
+                var task = PendingTasksDict.GetValueOrDefault(key);
+
+                if (task?.IsCancelled != false)
+                    return false;
+
+                return aTask == null || task == aTask;
+            }
+
+            public static void Run(Action action, int timeout) => ExecuteOnceAction(action, timeout);
+
+            private static async void ExecuteOnceAction(Action action, int timeout)
+            {
+                await RAGE.Game.Invoker.WaitAsync(timeout);
+
+                action.Invoke();
+            }
+        }
     }
 }

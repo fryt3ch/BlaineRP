@@ -1,9 +1,5 @@
-﻿using GTANetworkAPI;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using BlaineRP.Server.Game.Items;
-using static BlaineRP.Server.Game.Items.Inventory;
+﻿using BlaineRP.Server.Game.Items;
+using GTANetworkAPI;
 
 namespace BlaineRP.Server.Events.Vehicles
 {

@@ -1,14 +1,15 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class AutoschoolTest 
+    public class AutoschoolTest
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.AutoschoolTest);
 
@@ -73,7 +74,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.AutoschoolTest, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

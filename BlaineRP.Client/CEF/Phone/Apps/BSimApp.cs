@@ -1,4 +1,6 @@
-﻿namespace BlaineRP.Client.CEF.PhoneApps
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+
+namespace BlaineRP.Client.CEF.PhoneApps
 {
     public class BSimApp
     {

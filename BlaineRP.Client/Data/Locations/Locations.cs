@@ -1,10 +1,12 @@
-﻿using RAGE; using RAGE.Elements; using System.Collections.Generic;
-//using System.Collections.Generic;
+﻿using RAGE;
+using RAGE.Elements;
+using System.Collections.Generic;
+//using RAGE; using RAGE.Elements; using System.Collections.Generic;
 
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public partial class Locations 
+    public partial class Locations
     {
         public Locations()
         {

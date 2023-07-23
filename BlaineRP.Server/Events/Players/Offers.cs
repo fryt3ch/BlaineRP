@@ -1,7 +1,7 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Sync.Offers;
+using GTANetworkAPI;
 using System;
 using System.Linq;
-using BlaineRP.Server.Sync.Offers;
 
 namespace BlaineRP.Server.Events.Players
 {

@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,11 +10,11 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class HUD 
+    public class HUD
     {
         #region HUD Menu
         [Script(int.MaxValue)]
-        public class Menu 
+        public class Menu
         {
             public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.HUD_Menu); }
 
@@ -116,7 +119,7 @@ namespace BlaineRP.Client.CEF
             {
                 if (state)
                 {
-                    if (IsActive || Utils.IsAnyCefActive())
+                    if (IsActive || Utils.Misc.IsAnyCefActive())
                         return;
 
                     if (types == null)
@@ -423,7 +426,7 @@ namespace BlaineRP.Client.CEF
         {
             var pos = Player.LocalPlayer.Position;
 
-            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Utils.GetStreetName(pos));
+            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Misc.GetStreetName(pos));
             Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
         }
 
@@ -437,17 +440,17 @@ namespace BlaineRP.Client.CEF
 
             float scaleX = 1f / GameEvents.ScreenResolution.X, scaleY = 1f / GameEvents.ScreenResolution.Y;
 
-            float minimapWidth = scaleX * (GameEvents.ScreenResolution.X / (4 * aspectratio)) * (Minimap.MinimapZoomState == 2 ? 1.6f : 1f);
+            float minimapWidth = scaleX * (GameEvents.ScreenResolution.X / (4 * aspectratio)) * (MiniMap.ZoomState == 2 ? 1.6f : 1f);
 
-            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (Math.Abs(safezone - 1f) * 10f))));
-            float minimapBottomY = 1f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (Math.Abs(safezone - 1f) * 10f)));
+            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (System.Math.Abs(safezone - 1f) * 10f))));
+            float minimapBottomY = 1f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (System.Math.Abs(safezone - 1f) * 10f)));
 
             /*        width: scaleX * (resolution.x / (4 * aspectRatio)),
                     height: scaleY * (resolution.y / 5.674),
                     scaleX: scaleX,
                     scaleY: scaleY,
-                    leftX: scaleX * (resolution.x * (sfX * (Math.abs(safeZone - 1.0) * 10))),
-                    bottomY: 1.0 - scaleY * (resolution.y * (sfY * (Math.abs(safeZone - 1.0) * 10))),*/
+                    leftX: scaleX * (resolution.x * (sfX * (System.Math.abs(safeZone - 1.0) * 10))),
+                    bottomY: 1.0 - scaleY * (resolution.y * (sfY * (System.Math.abs(safeZone - 1.0) * 10))),*/
 
             Browser.Window.ExecuteJs("Hud.changeLBHpos", minimapRigthX * 100f + 1f, (1f - minimapBottomY) * 100f);
         }
@@ -502,7 +505,7 @@ namespace BlaineRP.Client.CEF
 
             SpeedometerMustBeEnabled = true;
 
-            Browser.Window.ExecuteJs("Hud.updateSpeedometer", Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
+            Browser.Window.ExecuteJs("Hud.updateSpeedometer", System.Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
 
 
@@ -533,10 +536,10 @@ namespace BlaineRP.Client.CEF
 
             while (Player.LocalPlayer.Vehicle != null)
             {
-                Browser.Window.ExecuteJs("Hud.setFuel", Utils.ToInt32(data.FuelLevel));
-                Browser.Window.ExecuteJs("Hud.setMileage", Utils.ToInt32(data.Mileage) / 1000);
+                Browser.Window.ExecuteJs("Hud.setFuel", Utils.Convert.ToInt32(data.FuelLevel));
+                Browser.Window.ExecuteJs("Hud.setMileage", Utils.Convert.ToInt32(data.Mileage) / 1000);
 
-                Player driver = Utils.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0), true);
+                Player driver = Misc.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0), true);
 
                 bool isCruiseControlOn = driver != null ? data.ForcedSpeed >= 8.3f : false;
 

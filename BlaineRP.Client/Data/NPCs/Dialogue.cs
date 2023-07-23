@@ -6,7 +6,7 @@ using System.Linq;
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public class Dialogue 
+    public class Dialogue
     {
         public enum TimeTypes
         {

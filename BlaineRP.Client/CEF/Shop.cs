@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -9,7 +14,7 @@ using System.Text.RegularExpressions;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Shop 
+    public class Shop
     {
         //        Стало : //items[i] = [id, 'name', cash, variants || maxspeed, chageable(t|f) || [slots, weight] || maxtank, cruise, autopilot, maxtrunk, maxweight] 
         //(если магаз не транспортный последние 4 параметра можно либо не передавать вообще, либо передавать как null)
@@ -404,7 +409,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("Shop::Show", async (object[] args) =>
             {
                 Types type = (Types)(int)args[0];
-                var margin = Utils.ToDecimal(args[1]);
+                var margin = Utils.Convert.ToDecimal(args[1]);
 
                 CurrentMargin = margin;
 
@@ -415,7 +420,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("Shop::UM", (args) =>
             {
-                CurrentMargin = Utils.ToDecimal(args[0]);
+                CurrentMargin = Utils.Convert.ToDecimal(args[0]);
 
                 if (CurrentType == Types.None)
                     return;
@@ -435,7 +440,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("Shop::UpdateColor", (object[] args) =>
             {
                 var id = (string)args[0];
-                var colour = ((string)args[1]).ToColour();
+                var colour = new Utils.Colour((string)args[1]);
 
                 //Utils.ConsoleOutputLimited(id);
 
@@ -755,7 +760,7 @@ namespace BlaineRP.Client.CEF
                         }
                         else if (type == "opacity")
                         {
-                            var value = Utils.ToSingle(args[1]);
+                            var value = Utils.Convert.ToSingle(args[1]);
 
                             var fullId = (string)args[2];
 
@@ -899,7 +904,7 @@ namespace BlaineRP.Client.CEF
                         await CEF.ActionBox.ShowMoney
                         (
                             "TuningShopDeleteMod", Locale.Get("SHOP_TUNING_MODDEL_HEADER"), Locale.Get("SHOP_TUNING_MODDEL_CONTENT", data[0] == "neon" ? Locale.Get("SHOP_TUNING_NEON_L") : data[0] == "pearl" ? Locale.Get("SHOP_TUNING_PEARL_L") : data[0] == "tsmoke" ? Locale.Get("SHOP_TUNING_TSMOKEC_L") : Locale.Get("SHOP_TUNING_WHEELC_L")),
-                            
+
                             null,
 
                             async (rType) =>
@@ -970,7 +975,6 @@ namespace BlaineRP.Client.CEF
                     else if (data[0] == "xenon")
                     {
                         TempVehicle.SetLights(2);
-
                         TempVehicle.SetXenonColour(p == 0 ? null : (int?)p - 2);
                     }
                     else if (data[0] == "wtint")
@@ -991,7 +995,6 @@ namespace BlaineRP.Client.CEF
                         {
                             wt -= 1;
                         }
-
                         TempVehicle.SetWheels(wt, wn, data[0] == "wheel");
                     }
                     else if (data[0] != "fix" && data[0] != "keys")
@@ -1612,7 +1615,7 @@ namespace BlaineRP.Client.CEF
 
                     CurrentItem = itemId;
 
-                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2742.275f, 3485.742f, 55.6959f);
+                    var mapObj = Streaming.CreateObjectNoOffsetImmediately(furnData.Model, 2742.275f, 3485.742f, 55.6959f);
 
                     mapObj.SetCollision(false, false);
 
@@ -1645,7 +1648,7 @@ namespace BlaineRP.Client.CEF
                     while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(250);
 
-                    if (!Utils.IsTaskStillPending("Shop::Loading", task))
+                    if (!AsyncTask.Methods.IsTaskStillPending("Shop::Loading", task))
                         return;
 
                     DefaultHeading = (float)heading;
@@ -2039,7 +2042,7 @@ namespace BlaineRP.Client.CEF
                         {
                             var data = Data.Vehicles.GetById(x.Key);
 
-                            return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
+                            return new object[] { x.Key, data.Name, x.Value, System.Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
                         }));
                     }
                     else if (type == Types.TuningShop)
@@ -2231,7 +2234,7 @@ namespace BlaineRP.Client.CEF
                     OnShowFinish();
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending("Shop::Loading", task);
+                AsyncTask.Methods.SetAsPending(task, "Shop::Loading");
             }
             else
             {
@@ -2250,7 +2253,7 @@ namespace BlaineRP.Client.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
                     {
                         OnExit = (cancel) =>
                         {
@@ -2272,7 +2275,7 @@ namespace BlaineRP.Client.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
                     {
                         OnExit = (cancel) =>
                         {
@@ -2371,7 +2374,7 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                Utils.CancelPendingTask("Shop::Loading");
+                AsyncTask.Methods.CancelPendingTask("Shop::Loading");
 
                 if (CursorTask != null)
                 {
@@ -2629,12 +2632,12 @@ namespace BlaineRP.Client.CEF
 
             if (!Additional.TuningMenu.IsActive && Player.LocalPlayer.Vehicle != null)
             {
-                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
-                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_1"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Graphics.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Graphics.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_1"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else
             {
-                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Graphics.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
         }
 
@@ -2832,15 +2835,15 @@ namespace BlaineRP.Client.CEF
 
                 var text = furnData.Name;
 
-                Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                 text = Locale.Get("SHOP_RET_PREVIEW_HELP_0", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
-                Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                 text = Locale.Get("SHOP_RET_PREVIEW_HELP_1");
 
-                Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
         }
     }

@@ -1,4 +1,8 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Animations 
+    public class Animations
     {
         public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.Animations); }
 
@@ -56,7 +60,7 @@ namespace BlaineRP.Client.CEF
                     }
                     else
                     {
-                        if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                        if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.PushingVehicle, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                             return;
 
                         Events.CallRemote("Players::SetAnim", (int)anim);
@@ -112,7 +116,7 @@ namespace BlaineRP.Client.CEF
 
         public static void Open()
         {
-            if (IsActive || Utils.IsAnyCefActive())
+            if (IsActive || Utils.Misc.IsAnyCefActive())
                 return;
 
             CEF.Cursor.Show(true, true);
@@ -191,7 +195,7 @@ namespace BlaineRP.Client.CEF
 
         public static void Render()
         {
-            Utils.DrawText(string.Format(Locale.General.Animations.CancelText, KeyBinds.Get(KeyBinds.Types.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(string.Format(Locale.General.Animations.CancelText, KeyBinds.Get(KeyBinds.Types.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public static async System.Threading.Tasks.Task Load()

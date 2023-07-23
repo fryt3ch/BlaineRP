@@ -1,8 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -32,7 +31,7 @@ namespace BlaineRP.Client.Data
 
                 var id = Id;
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract,
 

@@ -1,15 +1,16 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class Bank 
+    public class Bank
     {
         public Bank()
         {
@@ -166,7 +167,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                         if (minBalance >= balance)
                         {
-                            CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Utils.GetPriceString(minBalance)));
+                            CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Locale.Get("GEN_MONEY_0", minBalance)));
 
                             return;
                         }
@@ -200,7 +201,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 dg.Buttons = btns;
 
-                NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance), Utils.GetPriceString(houseData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваш дом перейдет в собственность государства!");
+                NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", houseData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваш дом перейдет в собственность государства!");
 
             });
 
@@ -330,7 +331,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance), Utils.GetPriceString(apsData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваша квартира перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", apsData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваша квартира перейдет в собственность государства!");
 
                 });
 
@@ -460,7 +461,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance), Utils.GetPriceString(garageData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш гараж перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", garageData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш гараж перейдет в собственность государства!");
 
                 });
 
@@ -590,7 +591,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance), Utils.GetPriceString(businessData.Rent), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш бизнес перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", businessData.Rent), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш бизнес перейдет в собственность государства!");
 
                 });
 
@@ -696,7 +697,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance));
+                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance));
 
                 });
 

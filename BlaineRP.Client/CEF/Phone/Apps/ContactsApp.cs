@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
 using System.Linq;
 using static BlaineRP.Client.CEF.Phone;
@@ -6,7 +8,7 @@ using static BlaineRP.Client.CEF.Phone;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class ContactsApp 
+    public class ContactsApp
     {
         public ContactsApp()
         {

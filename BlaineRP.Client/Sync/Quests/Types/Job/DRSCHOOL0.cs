@@ -1,12 +1,11 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
     [Script(int.MaxValue)]
-    internal class DRSCHOOL0 
+    internal class DRSCHOOL0
     {
         public DRSCHOOL0()
         {

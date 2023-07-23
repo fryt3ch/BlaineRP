@@ -1,8 +1,9 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Linq;
-using System.Security.Principal;
 
 namespace BlaineRP.Client.Additional
 {
@@ -11,7 +12,7 @@ namespace BlaineRP.Client.Additional
      */
 
     [Script(int.MaxValue)]
-    public class AntiCheat 
+    public class AntiCheat
     {
 
         public static bool LastTeleportWasGround { get; set; }
@@ -56,7 +57,7 @@ namespace BlaineRP.Client.Additional
         {
             Events.Add("AC::Ped::TP", async (args) =>
             {
-                var remoteId = Utils.ToUInt16(args[0]);
+                var remoteId = Utils.Convert.ToUInt16(args[0]);
 
                 var ped = RAGE.Elements.Entities.Peds.GetAtRemote(remoteId);
 
@@ -64,7 +65,7 @@ namespace BlaineRP.Client.Additional
                     return;
 
                 var pos = (Vector3)args[1];
-                var heading = args[2] == null ? (float?)null : Utils.ToSingle(args[2]);
+                var heading = args[2] == null ? (float?)null : Utils.Convert.ToSingle(args[2]);
 
                 if (pos != null)
                 {
@@ -79,8 +80,8 @@ namespace BlaineRP.Client.Additional
 
             Events.Add("AC::State::TP", async (object[] args) =>
             {
-                Utils.CancelPendingTask(TeleportTaskKey);
-                Utils.CancelPendingTask(TeleportGroundTaskKey);
+                AsyncTask.Methods.CancelPendingTask(TeleportTaskKey);
+                AsyncTask.Methods.CancelPendingTask(TeleportGroundTaskKey);
 
                 if (args.Length == 1)
                 {
@@ -99,7 +100,7 @@ namespace BlaineRP.Client.Additional
 
                 LastTeleportWasGround = onGround;
 
-                var heading = args[3] == null ? (float?)null : Utils.ToSingle(args[3]);
+                var heading = args[3] == null ? (float?)null : Utils.Convert.ToSingle(args[3]);
 
                 var fade = (bool)args[4];
 
@@ -156,14 +157,13 @@ namespace BlaineRP.Client.Additional
                             if (heading is float headingF)
                             {
                                 veh.SetHeading(headingF);
-
-                                Utils.ResetGameplayCameraRotation();
+                                Utils.Game.Camera.ResetGameplayCameraRotation();
                             }
 
                             if (!vData.IsFrozen)
                                 veh.FreezePosition(false);
 
-                            AsyncTask.RunSlim(() =>
+                            AsyncTask.Methods.Run(() =>
                             {
                                 Sync.AttachSystem.ReattachObjects(veh);
                             }, 500);
@@ -181,7 +181,7 @@ namespace BlaineRP.Client.Additional
                                         if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                             break;
 
-                                        if (!Utils.IsTaskStillPending(TeleportGroundTaskKey, task))
+                                        if (!AsyncTask.Methods.IsTaskStillPending(TeleportGroundTaskKey, task))
                                             return;
 
                                         if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
@@ -200,10 +200,10 @@ namespace BlaineRP.Client.Additional
 
                                     veh.Position = LastAllowedPos;
 
-                                    Utils.CancelPendingTask(TeleportGroundTaskKey);
+                                    AsyncTask.Methods.CancelPendingTask(TeleportGroundTaskKey);
                                 }, 0, false, 0);
 
-                                Utils.SetTaskAsPending(TeleportGroundTaskKey, task);
+                                AsyncTask.Methods.SetAsPending(task, TeleportGroundTaskKey);
                             }
                         }
                     }
@@ -219,8 +219,7 @@ namespace BlaineRP.Client.Additional
                         if (heading is float headingF)
                         {
                             Player.LocalPlayer.SetHeading(headingF);
-
-                            Utils.ResetGameplayCameraRotation();
+                            Utils.Game.Camera.ResetGameplayCameraRotation();
                         }
 
                         if (onGround)
@@ -235,7 +234,7 @@ namespace BlaineRP.Client.Additional
                             {
                                 for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                                 {
-                                    if (!Utils.IsTaskStillPending(TeleportGroundTaskKey, task))
+                                    if (!AsyncTask.Methods.IsTaskStillPending(TeleportGroundTaskKey, task))
                                         return;
 
                                     if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
@@ -254,10 +253,10 @@ namespace BlaineRP.Client.Additional
 
                                 Player.LocalPlayer.Position = LastAllowedPos;
 
-                                Utils.CancelPendingTask(TeleportGroundTaskKey);
+                                AsyncTask.Methods.CancelPendingTask(TeleportGroundTaskKey);
                             }, 0, false, 0);
 
-                            Utils.SetTaskAsPending(TeleportGroundTaskKey, task);
+                            AsyncTask.Methods.SetAsPending(task, TeleportGroundTaskKey);
                         }
                     }
 
@@ -268,19 +267,19 @@ namespace BlaineRP.Client.Additional
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (!Utils.IsTaskStillPending(TeleportTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(TeleportTaskKey, task))
                         return;
 
-                    Utils.CancelPendingTask(TeleportTaskKey);
+                    AsyncTask.Methods.CancelPendingTask(TeleportTaskKey);
 
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending(TeleportTaskKey, task);
+                AsyncTask.Methods.SetAsPending(task, TeleportTaskKey);
             });
 
             Events.Add("AC::State::HP", async (object[] args) =>
             {
-                Utils.CancelPendingTask(HealthTaskKey);
+                AsyncTask.Methods.CancelPendingTask(HealthTaskKey);
 
                 AsyncTask task = null;
 
@@ -293,18 +292,18 @@ namespace BlaineRP.Client.Additional
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (!Utils.IsTaskStillPending(HealthTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(HealthTaskKey, task))
                         return;
 
-                    Utils.CancelPendingTask(HealthTaskKey);
+                    AsyncTask.Methods.CancelPendingTask(HealthTaskKey);
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending(HealthTaskKey, task);
+                AsyncTask.Methods.SetAsPending(task, HealthTaskKey);
             });
 
             Events.Add("AC::State::Arm", async (object[] args) =>
             {
-                Utils.CancelPendingTask(ArmourTaskKey);
+                AsyncTask.Methods.CancelPendingTask(ArmourTaskKey);
 
                 AsyncTask task = null;
 
@@ -322,23 +321,23 @@ namespace BlaineRP.Client.Additional
                     Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
                     Sync.WeaponSystem.OnDamage += Sync.WeaponSystem.ArmourCheck;
 
-                    if (!Utils.IsTaskStillPending(ArmourTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(ArmourTaskKey, task))
                         return;
 
                     await RAGE.Game.Invoker.WaitAsync(1900);
 
-                    if (!Utils.IsTaskStillPending(ArmourTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(ArmourTaskKey, task))
                         return;
 
-                    Utils.CancelPendingTask(ArmourTaskKey);
+                    AsyncTask.Methods.CancelPendingTask(ArmourTaskKey);
                 });
 
-                Utils.SetTaskAsPending(ArmourTaskKey, task);
+                AsyncTask.Methods.SetAsPending(task, ArmourTaskKey);
             });
 
             Events.Add("AC::State::Alpha", async (object[] args) =>
             {
-                Utils.CancelPendingTask(AlphaTaskKey);
+                AsyncTask.Methods.CancelPendingTask(AlphaTaskKey);
 
                 AsyncTask task = null;
 
@@ -352,13 +351,13 @@ namespace BlaineRP.Client.Additional
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (!Utils.IsTaskStillPending(AlphaTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(AlphaTaskKey, task))
                         return;
 
-                    Utils.CancelPendingTask(AlphaTaskKey);
+                    AsyncTask.Methods.CancelPendingTask(AlphaTaskKey);
                 });
 
-                Utils.SetTaskAsPending(AlphaTaskKey, task);
+                AsyncTask.Methods.SetAsPending(task, AlphaTaskKey);
             });
 
             Events.Add("AC::State::Invincible", (object[] args) =>
@@ -378,7 +377,7 @@ namespace BlaineRP.Client.Additional
 
             Events.Add("AC::State::Weapon", async (object[] args) =>
             {
-                Utils.CancelPendingTask(WeaponTaskKey);
+                AsyncTask.Methods.CancelPendingTask(WeaponTaskKey);
 
                 AsyncTask task = null;
 
@@ -400,7 +399,7 @@ namespace BlaineRP.Client.Additional
                             }
                         }
 
-                        LastAllowedWeapon = Utils.ToUInt32(args[1]);
+                        LastAllowedWeapon = Utils.Convert.ToUInt32(args[1]);
 
                         Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                     }
@@ -425,13 +424,13 @@ namespace BlaineRP.Client.Additional
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (!Utils.IsTaskStillPending(WeaponTaskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(WeaponTaskKey, task))
                         return;
 
-                    Utils.CancelPendingTask(WeaponTaskKey);
+                    AsyncTask.Methods.CancelPendingTask(WeaponTaskKey);
                 });
 
-                Utils.SetTaskAsPending(WeaponTaskKey, task);
+                AsyncTask.Methods.SetAsPending(task, WeaponTaskKey);
             });
         }
 
@@ -474,12 +473,12 @@ namespace BlaineRP.Client.Additional
 
             AntiAltF4Vehicle();
 
-            if (!Utils.IsTaskStillPending(TeleportTaskKey, null))
+            if (!AsyncTask.Methods.IsTaskStillPending(TeleportTaskKey, null))
             {
                 var diff = Vector3.Distance(curPos, LastPosition);
 
                 if ((Player.LocalPlayer.Vehicle == null && Player.LocalPlayer.IsRagdoll() && Player.LocalPlayer.IsInAir()) || (Player.LocalPlayer.Vehicle != null))
-                    diff = Math.Abs(diff - Player.LocalPlayer.GetSpeed());
+                    diff = System.Math.Abs(diff - Player.LocalPlayer.GetSpeed());
 
                 if (diff >= 50f)
                 {
@@ -500,7 +499,7 @@ namespace BlaineRP.Client.Additional
 
             LastPosition = curPos;
 
-            if (!Utils.IsTaskStillPending(HealthTaskKey, null) && !LastAllowedInvincible)
+            if (!AsyncTask.Methods.IsTaskStillPending(HealthTaskKey, null) && !LastAllowedInvincible)
             {
                 var diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
 
@@ -512,7 +511,7 @@ namespace BlaineRP.Client.Additional
 
             LastHealth = Player.LocalPlayer.GetRealHealth();
 
-            if (!Utils.IsTaskStillPending(ArmourTaskKey, null))
+            if (!AsyncTask.Methods.IsTaskStillPending(ArmourTaskKey, null))
             {
                 var diff = Player.LocalPlayer.GetArmour() - LastArmour;
 
@@ -524,13 +523,13 @@ namespace BlaineRP.Client.Additional
 
             LastArmour = Player.LocalPlayer.GetArmour();
 
-            if (!Utils.IsTaskStillPending(AlphaTaskKey, null))
+            if (!AsyncTask.Methods.IsTaskStillPending(AlphaTaskKey, null))
             {
                 if (Player.LocalPlayer.GetAlpha() != LastAllowedAlpha)
                     Player.LocalPlayer.SetAlpha(LastAllowedAlpha, false);
             }
 
-            if (!Utils.IsTaskStillPending(WeaponTaskKey, null))
+            if (!AsyncTask.Methods.IsTaskStillPending(WeaponTaskKey, null))
             {
                 var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
@@ -605,7 +604,7 @@ namespace BlaineRP.Client.Additional
                     }
                 }
 
-                if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || Utils.IsTaskStillPending(TeleportTaskKey, null)))
+                if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || AsyncTask.Methods.IsTaskStillPending(TeleportTaskKey, null)))
                 {
                     var posData = posStr.Split('_');
 
@@ -632,7 +631,7 @@ namespace BlaineRP.Client.Additional
 
                 if (veh.GetTrailerVehicle(ref trailerVehHandle))
                 {
-                    var trailerVeh = Utils.GetVehicleByHandle(trailerVehHandle, false);
+                    var trailerVeh = Misc.GetVehicleByHandle(trailerVehHandle, false);
 
                     if (trailerVeh?.Exists != true)
                     {
@@ -690,7 +689,7 @@ namespace BlaineRP.Client.Additional
         {
             if (Player.LocalPlayer.IsInAnyVehicle(false))
             {
-                if (RAGE.Game.Ui.IsWarningMessageActive() && Utils.GetWarningMessageTitleHash() == 1246147334)
+                if (RAGE.Game.Ui.IsWarningMessageActive() && Misc.GetWarningMessageTitleHash() == 1246147334)
                 {
                     Player.LocalPlayer.ClearTasksImmediately();
 

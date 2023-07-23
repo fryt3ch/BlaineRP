@@ -1,14 +1,18 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Data;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Inventory 
+    public class Inventory
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContextStr == "Inventory"; }
 
@@ -460,12 +464,12 @@ namespace BlaineRP.Client.CEF
                         {
                             var selectedWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
-/*                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
-                            {
-                                WeaponsData[activeWeapon][4] = false;
+                            /*                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
+                                                        {
+                                                            WeaponsData[activeWeapon][4] = false;
 
-                                ammoUpdated = true;
-                            }*/
+                                                            ammoUpdated = true;
+                                                        }*/
                             if ((int)WeaponsData[activeWeapon][3] != Additional.AntiCheat.LastAllowedAmmo)
                             {
                                 WeaponsData[activeWeapon][3] = Additional.AntiCheat.LastAllowedAmmo;
@@ -1079,14 +1083,14 @@ namespace BlaineRP.Client.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            CurrentGiveMoney = Utils.ToUInt32(curArgs[2]);
+                            CurrentGiveMoney = Utils.Convert.ToUInt32(curArgs[2]);
 
                             Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = Utils.ToUInt32(curArgs[4]);
+                            var propId = Utils.Convert.ToUInt32(curArgs[4]);
 
                             string text = null;
 
@@ -1153,12 +1157,12 @@ namespace BlaineRP.Client.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", Utils.ToDecimal(curArgs[2]));
+                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", Utils.Convert.ToDecimal(curArgs[2]));
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = Utils.ToUInt32(curArgs[4]);
+                            var propId = Utils.Convert.ToUInt32(curArgs[4]);
 
                             string text = null;
 
@@ -1349,7 +1353,7 @@ namespace BlaineRP.Client.CEF
                     if (CurrentGiveMoney < 0)
                         CurrentGiveMoney = 0;
 
-                    var newAmountI = Utils.ToDecimal(args[1]);
+                    var newAmountI = Utils.Convert.ToDecimal(args[1]);
 
                     int newAmount;
 
@@ -1497,10 +1501,10 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (LastShowed.IsSpam(1000, false, false) || Utils.IsAnyCefActive())
+            if (LastShowed.IsSpam(1000, false, false) || Misc.IsAnyCefActive())
                 return;
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Shooting, Utils.Actions.Reloading) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
                 return;
 
             CurrentEntity = Client.Interaction.CurrentEntity;
@@ -1688,7 +1692,7 @@ namespace BlaineRP.Client.CEF
             if (action < 5)
                 return;
 
-            if (Utils.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(true, Utils.Actions.Reloading, Utils.Actions.Shooting))
+            if (Misc.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting))
                 return;
 
             Action(action, slotStr, slot, args);
@@ -1745,7 +1749,7 @@ namespace BlaineRP.Client.CEF
                         if (LastSent.IsSpam(250, false, false))
                             return;
 
-                        if (!Utils.CanDoSomething(true, Utils.Actions.InVehicle))
+                        if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
                             return;
 
                         if (CurrentType == Types.Inventory)

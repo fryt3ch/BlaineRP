@@ -1,12 +1,13 @@
-﻿using RAGE;
-using System;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class PlayerMarket 
+    public class PlayerMarket
     {
         public static bool IsActive => CurrentContext != null && CEF.Browser.IsActive(Browser.IntTypes.Retail);
 
@@ -42,10 +43,10 @@ namespace BlaineRP.Client.CEF
                     {
                         var x = items1[i];
 
-                        var idx = Utils.ToInt32(x[0]);
+                        var idx = Utils.Convert.ToInt32(x[0]);
 
-                        var amount = Utils.ToInt32(x[1]);
-                        var priceD = Utils.ToDecimal(x[2]);
+                        var amount = Utils.Convert.ToInt32(x[1]);
+                        var priceD = Utils.Convert.ToDecimal(x[2]);
 
                         int price;
 
@@ -54,7 +55,7 @@ namespace BlaineRP.Client.CEF
                             var y = (object[])CEF.Inventory.ItemsData[idx][0];
 
                             CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_ITEMCH_0", y[1], 1, int.MaxValue));
-    
+
                             return;
                         }
 
@@ -66,7 +67,7 @@ namespace BlaineRP.Client.CEF
 
                     CEF.Shop.LastSent = Sync.World.ServerTime;
 
-                    var res = Utils.ToByte(await Events.CallRemoteProc("MarketStall::SI", stallIdx, RAGE.Util.Json.Serialize(items)));
+                    var res = Utils.Convert.ToByte(await Events.CallRemoteProc("MarketStall::SI", stallIdx, RAGE.Util.Json.Serialize(items)));
 
                     if (res == 255)
                     {
@@ -103,7 +104,7 @@ namespace BlaineRP.Client.CEF
 
                     CEF.Shop.LastSent = Sync.World.ServerTime;
 
-                    var uid = Utils.ToUInt32(args[0]);
+                    var uid = Utils.Convert.ToUInt32(args[0]);
 
                     var res = ((string)await Events.CallRemoteProc("MarketStall::Try", uid))?.Split('&');
 
@@ -136,9 +137,9 @@ namespace BlaineRP.Client.CEF
 
                     var useCash = (bool)args[0];
 
-                    var itemUid = Utils.ToUInt32(args[1]);
+                    var itemUid = Utils.Convert.ToUInt32(args[1]);
 
-                    var amount = Utils.ToInt32(args[2]);
+                    var amount = Utils.Convert.ToInt32(args[2]);
 
                     var res = await Events.CallRemoteProc("MarketStall::Buy", stallIdx, itemUid, amount, useCash);
                 }
@@ -209,11 +210,11 @@ namespace BlaineRP.Client.CEF
         {
             var text = Locale.Get("MARKETSTALL_MG_ITEMCH_H_0");
 
-            Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
             text = Locale.Get("MARKETSTALL_MG_ITEMCH_H_1");
 
-            Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
     }
 }

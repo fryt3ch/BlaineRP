@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Server.Game.Items;
+using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using BlaineRP.Server.Game.Items;
-using static BlaineRP.Server.Game.Items.Inventory;
 
 namespace BlaineRP.Server.Sync.Offers
 {

@@ -1,9 +1,9 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class VehiclesApp 
+    public class VehiclesApp
     {
         public VehiclesApp()
         {

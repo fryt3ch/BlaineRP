@@ -198,8 +198,8 @@ namespace BlaineRP.Server.Game.Businesses
             if (vData?.Vehicle?.Exists != true)
                 return false;
 
-/*            if (!vData.IsFullOwner(pData, true))
-                return false;*/
+            /*            if (!vData.IsFullOwner(pData, true))
+                            return false;*/
 
             var iData = item.Split('_');
 

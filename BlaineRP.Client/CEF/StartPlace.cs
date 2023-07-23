@@ -1,13 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class StartPlace 
+    public class StartPlace
     {
         public static bool IsRendered { get => CEF.Browser.IsRendered(CEF.Browser.IntTypes.StartPlace); }
         public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.StartPlace); }

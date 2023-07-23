@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +9,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Bank 
+    public class Bank
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuBank);
 
@@ -67,7 +70,7 @@ namespace BlaineRP.Client.CEF
 
                 var aId = (string)args[1];
 
-                var amountI = Utils.ToDecimal(args[2]);
+                var amountI = Utils.Convert.ToDecimal(args[2]);
 
                 int amount;
 
@@ -81,7 +84,7 @@ namespace BlaineRP.Client.CEF
 
                 if (aId == "transfer")
                 {
-                    var cid = Utils.ToUInt32(args[3]);
+                    var cid = Utils.Convert.ToUInt32(args[3]);
 
                     var approveContext = $"BankSendToPlayer_{cid}_{amount}";
                     var approveTime = 5_000;
@@ -122,8 +125,8 @@ namespace BlaineRP.Client.CEF
                         if (res == null)
                             return;
 
-                        var newSavingsValue = Utils.ToUInt64(res[0]);
-                        var newMinSavingsValue = Utils.ToUInt64(res[1]);
+                        var newSavingsValue = Utils.Convert.ToUInt64(res[0]);
+                        var newMinSavingsValue = Utils.Convert.ToUInt64(res[1]);
 
                         if (IsActive)
                         {
@@ -162,9 +165,9 @@ namespace BlaineRP.Client.CEF
                 }
                 else
                 {
-                    var balance = Utils.ToUInt64(args[2]);
-                    var sendLimitCur = Utils.ToUInt64(args[3]);
-                    var savingsBalance = Utils.ToUInt64(args[4]);
+                    var balance = Utils.Convert.ToUInt64(args[2]);
+                    var sendLimitCur = Utils.Convert.ToUInt64(args[3]);
+                    var savingsBalance = Utils.Convert.ToUInt64(args[4]);
                     var benefitsToDebit = (bool)args[5];
 
                     var param = new object[] { tariffNum, balance, sendLimitCur, savingsBalance, benefitsToDebit };
@@ -191,12 +194,12 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Misc.IsAnyCefActive(true))
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBank, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

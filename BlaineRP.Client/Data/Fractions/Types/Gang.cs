@@ -1,10 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using RAGE;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -60,7 +56,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (zoneInfo == null)
                     return;
 
-                var owner = (Types)Utils.ToInt32(value ?? 0);
+                var owner = (Types)Utils.Convert.ToInt32(value ?? 0);
 
                 zoneInfo.OnOwnerUpdate(owner);
             }
@@ -76,7 +72,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (zoneInfo == null)
                     return;
 
-                var interval = Utils.ToInt32(value ?? 0);
+                var interval = Utils.Convert.ToInt32(value ?? 0);
 
                 zoneInfo.OnBlipFlashUpdate(interval);
             }
@@ -113,7 +109,7 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class GangEvents 
+    public class GangEvents
     {
         public GangEvents()
         {

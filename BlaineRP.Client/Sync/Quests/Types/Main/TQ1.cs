@@ -1,11 +1,10 @@
 ﻿using RAGE;
-using RAGE.Elements;
 using System.Collections.Generic;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Main
 {
     [Script(int.MaxValue)]
-    internal class TQ1 
+    internal class TQ1
     {
         public TQ1()
         {

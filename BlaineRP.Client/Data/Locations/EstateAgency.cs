@@ -1,8 +1,6 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -22,7 +20,7 @@ namespace BlaineRP.Client.Data
 
                     centerPos += x;
 
-                    var cs = new Additional.Cylinder(new Vector3(x.X, x.Y, x.Z - 1f), 1.5f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    var cs = new Additional.Cylinder(new Vector3(x.X, x.Y, x.Z - 1f), 1.5f, 2f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         InteractionType = Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract,
 

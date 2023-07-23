@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace BlaineRP.Client.ExtensionsT.System
+namespace BlaineRP.Client.Extensions.System
 {
     internal static class DateTimeExtensions
     {
-        public static long GetUnixTimestamp(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalSeconds;
+        public static long GetUnixTimestamp(this DateTime dt) => (long)new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero).Subtract(DateTimeOffset.UnixEpoch).TotalSeconds;
 
-        public static long GetUnixTimestampMil(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalMilliseconds;
+        public static long GetUnixTimestampMil(this DateTime dt) => (long)new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero).Subtract(DateTimeOffset.UnixEpoch).TotalMilliseconds;
 
         /// <summary>Проверка DateTime на спам</summary>
         /// <param name="dt">DateTime</param>

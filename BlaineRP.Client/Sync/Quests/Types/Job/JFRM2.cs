@@ -1,11 +1,9 @@
-﻿using RAGE;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
     [Script(int.MaxValue)]
-    internal class JFRM2 
+    internal class JFRM2
     {
         private const int PLANE_IRRIGATION_WATER_FX_TIME = 7_500;
 

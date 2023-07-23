@@ -1,14 +1,17 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public class Items 
+    public class Items
     {
         public abstract class Item
         {
@@ -888,7 +891,7 @@ namespace BlaineRP.Client.Data
         {
             new KeyValuePair<System.Type, Func<List<string>>>(typeof(FishingRod), () =>
             {
-                var res = Utils.CanDoSomething(true, Utils.Actions.IsSwimming, Utils.Actions.Animation);
+                var res = !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.IsSwimming, PlayerActions.Types.Animation);
 
                 if (!res)
                 {
@@ -897,7 +900,7 @@ namespace BlaineRP.Client.Data
                     return null;
                 }
 
-                var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.5f, 31);
+                var waterPos = Raycast.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.5f, 31);
 
                 if (waterPos == null)
                 {
@@ -915,7 +918,7 @@ namespace BlaineRP.Client.Data
 
             new KeyValuePair<System.Type, Func<List<string>>>(typeof(Shovel), () =>
             {
-                var res = Utils.CanDoSomething(true, Utils.Actions.IsSwimming);
+                var res = !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.IsSwimming);
 
                 if (!res)
                 {
@@ -924,9 +927,9 @@ namespace BlaineRP.Client.Data
                     return null;
                 }
 
-                var material = Utils.GetMaterialByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f), Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f), Player.LocalPlayer.Handle, 31);
+                var materialType = Materials.GetTypeByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f), Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f), Player.LocalPlayer.Handle, 31);
 
-                if (!Utils.DiggableMaterials.Contains(material))
+                if (!Materials.CanTypeBeDug(materialType))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Inventory.DiggingNotAllowedHere);
 
@@ -965,7 +968,7 @@ namespace BlaineRP.Client.Data
             if (CEF.MapEditor.IsActive)
                 return;
 
-            var mapObject = Utils.CreateObjectNoOffsetImmediately(itemData.Model, coords.X, coords.Y, coords.Z);
+            var mapObject = Streaming.CreateObjectNoOffsetImmediately(itemData.Model, coords.X, coords.Y, coords.Z);
 
             mapObject.SetTotallyInvincible(true);
             mapObject.SetCollision(false, false);

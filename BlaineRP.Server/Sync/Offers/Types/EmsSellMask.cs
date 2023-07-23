@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlaineRP.Server.Sync.Offers
+﻿namespace BlaineRP.Server.Sync.Offers
 {
     [Offer(Types.EmsSellMask)]
     internal class EmsSellMask : OfferBase

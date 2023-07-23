@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -7,7 +9,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Documents 
+    public class Documents
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.Documents); }
 
@@ -78,7 +80,7 @@ namespace BlaineRP.Client.CEF
                     var surname = (string)args[2];
 
                     var fType = (Data.Fractions.Types)(int)args[3];
-                    var fRank = Utils.ToByte(args[4]);
+                    var fRank = Utils.Convert.ToByte(args[4]);
 
                     var fData = Data.Fractions.Fraction.Get(fType);
 
@@ -113,16 +115,16 @@ namespace BlaineRP.Client.CEF
 
             var medCard = pData.MedicalCard;
 
-            var ns = Player.LocalPlayer.GetNameSurname();
+            Player.LocalPlayer.GetNameSurname(out var name, out var surname);
 
-            var pas = GetPasportData(ns.Name, ns.Surname, pData.Sex, CEF.Menu.BirthDate, null, pData.CID, CEF.Menu.CreationDate, false, false);
-            var lic = GetLicensesData(ns.Name, ns.Surname, pData.Licenses);
+            var pas = GetPasportData(name, surname, pData.Sex, CEF.Menu.BirthDate, null, pData.CID, CEF.Menu.CreationDate, false, false);
+            var lic = GetLicensesData(name, surname, pData.Licenses);
 
-            var med = medCard == null ? null : GetMedicalCardData(ns.Name, ns.Surname, medCard.Diagnose, Data.Fractions.Fraction.Get(medCard.IssueFraction), medCard.DoctorName, medCard.IssueDate);
+            var med = medCard == null ? null : GetMedicalCardData(name, surname, medCard.Diagnose, Data.Fractions.Fraction.Get(medCard.IssueFraction), medCard.DoctorName, medCard.IssueDate);
 
-            var res = GetResumeData(ns.Name, ns.Surname, null);
+            var res = GetResumeData(name, surname, null);
 
-            var fractionData = pData.CurrentFraction is Data.Fractions.Fraction fData && fData.MetaFlags.HasFlag(Data.Fractions.MetaFlagTypes.MembersHaveDocs) ? GetFractionDocsData(ns.Name, ns.Surname, fData, Data.Fractions.Fraction.AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0) : null;
+            var fractionData = pData.CurrentFraction is Data.Fractions.Fraction fData && fData.MetaFlags.HasFlag(Data.Fractions.MetaFlagTypes.MembersHaveDocs) ? GetFractionDocsData(name, surname, fData, Data.Fractions.Fraction.AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0) : null;
 
             CEF.Browser.Window.ExecuteJs("Docs.show", true, 0, new object[] { pas, lic, med, fractionData, res, null });
         }

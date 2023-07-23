@@ -1,9 +1,11 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
+using RAGE;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class NPC 
+    public class NPC
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.NPC); }
 
@@ -46,7 +48,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Utils.ReplaceNewLineHtml(text), buttons);
+            CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Misc.ReplaceNewLineHtml(text), buttons);
         }
 
         public static void Reply(int buttonId)

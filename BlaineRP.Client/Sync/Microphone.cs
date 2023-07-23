@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Microphone 
+    public class Microphone
     {
         private static bool Use3D = true;
 
@@ -94,8 +96,7 @@ namespace BlaineRP.Client.Sync
             Stop();
 
             LastReloaded = Sync.World.ServerTime;
-
-            Utils.ReloadVoiceChat();
+            Utils.Misc.ReloadVoiceChat();
 
             _listeners.Clear();
             _talkers.Clear();
@@ -229,7 +230,7 @@ namespace BlaineRP.Client.Sync
 
         public static void OnTick()
         {
-            if (!Utils.IsGameWindowFocused)
+            if (!Utils.Misc.IsGameWindowFocused)
                 Stop();
         }
         #endregion
@@ -302,13 +303,13 @@ namespace BlaineRP.Client.Sync
 
             if (state)
             {
-                await Utils.RequestAnimDict(AnimDict);
+                await Streaming.RequestAnimDict(AnimDict);
 
                 player.PlayFacialAnim(AnimName, AnimDict);
             }
             else
             {
-                await Utils.RequestAnimDict(AnimDictNormal);
+                await Streaming.RequestAnimDict(AnimDictNormal);
 
                 player.PlayFacialAnim(AnimNameNormal, AnimDictNormal);
             }

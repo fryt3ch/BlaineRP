@@ -1,5 +1,4 @@
 ﻿using GTANetworkAPI;
-using System;
 using System.Collections.Generic;
 
 namespace BlaineRP.Server.Game.Misc
@@ -94,7 +93,7 @@ namespace BlaineRP.Server.Game.Misc
 
             var lines = new List<string>();
 
-            for (int i =  0; i < All.Length; i++)
+            for (int i = 0; i < All.Length; i++)
             {
                 var x = All[i];
 

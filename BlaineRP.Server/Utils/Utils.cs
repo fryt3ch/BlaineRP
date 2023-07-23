@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Sync;
+using GTANetworkAPI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server
 {
@@ -354,7 +354,7 @@ namespace BlaineRP.Server
         public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, Properties.Settings.Profile.Current.Game.StreamDistance, eventName, args);
 
         public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, distance, eventName, args);
-        
+
         public static void TriggerEventInDistance2d(this Entity entity, float distance, string eventName, params object[] args) => TriggerEventInDistance2d(entity.Position, entity.Dimension, distance, eventName, args);
 
         public static void TriggerEventInDistance(this Vector3 pos, uint dimension, float distance, string eventName, params object[] args)

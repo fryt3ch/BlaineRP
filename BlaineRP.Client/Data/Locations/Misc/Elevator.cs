@@ -1,9 +1,7 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -36,7 +34,7 @@ namespace BlaineRP.Client.Data
 
                 if (All.TryAdd(Id, this))
                 {
-                    var cs = new Additional.Cylinder(new Vector3(Position.Position.X, Position.Position.Y, Position.Position.Z - 1f), Range, 1.5f, false, Utils.RedColor, Dimension, null)
+                    var cs = new Additional.Cylinder(new Vector3(Position.Position.X, Position.Position.Y, Position.Position.Z - 1f), Range, 1.5f, false, Misc.RedColor, Dimension, null)
                     {
                         Data = Id,
 

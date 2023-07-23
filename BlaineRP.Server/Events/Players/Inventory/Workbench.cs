@@ -1,8 +1,7 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Game.Items.Craft;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.Game.Items.Craft;
-using static BlaineRP.Server.Game.Items.Inventory;
 
 namespace BlaineRP.Server.Events.Players
 {

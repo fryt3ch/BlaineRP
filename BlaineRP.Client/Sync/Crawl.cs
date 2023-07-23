@@ -1,11 +1,14 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Crawl 
+    public class Crawl
     {
         private static DateTime LastSwitchTime;
 
@@ -28,7 +31,7 @@ namespace BlaineRP.Client.Sync
 
             if (!Toggled)
             {
-                if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                     return;
 
                 On();
@@ -55,8 +58,8 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                await Utils.RequestAnimDict(AnimDict);
-                await Utils.RequestAnimDict(MoveAnimDict);
+                await Streaming.RequestAnimDict(AnimDict);
+                await Streaming.RequestAnimDict(MoveAnimDict);
 
                 CurrentMoveAnim = null;
 
@@ -91,7 +94,7 @@ namespace BlaineRP.Client.Sync
 
         private static void OnTick()
         {
-            if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                 Off();
 
             RAGE.Game.Pad.DisableControlAction(0, 32, true);
@@ -111,7 +114,7 @@ namespace BlaineRP.Client.Sync
 
                     Player.LocalPlayer.TaskPlayAnim(MoveAnimDict, CurrentMoveAnim, 8.0f, 1000, -1, 2, 0, false, false, false);
 
-                    AsyncTask.RunSlim(() =>
+                    AsyncTask.Methods.Run(() =>
                     {
                         CurrentMoveAnim = null;
                     }, (int)((duration - 0.1f) * 1000f));
@@ -128,7 +131,7 @@ namespace BlaineRP.Client.Sync
 
                     Player.LocalPlayer.TaskPlayAnim(MoveAnimDict, CurrentMoveAnim, 8.0f, 1000, -1, 2, 0, false, false, false);
 
-                    AsyncTask.RunSlim(() =>
+                    AsyncTask.Methods.Run(() =>
                     {
                         CurrentMoveAnim = null;
                     }, (int)((duration - 0.1f) * 1000f));

@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +10,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class GarageMenu 
+    public class GarageMenu
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuGarage);
 
@@ -66,7 +69,7 @@ namespace BlaineRP.Client.CEF
                     {
                         CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), approveTime);
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Misc.GetGovSellPrice(garage.Price))), approveTime);
                     }
                     else
                     {
@@ -97,7 +100,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Misc.IsAnyCefActive(true))
                 return;
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -116,7 +119,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuGarage, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

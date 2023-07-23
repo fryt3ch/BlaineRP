@@ -1,4 +1,4 @@
-﻿using BlaineRP.Client.Sync;
+﻿using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
@@ -241,8 +241,7 @@ namespace BlaineRP.Client.Data
 
             if (poly == null)
                 return;
-
-            Utils.DebugServerSaveText(poly.ShortData);
+            Utils.Misc.DebugServerSaveText(poly.ShortData);
         }
 
         [Command("highpolymode", true, "Сменить режим вида полигонов", "hpolymode")]
@@ -349,7 +348,7 @@ namespace BlaineRP.Client.Data
 
             var modelNum = RAGE.Util.Joaat.Hash(model);
 
-            await Utils.RequestModel(modelNum);
+            await Streaming.RequestModel(modelNum);
 
             var gameEntity = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(modelNum, Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, false, false, false));
 
@@ -386,7 +385,7 @@ namespace BlaineRP.Client.Data
 
                 KeyBinds.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
                 {
-                    if (Utils.IsAnyCefActive(true))
+                    if (Utils.Misc.IsAnyCefActive(true))
                         return;
 
                     var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
@@ -428,7 +427,7 @@ namespace BlaineRP.Client.Data
 
                 KeyBinds.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
                 {
-                    if (Utils.IsAnyCefActive(true))
+                    if (Utils.Misc.IsAnyCefActive(true))
                         return;
 
                     var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
@@ -515,7 +514,7 @@ namespace BlaineRP.Client.Data
 
             var hash = RAGE.Util.Joaat.Hash(model);
 
-            if (!await Utils.RequestModel(hash))
+            if (!await Streaming.RequestModel(hash))
                 return;
 
             if (posX == null || posY == null || posZ == null)
@@ -540,7 +539,7 @@ namespace BlaineRP.Client.Data
         [Command("prop_del", true, "Установить сытость игроку")]
         public static void DelProp(int? handle = null)
         {
-            var gEntity = handle is int handleInt ? Utils.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+            var gEntity = handle is int handleInt ? Misc.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
 
             if (gEntity == null)
                 return;
@@ -694,8 +693,7 @@ namespace BlaineRP.Client.Data
                     }
                 }
             }
-
-            Utils.DebugServerSaveText(RAGE.Util.Json.Serialize(t));
+            Utils.Misc.DebugServerSaveText(RAGE.Util.Json.Serialize(t));
         }
 
 
@@ -706,8 +704,7 @@ namespace BlaineRP.Client.Data
 
             if (onGround)
                 pos.Z -= 1f;
-
-            Utils.DebugServerSaveText($"POS_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.GetHeading()}f) - {info}");
+            Utils.Misc.DebugServerSaveText($"POS_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.GetHeading()}f) - {info}");
         }
 
         [Command("posv_s", true, "Получить текущую позицию", "position_save")]
@@ -717,8 +714,7 @@ namespace BlaineRP.Client.Data
 
             if (pos == null)
                 return;
-
-            Utils.DebugServerSaveText($"POSV_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.Vehicle.GetHeading()}f) - {info}");
+            Utils.Misc.DebugServerSaveText($"POSV_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.Vehicle.GetHeading()}f) - {info}");
         }
 
         [Command("debug_blip", true, "Получить текущую позицию")]
@@ -830,9 +826,9 @@ namespace BlaineRP.Client.Data
             var data = ((string)await Events.CallRemoteProc("debug_gethouseinfo", id))?.Split('_');
 
             if (house.GaragePosition == null)
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
+                Utils.Misc.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
             else
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
+                Utils.Misc.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
         }
     }
 }

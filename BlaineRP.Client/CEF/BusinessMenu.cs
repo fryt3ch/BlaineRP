@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -7,7 +10,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class BusinessMenu 
+    public class BusinessMenu
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuBusiness);
 
@@ -50,7 +53,7 @@ namespace BlaineRP.Client.CEF
                 if (newAmountObj == null)
                     return;
 
-                var newAmount = Utils.ToUInt64(newAmountObj);
+                var newAmount = Utils.Convert.ToUInt64(newAmountObj);
 
                 if (IsActive)
                 {
@@ -77,7 +80,7 @@ namespace BlaineRP.Client.CEF
 
                     CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), approveTime);
+                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Misc.GetGovSellPrice(biz.Price))), approveTime);
                 }
                 else
                 {
@@ -213,14 +216,14 @@ namespace BlaineRP.Client.CEF
 
             Sync.Players.CloseAll(true);
 
-            var materialsBuyPrice = Utils.ToUInt32(res["MB"]);
-            var deliveryPrice = Utils.ToUInt32(res["DP"]);
+            var materialsBuyPrice = Utils.Convert.ToUInt32(res["MB"]);
+            var deliveryPrice = Utils.Convert.ToUInt32(res["DP"]);
 
             Player.LocalPlayer.SetData("BusinessMenu::Business::Data1", new object[] { materialsBuyPrice, deliveryPrice });
 
-            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), Utils.ToUInt64(res["C"]), Utils.ToUInt64(res["B"]), Utils.ToUInt32(res["M"]), materialsBuyPrice, Utils.ToUInt32(res["MS"]) };
+            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, System.Math.Round(biz.Tax * 100, 0).ToString(), Utils.Convert.ToUInt64(res["C"]), Utils.Convert.ToUInt64(res["B"]), Utils.Convert.ToUInt32(res["M"]), materialsBuyPrice, Utils.Convert.ToUInt32(res["MS"]) };
 
-            var manage = new List<object>() { new object[] { Math.Round((Utils.ToDecimal(res["MA"]) - 1m) * 100, 0), biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], Math.Round(Utils.ToDecimal(res["IT"]) * 100, 0), };
+            var manage = new List<object>() { new object[] { System.Math.Round((Utils.Convert.ToDecimal(res["MA"]) - 1m) * 100, 0), biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], System.Math.Round(Utils.Convert.ToDecimal(res["IT"]) * 100, 0), };
 
             var delState = ((string)res["DS"]).Split('_');
 
@@ -246,7 +249,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBusiness, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

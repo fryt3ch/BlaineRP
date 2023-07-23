@@ -1,15 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class FishBuyer 
+    public class FishBuyer
     {
         public FishBuyer()
         {
@@ -25,7 +21,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                     if (npc.Data is Data.Locations.FishBuyer fb)
                     {
-                        npc.ShowDialogue("fishbuyer_a_p", true, null, string.Join("\n", Data.Locations.FishBuyer.BasePrices.Select(x => $"{Data.Items.GetName(x.Key) ?? "null"} - {Utils.GetPriceString(fb.GetPrice(x.Key))}")));
+                        npc.ShowDialogue("fishbuyer_a_p", true, null, string.Join("\n", Data.Locations.FishBuyer.BasePrices.Select(x => $"{Data.Items.GetName(x.Key) ?? "null"} - {Locale.Get("GEN_MONEY_0", fb.GetPrice(x.Key))}")));
                     }
                 }),
 
@@ -107,7 +103,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                             npc.SetTempDialogueData("fish_id", id);
                             npc.SetTempDialogueData("fish_amount_s", amount);
 
-                            npc.ShowDialogue("fishbuyer_a_fs2", true, null, name, Utils.GetPriceString(fb.GetPrice(id)), amount, Utils.GetPriceString(amount * price));
+                            npc.ShowDialogue("fishbuyer_a_fs2", true, null, name, Locale.Get("GEN_MONEY_0", fb.GetPrice(id)), amount, Locale.Get("GEN_MONEY_0", amount * price));
                         }));
 
                         sum += (uint)amount;
@@ -257,7 +253,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                 if (allFish == null)
                     return;
 
-                var t = $"Я правильно понял, что ты хочешь продать всю рыбу, что у тебя есть в кол-ве {allFish.Values.Sum()} шт.? За все это я дам тебе {Utils.GetPriceString(allFish.Select(x => x.Value * (decimal)fb.GetPrice(x.Key)).Sum())}, согласен?";
+                var t = $"Я правильно понял, что ты хочешь продать всю рыбу, что у тебя есть в кол-ве {allFish.Values.Sum()} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", allFish.Select(x => x.Value * (decimal)fb.GetPrice(x.Key)).Sum())}, согласен?";
 
                 var dg = Dialogue.AllDialogues["fishbuyer_a_fs3"].Text = t;
 
@@ -265,7 +261,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
             }
             else
             {
-                var t = $"Я правильно понял, что ты хочешь продать мне {Data.Items.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Utils.GetPriceString(amount * fb.GetPrice(fishId))}, согласен?";
+                var t = $"Я правильно понял, что ты хочешь продать мне {Data.Items.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", amount * fb.GetPrice(fishId))}, согласен?";
 
                 var dg = Dialogue.AllDialogues["fishbuyer_a_fs3"].Text = t;
 

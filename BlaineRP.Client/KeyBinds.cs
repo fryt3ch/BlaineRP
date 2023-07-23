@@ -1,9 +1,11 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client
 {
@@ -639,7 +641,7 @@ namespace BlaineRP.Client
             // Toggle Chat Input
             Add(new ExtraBind(Types.ChatInput, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                 {
                     CEF.Chat.ShowInput(true);
                 }
@@ -649,7 +651,7 @@ namespace BlaineRP.Client
             // Open Menu
             Add(new ExtraBind(Types.Menu, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.HUD.Menu.Switch(true, null);
             }, true, true)
             { Description = "Меню" });
@@ -657,8 +659,8 @@ namespace BlaineRP.Client
             // Toggle Radar Size
             Add(new ExtraBind(Types.RadarSize, () =>
             {
-                if (Utils.CanShowCEF(true, true))
-                    Minimap.Toggle();
+                if (Misc.CanShowCEF(true, true))
+                    MiniMap.Toggle();
 
             }, true, true)
             { Description = "Масштаб миникарты" });
@@ -666,7 +668,7 @@ namespace BlaineRP.Client
             // Use Micro Start
             Add(new ExtraBind(Types.MicrophoneOn, () =>
             {
-                if (Utils.CanShowCEF(false, true))
+                if (Misc.CanShowCEF(false, true))
                     Sync.Microphone.Start();
             }, true, true)
             { Description = "Голосовой чат" });
@@ -680,7 +682,7 @@ namespace BlaineRP.Client
             // Interaction
             Add(new ExtraBind(Types.Interaction, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Interaction.TryShowMenu();
             }, true, true)
             { Description = "Меню взаимодействия" });
@@ -690,7 +692,7 @@ namespace BlaineRP.Client
             {
                 if (!Sync.Phone.Toggled)
                 {
-                    if (Utils.CanShowCEF(true, true))
+                    if (Misc.CanShowCEF(true, true))
                         Sync.Phone.Toggle();
                 }
                 else
@@ -703,7 +705,7 @@ namespace BlaineRP.Client
             // Finger Point Start
             Add(new ExtraBind(Types.FingerPointStart, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Finger.Start();
             }, true, true)
             { Description = "Показать пальцем" });
@@ -717,7 +719,7 @@ namespace BlaineRP.Client
             // Crouch
             Add(new ExtraBind(Types.Crouch, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Crouch.Toggle();
             }, true, true)
             { Description = "Присесть" });
@@ -725,7 +727,7 @@ namespace BlaineRP.Client
             // Crawl
             Add(new ExtraBind(Types.Crawl, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Crawl.Toggle();
             }, true, true)
             { Description = "Ползти" });
@@ -733,7 +735,7 @@ namespace BlaineRP.Client
             // Engine Toggle
             Add(new ExtraBind(Types.Engine, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleEngine(Player.LocalPlayer.Vehicle, null);
             }, true, true)
             { Description = "Двигатель Т/С" });
@@ -741,7 +743,7 @@ namespace BlaineRP.Client
             // Cruise Control
             Add(new ExtraBind(Types.CruiseControl, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleCruiseControl(false);
             }, true, true)
             { Description = "Круиз-контроль" });
@@ -749,7 +751,7 @@ namespace BlaineRP.Client
             // Auto Pilot
             Add(new ExtraBind(Types.AutoPilot, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleAutoPilot(null);
             }, true, true)
             { Description = "Автопилот" });
@@ -757,7 +759,7 @@ namespace BlaineRP.Client
             // Vehicle Doors Lock Toggle
             Add(new ExtraBind(Types.DoorsLock, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.Lock(null, Interaction.CurrentEntity as Vehicle);
             }, true, true)
             { Description = "Блокировка Т/С" });
@@ -765,7 +767,7 @@ namespace BlaineRP.Client
             // Vehicle Look in Trunk
             Add(new ExtraBind(Types.TrunkLook, () =>
             {
-                if (Utils.CanShowCEF(true, true) && Interaction.CurrentEntity is Vehicle veh)
+                if (Misc.CanShowCEF(true, true) && Interaction.CurrentEntity is Vehicle veh)
                     Sync.Vehicles.ShowContainer(veh);
             }, true, true)
             { Description = "Смотреть багажник" });
@@ -773,7 +775,7 @@ namespace BlaineRP.Client
             // Seat Belt Toggle
             Add(new ExtraBind(Types.Belt, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleBelt();
             }, true, true)
             { Description = "Пристегнуться" });
@@ -781,7 +783,7 @@ namespace BlaineRP.Client
             // Left Arrow Veh
             Add(new ExtraBind(Types.LeftArrow, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 1);
             }, true, true)
             { Description = "Левый поворотник" });
@@ -789,7 +791,7 @@ namespace BlaineRP.Client
             // Right Arrow Veh
             Add(new ExtraBind(Types.RightArrow, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 0);
             }, true, true)
             { Description = "Правый поворотник" });
@@ -797,7 +799,7 @@ namespace BlaineRP.Client
             // Both Arrows Veh
             Add(new ExtraBind(Types.BothArrows, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 2);
             }, true, true)
             { Description = "Аварийка" });
@@ -805,7 +807,7 @@ namespace BlaineRP.Client
             // Lights Veh
             Add(new ExtraBind(Types.Lights, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleLights(Player.LocalPlayer.Vehicle);
             }, true, true)
             { Description = "Фары" });
@@ -813,7 +815,7 @@ namespace BlaineRP.Client
             // Toggle HUD 
             Add(new ExtraBind(Types.HUD, () =>
             {
-                if (Utils.CanShowCEF(false, true))
+                if (Misc.CanShowCEF(false, true))
                 {
                     Settings.User.Interface.HideHUD = !Settings.User.Interface.HideHUD;
                 }
@@ -823,7 +825,7 @@ namespace BlaineRP.Client
             // Reload Voice Chat 
             Add(new ExtraBind(Types.MicrophoneReload, () =>
             {
-                if (Utils.CanShowCEF(false, true))
+                if (Misc.CanShowCEF(false, true))
                     Sync.Microphone.Reload();
             }, true, true)
             { Description = "Перезапустить голосовой чат" });
@@ -831,7 +833,7 @@ namespace BlaineRP.Client
             // Inventory Open 
             Add(new ExtraBind(Types.Inventory, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.Show(CEF.Inventory.Types.Inventory);
             }, true, true)
             { Description = "Инвентарь" });
@@ -839,7 +841,7 @@ namespace BlaineRP.Client
             // Take Item on Ground
             Add(new ExtraBind(Types.TakeItem, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                 {
                     if (Sync.World.ClosestItemOnGround == null)
                         return;
@@ -852,7 +854,7 @@ namespace BlaineRP.Client
             // ReloadWeapon
             Add(new ExtraBind(Types.ReloadWeapon, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.WeaponSystem.ReloadWeapon();
             }, true, true)
             { Description = "Перезарядить оружие" });
@@ -860,7 +862,7 @@ namespace BlaineRP.Client
             // Whistle
             Add(new ExtraBind(Types.Whistle, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle);
             }, true, true)
             { Description = "Свистеть" });
@@ -868,35 +870,35 @@ namespace BlaineRP.Client
             // Whistle
             Add(new ExtraBind(Types.SendCoordsToDriver, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.SendCoordsToDriver();
             }, true, true)
             { Description = "Передать метку водителю" });
 
             Add(new ExtraBind(Types.Animations, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Animations.Open();
             }, true, true)
             { Description = "Анимации" });
 
             Add(new ExtraBind(Types.CancelAnimation, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Animations.Cancel();
             }, true, true)
             { Description = "Отмена анимации" });
 
             Add(new ExtraBind(Types.Help, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Menu.Show(CEF.Menu.SectionTypes.Help);
             }, true, true)
             { Description = "Помощь" });
 
             Add(new ExtraBind(Types.BlipsMenu, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                 {
                     BlipsMenu.Show();
                 }
@@ -905,7 +907,7 @@ namespace BlaineRP.Client
 
             Add(new ExtraBind(Types.AnchorBoat, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                 {
                     Sync.Vehicles.ToggleAnchor();
                 }
@@ -914,7 +916,7 @@ namespace BlaineRP.Client
 
             Add(new ExtraBind(Types.FlashlightToggle, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                 {
                     Events.CallRemote("Players::FLT");
                 }
@@ -929,188 +931,188 @@ namespace BlaineRP.Client
 
             Add(new ExtraBind(Types.ExtraAction0, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CurrentExtraAction0?.Invoke();
             }, true, true)
             { Description = "Быстрое действие 1" });
 
             Add(new ExtraBind(Types.ExtraAction1, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CurrentExtraAction1?.Invoke();
             }, true, true)
             { Description = "Быстрое действие 2" });
 
             Add(new ExtraBind(Types.EnterVehicle, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);
             }, true, false, Types.None, false));
 
             Add(new ExtraBind(Types.PlaneLandingGear, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleLandingGearState(Player.LocalPlayer.Vehicle);
             }, true, false, Types.None, false));
 
             // Inventory Binds
             Add(new ExtraBind(Types.weapon0, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 0);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.weapon1, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 1);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.weapon2, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 2);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets0, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 0);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets1, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 1);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets2, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 2);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets3, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 3);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets4, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 4);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets5, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 5);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets6, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 6);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets7, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 7);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets8, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 8);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets9, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 9);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets10, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 10);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets11, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 11);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets12, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 12);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets13, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 13);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets14, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 14);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets15, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 15);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets16, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 16);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets17, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 17);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets18, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 18);
 
             }, true, true, Types.None, true));
 
             Add(new ExtraBind(Types.pockets19, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (Misc.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 19);
 
             }, true, true, Types.None, true));
@@ -1145,7 +1147,7 @@ namespace BlaineRP.Client
         {
             var bindHandler = RAGE.Input.Bind(vk, down, () =>
             {
-                if (!Utils.IsGameWindowFocused)
+                if (!Misc.IsGameWindowFocused)
                     return;
 
                 action?.Invoke();

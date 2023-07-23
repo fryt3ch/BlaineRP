@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -161,7 +162,7 @@ namespace BlaineRP.Client.Data
 
         public MapObject CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
         {
-            var obj = Utils.CreateObjectNoOffsetImmediately(Model, pos.X, pos.Y, pos.Z);
+            var obj = Streaming.CreateObjectNoOffsetImmediately(Model, pos.X, pos.Y, pos.Z);
 
             obj.FreezePosition(true);
 

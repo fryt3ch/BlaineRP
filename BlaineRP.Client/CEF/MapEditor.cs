@@ -1,13 +1,16 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Additional;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Additional;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class MapEditor 
+    public class MapEditor
     {
         public static bool IsActive { get; private set; }
 
@@ -78,18 +81,18 @@ namespace BlaineRP.Client.CEF
                     if (LastPos == null)
                         return;
 
-                    LastPos.X = Utils.ToSingle(args[1]);
-                    LastPos.Y = Utils.ToSingle(args[2]);
-                    LastPos.Z = Utils.ToSingle(args[3]);
+                    LastPos.X = Utils.Convert.ToSingle(args[1]);
+                    LastPos.Y = Utils.Convert.ToSingle(args[2]);
+                    LastPos.Z = Utils.Convert.ToSingle(args[3]);
                 }
                 else
                 {
                     if (LastRot == null)
                         return;
 
-                    LastRot.X = Utils.ToSingle(args[1]);
-                    LastRot.Y = Utils.ToSingle(args[2]);
-                    LastRot.Z = Utils.ToSingle(args[3]);
+                    LastRot.X = Utils.Convert.ToSingle(args[1]);
+                    LastRot.Y = Utils.Convert.ToSingle(args[2]);
+                    LastRot.Z = Utils.Convert.ToSingle(args[3]);
                 }
             });
         }
@@ -234,7 +237,7 @@ namespace BlaineRP.Client.CEF
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
@@ -295,7 +298,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
-                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -331,7 +334,7 @@ namespace BlaineRP.Client.CEF
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
@@ -392,7 +395,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
-                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -413,7 +416,7 @@ namespace BlaineRP.Client.CEF
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
@@ -474,7 +477,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
-                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -492,7 +495,7 @@ namespace BlaineRP.Client.CEF
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, 0, LastRot.Z, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
@@ -552,11 +555,11 @@ namespace BlaineRP.Client.CEF
             {
                 float sX = 0f, sY = 0f;
 
-                if (Utils.GetScreenCoordFromWorldCoord(LastPos, ref sX, ref sY))
+                if (Graphics.GetScreenCoordFromWorldCoord(LastPos, ref sX, ref sY))
                 {
                     var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
-                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }

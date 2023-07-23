@@ -1,7 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlaineRP.Server.Events.Players
 {

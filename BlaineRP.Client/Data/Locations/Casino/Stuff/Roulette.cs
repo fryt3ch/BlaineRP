@@ -1,10 +1,11 @@
-﻿using RAGE.Elements;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.Data
 {
@@ -106,7 +107,6 @@ namespace BlaineRP.Client.Data
                     {
                         SubName = "NPC_SUBNAME_CASINO_ROULETTE_WORKER",
                     };
-
                     NPC.Ped.StreamInCustomActionsAdd(OnPedStreamIn);
                 }
 
@@ -127,7 +127,7 @@ namespace BlaineRP.Client.Data
                 {
                     var casino = Casino.GetById(casinoId);
 
-                    if (!onLoad && (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null)))
+                    if (!onLoad && (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null)))
                         return;
 
                     var roulette = casino.GetRouletteById(rouletteId);
@@ -256,7 +256,7 @@ namespace BlaineRP.Client.Data
 
                     ped.SetDefaultComponentVariation();
 
-                    var randomClothesNumber = Utils.Random.Next(0, 7);
+                    var randomClothesNumber = Utils.Misc.Random.Next(0, 7);
 
                     if (randomClothesNumber == 0)
                     {
@@ -367,13 +367,13 @@ namespace BlaineRP.Client.Data
                     {
                         var ballHash = RAGE.Util.Joaat.Hash("vw_prop_roulette_ball");
 
-                        await Utils.RequestModel(ballHash);
+                        await Streaming.RequestModel(ballHash);
 
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
-                        await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
+                        await Streaming.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
 
-                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
                             return;
 
                         NPC.Ped.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
@@ -390,7 +390,7 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(3_000);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
                             return;
 
                         var rouletteSoundId = RAGE.Game.Audio.GetSoundId();
@@ -464,7 +464,7 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(3_000);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
                             return;
 
                         NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
@@ -473,17 +473,17 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(1_500);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
                             return;
 
                         NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
                         Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
 
                 public void StartGame()
@@ -848,13 +848,13 @@ namespace BlaineRP.Client.Data
                         {
                             var hData = HoverDatas[x.BetType];
 
-                            var screenCoordPos = Utils.GetScreenCoordFromWorldCoord(hData.ObjectPosition);
+                            var screenCoordPos = Graphics.GetScreenCoordFromWorldCoord(hData.ObjectPosition);
 
                             if (screenCoordPos == null)
                                 continue;
 
-                            //Utils.DrawText(hData.DisplayName, screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.25f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
-                            Utils.DrawText(Locale.Get("GEN_CHIPS_0", x.Amount), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            //UtilsT.GTA.Graphics.DrawText(hData.DisplayName, screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.25f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            Graphics.DrawText(Locale.Get("GEN_CHIPS_0", x.Amount), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }
                     }
 
@@ -865,12 +865,12 @@ namespace BlaineRP.Client.Data
                             if (x.Value.Position == null)
                                 continue;
 
-                            var screenCoordPos = Utils.GetScreenCoordFromWorldCoord(x.Value.Position);
+                            var screenCoordPos = Graphics.GetScreenCoordFromWorldCoord(x.Value.Position);
 
                             if (screenCoordPos == null)
                                 continue;
 
-                            var dist = (float)Math.Sqrt(Math.Pow(screenCoordPos.X * screenRes.X - cursorPos.X, 2f) + Math.Pow(screenCoordPos.Y * screenRes.Y - cursorPos.Y, 2f));
+                            var dist = (float)System.Math.Sqrt(System.Math.Pow(screenCoordPos.X * screenRes.X - cursorPos.X, 2f) + System.Math.Pow(screenCoordPos.Y * screenRes.Y - cursorPos.Y, 2f));
 
                             if (dist < detectTolerance)
                             {

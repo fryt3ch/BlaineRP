@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,15 +9,15 @@ using System.Linq;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class GPSApp 
+    public class GPSApp
     {
         private static Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>> AllPositions = new Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>>()
         {
             {
-                "money", 
-                
+                "money",
+
                 new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
-                { 
+                {
                     { "banks", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_bank&closest0", null } } },
                     { "atms", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_atm&closest1", null } } },
                 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-
-namespace BlaineRP.Server.Sync.Offers
+﻿namespace BlaineRP.Server.Sync.Offers
 {
     [Offer(Types.Exchange)]
     internal class Exchange : OfferBase

@@ -135,7 +135,7 @@ namespace BlaineRP.Server.Game.Estates
             new House(102, new Utils.Vector4(4.290949f, 6568.311f, 33.07592f, 130.7689f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(22.65367f, 6576.256f, 31.51257f, 225.0051f));
 
             new House(103, new Utils.Vector4(-14.96235f, 6557.689f, 33.24043f, 313.6174f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(-12.96631f, 6564.738f, 31.55807f, 225.4745f));
-            
+
             new House(104, new Utils.Vector4(3311.258f, 5176.178f, 19.61458f, 229.2938f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(3301.262f, 5156.734f, 18.14553f, 129.6442f));
             new House(105, new Utils.Vector4(3688.624f, 4562.868f, 25.18306f, 270.2099f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(3695.539f, 4562.077f, 24.99965f, 179.4754f));
             new House(106, new Utils.Vector4(3725.326f, 4525.182f, 22.4705f, 175.6634f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(3708.996f, 4517.556f, 21.21264f, 133.7854f));

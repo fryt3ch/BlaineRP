@@ -1,12 +1,13 @@
-﻿using RAGE;
-using System;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class MaterialWorkbench 
+    public class MaterialWorkbench
     {
         public static bool IsActive => CurrentType != Types.None && CEF.Browser.IsActive(Browser.IntTypes.Retail);
 
@@ -29,7 +30,7 @@ namespace BlaineRP.Client.CEF
             {
                 var itemId = (string)args[0];
 
-                var amountD = Utils.ToDecimal(args[1]);
+                var amountD = Utils.Convert.ToDecimal(args[1]);
 
                 int amount;
 

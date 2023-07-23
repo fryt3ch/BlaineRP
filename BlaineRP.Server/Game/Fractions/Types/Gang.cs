@@ -1,11 +1,5 @@
-﻿using BlaineRP.Server.Game.Data;
-using GTANetworkAPI;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace BlaineRP.Server.Game.Fractions
 {
@@ -30,7 +24,7 @@ namespace BlaineRP.Server.Game.Fractions
             public static List<GangZone> All { get; private set; }
 
             public const uint ZONE_INCOME = 1_000;
-            
+
             public Utils.Vector2 Position { get; set; }
 
             public Types OwnerType { get; set; }

@@ -1,13 +1,13 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Peds 
+    public class Peds
     {
         public static PedData GetData(Ped ped)
         {

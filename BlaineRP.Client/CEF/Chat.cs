@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -9,7 +12,7 @@ using System.Text.RegularExpressions;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Chat 
+    public class Chat
     {
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Chat); }
         public static bool InputVisible = false;
@@ -80,9 +83,9 @@ namespace BlaineRP.Client.CEF
 
                 ShowInput(false);
 
-/*                Browser.Window.ExecuteCachedJs("Chat.needScroll();");
+                /*                Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
-                Browser.Window.ExecuteCachedJs("Chat.tryScroll();");*/
+                                Browser.Window.ExecuteCachedJs("Chat.tryScroll();");*/
 
                 var type = (MessageTypes)((int)args[0]);
                 var msg = (string)args[1];
@@ -212,9 +215,9 @@ namespace BlaineRP.Client.CEF
                 if (data == null)
                     return;
 
-                var name = player != Player.LocalPlayer ? Utils.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
+                var name = player != Player.LocalPlayer ? Players.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
 
-                var name2 = player2 != null ? Utils.GetPlayerName(player2, true, false, true) : null;
+                var name2 = player2 != null ? Players.GetPlayerName(player2, true, false, true) : null;
 
                 if (name2 != null)
                     message = string.Format(message, name2);
@@ -275,8 +278,8 @@ namespace BlaineRP.Client.CEF
 
                 var timeStr = TimeStr;
 
-                var cid = Utils.ToUInt32(args[0]);
-                var rid = Utils.ToUInt16(args[1]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
+                var rid = Utils.Convert.ToUInt16(args[1]);
                 var message = (string)args[2];
 
                 var mData = Data.Fractions.Fraction.AllMembers.GetValueOrDefault(cid);
@@ -321,11 +324,11 @@ namespace BlaineRP.Client.CEF
 
                 var timeStr = TimeStr;
 
-                var cid = Utils.ToUInt32(args[0]);
-                var rid = Utils.ToUInt16(args[1]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
+                var rid = Utils.Convert.ToUInt16(args[1]);
                 var message = (string)args[2];
-                var fType = (Data.Fractions.Types)Utils.ToInt32(args[3]);
-                var fRank = Utils.ToByte(args[4]);
+                var fType = (Data.Fractions.Types)Utils.Convert.ToInt32(args[3]);
+                var fRank = Utils.Convert.ToByte(args[4]);
 
                 var tFData = Data.Fractions.Fraction.Get(fType);
 
@@ -489,7 +492,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive || value == InputVisible)
                 return;
 
-            if (value && Utils.IsAnyCefActive(true) && !CEF.Death.IsActive && !CEF.Phone.IsActive)
+            if (value && Utils.Misc.IsAnyCefActive(true) && !CEF.Death.IsActive && !CEF.Phone.IsActive)
                 return;
 
             Browser.Window.ExecuteJs("Chat.switchInput", value);

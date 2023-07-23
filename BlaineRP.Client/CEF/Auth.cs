@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -6,7 +9,7 @@ using System;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Auth 
+    public class Auth
     {
         private static DateTime LastTime;
 
@@ -75,8 +78,8 @@ namespace BlaineRP.Client.CEF
                     Browser.Render(Browser.IntTypes.Registration, false);
 
                     var login = (string)args[1];
-                    var regDate = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[2])).DateTime;
-                    var bCoins = Utils.ToDecimal(args[3]);
+                    var regDate = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[2])).DateTime;
+                    var bCoins = Utils.Convert.ToDecimal(args[3]);
 
                     var data = ((JArray)args[4]).ToObject<object[]>();
 
@@ -98,15 +101,15 @@ namespace BlaineRP.Client.CEF
 
                         data[i] = cData;
 
-                        var fractionType = (Data.Fractions.Types)Utils.ToDecimal(cData[5]);
+                        var fractionType = (Data.Fractions.Types)Utils.Convert.ToDecimal(cData[5]);
 
                         cData[5] = Data.Fractions.Fraction.Get(fractionType)?.Name ?? Data.Fractions.Fraction.NoFractionStr;
-                        cData[6] = TimeSpan.FromMinutes(Convert.ToDouble(cData[6])).TotalHours.ToString("0.0");
+                        cData[6] = TimeSpan.FromMinutes(Utils.Convert.ToDouble(cData[6])).TotalHours.ToString("0.0");
 
                         if (cData[10] != null)
                         {
-                            cData[12] = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(cData[12])).DateTime.ToString("dd.MM.yyyy HH:mm");
-                            cData[13] = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(cData[13])).DateTime.ToString("dd.MM.yyyy HH:mm");
+                            cData[12] = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(cData[12])).DateTime.ToString("dd.MM.yyyy HH:mm");
+                            cData[13] = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(cData[13])).DateTime.ToString("dd.MM.yyyy HH:mm");
                         }
                     }
 
@@ -154,14 +157,14 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-                if (!Utils.IsLoginValid(login))
+                if (!Misc.IsLoginValid(login))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidLogin);
 
                     return;
                 }
 
-                if (!Utils.IsMailValid(mail))
+                if (!Misc.IsMailValid(mail))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidMail);
 
@@ -175,7 +178,7 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-                if (!Utils.IsPasswordValid(pass1))
+                if (!Misc.IsPasswordValid(pass1))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidPassword);
 

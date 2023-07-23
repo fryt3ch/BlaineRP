@@ -1,15 +1,13 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using Newtonsoft.Json.Linq;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class Fraction 
+    public class Fraction
     {
         public Fraction()
         {
@@ -92,11 +90,11 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                                 {
                                     var vData = res.Where(x => x.vid == id).FirstOrDefault();
 
-                                    var price = Utils.ToDecimal(priceT);
+                                    var price = Utils.Convert.ToDecimal(priceT);
 
                                     await CEF.ActionBox.ShowMoney
                                     (
-                                        "NumberplateRegMoney", "Постановка транспорта на учёт", $"Вы действительно хотите поставить транспорт {vData.Item3.Name} [#{vData.vid}] на государственный учёт?\n\nОн будет зарегистрирован под гос. номером [{vData.Item2}], стоимость услуги - {Utils.GetPriceString(price)}",
+                                        "NumberplateRegMoney", "Постановка транспорта на учёт", $"Вы действительно хотите поставить транспорт {vData.Item3.Name} [#{vData.vid}] на государственный учёт?\n\nОн будет зарегистрирован под гос. номером [{vData.Item2}], стоимость услуги - {Locale.Get("GEN_MONEY_0", price)}",
 
                                         CEF.ActionBox.DefaultBindAction,
 
@@ -199,11 +197,11 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                                 {
                                     var vData = res.Where(x => x.vid == id).FirstOrDefault();
 
-                                    var price = Utils.ToDecimal(priceT);
+                                    var price = Utils.Convert.ToDecimal(priceT);
 
                                     await CEF.ActionBox.ShowMoney
                                     (
-                                        "NumberplateUnRegMoney", "Снятие транспорта с учёта", $"Вы действительно хотите снять транспорт {vData.Item3.Name} [#{vData.vid}] с государственного учёта?\n\nСейчас он зарегистрирован под гос. номером [{vData.Item2}], стоимость услуги - {Utils.GetPriceString(price)}",
+                                        "NumberplateUnRegMoney", "Снятие транспорта с учёта", $"Вы действительно хотите снять транспорт {vData.Item3.Name} [#{vData.vid}] с государственного учёта?\n\nСейчас он зарегистрирован под гос. номером [{vData.Item2}], стоимость услуги - {Locale.Get("GEN_MONEY_0", price)}",
 
                                         CEF.ActionBox.DefaultBindAction,
 

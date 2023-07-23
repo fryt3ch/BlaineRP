@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +9,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Animations 
+    public class Animations
     {
         public static DateTime LastSent;
 
@@ -930,7 +933,7 @@ namespace BlaineRP.Client.Sync
                 if (data == null)
                     return;
 
-                var timeout = TimeSpan.FromMilliseconds(Utils.ToInt64(args[2]));
+                var timeout = TimeSpan.FromMilliseconds(Utils.Convert.ToInt64(args[2]));
 
                 if (player == Player.LocalPlayer)
                 {
@@ -941,7 +944,7 @@ namespace BlaineRP.Client.Sync
                         pData.FastAnim = type;
                     }
 
-                    Utils.CancelPendingTask("LPFATT");
+                    AsyncTask.Methods.CancelPendingTask("LPFATT");
 
                     AsyncTask task = null;
 
@@ -949,13 +952,13 @@ namespace BlaineRP.Client.Sync
                     {
                         await RAGE.Game.Invoker.WaitAsync((int)timeout.TotalMilliseconds);
 
-                        if (!Utils.IsTaskStillPending("LPFATT", task))
+                        if (!AsyncTask.Methods.IsTaskStillPending("LPFATT", task))
                             return;
 
                         Events.CallRemote("Players::SFTA");
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending("LPFATT", task);
+                    AsyncTask.Methods.SetAsPending(task, "LPFATT");
                 }
 
                 Play(player, data, (int)timeout.TotalMilliseconds);
@@ -963,7 +966,7 @@ namespace BlaineRP.Client.Sync
 
             Events.Add("Players::StopFastAnim", (args) =>
             {
-                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
+                var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[0]));
 
                 if (player == null)
                     return;
@@ -975,7 +978,7 @@ namespace BlaineRP.Client.Sync
                     if (pData != null)
                         pData.FastAnim = FastTypes.None;
 
-                    Utils.CancelPendingTask("LPFATT");
+                    AsyncTask.Methods.CancelPendingTask("LPFATT");
                 }
 
                 Stop(player);
@@ -995,7 +998,7 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                Utils.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, EmotionsList[emotion], 0);
+                Invoker.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, EmotionsList[emotion], 0);
             }
         }
 
@@ -1012,7 +1015,7 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                await Utils.RequestClipSet(WalkstylesList[walkstyle]);
+                await Streaming.RequestClipSet(WalkstylesList[walkstyle]);
 
                 player.SetMovementClipset(WalkstylesList[walkstyle], Sync.Crouch.ClipSetSwitchTime);
             }
@@ -1051,7 +1054,7 @@ namespace BlaineRP.Client.Sync
 
             if (ped.Handle == Player.LocalPlayer.Handle)
             {
-                Utils.CancelPendingTask("LPFATT");
+                AsyncTask.Methods.CancelPendingTask("LPFATT");
 
                 Sync.Phone.DestroyLocalPhone();
             }
@@ -1059,7 +1062,7 @@ namespace BlaineRP.Client.Sync
             if (anim == null)
                 return;
 
-            await Utils.RequestAnimDict(anim.Dict);
+            await Streaming.RequestAnimDict(anim.Dict);
 
             ped.ClearTasks();
 
@@ -1068,7 +1071,7 @@ namespace BlaineRP.Client.Sync
             if (ped.Handle != Player.LocalPlayer.Handle)
                 ped.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
             else
-                ped.TaskPlayAnim(anim.Dict, Utils.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
+                ped.TaskPlayAnim(anim.Dict, Utils.Game.Camera.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
         }
 
         public static void Stop(PedBase ped)
@@ -1078,7 +1081,7 @@ namespace BlaineRP.Client.Sync
 
             if (ped.Handle == Player.LocalPlayer.Handle)
             {
-                Utils.CancelPendingTask("LPFATT");
+                AsyncTask.Methods.CancelPendingTask("LPFATT");
             }
 
             ped.ClearTasks();
@@ -1096,7 +1099,7 @@ namespace BlaineRP.Client.Sync
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                 return;
 
             Events.CallRemote("Players::PFA", (int)fastType);

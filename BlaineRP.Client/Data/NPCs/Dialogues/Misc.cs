@@ -1,11 +1,10 @@
-﻿using RAGE;
-using RAGE.Elements;
+﻿using RAGE.Elements;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class Misc 
+    public class Misc
     {
         public Misc()
         {
@@ -34,7 +33,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                     {
                         var dg = AllDialogues["vrent_s_def_0"];
 
-                        dg.Buttons[0].Text = $"Конечно [{Utils.GetPriceString(data)}]";
+                        dg.Buttons[0].Text = $"Конечно [{Locale.Get("GEN_MONEY_0", data)}]";
 
                         NPC.CurrentNPC.ShowDialogue("vrent_s_def_0");
                     }

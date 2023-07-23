@@ -1,13 +1,14 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Notification 
+    public class Notification
     {
         private static TimeSpan TextReadMinTime { get; } = TimeSpan.FromSeconds(2.5d);
 
@@ -395,17 +396,17 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("Notify::Custom", (args) =>
             {
-                Show((Types)((int)args[0]), (string)args[1], (string)args[2], Utils.ToInt32(args[3]));
+                Show((Types)((int)args[0]), (string)args[1], (string)args[2], Utils.Convert.ToInt32(args[3]));
             });
 
             Events.Add("Notify::CustomE", (args) =>
             {
-                ShowError((string)args[0], Utils.ToInt32(args[1]));
+                ShowError((string)args[0], Utils.Convert.ToInt32(args[1]));
             });
 
             Events.Add("Notify::CustomS", (args) =>
             {
-                ShowSuccess((string)args[0], Utils.ToInt32(args[1]));
+                ShowSuccess((string)args[0], Utils.Convert.ToInt32(args[1]));
             });
 
             Events.Add("Notify", (object[] args) =>
@@ -427,11 +428,11 @@ namespace BlaineRP.Client.CEF
             {
                 var args1 = ((Newtonsoft.Json.Linq.JArray)args[2]).ToObject<List<object>>();
 
-                var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[1]));
+                var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[1]));
 
                 if (player != null)
                 {
-                    args1.Insert(0, Utils.GetPlayerName(player, true, false, true));
+                    args1.Insert(0, Players.GetPlayerName(player, true, false, true));
                 }
                 else
                 {
@@ -460,7 +461,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(title + content) : timeout, type.ToString(), Utils.ReplaceNewLineHtml(title), Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
+            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(title + content) : timeout, type.ToString(), Utils.Misc.ReplaceNewLineHtml(title), Utils.Misc.ReplaceNewLineHtml(content), MaxNotifications, false);
         }
 
         public static void ShowHint(string content, bool showAnyway = false, int timeout = -1)
@@ -471,7 +472,7 @@ namespace BlaineRP.Client.CEF
             if (!showAnyway && Settings.User.Interface.HideHints)
                 return;
 
-            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(content) : timeout, Types.Information.ToString(), Locale.Notifications.Hints.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
+            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(content) : timeout, Types.Information.ToString(), Locale.Notifications.Hints.Header, Utils.Misc.ReplaceNewLineHtml(content), MaxNotifications, false);
         }
 
         public static void ShowOffer(string content, int timeout = 9999999)
@@ -479,7 +480,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            Browser.Window.ExecuteJs("Notific.draw", timeout, Types.Offer.ToString(), Locale.Notifications.Offers.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, true);
+            Browser.Window.ExecuteJs("Notific.draw", timeout, Types.Offer.ToString(), Locale.Notifications.Offers.Header, Utils.Misc.ReplaceNewLineHtml(content), MaxNotifications, true);
         }
 
         public static void ShowError(string content, int timeout = -1)

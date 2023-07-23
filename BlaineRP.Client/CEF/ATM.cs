@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +9,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class ATM 
+    public class ATM
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.ATM);
 
@@ -37,7 +40,7 @@ namespace BlaineRP.Client.CEF
 
                 int amount;
 
-                if (!Utils.ToDecimal(args[1]).IsNumberValid(1, int.MaxValue, out amount, true))
+                if (!Utils.Convert.ToDecimal(args[1]).IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
                 if (LastSent.IsSpam(1000, false, false))
@@ -54,7 +57,7 @@ namespace BlaineRP.Client.CEF
 
                 Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
 
-                Show(Utils.ToDecimal(args[1]));
+                Show(Utils.Convert.ToDecimal(args[1]));
             });
         }
 
@@ -63,7 +66,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Misc.IsAnyCefActive(true))
                 return;
 
             var data = Sync.Players.GetData(Player.LocalPlayer);
@@ -73,7 +76,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

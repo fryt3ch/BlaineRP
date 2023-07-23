@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using static BlaineRP.Server.Game.Items.Inventory;
 
 namespace BlaineRP.Server.Game.Items
 {

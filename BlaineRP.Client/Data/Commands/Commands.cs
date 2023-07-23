@@ -9,7 +9,7 @@ using System.Reflection;
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public partial class Commands 
+    public partial class Commands
     {
         private static DateTime LastSent;
 

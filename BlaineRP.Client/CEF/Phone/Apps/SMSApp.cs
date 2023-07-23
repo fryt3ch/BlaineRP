@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,7 @@ using static BlaineRP.Client.CEF.Phone;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class SMSApp 
+    public class SMSApp
     {
         public class SMS
         {

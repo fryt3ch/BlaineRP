@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Server.Events.Commands
 {
@@ -97,7 +95,7 @@ namespace BlaineRP.Server.Events.Commands
             var reason = (string)args[2];
 
             var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
-            
+
             if (tInfo == null)
             {
                 pData.Player.Notify("Cmd::TargetNotFound");
@@ -237,7 +235,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) {  AdditionalData = "0" };
+            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) { AdditionalData = "0" };
 
             if (allJails.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {

@@ -1,12 +1,12 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Data;
+using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
-using BlaineRP.Client.Data;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
     [Script(int.MaxValue)]
-    internal class JTR1 
+    internal class JTR1
     {
         public JTR1()
         {

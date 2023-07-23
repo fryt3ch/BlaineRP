@@ -1,10 +1,12 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using static BlaineRP.Client.CEF.Phone;
 
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class SettingsApp 
+    public class SettingsApp
     {
         public SettingsApp()
         {

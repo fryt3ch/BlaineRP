@@ -1,18 +1,21 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Data;
+using BlaineRP.Client.Data.Fractions;
+using BlaineRP.Client.Data.Minigames.Casino;
+using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using BlaineRP.Client.Data;
-using BlaineRP.Client.Data.Fractions;
-using BlaineRP.Client.Data.Minigames.Casino;
 
 namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class ExtraColshapes 
+    public class ExtraColshapes
     {
         public static AsyncTask PolygonCreationTask { get; set; }
 
@@ -343,7 +346,7 @@ namespace BlaineRP.Client.Additional
         private static bool _InteractionColshapesAllowed { get; set; }
 
         /// <summary>Доступны ли в данный момент для взаимодействия соответствующие колшейпы?</summary>
-        public static bool InteractionColshapesAllowed { get => _InteractionColshapesAllowed && !Utils.IsAnyCefActive(true) && !SkyCamera.IsFadedOut; set { _InteractionColshapesAllowed = value; } }
+        public static bool InteractionColshapesAllowed { get => _InteractionColshapesAllowed && !Utils.Misc.IsAnyCefActive(true) && !SkyCamera.IsFadedOut; set { _InteractionColshapesAllowed = value; } }
 
         public static bool InteractionColshapesDisabledThisFrame { get; set; }
 
@@ -1036,7 +1039,7 @@ namespace BlaineRP.Client.Additional
 
                         return;
                     }
-                    
+
                     if (fData.CreationWorkbenchPrices.Count == 0)
                     {
                         CEF.Notification.ShowError("На данный момент здесь нельзя создать ни один предмет!");
@@ -1050,7 +1053,7 @@ namespace BlaineRP.Client.Additional
 
                     if (res == byte.MaxValue)
                     {
-                        if (Utils.IsAnyCefActive(true))
+                        if (Utils.Misc.IsAnyCefActive(true))
                             return;
 
                         CEF.MaterialWorkbench.Show(CEF.MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials, fData.Type, wbIdx);
@@ -1275,7 +1278,7 @@ namespace BlaineRP.Client.Additional
 
                     var trailerVehHandle = baseVeh.GetTrailerVehicle();
 
-                    if (trailerVehHandle > 0 && Utils.GetVehicleByHandle(trailerVehHandle, false) is Vehicle trailerVeh)
+                    if (trailerVehHandle > 0 && Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false) is Vehicle trailerVeh)
                     {
                         if (trailerVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
                         {
@@ -1446,7 +1449,7 @@ namespace BlaineRP.Client.Additional
                                 }
                                 else
                                 {
-                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2", Utils.GetPlayerName(RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid), true, false, false), currentRenterRid);
+                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2", Players.GetPlayerName(RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid), true, false, false), currentRenterRid);
                                 }
 
                                 if (interactionText != null)
@@ -2256,18 +2259,18 @@ namespace BlaineRP.Client.Additional
 
         public override void Draw()
         {
-            Utils.DrawSphere(Position, Radius, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha / 255f);
+            Graphics.DrawSphere(Position, Radius, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha / 255f);
 
             if (Settings.User.Other.DebugLabels)
             {
                 float screenX = 0f, screenY = 0f;
 
-                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 
@@ -2308,12 +2311,12 @@ namespace BlaineRP.Client.Additional
             {
                 float screenX = 0f, screenY = 0f;
 
-                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 
@@ -2356,12 +2359,12 @@ namespace BlaineRP.Client.Additional
             {
                 float screenX = 0f, screenY = 0f;
 
-                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"Radius: {Radius} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Radius: {Radius} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 
@@ -2550,7 +2553,7 @@ namespace BlaineRP.Client.Additional
         public void Rotate(float angle)
         {
             for (int i = 0; i < Vertices.Count; i++)
-                Utils.RotatePoint(Vertices[i], Position, angle);
+                Geometry.RotatePoint(Vertices[i], Position, angle);
 
             Heading += angle;
         }
@@ -2670,10 +2673,10 @@ namespace BlaineRP.Client.Additional
 
                         if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
-                            if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
+                            if (!Graphics.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
 
-                            Utils.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -2691,10 +2694,10 @@ namespace BlaineRP.Client.Additional
 
                         if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
-                            if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
+                            if (!Graphics.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
 
-                            Utils.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -2712,10 +2715,10 @@ namespace BlaineRP.Client.Additional
 
                         if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
-                            if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
+                            if (!Graphics.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
 
-                            Utils.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -2733,10 +2736,10 @@ namespace BlaineRP.Client.Additional
 
                         if (Settings.User.Other.DebugLabels && (i % vertIdLimiter == 0))
                         {
-                            if (!Utils.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
+                            if (!Graphics.GetScreenCoordFromWorldCoord(currentVertice, ref screenX, ref screenY))
                                 continue;
 
-                            Utils.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText(i.ToString(), screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -2744,12 +2747,12 @@ namespace BlaineRP.Client.Additional
 
             if (Settings.User.Other.DebugLabels)
             {
-                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"Vertices: {Vertices.Count} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Vertices: {Vertices.Count} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 
@@ -2762,17 +2765,17 @@ namespace BlaineRP.Client.Additional
                 var p1 = new Vector3(Vertices[i].X - point.X, Vertices[i].Y - point.Y, Vertices[i].Z - point.Z);
                 var p2 = new Vector3(Vertices[(i + 1) % Vertices.Count].X - point.X, Vertices[(i + 1) % Vertices.Count].Y - point.Y, Vertices[(i + 1) % Vertices.Count].Z - point.Z);
 
-                var m1 = Math.Sqrt((p1.X * p1.X) + (p1.Y * p1.Y) + (p1.Z * p1.Z));
-                var m2 = Math.Sqrt((p2.X * p2.X) + (p2.Y * p2.Y) + (p2.Z * p2.Z));
+                var m1 = System.Math.Sqrt((p1.X * p1.X) + (p1.Y * p1.Y) + (p1.Z * p1.Z));
+                var m2 = System.Math.Sqrt((p2.X * p2.X) + (p2.Y * p2.Y) + (p2.Z * p2.Z));
 
                 if (m1 * m2 <= float.Epsilon)
                 {
-                    angleSum = Math.PI * 2;
+                    angleSum = System.Math.PI * 2;
 
                     break;
                 }
                 else
-                    angleSum += Math.Acos((p1.X * p2.X + p1.Y * p2.Y + p1.Z * p2.Z) / (m1 * m2));
+                    angleSum += System.Math.Acos((p1.X * p2.X + p1.Y * p2.Y + p1.Z * p2.Z) / (m1 * m2));
             }
 
             var polygonPoints2d = new List<RAGE.Ui.Cursor.Vector2>();

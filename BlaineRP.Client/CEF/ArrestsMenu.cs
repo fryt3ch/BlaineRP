@@ -1,15 +1,16 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class ArrestsMenu 
+    public class ArrestsMenu
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuArrest);
 
@@ -34,7 +35,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuArrest::MoreInfo", async (args) =>
             {
-                var id = Utils.ToUInt32(args[0]);
+                var id = Utils.Convert.ToUInt32(args[0]);
 
                 if (LastSent.IsSpam(1000, false, true))
                     return;
@@ -69,7 +70,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuArrest::Button", async (args) =>
             {
-                var action = Utils.ToByte(args[0]);
+                var action = Utils.Convert.ToByte(args[0]);
 
                 if (CurrentArrestId == null)
                     return;
@@ -229,7 +230,7 @@ namespace BlaineRP.Client.CEF
                                     if (CurrentArrestId != arrestId)
                                         return;
 
-                                    CEF.Browser.Window.ExecuteJs("MenuArrest.updateInfoLine", 4, TimeSpan.FromSeconds(Utils.ToUInt64(res)).GetBeautyString());
+                                    CEF.Browser.Window.ExecuteJs("MenuArrest.updateInfoLine", 4, TimeSpan.FromSeconds(Utils.Convert.ToUInt64(res)).GetBeautyString());
 
                                     //Events.CallLocal("MenuArrest::Button", 0);
                                 }

@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -77,25 +74,25 @@ namespace BlaineRP.Server.Game.Items
 
         public static void Wear(PlayerData pData)
         {
-/*            if (pData.BeltOn)
-                return;*/
+            /*            if (pData.BeltOn)
+                            return;*/
 
             pData.Player.SetClothes(5, 66, 0);
         }
 
         public static void Unwear(PlayerData pData)
         {
-/*            if (pData.BeltOn)
-            {
-                pData.Player.SetClothes(5, 81, 0);
-            }
-            else
-            {
-                if (pData.Bag != null)
-                    pData.Bag?.Wear(pData);
-                else
-                    pData.Player.SetClothes(5, 0, 0);
-            }*/
+            /*            if (pData.BeltOn)
+                        {
+                            pData.Player.SetClothes(5, 81, 0);
+                        }
+                        else
+                        {
+                            if (pData.Bag != null)
+                                pData.Bag?.Wear(pData);
+                            else
+                                pData.Player.SetClothes(5, 0, 0);
+                        }*/
 
             if (pData.Bag != null)
                 pData.Bag?.Wear(pData);

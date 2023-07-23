@@ -293,7 +293,7 @@ namespace BlaineRP.Server.Additional
                     {
                         ped.Dimension = dim;
                     }
-                    
+
                     if (pos != null)
                     {
                         ped.Position = pos;

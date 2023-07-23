@@ -1,15 +1,13 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.System;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.CEF;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class Casino 
+    public class Casino
     {
         public Casino()
         {
@@ -32,7 +30,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 }
 
-                var data = args != null && args[0] is string t ? t.Split('_') :((string)await npc.CallRemoteProc("Casino::GCBD"))?.Split('_');
+                var data = args != null && args[0] is string t ? t.Split('_') : ((string)await npc.CallRemoteProc("Casino::GCBD"))?.Split('_');
 
                 if (data == null)
                 {
@@ -83,7 +81,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                             npc.SetTempDialogueData("buy_chips_amount", amountD);
 
-                            npc.ShowDialogue("casino_cashier_cbuy_0", false, null, Locale.Get("GEN_CHIPS_1", amountD), Locale.Get("GEN_CHIPS_1", ((ulong)Math.Floor(amountD * casino.BuyChipPrice))));
+                            npc.ShowDialogue("casino_cashier_cbuy_0", false, null, Locale.Get("GEN_CHIPS_1", amountD), Locale.Get("GEN_CHIPS_1", ((ulong)System.Math.Floor(amountD * casino.BuyChipPrice))));
                         },
 
                         () =>
@@ -134,7 +132,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                             npc.SetTempDialogueData("sell_chips_amount", amountD);
 
-                            npc.ShowDialogue("casino_cashier_csell_0", false, null, Locale.Get("GEN_CHIPS_1", amountD), Locale.Get("GEN_CHIPS_1", ((ulong)Math.Floor(amountD * casino.SellChipPrice))));
+                            npc.ShowDialogue("casino_cashier_csell_0", false, null, Locale.Get("GEN_CHIPS_1", amountD), Locale.Get("GEN_CHIPS_1", ((ulong)System.Math.Floor(amountD * casino.SellChipPrice))));
                         },
 
                         () =>

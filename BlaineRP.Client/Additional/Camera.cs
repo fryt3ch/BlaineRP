@@ -1,8 +1,8 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using static BlaineRP.Client.Additional.Camera.State;
 
 namespace BlaineRP.Client.Additional
 {
@@ -497,7 +497,7 @@ namespace BlaineRP.Client.Additional
                     }
                     else if (bType == State.BehaviourTypes.PointBone)
                     {
-                        pos = (Utils.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                        pos = (Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                     }
 
                     if (isSource)
@@ -550,7 +550,7 @@ namespace BlaineRP.Client.Additional
                         }
                         else if (bType == State.BehaviourTypes.PointBone)
                         {
-                            LastPosition = (Utils.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                            LastPosition = (Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                         }
 
                         if (LastPosition != null)
@@ -585,10 +585,10 @@ namespace BlaineRP.Client.Additional
 
         public static Vector3 GetFrontOf(Vector3 pos, float angle, float distance = 1.2f)
         {
-            var radians = -angle * Math.PI / 180;
+            var radians = -angle * System.Math.PI / 180;
 
-            var nX = (float)(pos.X + (distance * Math.Sin(radians)));
-            var nY = (float)(pos.Y + (distance * Math.Cos(radians)));
+            var nX = (float)(pos.X + (distance * System.Math.Sin(radians)));
+            var nY = (float)(pos.Y + (distance * System.Math.Cos(radians)));
 
             return new Vector3(nX, nY, pos.Z);
         }

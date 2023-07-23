@@ -1,9 +1,9 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client.Data.Jobs
 {
@@ -249,7 +249,7 @@ namespace BlaineRP.Client.Data.Jobs
     }
 
     [Script(int.MaxValue)]
-    public class JobEvents 
+    public class JobEvents
     {
         public JobEvents()
         {
@@ -291,15 +291,15 @@ namespace BlaineRP.Client.Data.Jobs
 
             Events.Add("Job::TSC", (args) =>
             {
-                var newBalance = Utils.ToDecimal(args[0]);
+                var newBalance = Utils.Convert.ToDecimal(args[0]);
 
-                var oldBalance = Utils.ToDecimal(args[1]);
+                var oldBalance = Utils.Convert.ToDecimal(args[1]);
 
                 var diff = newBalance > oldBalance ? newBalance - oldBalance : 0;
 
                 if (diff > 0)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Information, "+" + Utils.GetPriceString(diff), $"Сумма Вашей зарплаты: {Utils.GetPriceString(newBalance)}");
+                    CEF.Notification.Show(CEF.Notification.Types.Information, "+" + Locale.Get("GEN_MONEY_0", diff), $"Сумма Вашей зарплаты: {Locale.Get("GEN_MONEY_0", newBalance)}");
                 }
             });
 
@@ -346,7 +346,7 @@ namespace BlaineRP.Client.Data.Jobs
                 }
                 else
                 {
-                    var id = Utils.ToUInt32(args[0]);
+                    var id = Utils.Convert.ToUInt32(args[0]);
 
                     var order = activeOrders.Where(x => x.Id == id).FirstOrDefault();
 
@@ -410,7 +410,7 @@ namespace BlaineRP.Client.Data.Jobs
                 }
                 else
                 {
-                    var id = Utils.ToUInt32(args[0]);
+                    var id = Utils.Convert.ToUInt32(args[0]);
 
                     var order = activeOrders.Where(x => x.Id == id).FirstOrDefault();
 
@@ -473,7 +473,7 @@ namespace BlaineRP.Client.Data.Jobs
                 }
                 else
                 {
-                    var id = Utils.ToUInt32(args[0]);
+                    var id = Utils.Convert.ToUInt32(args[0]);
 
                     if (args.Length > 1 && args[1] is bool success)
                     {

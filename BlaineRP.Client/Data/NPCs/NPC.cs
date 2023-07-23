@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -8,7 +11,7 @@ using System.Linq;
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public class NPC 
+    public class NPC
     {
         public static NPC CurrentNPC { get; set; }
 
@@ -168,7 +171,7 @@ namespace BlaineRP.Client.Data
                 if (pData == null)
                     return;
 
-                foreach (var x in Utils.GetPedsOnScreen(5))
+                foreach (var x in Utils.Game.Misc.GetPedsOnScreen(5))
                 {
                     var data = GetData(x);
 
@@ -182,22 +185,22 @@ namespace BlaineRP.Client.Data
 
                     if (Settings.User.Other.DebugLabels && pData.AdminLevel > -1)
                     {
-                        if (Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
+                        if (Graphics.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         {
-                            Utils.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
 
                     pos.Z += 1.1f;
 
-                    if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
+                    if (!Graphics.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         continue;
 
-                    Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                     if (data.SubName != null)
-                        Utils.DrawText(Locale.Get(data.SubName), screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText(Locale.Get(data.SubName), screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
             };
         }
@@ -250,7 +253,7 @@ namespace BlaineRP.Client.Data
                 var pedPos = Ped.GetRealPosition();
                 var playerPos = Player.LocalPlayer.GetRealPosition();
 
-                var t = Utils.RadiansToDegrees((float)Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
+                var t = Geometry.RadiansToDegrees((float)System.Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
 
                 Player.LocalPlayer.SetHeading(t);
                 Ped.SetHeading(t + 180f);

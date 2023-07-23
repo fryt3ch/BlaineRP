@@ -1,10 +1,10 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using System;
 
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class BankApp 
+    public class BankApp
     {
         public static Action<int> CurrentTransactionAction { get; set; }
 

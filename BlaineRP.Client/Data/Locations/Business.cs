@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
@@ -473,7 +474,7 @@ namespace BlaineRP.Client.Data
 
         public class WeaponShop : Business
         {
-            public static uint ShootingRangePrice => Utils.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price", 0));
+            public static uint ShootingRangePrice => Convert.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price", 0));
 
             public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
@@ -490,7 +491,7 @@ namespace BlaineRP.Client.Data
 
                 var tPos = new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z - 1f);
 
-                var shootingRangeEnterCs = new Additional.Cylinder(tPos, 1.5f, 2f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var shootingRangeEnterCs = new Additional.Cylinder(tPos, 1.5f, 2f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     Data = this,
 

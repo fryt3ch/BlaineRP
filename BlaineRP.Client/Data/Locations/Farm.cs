@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -91,7 +94,7 @@ namespace BlaineRP.Client.Data
 
                     public static DateTime LastSent;
 
-                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Utils.ToInt64(obj) : (long?)null;
+                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                     public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
                     {
@@ -108,7 +111,7 @@ namespace BlaineRP.Client.Data
 
                             var cropData = farm.CropFields[fieldIdx].CropsData[col][row];
 
-                            cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Utils.ToInt64(value));
+                            cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                         }
 
                         var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -180,7 +183,7 @@ namespace BlaineRP.Client.Data
 
                                     var zOffset = cropTData.GrownZOffset;
 
-                                    var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
+                                    var prop = Streaming.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                     MapObject = prop;
 
@@ -255,7 +258,7 @@ namespace BlaineRP.Client.Data
 
                                         var zOffset = cropTData.SownZOffset;
 
-                                        var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
+                                        var prop = Streaming.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                         MapObject = prop;
 
@@ -333,7 +336,7 @@ namespace BlaineRP.Client.Data
                             return;
                         }
 
-                        if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                        if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                             return;
 
                         if (LastSent.IsSpam(500))
@@ -351,7 +354,7 @@ namespace BlaineRP.Client.Data
 
                             var pPos = Player.LocalPlayer.Position;
 
-                            Player.LocalPlayer.SetHeading(Utils.RadiansToDegrees((float)Math.Atan2(y - pPos.Y, x - pPos.X)) - 90f);
+                            Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(y - pPos.Y, x - pPos.X)) - 90f);
                         }
                         else
                         {
@@ -417,7 +420,7 @@ namespace BlaineRP.Client.Data
                     y = Columns[col].Pos.Y + Offset.Y * row;
                 }
 
-                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
+                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public void IrrigationEndTimeChanged(Farm farm, int fieldIdx, long? irrigTimeN)
                 {
@@ -437,7 +440,7 @@ namespace BlaineRP.Client.Data
 
                     if (farm?.MainColshape.IsInside == true)
                     {
-                       farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Utils.ToInt64(value));
+                        farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                     }
 
                     var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -469,7 +472,7 @@ namespace BlaineRP.Client.Data
 
                             var definedRot = CropFieldsRotations.GetValueOrDefault(fSubId)?.GetValueOrDefault(fieldIdx) ?? float.PositiveInfinity;
 
-                            cropData.RotationZ = definedRot == float.PositiveInfinity ? 360f * (float)Utils.Random.NextDouble() : definedRot;
+                            cropData.RotationZ = definedRot == float.PositiveInfinity ? 360f * (float)Utils.Misc.Random.NextDouble() : definedRot;
 
                             Sync.World.AddDataHandler($"FARM::CF_{farm.Id}_{fieldIdx}_{i}_{j}", CropData.OnSharedDataChanged);
                         }
@@ -498,7 +501,7 @@ namespace BlaineRP.Client.Data
 
                                 var zOffset = growTime == 0 ? cropTData.GrownZOffset : cropTData.SownZOffset;
 
-                                var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
+                                var prop = Streaming.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                 prop.SetTotallyInvincible(true);
 
@@ -557,7 +560,7 @@ namespace BlaineRP.Client.Data
 
                             var pos = new Vector3(x, y, CoordZ - 1.5f);
 
-                            cropData.Colshape = new Additional.Cylinder(pos, csRange, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                            cropData.Colshape = new Additional.Cylinder(pos, csRange, 5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
                                 OnEnter = (cancel) =>
                                 {
@@ -740,14 +743,14 @@ namespace BlaineRP.Client.Data
 
                     var idx = int.Parse(data[2]);
 
-                    farm.OrangeTrees[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.ToInt64(value));
+                    farm.OrangeTrees[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                 }
 
                 public static void Initialize(Farm farm, int idx)
                 {
                     var orangeTreeData = farm.OrangeTrees[idx];
 
-                    orangeTreeData.Colshape = new Additional.Cylinder(orangeTreeData.Position, 2.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    orangeTreeData.Colshape = new Additional.Cylinder(orangeTreeData.Position, 2.5f, 5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         OnEnter = (cancel) =>
                         {
@@ -761,8 +764,8 @@ namespace BlaineRP.Client.Data
 
                             TextTask = new AsyncTask(() =>
                             {
-                                if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
-                                    Utils.DrawText(Text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                if (Graphics.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
+                                    Graphics.DrawText(Text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }, 0, true, 0);
 
                             TextTask.Run();
@@ -798,7 +801,7 @@ namespace BlaineRP.Client.Data
                     };
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {
@@ -906,7 +909,7 @@ namespace BlaineRP.Client.Data
                         return;
                     }
 
-                    if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                    if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                         return;
 
                     if (CropField.CropData.LastSent.IsSpam(500))
@@ -920,7 +923,7 @@ namespace BlaineRP.Client.Data
                     {
                         var pPos = Player.LocalPlayer.Position;
 
-                        Player.LocalPlayer.SetHeading(Utils.RadiansToDegrees((float)Math.Atan2(farm.OrangeTrees[idx].Position.Y - pPos.Y, farm.OrangeTrees[idx].Position.X - pPos.X)) - 90f);
+                        Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(farm.OrangeTrees[idx].Position.Y - pPos.Y, farm.OrangeTrees[idx].Position.X - pPos.X)) - 90f);
                     }
                     else
                     {
@@ -966,10 +969,10 @@ namespace BlaineRP.Client.Data
 
                     var idx = int.Parse(data[2]);
 
-                    farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.ToInt64(value));
+                    farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public async void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {
@@ -1010,7 +1013,7 @@ namespace BlaineRP.Client.Data
                         {
                             if (Ped != null)
                             {
-                                await Utils.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
+                                await Streaming.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
 
                                 Ped.TaskPlayAnim("creatures@cow@amb@world_cow_grazing@base", "base", 2f, 2f, -1, 1, 0f, false, false, false);
                             }
@@ -1070,7 +1073,7 @@ namespace BlaineRP.Client.Data
                         return;
                     }
 
-                    if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                    if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                         return;
 
                     if (CropField.CropData.LastSent.IsSpam(500))
@@ -1097,11 +1100,11 @@ namespace BlaineRP.Client.Data
 
                         Sync.Animations.Play(Player.LocalPlayer, Sync.Animations.GeneralTypes.MilkCow0);
 
-                        Player.LocalPlayer.SetHeading(Utils.RadiansToDegrees((float)Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
+                        Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
 
                         Player.LocalPlayer.GetData<MapObject>("FARMAT::TEMPBUCKET0")?.Destroy();
 
-                        var tempBucket = Utils.CreateObjectNoOffsetImmediately(emptyBucketModel, tPos.X, tPos.Y, tPos.Z);
+                        var tempBucket = Streaming.CreateObjectNoOffsetImmediately(emptyBucketModel, tPos.X, tPos.Y, tPos.Z);
 
                         Player.LocalPlayer.SetData("FARMAT::TEMPBUCKET0", tempBucket);
                     }
@@ -1121,14 +1124,13 @@ namespace BlaineRP.Client.Data
                     cow.Ped?.Destroy();
 
                     cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.App.Static.MainDimension);
-
                     cow.Ped.StreamInCustomActionsAdd(CowStreamInAction);
 
                     cow.Ped.SetData("LGT", GetGrowTime(farm, idx));
 
                     cow.Colshape?.Destroy();
 
-                    cow.Colshape = new Additional.Cylinder(new Vector3(cow.Position.X, cow.Position.Y, cow.Position.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    cow.Colshape = new Additional.Cylinder(new Vector3(cow.Position.X, cow.Position.Y, cow.Position.Z - 1f), 1.5f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         OnEnter = (cancel) =>
                         {
@@ -1181,7 +1183,7 @@ namespace BlaineRP.Client.Data
 
                     if (lastGrowTime != null && lastGrowTime != 0)
                     {
-                        await Utils.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
+                        await Streaming.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
 
                         ped.TaskPlayAnim("creatures@cow@amb@world_cow_grazing@base", "base", 2f, 2f, -1, 1, 0f, false, false, false);
                     }
@@ -1235,7 +1237,7 @@ namespace BlaineRP.Client.Data
                         new Vector3(1805.541f, 4890.7583f, 75f),
                         new Vector3(1736.1438f, 4978.261f, 75f),
                         new Vector3(1923.747f, 5137.78564f, 75f),
-                    }, 0f, 0f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    }, 0f, 0f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -1287,7 +1289,7 @@ namespace BlaineRP.Client.Data
 
                                 var idx = i;
 
-                                farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                                farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     OnEnter = (cancel) =>
                                     {
@@ -1320,7 +1322,7 @@ namespace BlaineRP.Client.Data
 
                                 var idx = i;
 
-                                farm.CowBucketPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                                farm.CowBucketPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     OnEnter = (cancel) =>
                                     {
@@ -1346,39 +1348,39 @@ namespace BlaineRP.Client.Data
 
                             if (i == 0)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 1)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 2)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 3)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 4)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1952.97778f, 4856.847f, 68.3354877f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1952.97778f, 4856.847f, 68.3354877f), 55f, 35f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 5)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1956.74463f, 4796.612f, 68.3354877f - 1.55087f), 50f, 40f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1956.74463f, 4796.612f, 68.3354877f - 1.55087f), 50f, 40f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 6)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1915.74133f, 4761.87549f, 68.3354877f - 2.95878f), 55f, 40f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1915.74133f, 4761.87549f, 68.3354877f - 2.95878f), 55f, 40f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 7)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1887.2063f, 4790.97266f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1887.2063f, 4790.97266f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
                             else if (i == 8)
                             {
-                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1860.861f, 4817.32959f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.App.Static.MainDimension, null);
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1860.861f, 4817.32959f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null);
                             }
 
                             farm.CropFields[i].Colshape.ApproveType = Additional.ExtraColshape.ApproveTypes.None;
@@ -1509,7 +1511,7 @@ namespace BlaineRP.Client.Data
                                     var marker = new Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension);
                                     var blip = new Additional.ExtraBlip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                                    var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                                    var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                                     {
                                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -1527,7 +1529,7 @@ namespace BlaineRP.Client.Data
                                             if (jobVehicle.GetSpeedVector(true).Y < 0) // reverse check
                                                 return;
 
-                                            if (Math.Floor(jobVehicle.GetSpeedKm()) > TRACTOR_MAX_SPEED_KM_H)
+                                            if (System.Math.Floor(jobVehicle.GetSpeedKm()) > TRACTOR_MAX_SPEED_KM_H)
                                             {
                                                 CEF.Notification.ShowError($"Скорость Вашего трактора была слишком высока и урожай не был собран!\nНе превышайте скорость в {TRACTOR_MAX_SPEED_KM_H} км/ч");
 
@@ -1616,7 +1618,7 @@ namespace BlaineRP.Client.Data
                                             return;
                                         }
 
-                                        await Utils.RequestPtfx("core");
+                                        await Streaming.RequestPtfx("core");
 
                                         var res = await quest.CallProgressUpdateProc(fieldIdx, pointIdx);
 

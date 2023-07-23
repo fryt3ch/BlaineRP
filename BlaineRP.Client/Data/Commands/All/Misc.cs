@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Sync;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace BlaineRP.Client.Data
 
             LastSent = Sync.World.ServerTime;
 
-            var res = Utils.ToDecimal(await Events.CallRemoteProc("Misc::GetPing"));
+            var res = Convert.ToDecimal(await Events.CallRemoteProc("Misc::GetPing"));
 
             Events.CallLocal("Chat::ShowServerMessage", $"[Ping] Ваш текущий пинг: {res}");
         }

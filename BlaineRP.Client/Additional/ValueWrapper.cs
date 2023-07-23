@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlaineRP.Client.Additional
+﻿namespace BlaineRP.Client.Additional
 {
     public class RefValue<T> where T : struct
     {

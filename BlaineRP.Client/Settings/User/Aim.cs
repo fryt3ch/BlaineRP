@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlaineRP.Client.Settings.User
+﻿namespace BlaineRP.Client.Settings.User
 {
     public static class Aim
     {

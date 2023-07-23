@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
     [Script(int.MaxValue)]
-    internal class JBD1 
+    internal class JBD1
     {
         public JBD1()
         {

@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class CameraApp 
+    public class CameraApp
     {
         public static bool IsActive { get; private set; }
 
@@ -273,15 +275,15 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                     if (RAGE.Game.Pad.IsDisabledControlPressed(32, 69))
                     {
-                        _currentHorizontalOffset = Utils.GetLimitedValue(_currentHorizontalOffset + normalA, 0f, 1f);
-                        _currentVerticalOffset = Utils.GetLimitedValue(_currentVerticalOffset + normalB, 0f, 2f);
-                        _currentRoll = Utils.GetLimitedValue(_currentRoll + normalC, -1f, 2f);
+                        _currentHorizontalOffset = Utils.Math.GetLimitedValue(_currentHorizontalOffset + normalA, 0f, 1f);
+                        _currentVerticalOffset = Utils.Math.GetLimitedValue(_currentVerticalOffset + normalB, 0f, 2f);
+                        _currentRoll = Utils.Math.GetLimitedValue(_currentRoll + normalC, -1f, 2f);
                     }
                     else
                     {
-                        _currentHeadPitch = Utils.GetLimitedValue(_currentHeadPitch + normalA, -1f, 1f);
-                        _currentHeadRoll = Utils.GetLimitedValue(_currentHeadRoll + normalC, -1f, 1f);
-                        _currentHeadHeight = Utils.GetLimitedValue(_currentHeadHeight + normalB, -1f, 1f);
+                        _currentHeadPitch = Utils.Math.GetLimitedValue(_currentHeadPitch + normalA, -1f, 1f);
+                        _currentHeadRoll = Utils.Math.GetLimitedValue(_currentHeadRoll + normalC, -1f, 1f);
+                        _currentHeadHeight = Utils.Math.GetLimitedValue(_currentHeadHeight + normalB, -1f, 1f);
                     }
                 }
 
@@ -302,7 +304,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         _isPlayingAnimFlag = true;
 
-                        await Utils.RequestAnimDict(anim.Dict);
+                        await Streaming.RequestAnimDict(anim.Dict);
 
                         if (!IsActive)
                             return;
@@ -318,7 +320,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         {
                             Player.LocalPlayer.TaskPlayAnim(anim.Dict, "enter", 4f, 4f, -1, 128, -1f, false, false, false);
 
-                            await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(anim.Dict, anim.Name)));
+                            await RAGE.Game.Invoker.WaitAsync((int)System.Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(anim.Dict, anim.Name)));
 
                             if (!IsActive)
                                 return;
@@ -338,7 +340,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     {
                         Player.LocalPlayer.TaskPlayAnim(_currentAnimationDict, "exit", 4f, 4f, -1, 128, -1f, false, false, false);
 
-                        await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(_currentAnimationDict, "exit")));
+                        await RAGE.Game.Invoker.WaitAsync((int)System.Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(_currentAnimationDict, "exit")));
 
                         if (!IsActive)
                             return;

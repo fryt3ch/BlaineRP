@@ -1,11 +1,10 @@
-﻿using RAGE;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public class Vehicles 
+    public class Vehicles
     {
         public class Vehicle
         {

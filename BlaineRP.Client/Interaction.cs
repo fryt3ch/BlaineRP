@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace BlaineRP.Client
 
         private static void Render()
         {
-            var entity = Player.LocalPlayer.Vehicle ?? Utils.GetEntityPlayerLookAt(Settings.App.Static.EntityInteractionMaxDistance);
+            var entity = Player.LocalPlayer.Vehicle ?? Raycast.GetEntityPedLookAt(Player.LocalPlayer, Settings.App.Static.EntityInteractionMaxDistance);
 
             if (entity == null)
             {
@@ -83,7 +84,7 @@ namespace BlaineRP.Client
                         if (furnData != null)
                         {
                             if (EnabledVisual)
-                                Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                                Graphics.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                     else if (entity.HasData("CustomText"))
@@ -110,7 +111,7 @@ namespace BlaineRP.Client
                         if (iogData != null)
                         {
                             if (EnabledVisual)
-                                Utils.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                                Graphics.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -119,7 +120,7 @@ namespace BlaineRP.Client
             if (!EnabledVisual)
                 return;
 
-            Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+            Graphics.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
         }
 
         public static bool SetEntityAsDisabled(Entity entity, bool state)

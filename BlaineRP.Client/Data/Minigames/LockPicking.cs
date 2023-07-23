@@ -1,12 +1,11 @@
-﻿using RAGE;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
+using RAGE;
 
 namespace BlaineRP.Client.Data.Minigames
 {
     [Script(int.MaxValue)]
-    public class LockPicking 
+    public class LockPicking
     {
         public const byte DurabilityDefault = 10;
         public const int MaxDeviationDefault = 10;
@@ -55,7 +54,7 @@ namespace BlaineRP.Client.Data.Minigames
                     }
                     else
                     {
-                        var targetRotation = Utils.ToInt32(args[1]);
+                        var targetRotation = Utils.Convert.ToInt32(args[1]);
 
                         var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", false, itemIdx);
 
@@ -177,7 +176,7 @@ namespace BlaineRP.Client.Data.Minigames
 
         public static int GetLockpickingRandomTargetRotation()
         {
-            return Utils.Random.Next(0, 360 + 1);
+            return Misc.Random.Next(0, 360 + 1);
         }
     }
 }

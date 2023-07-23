@@ -1,13 +1,15 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Numberplates 
+    public class Numberplates
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
 
@@ -48,7 +50,7 @@ namespace BlaineRP.Client.CEF
         {
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Data.Fractions.Police.NumberplatePrices.Select(x => x.Value.Select(y => Math.Floor(y * margin))) });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Data.Fractions.Police.NumberplatePrices.Select(x => x.Value.Select(y => System.Math.Floor(y * margin))) });
 
             CEF.Cursor.Show(true, true);
 
@@ -56,7 +58,7 @@ namespace BlaineRP.Client.CEF
 
             Player.LocalPlayer.SetData("NumberplatesBuy::NpcId", npcId);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

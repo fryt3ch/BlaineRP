@@ -1,16 +1,18 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class PoliceTabletPC 
+    public class PoliceTabletPC
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.PoliceTabletPC);
 
@@ -32,7 +34,7 @@ namespace BlaineRP.Client.CEF
                 if (pData == null)
                     return;
 
-                var code = Utils.ToByte(args[0]);
+                var code = Utils.Convert.ToByte(args[0]);
 
                 if (code == 3)
                 {
@@ -121,7 +123,7 @@ namespace BlaineRP.Client.CEF
                     if (surnameT.Length > 0)
                         surnameT = char.ToUpper(surnameT[0]) + surnameT.Substring(1);
 
-                    if (!Utils.IsNameValid(nameT) || !Utils.IsNameValid(surnameT))
+                    if (!Utils.Misc.IsNameValid(nameT) || !Utils.Misc.IsNameValid(surnameT))
                     {
                         CEF.Notification.Show("Police::DBS::PNF1");
 
@@ -198,16 +200,16 @@ namespace BlaineRP.Client.CEF
 
                     var name = (string)res["N"];
                     var surname = (string)res["S"];
-                    var cid = Utils.ToDecimal(res["I"]);
-                    var birthDate = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(res["BD"])).DateTime;
+                    var cid = Utils.Convert.ToDecimal(res["I"]);
+                    var birthDate = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(res["BD"])).DateTime;
                     var sex = (bool)res["G"];
                     var losSantosAllowed = (bool)res["LA"];
-                    var phoneNumber = Utils.ToDecimal(res["PN"]);
-                    var fractionData = res.ContainsKey("FT") ? Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.ToInt32(res["FT"])) : null;
-                    var fractionRank = res.ContainsKey("FR") ? Utils.ToByte(res["FT"]) : (byte)0;
+                    var phoneNumber = Utils.Convert.ToDecimal(res["PN"]);
+                    var fractionData = res.ContainsKey("FT") ? Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.Convert.ToInt32(res["FT"])) : null;
+                    var fractionRank = res.ContainsKey("FR") ? Utils.Convert.ToByte(res["FT"]) : (byte)0;
 
-                    var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Utils.ToUInt32(res["H"])] : null;
-                    var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Utils.ToUInt32(res["A"])] : null;
+                    var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Utils.Convert.ToUInt32(res["H"])] : null;
+                    var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Utils.Convert.ToUInt32(res["A"])] : null;
 
                     var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>(Data.Vehicles.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
 
@@ -229,7 +231,7 @@ namespace BlaineRP.Client.CEF
 
                     if (CurrentTab != 1)
                         LastTab = CurrentTab;
-                    
+
                     CurrentTab = 1;
 
                     CEF.Browser.Window.ExecuteJs
@@ -242,7 +244,7 @@ namespace BlaineRP.Client.CEF
                         sex,
                         losSantosAllowed,
                         phoneNumber,
-                        houseData == null ? null : $"#{houseData.Id}, {Utils.GetStreetName(houseData.Position)}",
+                        houseData == null ? null : $"#{houseData.Id}, {Misc.GetStreetName(houseData.Position)}",
                         apsData == null ? null : $"#{apsData.Id}, {Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
                         null, // organisation
                         fractionData == null ? null : $"{fractionData.Name} | {fractionData.GetRankName(fractionRank)}",
@@ -311,7 +313,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else // view
                 {
-                    var id = Utils.ToUInt32(args[1]);
+                    var id = Utils.Convert.ToUInt32(args[1]);
 
                     var apbData = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.APBInfo>>("APBs")?.Where(x => x.Id == id).FirstOrDefault();
 
@@ -394,7 +396,7 @@ namespace BlaineRP.Client.CEF
 
                 if (CurrentTab == 2)
                 {
-                    var callRid = Utils.ToUInt16(args[0]);
+                    var callRid = Utils.Convert.ToUInt16(args[0]);
 
                     var callInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.CallInfo>>("Calls")?.Where(x => x.Player.RemoteId == callRid).FirstOrDefault();
 
@@ -413,7 +415,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (CurrentTab == 6) // gps tracker
                 {
-                    var gpsTrackerId = Utils.ToUInt32(args[0]);
+                    var gpsTrackerId = Utils.Convert.ToUInt32(args[0]);
 
                     var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 
@@ -433,7 +435,7 @@ namespace BlaineRP.Client.CEF
 
                     if (res != null)
                     {
-                        var vehicle = RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.ToUInt16(res));
+                        var vehicle = RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(res));
 
                         if (vehicle?.Exists == true)
                         {
@@ -507,7 +509,7 @@ namespace BlaineRP.Client.CEF
 
                 if (CurrentTab == 6)
                 {
-                    var gpsTrackerId = Utils.ToUInt32(args[0]);
+                    var gpsTrackerId = Utils.Convert.ToUInt32(args[0]);
 
                     var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 

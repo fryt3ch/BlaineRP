@@ -1,50 +1,34 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class PushVehicle 
+    public class PushVehicle
     {
         private static DateTime LastSwitchTime;
 
         public static bool Toggled { get; private set; }
 
-        public static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
+        private static readonly PlayerActions.Types[] ActionsToCheck = new PlayerActions.Types[]
         {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
+            PlayerActions.Types.Knocked,
+            PlayerActions.Types.Frozen,
+            PlayerActions.Types.Cuffed,
 
-            Utils.Actions.Finger,
+            PlayerActions.Types.Finger,
 
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
+            PlayerActions.Types.Animation,
+            PlayerActions.Types.FastAnimation,
+            PlayerActions.Types.Scenario,
 
-            Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
-        };
-
-        public static Utils.Actions[] ActionsToCheckLoop = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            Utils.Actions.Finger,
-
-            //Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
+            PlayerActions.Types.InVehicle,
+            PlayerActions.Types.InWater,
+            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading,
+            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot,
         };
 
         public PushVehicle()
@@ -54,7 +38,7 @@ namespace BlaineRP.Client.Sync
 
         public static void Toggle(Vehicle vehicle = null)
         {
-            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(true, ActionsToCheck))
+            if (LastSwitchTime.IsSpam(2000, false, false) || Misc.IsAnyCefActive() || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
                 return;
 
             if (!Toggled)
@@ -99,7 +83,7 @@ namespace BlaineRP.Client.Sync
                 Crouch.Off();
                 Crawl.Off();
 
-                Events.CallRemote("Players::StartPushingVehicleSync", vehicle, Utils.PlayerInFrontOfVehicle(vehicle, 2f));
+                Events.CallRemote("Players::StartPushingVehicleSync", vehicle, Utils.Game.Vehicles.PlayerInFrontOfVehicle(vehicle, 2f));
             }
             else
             {

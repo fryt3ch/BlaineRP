@@ -4,7 +4,7 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Data
 {
     [Script(int.MaxValue)]
-    public class Shovel 
+    public class Shovel
     {
         public Shovel()
         {
@@ -28,19 +28,19 @@ namespace BlaineRP.Client.Data
                 {
                     await RAGE.Game.Invoker.WaitAsync(timeToCatch);
 
-                    if (!Utils.IsTaskStillPending("MG::SHOV::S::D", task))
+                    if (!AsyncTask.Methods.IsTaskStillPending("MG::SHOV::S::D", task))
                         return;
 
                     Events.CallRemote("MG::SHOV::F");
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending("MG::SHOV::S::D", task);
+                AsyncTask.Methods.SetAsPending(task, "MG::SHOV::S::D");
             });
         }
 
         private static void CancelAllTasks()
         {
-            Utils.CancelPendingTask("MG::SHOV::S::D");
+            AsyncTask.Methods.CancelPendingTask("MG::SHOV::S::D");
         }
     }
 }

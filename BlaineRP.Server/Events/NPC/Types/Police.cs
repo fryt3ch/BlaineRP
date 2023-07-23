@@ -1,8 +1,6 @@
-﻿using System;
+﻿using BlaineRP.Server;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using BlaineRP.Server;
 
 namespace BlaineRP.Server.Events.NPC.Types
 {

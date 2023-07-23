@@ -1,14 +1,18 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Data;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class HouseMenu 
+    public class HouseMenu
     {
         public static bool IsActive => CEF.Browser.IsRendered(Browser.IntTypes.MenuHome);
 
@@ -26,7 +30,7 @@ namespace BlaineRP.Client.CEF
             {
                 var data = RAGE.Util.Json.Deserialize<Dictionary<string, bool[]>>((string)args[0]);
 
-                var balance = Utils.ToUInt64(args[1]);
+                var balance = Utils.Convert.ToUInt64(args[1]);
                 var dState = (bool)args[2];
                 var cState = (bool)args[3];
 
@@ -98,7 +102,7 @@ namespace BlaineRP.Client.CEF
                             {
                                 var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
-                                furn = Utils.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
+                                furn = Streaming.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 
                                 furn.SetAlpha(125, false);
 
@@ -116,7 +120,7 @@ namespace BlaineRP.Client.CEF
 
                                 furn.GetData<Additional.ExtraBlip>("Blip")?.Destroy();
 
-                                furn = Utils.CreateObjectNoOffsetImmediately(model, pos.X, pos.Y, pos.Z);
+                                furn = Streaming.CreateObjectNoOffsetImmediately(model, pos.X, pos.Y, pos.Z);
 
                                 furn.SetRotation(rot.X, rot.Y, rot.Z, 2, false);
                                 furn.SetAlpha(125, false);
@@ -181,7 +185,7 @@ namespace BlaineRP.Client.CEF
                     {
                         Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", Sync.World.ServerTime);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(house.Price))), 5000);
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(house.Price))), 5000);
                     }
                     else
                     {
@@ -264,7 +268,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (id == "expel") // expel settler
                 {
-                    var cid = Utils.ToUInt32(args[1]);
+                    var cid = Utils.Convert.ToUInt32(args[1]);
 
                     if (LastSent.IsSpam(1000, false, true))
                         return;
@@ -284,7 +288,7 @@ namespace BlaineRP.Client.CEF
 
                     if (id == "apply-color")
                     {
-                        rgb = ((string)args[2]).ToColour();
+                        rgb = new Utils.Colour((string)args[2]);
                     }
 
                     var curRgb = light.RGB;
@@ -342,7 +346,7 @@ namespace BlaineRP.Client.CEF
                 if (light == null)
                     return;
 
-                var rgb = ((string)args[1]).ToColour();
+                var rgb = new Utils.Colour((string)args[1]);
 
                 foreach (var x in light.Objects)
                     x.SetLightColour(rgb);
@@ -375,7 +379,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else
                 {
-                    RemoveSettler(Utils.ToUInt32(args[0]));
+                    RemoveSettler(Utils.Convert.ToUInt32(args[0]));
                 }
             });
 
@@ -387,7 +391,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
@@ -455,7 +459,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
@@ -564,7 +568,7 @@ namespace BlaineRP.Client.CEF
 
             LastSent = Sync.World.ServerTime;
 
-            var res = Utils.ToByte(await Events.CallRemoteProc("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z));
+            var res = Utils.Convert.ToByte(await Events.CallRemoteProc("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z));
 
             if (res == 1)
             {
@@ -625,15 +629,15 @@ namespace BlaineRP.Client.CEF
                 {
                     var text = Sync.House.Style.GetName(styleId);
 
-                    Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                     text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
-                    Utils.DrawText(text, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                     text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
 
-                    Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Graphics.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
 
                 if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.M))
@@ -650,7 +654,7 @@ namespace BlaineRP.Client.CEF
     }
 
     [Script(int.MaxValue)]
-    public class Elevator 
+    public class Elevator
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Elevator);
 
@@ -718,7 +722,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.Elevator, true, true);

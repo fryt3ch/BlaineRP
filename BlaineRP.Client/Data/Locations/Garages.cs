@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -58,34 +59,30 @@ namespace BlaineRP.Client.Data
                         () =>
                         {
                             var intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_shell_01", true);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_01", true);
                         },
 
                         () =>
                         {
                             var intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_shell_01", false);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_01", false);
                         });
 
                     new Style(Types.Ten, 2, new Vector3(238.0103f, -1004.861f, -98.99996f),
                         () =>
                         {
                             var intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_shell_03", true);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_03", true);
                         },
 
                         () =>
                         {
                             var intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
-                            Utils.ToggleInteriorEntitySet(intId, "entity_set_shell_03", false);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
+                            Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_03", false);
                         });
 
                     foreach (var x in All.Values)
@@ -168,7 +165,7 @@ namespace BlaineRP.Client.Data
 
                     OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition.Position, "", 1f, 3, 125, 0f, true, 0, gRoot.VehicleEnterPosition.RotationZ, Settings.App.Static.MainDimension);
 
-                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition.Position, gRoot.VehicleEnterPosition.RotationZ, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition.Position, gRoot.VehicleEnterPosition.RotationZ, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
 

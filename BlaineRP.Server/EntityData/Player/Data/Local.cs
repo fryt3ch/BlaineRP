@@ -148,7 +148,7 @@ namespace BlaineRP.Server
 
         public void RemoveAllMicrophoneListeners()
         {
-            foreach (var x in  _microphoneListeners)
+            foreach (var x in _microphoneListeners)
             {
                 Player.DisableVoiceTo(x);
             }

@@ -1,8 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlaineRP.Client.Additional
 {
@@ -133,10 +132,10 @@ namespace BlaineRP.Client.Additional
             {
                 if (x.Position.DistanceTo(pos) <= x.DrawDistance)
                 {
-                    if (!Utils.GetScreenCoordFromWorldCoord(x.Position, ref posX, ref posY))
+                    if (!Graphics.GetScreenCoordFromWorldCoord(x.Position, ref posX, ref posY))
                         return;
 
-                    Utils.DrawText(x.Text, posX, posY, (byte)x.Color.Red, (byte)x.Color.Green, (byte)x.Color.Blue, (byte)x.Color.Alpha, 0.4f, (RAGE.Game.Font)x.Font, true, true);
+                    Graphics.DrawText(x.Text, posX, posY, (byte)x.Color.Red, (byte)x.Color.Green, (byte)x.Color.Blue, (byte)x.Color.Alpha, 0.4f, (RAGE.Game.Font)x.Font, true, true);
                 }
             });
         }

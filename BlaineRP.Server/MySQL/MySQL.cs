@@ -4,7 +4,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -106,12 +105,12 @@ namespace BlaineRP.Server
             {
                 try
                 {
-/*                    await Web.SocketIO.Methods.Misc.SqlTransactionLocalDbSend(cts.Token, commands.Select(x =>
-                    {
-                        var cmd = x.CommandText;
+                    /*                    await Web.SocketIO.Methods.Misc.SqlTransactionLocalDbSend(cts.Token, commands.Select(x =>
+                                        {
+                                            var cmd = x.CommandText;
 
-                        // todo
-                    }));*/
+                                            // todo
+                                        }));*/
                     using (var conn = new MySqlConnection(_localConnectionCredentials.ConnectionString))
                     {
                         conn.Open();
@@ -232,27 +231,27 @@ namespace BlaineRP.Server
                 return null;
             }
 
-/*            using (var conn = new MySqlConnection($"SERVER={Host}; DATABASE=fiveup_main; UID={User}; PASSWORD={Password}"))
-            {
-                conn.Open();
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT houses.position AS house_position, garages.position AS garage_position, garages.rotation AS garage_rotation FROM houses JOIN garages ON houses.garage = garages.id;";
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
+            /*            using (var conn = new MySqlConnection($"SERVER={Host}; DATABASE=fiveup_main; UID={User}; PASSWORD={Password}"))
                         {
-                            var pos = ((string)reader["house_position"]).DeserializeFromJson<Vector3>();
-                            var garagePos = ((string)reader["garage_position"]).DeserializeFromJson<Vector3>();
-                            var garageRot = ((string)reader["garage_rotation"]).DeserializeFromJson<Vector3>();
+                            conn.Open();
 
-                            File.AppendAllText(@"houses_coords.txt", $"new Vector3({pos.X}f, {pos.Y}f, {pos.Z}f),\n");
-                        }
-                    }
-                }
-            }*/
+                            using (var cmd = conn.CreateCommand())
+                            {
+                                cmd.CommandText = "SELECT houses.position AS house_position, garages.position AS garage_position, garages.rotation AS garage_rotation FROM houses JOIN garages ON houses.garage = garages.id;";
+
+                                using (var reader = cmd.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        var pos = ((string)reader["house_position"]).DeserializeFromJson<Vector3>();
+                                        var garagePos = ((string)reader["garage_position"]).DeserializeFromJson<Vector3>();
+                                        var garageRot = ((string)reader["garage_rotation"]).DeserializeFromJson<Vector3>();
+
+                                        File.AppendAllText(@"houses_coords.txt", $"new Vector3({pos.X}f, {pos.Y}f, {pos.Z}f),\n");
+                                    }
+                                }
+                            }
+                        }*/
 
             using (var conn = new MySqlConnection(_localConnectionCredentials.ConnectionString))
             {
@@ -860,7 +859,7 @@ namespace BlaineRP.Server
                                 pInfo.Bag = bag == 0 ? null : getItemAndRemove(bag) as Game.Items.Bag;
 
                                 pInfo.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
-                                
+
                                 pInfo.WeaponSkins = ((string)reader["WSkins"]).DeserializeFromJson<List<uint>>().Select(x => getItemAndRemove(x) as Game.Items.WeaponSkin).Where(x => x != null).ToList();
                             }
                         }
@@ -1015,9 +1014,9 @@ namespace BlaineRP.Server
                                             {
                                                 for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
                                                 {
-/*                                                    farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false);
+                                                    /*                                                    farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false);
 
-                                                    continue;*/
+                                                                                                        continue;*/
 
                                                     key = $"FARM::CF_{business.ID}_{i}_{j}_{k}";
 

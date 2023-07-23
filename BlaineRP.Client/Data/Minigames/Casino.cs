@@ -1,14 +1,17 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 
 namespace BlaineRP.Client.Data.Minigames.Casino
 {
     [Script(int.MaxValue)]
-    public class Casino 
+    public class Casino
     {
         public enum Types : sbyte
         {
@@ -33,7 +36,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
         {
             Events.Add("Casino::SetBet", (args) =>
             {
-                CurrentBet = Utils.ToUInt32(args[0]);
+                CurrentBet = Utils.Convert.ToUInt32(args[0]);
             });
 
             Events.Add("CasinoSlots::Spin", async (args) =>
@@ -62,7 +65,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     if (casinoId < 0 || machineId < 0)
                         return;
 
-                    if (Utils.IsTaskStillPending($"CASINO_SLOTMACHINE_{casinoId}_{machineId}", null))
+                    if (AsyncTask.Methods.IsTaskStillPending($"CASINO_SLOTMACHINE_{casinoId}_{machineId}", null))
                     {
                         CEF.Notification.ShowErrorDefault();
 
@@ -100,13 +103,13 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     {
                         var typesList = ((Data.Locations.Casino.SlotMachine.ReelIconTypes[])Enum.GetValues(typeof(Data.Locations.Casino.SlotMachine.ReelIconTypes))).ToList();
 
-                        resA = typesList[Utils.Random.Next(0, typesList.Count)];
-                        resB = typesList[Utils.Random.Next(0, typesList.Count)];
+                        resA = typesList[Misc.Random.Next(0, typesList.Count)];
+                        resB = typesList[Misc.Random.Next(0, typesList.Count)];
 
                         if (resA == resB)
                             typesList.Remove(resA);
 
-                        resC = typesList[Utils.Random.Next(0, typesList.Count)];
+                        resC = typesList[Misc.Random.Next(0, typesList.Count)];
                     }
                     else
                     {

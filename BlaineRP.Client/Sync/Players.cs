@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -9,7 +13,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Players 
+    public class Players
     {
         /// <summary>Готов ли персонаж к игре?</summary>
         public static bool CharacterLoaded { get; set; }
@@ -171,19 +175,19 @@ namespace BlaineRP.Client.Sync
 
             public PlayerData(Player Player) => this.Player = Player;
 
-            public uint CID => Utils.ToUInt32(Player.GetSharedData<object>("CID", 0));
+            public uint CID => Utils.Convert.ToUInt32(Player.GetSharedData<object>("CID", 0));
 
-            public ulong Cash => Utils.ToUInt64(Player.GetSharedData<object>("Cash", 0));
+            public ulong Cash => Utils.Convert.ToUInt64(Player.GetSharedData<object>("Cash", 0));
 
-            public ulong BankBalance => Utils.ToUInt64(Player.GetSharedData<object>("BankBalance", 0));
+            public ulong BankBalance => Utils.Convert.ToUInt64(Player.GetSharedData<object>("BankBalance", 0));
 
             public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
             public Data.Fractions.Types Fraction => (Data.Fractions.Types)Player.GetSharedData<int>("Fraction", 0);
 
-            public int Satiety => Utils.ToByte(Player.GetSharedData<object>("Satiety", 0));
+            public int Satiety => Utils.Convert.ToByte(Player.GetSharedData<object>("Satiety", 0));
 
-            public int Mood => Utils.ToByte(Player.GetSharedData<object>("Mood", 0));
+            public int Mood => Utils.Convert.ToByte(Player.GetSharedData<object>("Mood", 0));
 
             public bool IsMasked => Player.GetDrawableVariation(1) > 0;
 
@@ -496,7 +500,7 @@ namespace BlaineRP.Client.Sync
                     data.AllSMS = new List<CEF.PhoneApps.SMSApp.SMS>();
 
                 if (sData.ContainsKey("Vehicles"))
-                    data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Utils.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
+                    data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Utils.Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
                 else
                     data.OwnedVehicles = new List<(uint VID, Data.Vehicles.Vehicle Data)>();
 
@@ -530,7 +534,7 @@ namespace BlaineRP.Client.Sync
                     data.SettledHouseBase = ((Sync.House.HouseTypes)int.Parse(shbData[0])) == House.HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[uint.Parse(shbData[1])] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[uint.Parse(shbData[1])];
                 }
 
-                var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Utils.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Utils.ToInt32(data[1]), Utils.ToInt32(data[2])); });
+                var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Utils.Convert.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Utils.Convert.ToInt32(data[1]), Utils.Convert.ToInt32(data[2])); });
 
                 foreach (var x in achievements)
                     UpdateAchievement(data, x.Key, x.Value.Item1, x.Value.Item2);
@@ -714,7 +718,7 @@ namespace BlaineRP.Client.Sync
                 {
                     GameEvents.DisableMove(true);
 
-                    var attacker = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[1])) ?? Player.LocalPlayer;
+                    var attacker = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[1])) ?? Player.LocalPlayer;
 
                     RAGE.Game.Graphics.StartScreenEffect("DeathFailMPIn", 0, true);
 
@@ -742,29 +746,29 @@ namespace BlaineRP.Client.Sync
                 }
                 else if (args.Length == 1)
                 {
-                    var playedTime = TimeSpan.FromSeconds(Utils.ToInt64(args[0]));
-                    var minTimeToGetPayday = TimeSpan.FromSeconds(Utils.ToInt64(args[1]));
+                    var playedTime = TimeSpan.FromSeconds(Utils.Convert.ToInt64(args[0]));
+                    var minTimeToGetPayday = TimeSpan.FromSeconds(Utils.Convert.ToInt64(args[1]));
 
                     Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime.GetBeautyString()} (необходимо - {minTimeToGetPayday.GetBeautyString()})!");
                 }
                 else
                 {
-                    var joblessBenefit = Utils.ToDecimal(args[0]);
-                    var fractionSalary = Utils.ToDecimal(args[1]);
-                    var organisationSalary = Utils.ToDecimal(args[2]);
+                    var joblessBenefit = Utils.Convert.ToDecimal(args[0]);
+                    var fractionSalary = Utils.Convert.ToDecimal(args[1]);
+                    var organisationSalary = Utils.Convert.ToDecimal(args[2]);
 
                     if (joblessBenefit > 0)
                     {
-                        Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(joblessBenefit)} (пособие по безработице) на свой счёт!");
+                        Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", joblessBenefit)} (пособие по безработице) на свой счёт!");
                     }
                     else
                     {
                         if (organisationSalary == 0)
-                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от фракции) на свой счёт!");
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от фракции) на свой счёт!");
                         else if (fractionSalary != 0)
-                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от фракции) и {Utils.GetPriceString(organisationSalary)} (от организации) на свой счёт!");
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от фракции) и {Locale.Get("GEN_MONEY_0", organisationSalary)} (от организации) на свой счёт!");
                         else
-                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от организации) на свой счёт!");
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от организации) на свой счёт!");
                     }
                 }
             });
@@ -907,7 +911,7 @@ namespace BlaineRP.Client.Sync
                 var x = (float)args[0];
                 var y = (float)args[1];
 
-                Utils.SetWaypoint(x, y);
+                Misc.SetWaypoint(x, y);
             });
 
             Events.Add("Player::Smoke::Start", (object[] args) =>
@@ -936,7 +940,7 @@ namespace BlaineRP.Client.Sync
             {
                 var task1 = new AsyncTask(async () =>
                 {
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     var fxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntityBone("exp_grd_bzgas_smoke", Player.LocalPlayer.Handle, 0f, 0f, 0f, 0f, 0f, 0f, Player.LocalPlayer.GetBoneIndex(20279), 0.15f, false, false, false);
 
@@ -986,7 +990,7 @@ namespace BlaineRP.Client.Sync
                 }
                 else
                 {
-                    var step = Utils.ToByte(args[1]);
+                    var step = Utils.Convert.ToByte(args[1]);
 
                     var sProgress = (int)args[2];
 
@@ -1047,7 +1051,7 @@ namespace BlaineRP.Client.Sync
 
                 UpdateSkill(sType, value);
 
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", System.Math.Abs(value - oldValue), value, MaxSkills[sType]));
             });
 
             Events.Add("Player::WSkins::Update", (args) =>
@@ -1144,7 +1148,7 @@ namespace BlaineRP.Client.Sync
                     return;
 
                 var add = (bool)args[0];
-                var cid = Utils.ToUInt32(args[1]);
+                var cid = Utils.Convert.ToUInt32(args[1]);
 
                 if (add)
                 {
@@ -1416,23 +1420,23 @@ namespace BlaineRP.Client.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var cash = Utils.ToUInt64(value);
+                var cash = Utils.Convert.ToUInt64(value);
 
                 CEF.HUD.SetCash(cash);
                 CEF.Menu.SetCash(cash);
 
-                var oldCash = oldValue == null ? cash : Utils.ToUInt64(oldValue);
+                var oldCash = oldValue == null ? cash : Utils.Convert.ToUInt64(oldValue);
 
                 if (cash == oldCash)
                     return;
 
                 if (cash > oldCash)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_ADD_0", cash - oldCash), Locale.Get("NTFC_MONEY_CASH_0", Utils.GetPriceString(cash)));
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_ADD_0", cash - oldCash), Locale.Get("NTFC_MONEY_CASH_0", Locale.Get("GEN_MONEY_0", cash)));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldCash - cash), Locale.Get("NTFC_MONEY_CASH_0", Utils.GetPriceString(cash)));
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldCash - cash), Locale.Get("NTFC_MONEY_CASH_0", Locale.Get("GEN_MONEY_0", cash)));
                 }
             });
 
@@ -1441,7 +1445,7 @@ namespace BlaineRP.Client.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var bank = Utils.ToUInt64(value);
+                var bank = Utils.Convert.ToUInt64(value);
 
                 CEF.HUD.SetBank(bank);
                 CEF.Menu.SetBank(bank);
@@ -1450,18 +1454,18 @@ namespace BlaineRP.Client.Sync
                 CEF.Bank.UpdateMoney(bank);
                 CEF.PhoneApps.BankApp.UpdateBalance(bank);
 
-                var oldBank = oldValue == null ? bank : Utils.ToUInt64(oldValue);
+                var oldBank = oldValue == null ? bank : Utils.Convert.ToUInt64(oldValue);
 
                 if (bank == oldBank)
                     return;
 
                 if (bank > oldBank)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_ADD_0", bank - oldBank), Locale.Get("NTFC_MONEY_BANK_0", Utils.GetPriceString(bank)));
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_ADD_0", bank - oldBank), Locale.Get("NTFC_MONEY_BANK_0", Locale.Get("GEN_MONEY_0", bank)));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldBank - bank), Locale.Get("NTFC_MONEY_BANK_0", Utils.GetPriceString(bank)));
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, Language.Strings.Get("GEN_MONEY_REMOVE_0", oldBank - bank), Locale.Get("NTFC_MONEY_BANK_0", Locale.Get("GEN_MONEY_0", bank)));
                 }
             });
 
@@ -1540,7 +1544,7 @@ namespace BlaineRP.Client.Sync
                 if (pData.Player != Player.LocalPlayer)
                     return;
 
-                var mood = Utils.ToByte(value);
+                var mood = Utils.Convert.ToByte(value);
 
                 if (mood <= 25)
                 {
@@ -1562,7 +1566,7 @@ namespace BlaineRP.Client.Sync
                 if (pData.Player != Player.LocalPlayer)
                     return;
 
-                var satiety = Utils.ToByte(value);
+                var satiety = Utils.Convert.ToByte(value);
 
                 if (satiety <= 25)
                 {
@@ -1923,7 +1927,7 @@ namespace BlaineRP.Client.Sync
 
                     player.SetIntoVehicle(player.Vehicle.Handle, seat - 1);
 
-                    AsyncTask.RunSlim(() =>
+                    AsyncTask.Methods.Run(() =>
                     {
                         Sync.Players.UpdateHat(player);
                     }, 250);
@@ -1997,7 +2001,7 @@ namespace BlaineRP.Client.Sync
         {
             if (sType == SkillTypes.Strength)
             {
-                value = (int)Math.Round(0.5f * value); // 20 * a
+                value = (int)System.Math.Round(0.5f * value); // 20 * a
 
                 RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_STAMINA"), value, true);
                 RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_STRENGTH"), value, true);
@@ -2005,7 +2009,7 @@ namespace BlaineRP.Client.Sync
             }
             else if (sType == SkillTypes.Shooting)
             {
-                value = (int)Math.Round(0.25f * value); // 10 * a
+                value = (int)System.Math.Round(0.25f * value); // 10 * a
 
                 RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_SHOOTING_ABILITY"), value, true);
             }
@@ -2174,7 +2178,7 @@ namespace BlaineRP.Client.Sync
         private static void FlyRender()
         {
             var pos = Player.LocalPlayer.GetCoords(false);
-            var dir = Utils.RotationToDirection(RAGE.Game.Cam.GetGameplayCamRot(0));
+            var dir = Utils.Geometry.RotationToDirection(RAGE.Game.Cam.GetGameplayCamRot(0));
 
             if (RAGE.Game.Pad.IsControlPressed(32, 32)) // W
             {

@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class DoorSystem 
+    public class DoorSystem
     {
         private static Dictionary<HashSet<uint>, string> Names { get; set; } = new Dictionary<HashSet<uint>, string>()
         {
@@ -41,7 +43,7 @@ namespace BlaineRP.Client.Sync
 
                 All.Add(this);
 
-                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 5f, false, Utils.RedColor, Dimension, null)
+                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 5f, false, Utils.Misc.RedColor, Dimension, null)
                 {
                     Name = $"DoorSys_{Id}",
 
@@ -88,14 +90,14 @@ namespace BlaineRP.Client.Sync
 
                 DoorObject.SetData("CustomText", (Action<float, float>)((x, y) =>
                 {
-                    Utils.DrawText(name == null ? "Дверь" : $"Дверь - {name}", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(name == null ? "Дверь" : $"Дверь - {name}", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                     var isLocked = IsLocked;
 
                     if (isLocked)
-                        Utils.DrawText($"[Закрыта]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"[Закрыта]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                     else
-                        Utils.DrawText($"[Открыта]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"[Открыта]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }));
 
                 DoorObject.SetData("CustomAction", (Action<MapObject>)(async (obj) =>

@@ -1,12 +1,11 @@
-﻿using RAGE;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class Relations 
+    public class Relations
     {
         public enum Types
         {

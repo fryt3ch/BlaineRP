@@ -1,9 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -53,7 +51,7 @@ namespace BlaineRP.Client.Data
                     RAGE.Game.Streaming.RemoveIpl(iplList[i]);
                 }
 
-                var demorganCs = new Additional.Circle(new Vector3(3217.697f, -4834.826f, 111.8152f), 4500f, false, Utils.RedColor, 2, null)
+                var demorganCs = new Additional.Circle(new Vector3(3217.697f, -4834.826f, 111.8152f), 4500f, false, Misc.RedColor, 2, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -71,7 +69,7 @@ namespace BlaineRP.Client.Data
 
                         RAGE.Game.Interior.RefreshInterior(intid);
 
-                        var demorganCs1 = new Additional.Cylinder(new Vector3(5332.779f, -5121.378f, 70.60863f), 350f, 100f, false, Utils.RedColor, 2, null)
+                        var demorganCs1 = new Additional.Cylinder(new Vector3(5332.779f, -5121.378f, 70.60863f), 350f, 100f, false, Misc.RedColor, 2, null)
                         {
                             ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 

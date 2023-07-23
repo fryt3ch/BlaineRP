@@ -1,9 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 
 namespace BlaineRP.Server.Sync
@@ -96,9 +94,9 @@ namespace BlaineRP.Server.Sync
 
                         if (!TryGetWeatherTypeByCode(conditionCode, out weatherTypeToSet))
                         {
-                           weatherTypeToSet = RandomWeatherChances.GetNextItem(out _);
+                            weatherTypeToSet = RandomWeatherChances.GetNextItem(out _);
 
-                           success = false;
+                            success = false;
                         }
                         else
                         {

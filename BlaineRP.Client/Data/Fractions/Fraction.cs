@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -142,9 +143,9 @@ namespace BlaineRP.Client.Data.Fractions
 
         public byte MaxRank { get; private set; }
 
-        public uint LeaderCID => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::L_{(int)Type}", 0));
+        public uint LeaderCID => Utils.Convert.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::L_{(int)Type}", 0));
 
-        public uint Materials => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}", 0));
+        public uint Materials => Utils.Convert.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}", 0));
 
         public bool StorageLocked => Sync.World.GetSharedData<bool>($"FRAC::SL_{(int)Type}", false);
         public bool CreationWorkbenchLocked => Sync.World.GetSharedData<bool>($"FRAC::CWL_{(int)Type}", false);
@@ -186,7 +187,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var contPos = contPoses[i];
 
-                var containerCs = new Additional.Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var containerCs = new Additional.Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.ContainerInteract,
 
@@ -214,7 +215,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var wbPos = wbPoses[i];
 
-                var creationWorkbenchCs = new Additional.Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var creationWorkbenchCs = new Additional.Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract,
 
@@ -262,7 +263,7 @@ namespace BlaineRP.Client.Data.Fractions
             if (pData.Fraction != fType)
                 return;
 
-            var amount = Utils.ToDecimal(value);
+            var amount = Utils.Convert.ToDecimal(value);
 
             if (CEF.MaterialWorkbench.CurrentType == CEF.MaterialWorkbench.Types.Fraction)
             {
@@ -514,7 +515,7 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class FractionEvents 
+    public class FractionEvents
     {
         public FractionEvents()
         {
@@ -560,7 +561,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = Utils.ToUInt32(args[0]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -577,7 +578,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = Utils.ToUInt32(args[0]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -604,7 +605,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = Utils.ToUInt32(args[0]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -621,7 +622,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = Utils.ToUInt32(args[0]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
 
                 if (args.Length == 1)
                 {
@@ -634,7 +635,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
                 else
                 {
-                    var mData = new MemberData() { IsOnline = true, Name = (string)args[1], Rank = (byte)(int)args[2], SubStatus = (byte)(int)args[3], LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).DateTime };
+                    var mData = new MemberData() { IsOnline = true, Name = (string)args[1], Rank = (byte)(int)args[2], SubStatus = (byte)(int)args[3], LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[4])).DateTime };
 
                     if (Fraction.AllMembers.TryAdd(cid, mData))
                     {
@@ -648,7 +649,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (Fraction.AllVehicles == null)
                     return;
 
-                var vid = Utils.ToUInt32(args[0]);
+                var vid = Utils.Convert.ToUInt32(args[0]);
                 var newMinRank = (byte)(int)args[1];
 
                 var vData = Fraction.AllVehicles.GetValueOrDefault(vid);

@@ -1,16 +1,17 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Xml.Linq;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Estate 
+    public class Estate
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Estate);
 
@@ -67,7 +68,7 @@ namespace BlaineRP.Client.CEF
                     }
                     else if (id == "accept")
                     {
-                        var price = Utils.ToDecimal(args[1]);
+                        var price = Utils.Convert.ToDecimal(args[1]);
 
                         if (!price.IsNumberValid<decimal>(1, int.MaxValue, out _, true))
                             return;
@@ -214,10 +215,10 @@ namespace BlaineRP.Client.CEF
                     if (subType == 0)
                     {
                         var vData = Data.Vehicles.GetById((string)args[2]);
-                        var vid = Utils.ToUInt32(args[3]);
+                        var vid = Utils.Convert.ToUInt32(args[3]);
 
                         var player = (Player)args[4];
-                        var price = Utils.ToDecimal(args[5]);
+                        var price = Utils.Convert.ToDecimal(args[5]);
                         var plate = (string)args[6];
 
                         ShowOfferVehicle(vData, player, price, vid, plate, true);
@@ -227,27 +228,27 @@ namespace BlaineRP.Client.CEF
                         var business = Data.Locations.Business.All[(int)args[2]];
 
                         var player = (Player)args[3];
-                        var price = Utils.ToDecimal(args[4]);
+                        var price = Utils.Convert.ToDecimal(args[4]);
 
                         ShowOfferBusiness(business, player, price, true);
                     }
                     else if (subType == 2 || subType == 3)
                     {
-                        var id = Utils.ToUInt32(args[2]);
+                        var id = Utils.Convert.ToUInt32(args[2]);
 
                         var houseBase = subType == 2 ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
 
                         var player = (Player)args[3];
-                        var price = Utils.ToDecimal(args[4]);
+                        var price = Utils.Convert.ToDecimal(args[4]);
 
                         ShowOfferHouseBase(houseBase, player, price, true);
                     }
                     else if (subType == 4)
                     {
-                        var garage = Data.Locations.Garage.All[Utils.ToUInt32(args[2])];
+                        var garage = Data.Locations.Garage.All[Utils.Convert.ToUInt32(args[2])];
 
                         var player = (Player)args[3];
-                        var price = Utils.ToDecimal(args[4]);
+                        var price = Utils.Convert.ToDecimal(args[4]);
 
                         ShowOfferGarage(garage, player, price, true);
                     }
@@ -255,7 +256,7 @@ namespace BlaineRP.Client.CEF
                 else if (type == Types.Info)
                 {
                     var modelId = (string)args[0];
-                    var vid = Utils.ToDecimal(args[1]);
+                    var vid = Utils.Convert.ToDecimal(args[1]);
                     var engine = (int)args[2];
                     var turbo = (bool)args[3];
 
@@ -274,7 +275,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             var vData = Data.Vehicles.GetById(id);
@@ -305,7 +306,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Info;
@@ -315,7 +316,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {
@@ -349,7 +350,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Info;
@@ -359,7 +360,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {
@@ -368,7 +369,7 @@ namespace BlaineRP.Client.CEF
                 }
             };
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, Math.Round(business.Tax * 100, 0).ToString() }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, System.Math.Round(business.Tax * 100, 0).ToString() }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -391,7 +392,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.SellEstate;
@@ -402,7 +403,7 @@ namespace BlaineRP.Client.CEF
 
             foreach (var x in pData.OwnedHouses.ToList())
             {
-                estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
+                estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
 
                 estIds.Add((Sync.Players.PropertyTypes.House, x.Id));
             }
@@ -448,7 +449,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Offer;
@@ -482,7 +483,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Offer;
@@ -514,7 +515,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.SellVehicle;
@@ -550,7 +551,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Offer;
@@ -582,14 +583,14 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.SellBusiness;
 
             var businesses = pData.OwnedBusinesses.ToList();
 
-            var estToSell = businesses.Select(x => new object[] { "Biz", x.Name, Utils.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }).ToList();
+            var estToSell = businesses.Select(x => new object[] { "Biz", x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }).ToList();
 
             if (estToSell.Count == 0)
                 return;
@@ -618,7 +619,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || CurrentType != null)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CurrentType = Types.Offer;
@@ -627,7 +628,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "biz", null, new object[] { targetPlayer.GetName(true, false, true), price, business.Name, business.Price, business.Rent, Math.Round(business.Tax * 100, 1) });
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "biz", null, new object[] { targetPlayer.GetName(true, false, true), price, business.Name, business.Price, business.Rent, System.Math.Round(business.Tax * 100, 1) });
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -663,7 +664,7 @@ namespace BlaineRP.Client.CEF
     }
 
     [Script(int.MaxValue)]
-    public class EstateAgency 
+    public class EstateAgency
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
 
@@ -751,7 +752,7 @@ namespace BlaineRP.Client.CEF
                 return;
 
             // id, name, price, tax, rooms, garage capacity
-            var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
+            var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Misc.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
 
             // id, name, price, tax, rooms
             var apartments = new List<object>();
@@ -809,7 +810,7 @@ namespace BlaineRP.Client.CEF
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

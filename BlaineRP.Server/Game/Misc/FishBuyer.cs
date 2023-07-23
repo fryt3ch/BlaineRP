@@ -1,7 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace BlaineRP.Server.Game.Misc
@@ -60,7 +59,7 @@ namespace BlaineRP.Server.Game.Misc
 
             All = new List<FishBuyer>()
             {
-                new FishBuyer(), 
+                new FishBuyer(),
             };
 
             var lines = new List<string>();

@@ -1,4 +1,4 @@
-﻿using BlaineRP.Client.CEF;
+﻿using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -48,7 +48,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             await CEF.ActionBox.ShowSelect
             (
-                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
+                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Misc.GetStreetName(x.Position), System.Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
 
                 () =>
                 {
@@ -87,7 +87,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                         var order = orders[id];
 
-                        var res = Utils.ToByte(await Events.CallRemoteProc("Job::CAB::TO", order.Id));
+                        var res = Utils.Convert.ToByte(await Events.CallRemoteProc("Job::CAB::TO", order.Id));
 
                         if (res == byte.MaxValue)
                         {
@@ -179,7 +179,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             SetCurrentData("AOL", activeOrders);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Convert.ToUInt16(data[0])));
+            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()

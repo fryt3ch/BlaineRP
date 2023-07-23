@@ -1,10 +1,12 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Data.Minigames
 {
     [Script(int.MaxValue)]
-    public class Farm 
+    public class Farm
     {
         private static AsyncTask TempTask { get; set; }
 
@@ -71,7 +73,7 @@ namespace BlaineRP.Client.Data.Minigames
 
         private static void RenderCowMilk()
         {
-            if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
             {
                 StopCowMilk(true);
 
@@ -139,7 +141,7 @@ namespace BlaineRP.Client.Data.Minigames
 
         private static void RenderOrangeTreeCollect()
         {
-            if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
             {
                 StopOrangeTreeCollect(true);
 

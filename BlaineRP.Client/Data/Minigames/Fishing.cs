@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Linq;
@@ -6,7 +8,7 @@ using System.Linq;
 namespace BlaineRP.Client.Data.Minigames
 {
     [Script(int.MaxValue)]
-    public class Fishing 
+    public class Fishing
     {
         public Fishing()
         {
@@ -34,7 +36,7 @@ namespace BlaineRP.Client.Data.Minigames
                         {
                             await RAGE.Game.Invoker.WaitAsync(100);
 
-                            if (!Utils.IsTaskStillPending("MG::F::S::D", task))
+                            if (!AsyncTask.Methods.IsTaskStillPending("MG::F::S::D", task))
                                 break;
 
                             /*                            var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.15f);
@@ -59,7 +61,7 @@ namespace BlaineRP.Client.Data.Minigames
                         Player.LocalPlayer.ResetData("MG::F::T::WZ");
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending("MG::F::S::D", task);
+                    AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
                 }
                 else
                 {
@@ -101,14 +103,14 @@ namespace BlaineRP.Client.Data.Minigames
                         GameEvents.Render += FishingProcessRender;
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending("MG::F::S::D", task);
+                    AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
                 }
             });
         }
 
         private static void CancelAllTasks()
         {
-            Utils.CancelPendingTask("MG::F::S::D");
+            AsyncTask.Methods.CancelPendingTask("MG::F::S::D");
 
             GameEvents.Render -= FishingProcessRender;
 
@@ -153,7 +155,7 @@ namespace BlaineRP.Client.Data.Minigames
                 return;
             }
 
-            var fpsCoef = Utils.GetFpsCoef();
+            var fpsCoef = Misc.GetFpsCoef();
 
             var interp = Player.LocalPlayer.GetData<float>("MG::F::Interp");
 

@@ -1,16 +1,18 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Data.Fractions;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlaineRP.Client.Data.Fractions;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class FractionMenu 
+    public class FractionMenu
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuFraction);
 
@@ -30,7 +32,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::Veh", async (args) =>
             {
-                var vid = Utils.ToUInt32(args[0]);
+                var vid = Utils.Convert.ToUInt32(args[0]);
 
                 var actionId = (int)args[1];
 
@@ -99,9 +101,9 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-                var vid = Utils.ToUInt32(args[0]);
+                var vid = Utils.Convert.ToUInt32(args[0]);
 
-                var newMinRank = (byte)(Utils.ToInt32(args[1]) - 1);
+                var newMinRank = (byte)(Utils.Convert.ToInt32(args[1]) - 1);
 
                 if (Fraction.AllVehicles == null)
                     return;
@@ -128,7 +130,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::EmployeeAction", async (args) =>
             {
-                var cid = Utils.ToUInt32(args[0]);
+                var cid = Utils.Convert.ToUInt32(args[0]);
 
                 var actionId = (int)args[1];
 
@@ -219,7 +221,7 @@ namespace BlaineRP.Client.CEF
                 if (fData == null)
                     return;
 
-                var rankToEdit = (byte)(Utils.ToInt32(args[0]) - 1);
+                var rankToEdit = (byte)(Utils.Convert.ToInt32(args[0]) - 1);
 
                 if (LastSent.IsSpam(1000, false, true))
                     return;
@@ -386,7 +388,7 @@ namespace BlaineRP.Client.CEF
 
                 var tooltipId = (string)args[0];
 
-                var idxD = Utils.ToDecimal(args[2]);
+                var idxD = Utils.Convert.ToDecimal(args[2]);
 
                 var actionId = (int)args[1];
 
@@ -436,7 +438,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::SetPermit", async (args) =>
             {
-                var permId = Utils.ToUInt32(args[0]);
+                var permId = Utils.Convert.ToUInt32(args[0]);
 
                 var state = (bool)args[1];
 

@@ -1,13 +1,14 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class ExtraBlips 
+    public class ExtraBlips
     {
         public ExtraBlips()
         {
@@ -15,7 +16,7 @@ namespace BlaineRP.Client.Additional
             Events.Add("Blip::CreateGPS", (args) =>
             {
                 var pos = (Vector3)args[0];
-                var dim = Utils.ToUInt32(args[1]);
+                var dim = Utils.Convert.ToUInt32(args[1]);
                 var drawRoute = (bool)args[2];
 
                 CreateGPS(pos, dim, drawRoute);
@@ -179,7 +180,7 @@ namespace BlaineRP.Client.Additional
                     return false;
             }
 
-            Colshape = new Additional.Circle(Position, range, false, Utils.RedColor, Dimension, null)
+            Colshape = new Additional.Circle(Position, range, false, Misc.RedColor, Dimension, null)
             {
                 ApproveType = ExtraColshape.ApproveTypes.None,
 

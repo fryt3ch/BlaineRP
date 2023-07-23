@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace BlaineRP.Server.Events.Players.Misc
 {
@@ -339,8 +336,8 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (!stall.IsPlayerNear(player))
                 return null;
 
-/*            if (stall.IsPlayerRenter(stallIdx, player, false))
-                return null;*/
+            /*            if (stall.IsPlayerRenter(stallIdx, player, false))
+                            return null;*/
 
             var item = stall?.Items.Where(x => x.ItemRoot?.UID == itemUid).FirstOrDefault();
 

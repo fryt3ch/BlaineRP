@@ -1,4 +1,6 @@
-﻿using RAGE.Elements;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.Data
@@ -8,7 +10,7 @@ namespace BlaineRP.Client.Data
         [Command("eval", true, "js eval", "jseval", "jse")]
         public static void JsEval(string cmd)
         {
-            Utils.JsEval(cmd);
+            Invoker.JsEval(cmd);
         }
 
         [Command("dopayday", true, "Сделать PayDay")]
@@ -48,7 +50,7 @@ namespace BlaineRP.Client.Data
         [Command("anim", true, "Смена измерения", "playanim")]
         public static async void PlayAnim(string dict, string name, float sp, float spMult, int dur, int fg, float pRate, bool p1 = false, bool p2 = false, bool p3 = false)
         {
-            await Utils.RequestAnimDict(dict);
+            await Streaming.RequestAnimDict(dict);
 
             Player.LocalPlayer.TaskPlayAnim(dict, name, sp, spMult, dur, fg, pRate, p1, p2, p3);
         }

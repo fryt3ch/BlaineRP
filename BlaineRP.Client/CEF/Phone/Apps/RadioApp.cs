@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class RadioApp 
+    public class RadioApp
     {
         public RadioApp()
         {
@@ -57,12 +59,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                     if (sType == Sync.Radio.StationTypes.WCTR)
                     {
-                        if (Utils.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                        if (Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
                             sType = allStations[newStationIdx + deltaIdx];
                     }
                     else if (sType == Sync.Radio.StationTypes.BCTR)
                     {
-                        if (Utils.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                        if (Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
                             sType = allStations[newStationIdx + deltaIdx];
                     }
 
@@ -70,7 +72,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 }
                 else if (type == "volume")
                 {
-                    var volume = Utils.ToSingle(args[2]);
+                    var volume = Utils.Convert.ToSingle(args[2]);
 
                     var localStreamData = Sync.Radio.LocalPlayerStreamRadioAudioData;
 

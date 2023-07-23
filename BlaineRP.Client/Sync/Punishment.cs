@@ -1,10 +1,11 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client.Sync
 {
@@ -197,7 +198,7 @@ namespace BlaineRP.Client.Sync
                     {
                         Additional.ExtraColshape cs = null;
 
-                        cs = new Additional.Sphere(new Vector3(x.X, x.Y, x.Z), 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                        cs = new Additional.Sphere(new Vector3(x.X, x.Y, x.Z), 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                         {
                             Name = "CopArrestCell",
                         };
@@ -248,9 +249,9 @@ namespace BlaineRP.Client.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_NRPP"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_NRPP"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void ArrestRender()
@@ -267,9 +268,9 @@ namespace BlaineRP.Client.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP1"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP1"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void FederalPrisonRender()
@@ -286,9 +287,9 @@ namespace BlaineRP.Client.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP2"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP2"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public Punishment()
@@ -298,7 +299,7 @@ namespace BlaineRP.Client.Sync
     }
 
     [Script(int.MaxValue)]
-    public class PunishmentEvents 
+    public class PunishmentEvents
     {
         public PunishmentEvents()
         {
@@ -308,13 +309,13 @@ namespace BlaineRP.Client.Sync
 
             Events.Add("Player::Punish", (args) =>
             {
-                var id = Utils.ToUInt32(args[0]);
+                var id = Utils.Convert.ToUInt32(args[0]);
 
                 var type = (Sync.Punishment.Types)(int)args[1];
 
-                var admin = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
+                var admin = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
 
-                var endDateL = Utils.ToInt64(args[3]);
+                var endDateL = Utils.Convert.ToInt64(args[3]);
 
                 var reason = (string)args[4];
 

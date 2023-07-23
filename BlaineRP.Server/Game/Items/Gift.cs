@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BlaineRP.Server.Game.Items
+﻿namespace BlaineRP.Server.Game.Items
 {
     public class Gift
     {

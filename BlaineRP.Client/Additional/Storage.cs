@@ -1,9 +1,10 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 
 namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class Storage 
+    public class Storage
     {
         public static string LastData = null;
         public static bool GotData = false;
@@ -25,8 +26,7 @@ namespace BlaineRP.Client.Additional
         {
             LastData = null;
             GotData = false;
-
-            Utils.JsEval($"mp.events.callLocal(\"Storage::Temp\", mp.storage.data.{key.Replace("::", "_")});");
+            Invoker.JsEval($"mp.events.callLocal(\"Storage::Temp\", mp.storage.data.{key.Replace("::", "_")});");
 
             while (!GotData)
                 RAGE.Game.Invoker.Wait(0);
@@ -38,6 +38,6 @@ namespace BlaineRP.Client.Additional
         /// <typeparam name="T"></typeparam>
         /// <param name="key">Ключ (разделитель - ::)</param>
         /// <param name="value">Значение</param>
-        public static void SetData<T>(string key, T value) => Utils.JsEval($"mp.storage.data.{key.Replace("::", "_")} = '{RAGE.Util.Json.Serialize(value)}';");
+        public static void SetData<T>(string key, T value) => Invoker.JsEval($"mp.storage.data.{key.Replace("::", "_")} = '{RAGE.Util.Json.Serialize(value)}';");
     }
 }

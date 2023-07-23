@@ -1,10 +1,9 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Game.Items;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using BlaineRP.Server.Game.Items;
 
 namespace BlaineRP.Server.Sync
 {

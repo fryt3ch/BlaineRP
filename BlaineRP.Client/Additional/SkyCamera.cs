@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class SkyCamera 
+    public class SkyCamera
     {
         public static bool IsFadedOut { get => RAGE.Game.Cam.IsScreenFadedOut() || RAGE.Game.Cam.IsScreenFadingOut(); }
         public static bool ShouldBeFadedOut { get; set; }
@@ -30,7 +30,7 @@ namespace BlaineRP.Client.Additional
 
         public SkyCamera()
         {
-            Events.Add("SkyCamera::Move", async (object[] args) =>
+            Events.Add("SkyCamera::Move", async (args) =>
             {
                 SwitchType sType = (SwitchType)(int)args[0];
                 bool fade = (bool)args[1];
@@ -42,7 +42,7 @@ namespace BlaineRP.Client.Additional
                     eventName = (string)args[2];
 
                 if (args.Length > 3)
-                    eventArgs = Utils.ConvertJArrayToList<object>((JArray)args[3]).ToArray();
+                    eventArgs = ((JArray)args[3]).ToObject<object[]>();
 
                 if (eventName != null)
                     EventsQueue.Enqueue(new EventToCall() { Name = eventName, Args = eventArgs });
@@ -91,7 +91,7 @@ namespace BlaineRP.Client.Additional
 
             if (state && inTime >= 0)
             {
-                AsyncTask.RunSlim(() => FadeScreen(false, speed, -1), inTime);
+                AsyncTask.Methods.Run(() => FadeScreen(false, speed, -1), inTime);
             }
         }
 

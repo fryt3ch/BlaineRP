@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BlaineRP.Server.Events.Fractions
@@ -394,12 +393,12 @@ namespace BlaineRP.Server.Events.Fractions
             if (!fData.IsLeaderOrWarden(pData.Info, true))
                 return null;
 
-/*            if (rankToEdit >= pData.Info.FractionRank)
-            {
-                player.Notify("Fraction::RE0");
+            /*            if (rankToEdit >= pData.Info.FractionRank)
+                        {
+                            player.Notify("Fraction::RE0");
 
-                return null;
-            }*/
+                            return null;
+                        }*/
 
             if (rankToEdit >= fData.Ranks.Count)
                 return null;

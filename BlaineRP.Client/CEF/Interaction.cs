@@ -1,4 +1,8 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -8,7 +12,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Interaction 
+    public class Interaction
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction, Browser.IntTypes.Interaction_Passengers); }
 
@@ -68,8 +72,8 @@ namespace BlaineRP.Client.CEF
                 if (mIdx < 0)
                     return;
 
-/*                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
-                    return;*/
+                /*                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                                    return;*/
 
                 var eLabels = ExtraLabels[mIdx];
 
@@ -370,7 +374,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("Interaction::PassengersMenuSelect", (args) =>
             {
                 var action = (PassengersMenuActions)(int)args[0];
-                var id = Utils.ToUInt16(args[1]);
+                var id = Utils.Convert.ToUInt16(args[1]);
 
                 CloseMenu();
 
@@ -396,7 +400,7 @@ namespace BlaineRP.Client.CEF
 
             var entity = Client.Interaction.CurrentEntity;
 
-            if (Utils.IsAnyCefActive())
+            if (Misc.IsAnyCefActive())
                 return false;
 
             Client.Interaction.Enabled = false;
@@ -792,12 +796,12 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-/*                if (allVehs.Count == 1)
-                {
-                    Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
+                /*                if (allVehs.Count == 1)
+                                {
+                                    Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
 
-                    return;
-                }*/
+                                    return;
+                                }*/
 
                 var t = 0;
 

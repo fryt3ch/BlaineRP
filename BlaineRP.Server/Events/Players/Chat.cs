@@ -115,8 +115,8 @@ namespace BlaineRP.Server.Events.Players
                 if (!fData.MetaFlags.HasFlag(Game.Fractions.MetaFlagTypes.IsGov))
                     return 4;
 
-/*                if (!fData.IsLeaderOrWarden(pData.Info, true))
-                    return 5;*/
+                /*                if (!fData.IsLeaderOrWarden(pData.Info, true))
+                                    return 5;*/
 
                 Sync.Chat.SendGlobal(type, $"{fData.Name} | {fData.Ranks[pData.Info.FractionRank].Name} | {pData.Player.Name}", message, null, null);
 

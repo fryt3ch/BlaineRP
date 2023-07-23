@@ -1,12 +1,9 @@
-﻿using GTANetworkAPI;
-using Newtonsoft.Json;
+﻿using BlaineRP.Server.Game.Data;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
-using BlaineRP.Server.Game.Data;
 
 namespace BlaineRP.Server.Game.Fractions
 {

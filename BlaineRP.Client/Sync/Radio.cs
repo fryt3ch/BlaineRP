@@ -1,14 +1,13 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Radio 
+    public class Radio
     {
         public enum StationTypes : byte
         {
@@ -213,7 +212,7 @@ namespace BlaineRP.Client.Sync
             {
                 SetVehicleRadioStation(curVehicle, sType);
             }
-            
+
             if (curVehicle == null || IsMobilePhoneRadioEnabled)
             {
                 var audioData = LocalPlayerStreamRadioAudioData;

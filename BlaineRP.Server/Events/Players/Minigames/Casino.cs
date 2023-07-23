@@ -1,9 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Permissions;
-using System.Text;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -202,7 +199,7 @@ namespace BlaineRP.Server.Events.Players
                     if (y.CurrentCID > 0 && y.CurrentCID == pData.CID)
                         return;
                 }
-            }                
+            }
 
             luckyWheel.Spin(casinoId, luckyWheelId, pData);
 
@@ -327,7 +324,7 @@ namespace BlaineRP.Server.Events.Players
                 return null;
 
             if (bet < Game.Casino.SlotMachine.MinBet || bet > Game.Casino.SlotMachine.MaxBet)
-                return null; 
+                return null;
 
             uint newBalance;
 

@@ -1,11 +1,11 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Sync;
+using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -432,12 +432,12 @@ namespace BlaineRP.Server.Events.Players
 
             var pDim = player.Dimension;
 
-/*            if (pDim == Utils.GetPrivateDimension(player))
-            {
-                Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pData.LastData.Position.Position);
+            /*            if (pDim == Utils.GetPrivateDimension(player))
+                        {
+                            Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pData.LastData.Position.Position);
 
-                return;
-            }*/
+                            return;
+                        }*/
 
             if (pData.IsKnocked)
             {
@@ -783,17 +783,17 @@ namespace BlaineRP.Server.Events.Players
             }
             else
             {
-/*                if (pData.Items.Where(x => (x as Game.Items.Parachute)?.InUse == true).Any())
-                {
-                    Game.Items.Parachute.Wear(pData);
-                }
-                else
-                {
-                    if (pData.Bag != null)
-                        pData.Bag.Wear(pData);
-                    else
-                        player.SetClothes(5, 0, 0);
-                }*/
+                /*                if (pData.Items.Where(x => (x as Game.Items.Parachute)?.InUse == true).Any())
+                                {
+                                    Game.Items.Parachute.Wear(pData);
+                                }
+                                else
+                                {
+                                    if (pData.Bag != null)
+                                        pData.Bag.Wear(pData);
+                                    else
+                                        player.SetClothes(5, 0, 0);
+                                }*/
 
                 Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
             }
@@ -982,22 +982,22 @@ namespace BlaineRP.Server.Events.Players
             pData.PlayAnim((Animations.OtherTypes)anim);
         }
 
-/*        [RemoteEvent("atsdme")]
-        private static void AttachSystemDetachMe(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
+        /*        [RemoteEvent("atsdme")]
+                private static void AttachSystemDetachMe(Player player)
+                {
+                    var sRes = player.CheckSpamAttack();
 
-            if (sRes.IsSpammer)
-                return;
+                    if (sRes.IsSpammer)
+                        return;
 
-            var pData = sRes.Data;
+                    var pData = sRes.Data;
 
-            if (pData.IsAttachedToEntity is Entity entity)
-            {
-                if (!entity.Exists || !entity.AreEntitiesNearby(player, 150f))
-                    entity.DetachEntity(player);
-            }
-        }*/
+                    if (pData.IsAttachedToEntity is Entity entity)
+                    {
+                        if (!entity.Exists || !entity.AreEntitiesNearby(player, 150f))
+                            entity.DetachEntity(player);
+                    }
+                }*/
 
         [RemoteEvent("dmswme")]
         private static void DamageSystemWoundMe(Player player)

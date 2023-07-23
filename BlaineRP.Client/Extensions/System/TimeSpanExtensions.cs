@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace BlaineRP.Client.ExtensionsT.System
+namespace BlaineRP.Client.Extensions.System
 {
     internal static class TimeSpanExtensions
     {

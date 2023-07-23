@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Data
@@ -64,19 +65,19 @@ namespace BlaineRP.Client.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
 
                         var rModelStr = ModelType.ToString();
 
                         var reelsModel = RAGE.Util.Joaat.Hash($"{rModelStr}_reels");
                         var reelsModelB = RAGE.Util.Joaat.Hash(rModelStr.Substring(0, rModelStr.Length - 1) + "b_reels");
 
-                        await Utils.RequestModel(reelsModel);
-                        await Utils.RequestModel(reelsModelB);
+                        await Streaming.RequestModel(reelsModel);
+                        await Streaming.RequestModel(reelsModelB);
 
-                        if (MachineObj?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (MachineObj?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var machineObjHandle = MachineObj.Handle;
@@ -107,7 +108,7 @@ namespace BlaineRP.Client.Data
                                 Dimension = uint.MaxValue,
                             };
 
-                            Reels[i].SetRotation(rotation.X + Utils.Random.Next(0, 360) - 180f, rotation.Y, rotation.Z, 0, false);
+                            Reels[i].SetRotation(rotation.X + Utils.Misc.Random.Next(0, 360) - 180f, rotation.Y, rotation.Z, 0, false);
                         }
 
                         var soundSetName = GetSoundSetName(ModelType);
@@ -142,7 +143,7 @@ namespace BlaineRP.Client.Data
 
                                 if (i < checkPoint)
                                 {
-                                    Reels[j].SetRotation(rot.X + Utils.Random.Next(40, 100) / 10, rotation.Y, rotation.Z, 0, false);
+                                    Reels[j].SetRotation(rot.X + Utils.Misc.Random.Next(40, 100) / 10, rotation.Y, rotation.Z, 0, false);
                                 }
                                 else if (i == checkPoint)
                                 {
@@ -166,7 +167,7 @@ namespace BlaineRP.Client.Data
                             {
                                 await RAGE.Game.Invoker.WaitAsync(13);
 
-                                if (MachineObj?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (MachineObj?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
                         }
@@ -200,10 +201,10 @@ namespace BlaineRP.Client.Data
                             Data.Minigames.Casino.Casino.UpdateStatus(GetJackpotString(jackpot));
                         }
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
 
                 private static string GetSoundSetName(ModelTypes modelType)
@@ -228,9 +229,9 @@ namespace BlaineRP.Client.Data
 
                 public async void PlayGreetingSound()
                 {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
 
                     if (MachineObj?.Exists == true)
                     {

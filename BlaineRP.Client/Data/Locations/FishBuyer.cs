@@ -1,9 +1,4 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace BlaineRP.Client.Data
 {
@@ -19,7 +14,7 @@ namespace BlaineRP.Client.Data
 
             public decimal CurrentPriceCoef => decimal.Parse(Sync.World.GetSharedData<string>($"FishBuyer::{Id}::C"));
 
-            public uint GetPrice(string fishId) => (uint)Math.Floor(BasePrices.GetValueOrDefault(fishId) * CurrentPriceCoef);
+            public uint GetPrice(string fishId) => (uint)System.Math.Floor(BasePrices.GetValueOrDefault(fishId) * CurrentPriceCoef);
 
             public FishBuyer(Utils.Vector4 Position)
             {

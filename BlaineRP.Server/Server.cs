@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Client;
+using GTANetworkAPI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +11,6 @@ using System.Reflection;
 using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Client;
 
 namespace BlaineRP.Server
 {
@@ -223,7 +223,7 @@ namespace BlaineRP.Server
 
             Additional.ConsoleCommands.Activate();
 
-            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin" , "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
+            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin", "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
 
             _payDayTimer = new Timer((obj) =>
             {

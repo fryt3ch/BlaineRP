@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -21,7 +25,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var pos = lockerPoses[i];
 
-                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract,
 
@@ -68,7 +72,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 Additional.ExtraColshape cs = null;
 
-                cs = new Additional.Circle(x.Position, x.RotationZ, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                cs = new Additional.Circle(x.Position, x.RotationZ, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     Name = $"EMS_{(int)Type}",
 
@@ -84,7 +88,7 @@ namespace BlaineRP.Client.Data.Fractions
                         {
                             await RAGE.Game.Invoker.WaitAsync(1500);
 
-                            if (!Utils.IsTaskStillPending(taskKey, task))
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 return;
 
                             TempObjects = new List<MapObject>();
@@ -129,28 +133,28 @@ namespace BlaineRP.Client.Data.Fractions
 
                                 bedObj.SetData("CustomText", (Action<float, float>)((x, y) =>
                                 {
-                                    Utils.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                                    Graphics.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                                     var isOccupied = IsBedOccupied(bedIdx);
 
                                     if (isOccupied)
-                                        Utils.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                                        Graphics.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                                     else
-                                        Utils.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                                        Graphics.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                                 }));
 
                                 bedObj.SetData("CustomAction", (Action<MapObject>)OnHealingBedPress);
                             }
 
-                            Utils.CancelPendingTask(taskKey);
+                            AsyncTask.Methods.CancelPendingTask(taskKey);
                         }, 0, false, 0);
 
-                        Utils.SetTaskAsPending("EMS_LOAD", task);
+                        AsyncTask.Methods.SetAsPending(task, "EMS_LOAD");
                     },
 
                     OnExit = (cancel) =>
                     {
-                        Utils.CancelPendingTask("EMS_LOAD");
+                        AsyncTask.Methods.CancelPendingTask("EMS_LOAD");
 
                         if (TempObjects != null)
                         {
@@ -190,8 +194,8 @@ namespace BlaineRP.Client.Data.Fractions
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_psych", (entity) => { var player = entity as Player; if (player == null) return; PlayerPsychHeal(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_sellmask", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellMask(player); });
 
-/*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
-            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
+            /*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
+                        CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
         }
 
         public override void OnEndMembership()
@@ -242,7 +246,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             var bedIdx = int.Parse(bedIds[1]);
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                 return;
 
             var health = Player.LocalPlayer.GetRealHealth();
@@ -274,7 +278,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                 Additional.ExtraColshape cs = null;
 
-                cs = new Additional.Cylinder(pos, 1.5f, 2f, false, Utils.RedColor, Player.LocalPlayer.Dimension, null)
+                cs = new Additional.Cylinder(pos, 1.5f, 2f, false, Utils.Misc.RedColor, Player.LocalPlayer.Dimension, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -295,13 +299,13 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class EMSEvents 
+    public class EMSEvents
     {
         public EMSEvents()
         {
             Events.Add("Ems::ShowPlayerDiagnostics", async (args) =>
             {
-                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
+                var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[0]));
 
                 if (player == null)
                     return;

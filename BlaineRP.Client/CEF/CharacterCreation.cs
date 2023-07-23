@@ -1,4 +1,8 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +10,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class CharacterCreation 
+    public class CharacterCreation
     {
         public static DateTime LastSent;
 
@@ -77,14 +81,14 @@ namespace BlaineRP.Client.CEF
                 var surname = (string)args[1];
                 var age = (string)args[2];
 
-                if (!Utils.IsNameValid(name))
+                if (!Misc.IsNameValid(name))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongName);
 
                     return;
                 }
 
-                if (!Utils.IsNameValid(surname))
+                if (!Misc.IsNameValid(surname))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongSurname);
 
@@ -195,7 +199,7 @@ namespace BlaineRP.Client.CEF
                 if (!IsActive)
                     return;
 
-                var r = Utils.Random;
+                var r = Misc.Random;
 
                 Browser.Window.ExecuteJs("ChCreate.nameSet", _sex ? _maleNames[r.Next(0, _maleNames.Length - 1)] : _femaleNames[r.Next(0, _maleNames.Length - 1)], _surnames[r.Next(0, _surnames.Length - 1)]);
             });

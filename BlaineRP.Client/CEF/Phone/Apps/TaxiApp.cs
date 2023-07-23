@@ -1,11 +1,15 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class TaxiApp 
+    public class TaxiApp
     {
         public static ClientOrderInfo CurrentOrderInfo { get; set; }
 
@@ -49,7 +53,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     if (CurrentOrderInfo.Driver == null)
                         return;
 
-                    CurrentOrderInfo.DriverNumber = Utils.ToUInt32(args[1]);
+                    CurrentOrderInfo.DriverNumber = Utils.Convert.ToUInt32(args[1]);
 
                     CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
                 }
@@ -96,7 +100,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 if (CEF.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
-                var id = Utils.ToDecimal(args[0]);
+                var id = Utils.Convert.ToDecimal(args[0]);
 
                 if (CurrentOrderInfo == null)
                 {
@@ -110,7 +114,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         {
                             var pos = Player.LocalPlayer.Position;
 
-                            CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Utils.GetStreetName(pos)));
+                            CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Misc.GetStreetName(pos)));
 
                             pos.Z -= 1f;
 
@@ -118,7 +122,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                             {
                                 Date = Sync.World.ServerTime,
 
-                                ExitColshape1 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.App.Static.MainDimension)
+                                ExitColshape1 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -199,7 +203,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             if (CurrentOrderInfo == null)
             {
-                CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Utils.GetStreetName(Player.LocalPlayer.Position) });
+                CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Misc.GetStreetName(Player.LocalPlayer.Position) });
             }
             else
             {

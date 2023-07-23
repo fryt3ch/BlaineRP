@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -830,16 +829,16 @@ namespace BlaineRP.Server.Game.Estates
 
                 Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Data\Furniture.cs", "TO_REPLACE_FURN_LIST", lines);
 
-/*                lines.Clear();
+                /*                lines.Clear();
 
-                var t = AllData.ToList().OrderBy(x => decimal.Parse(x.Key.Split('_')[1])).Where(x => x.Value.Type == Types.Bath || x.Value.Type == Types.BathStuff || x.Value.Type == Types.Toilet || x.Value.Type == Types.Washer).OrderBy(x => x.Value.Type).ToList();
+                                var t = AllData.ToList().OrderBy(x => decimal.Parse(x.Key.Split('_')[1])).Where(x => x.Value.Type == Types.Bath || x.Value.Type == Types.BathStuff || x.Value.Type == Types.Toilet || x.Value.Type == Types.Washer).OrderBy(x => x.Value.Type).ToList();
 
-                foreach (var x in t)
-                {
-                    lines.Add($"{{ \"{x.Key}\", 10 }},");
-                }
+                                foreach (var x in t)
+                                {
+                                    lines.Add($"{{ \"{x.Key}\", 10 }},");
+                                }
 
-                System.IO.File.WriteAllLines("tempDDD.txt", lines);*/
+                                System.IO.File.WriteAllLines("tempDDD.txt", lines);*/
 
                 return AllData.Count;
             }

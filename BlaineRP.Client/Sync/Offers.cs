@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -6,7 +9,7 @@ using System.Collections.Generic;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Offers 
+    public class Offers
     {
         public enum Types
         {
@@ -80,25 +83,25 @@ namespace BlaineRP.Client.Sync
 
         public static bool IsActive { get => CurrentTarget != null; }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
+        private static PlayerActions.Types[] ActionsToCheck = new PlayerActions.Types[]
         {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
+            PlayerActions.Types.Knocked,
+            PlayerActions.Types.Frozen,
+            PlayerActions.Types.Cuffed,
 
-            //Utils.Actions.Crouch,
-            Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
+            //PlayerActions.Types.Crouch,
+            PlayerActions.Types.Crawl,
+            PlayerActions.Types.Finger,
+            PlayerActions.Types.PushingVehicle,
 
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
+            PlayerActions.Types.Animation,
+            PlayerActions.Types.FastAnimation,
+            PlayerActions.Types.Scenario,
 
-            //Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, //Utils.Actions.OnFoot,
+            //PlayerActions.Types.InVehicle,
+            PlayerActions.Types.InWater,
+            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, //PlayerActions.Types.HasWeapon,
+            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, //PlayerActions.Types.OnFoot,
         };
 
         private static List<int> _tempBinds;
@@ -107,7 +110,7 @@ namespace BlaineRP.Client.Sync
         {
             Events.Add("Offer::Show", (args) =>
             {
-                var player = Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
+                var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[0]));
 
                 if (player == null)
                     return;
@@ -115,7 +118,7 @@ namespace BlaineRP.Client.Sync
                 var type = (Types)(int)args[1];
                 var text = (string)args[2];
 
-                if (Utils.IsAnyCefActive(false))
+                if (Misc.IsAnyCefActive(false))
                 {
                     CurrentTarget = player;
 
@@ -208,7 +211,7 @@ namespace BlaineRP.Client.Sync
             if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
-            if (Utils.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || !Utils.CanDoSomething(true, ActionsToCheck))
+            if (Misc.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
                 return;
 
             LastSent = Sync.World.ServerTime;

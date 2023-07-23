@@ -1,11 +1,12 @@
-﻿using RAGE;
-using System;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using System.Collections.Generic;
 
 namespace BlaineRP.Client
 {
     [Script(int.MaxValue)]
-    public class NameTags 
+    public class NameTags
     {
         private const int MaxDistance = 450;
         private const float Width = 0.03f;
@@ -57,22 +58,22 @@ namespace BlaineRP.Client
 
                 if (Settings.User.Other.DebugLabels && data.AdminLevel > -1)
                 {
-                    if (Utils.GetScreenCoordFromWorldCoord(player.Position, ref screenX, ref screenY))
+                    if (Graphics.GetScreenCoordFromWorldCoord(player.Position, ref screenX, ref screenY))
                     {
                         if (pData == null)
                         {
-                            Utils.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                             return;
                         }
 
-                        Utils.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                        Utils.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
-                        Utils.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.IsKnocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                        Utils.DrawText($"Voice: {(pData.VoiceRange < 0f ? "muted" : (pData.VoiceRange == 0f ? "off" : $"{pData.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.IsKnocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"Voice: {(pData.VoiceRange < 0f ? "muted" : (pData.VoiceRange == 0f ? "off" : $"{pData.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
-                        Utils.DrawText($"Fraction: {pData.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Graphics.DrawText($"Fraction: {pData.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                     }
                 }
 
@@ -100,7 +101,7 @@ namespace BlaineRP.Client
                     }
                     else if (pData.VoiceRange > 0f)
                     {
-                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", $"leaderboard_audio_{(player.VoiceVolume <= 0f ? "inactive" : Math.Ceiling(3f * player.VoiceVolume).ToString())}", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / GameEvents.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / GameEvents.ScreenResolution.Y, 0f, 255, 255, 255, 255, 0);
+                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", $"leaderboard_audio_{(player.VoiceVolume <= 0f ? "inactive" : System.Math.Ceiling(3f * player.VoiceVolume).ToString())}", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / GameEvents.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / GameEvents.ScreenResolution.Y, 0f, 255, 255, 255, 255, 0);
                     }
                     else if (pData.IsInvalid)
                     {
@@ -110,13 +111,13 @@ namespace BlaineRP.Client
                 else
                     RAGE.Game.Graphics.RequestStreamedTextureDict("mpleaderboard", true);
 
-                Utils.DrawText(player.GetName(true, false, true), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText(player.GetName(true, false, true), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (!Settings.User.Interface.HideCID)
-                    Utils.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (pData.AdminLevel > -1)
-                    Utils.DrawText(Locale.Get("PLAYER_ADMIN_L"), x, y += Interval / 2, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(Locale.Get("PLAYER_ADMIN_L"), x, y += Interval / 2, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (RAGE.Game.Player.IsPlayerFreeAimingAtEntity(player.Handle))
                 {

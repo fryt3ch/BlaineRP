@@ -1,5 +1,4 @@
-﻿using BlaineRP.Client.CEF;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -52,7 +51,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             SetCurrentData("AOL", activeOrders);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.ToUInt16(data[0])));
+            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()
@@ -75,7 +74,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             await CEF.ActionBox.ShowSelect
             (
-                "JobCollectorOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(x.TargetBusiness.InfoColshape.Position.DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(x.TargetBusiness.InfoColshape.Position.DistanceTo(Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,           
+                "JobCollectorOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, System.Math.Round(x.TargetBusiness.InfoColshape.Position.DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), System.Math.Round(x.TargetBusiness.InfoColshape.Position.DistanceTo(Position) / 1000f, 2), Locale.Get("GEN_MONEY_0", x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
 
                 () =>
                 {

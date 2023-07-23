@@ -1,13 +1,13 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Linq;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
-    public class Job 
+    public class Job
     {
         public Job()
         {
@@ -41,7 +41,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 if (pData.CurrentJob == farmJobData)
                 {
-                    var salary = Utils.ToDecimal(await Events.CallRemoteProc("Job::GTCSI"));
+                    var salary = Utils.Convert.ToDecimal(await Events.CallRemoteProc("Job::GTCSI"));
 
                     if (salary <= 0)
                     {
@@ -49,14 +49,14 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                     }
                     else
                     {
-                        AllDialogues["job_farm_aj_0"].Text = $"Хочешь закончить рабочий день и получить зарплату? Если что, ты заработал {Utils.GetPriceString(salary)}";
+                        AllDialogues["job_farm_aj_0"].Text = $"Хочешь закончить рабочий день и получить зарплату? Если что, ты заработал {Locale.Get("GEN_MONEY_0", salary)}";
                     }
 
                     NPC.CurrentNPC.ShowDialogue("job_farm_aj_0");
                 }
                 else
                 {
-                    var margin = Utils.ToSingle(await Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
+                    var margin = Utils.Convert.ToSingle(await Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
 
                     if (NPC.CurrentNPC == null || margin < 0f)
                         return;

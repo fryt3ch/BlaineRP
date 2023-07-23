@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BlaineRP.Client
+﻿namespace BlaineRP.Client
 {
     public static partial class Locale
     {

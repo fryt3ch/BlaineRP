@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -8,7 +12,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class AttachSystem 
+    public class AttachSystem
     {
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
@@ -370,7 +374,7 @@ namespace BlaineRP.Client.Sync
             {
                 var gEntity = (MapObject)args[0];
 
-                await Utils.RequestPtfx("core");
+                await Streaming.RequestPtfx("core");
 
                 gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_splash_shark_wade", gEntity.Handle,  0f, 0f, 0f, 0f, 0f, 0f, 2.5f, false, false, false)); // water_splash_animal_wade
             }) },
@@ -380,7 +384,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
                 })
@@ -391,7 +395,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
                 })
@@ -402,7 +406,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
                 })
@@ -413,7 +417,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
@@ -424,7 +428,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
                 })
@@ -435,7 +439,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
                 })
@@ -446,7 +450,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
                 })
@@ -457,7 +461,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
@@ -485,7 +489,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("scrape_mud", gEntity.Handle,  0.25f, 0f, 0f, 0f, 0f, 0f, 0.25f, false, false, false));
                 })
@@ -500,7 +504,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var gEntity = (MapObject)args[0];
 
-                    await Utils.RequestPtfx("core");
+                    await Streaming.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_spray", gEntity.Handle,  0.35f, 0f, 0.25f, 0f, 0f, 0f, 0.15f, false, false, false));
                 })
@@ -512,29 +516,25 @@ namespace BlaineRP.Client.Sync
             if (entity.IsLocal)
                 return;
 
-            var objects = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
+            var listObjectsNet = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null)?.ToObject<List<AttachmentObjectNet>>();
 
-            if (objects == null)
-                return;
+            if (listObjectsNet != null)
+            {
+                entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
 
-            var listObjectsNet = Utils.ConvertJArrayToList<AttachmentObjectNet>(objects);
+                foreach (var x in listObjectsNet)
+                    await AttachObject(entity, x);
+            }
 
-            entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
+            var listEntitiesNet = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey, null)?.ToObject<List<AttachmentEntityNet>>();
 
-            foreach (var x in listObjectsNet)
-                await AttachObject(entity, x);
+            if (listEntitiesNet != null)
+            {
+                entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
-            entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
-
-            var entities = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey, null);
-
-            if (entities == null)
-                return;
-
-            var listEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>(entities);
-
-            foreach (var x in listEntitiesNet)
-                await AttachEntity(entity, x);
+                foreach (var x in listEntitiesNet)
+                    await AttachEntity(entity, x);
+            }
         }
 
         public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
@@ -561,18 +561,18 @@ namespace BlaineRP.Client.Sync
                     RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
                 }
 
-/*                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                /*                var pData = Sync.Players.GetData(Player.LocalPlayer);
 
-                if (pData != null)
-                {
-                    if (pData.IsAttachedTo == entity)
-                    {
-                        AsyncTask.RunSlim(() =>
-                        {
-                            Events.CallRemote("atsdme");
-                        }, 2500);
-                    }
-                }*/
+                                if (pData != null)
+                                {
+                                    if (pData.IsAttachedTo == entity)
+                                    {
+                                        AsyncTask.RunSlim(() =>
+                                        {
+                                            Events.CallRemote("atsdme");
+                                        }, 2500);
+                                    }
+                                }*/
             }
 
             var listObjects = entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
@@ -611,8 +611,8 @@ namespace BlaineRP.Client.Sync
                 if (!entity.HasData(AttachedEntitiesKey))
                     return;
 
-                var currentListEntitiesNet = oldValue == null ? new List<AttachmentEntityNet>() : Utils.ConvertJArrayToList<AttachmentEntityNet>((Newtonsoft.Json.Linq.JArray)oldValue);
-                var newListEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>((Newtonsoft.Json.Linq.JArray)value);
+                var currentListEntitiesNet = ((Newtonsoft.Json.Linq.JArray)oldValue)?.ToObject<List<AttachmentEntityNet>>() ?? new List<AttachmentEntityNet>();
+                var newListEntitiesNet = ((Newtonsoft.Json.Linq.JArray)value)?.ToObject<List<AttachmentEntityNet>>() ?? new List<AttachmentEntityNet>();
 
                 foreach (var x in currentListEntitiesNet.Union(newListEntitiesNet))
                 {
@@ -636,16 +636,14 @@ namespace BlaineRP.Client.Sync
                 if (!entity.HasData(AttachedObjectsKey))
                     return;
 
-                //Utils.ConsoleOutput(RAGE.Util.Json.Serialize(value));
+                var currentListObjectsNet = ((Newtonsoft.Json.Linq.JArray)oldValue)?.ToObject<List<AttachmentObjectNet>>() ?? new List<AttachmentObjectNet>();
+                var newListObjectsNet = ((Newtonsoft.Json.Linq.JArray)value)?.ToObject<List<AttachmentObjectNet>>() ?? new List<AttachmentObjectNet>();
 
-                var currentListEntitiesNet = oldValue == null ? new List<AttachmentObjectNet>() : Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)oldValue);
-                var newListEntitiesNet = Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)value);
-
-                foreach (var x in currentListEntitiesNet.Union(newListEntitiesNet))
+                foreach (var x in currentListObjectsNet.Union(newListObjectsNet))
                 {
-                    if (newListEntitiesNet.Contains(x))
+                    if (newListObjectsNet.Contains(x))
                     {
-                        if (currentListEntitiesNet.Contains(x))
+                        if (currentListObjectsNet.Contains(x))
                             continue;
                         else
                             await AttachObject(entity, x);
@@ -678,7 +676,7 @@ namespace BlaineRP.Client.Sync
                 if (gEntity?.Exists != true || entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey)?.Contains(aObj) != true)
                     return;
 
-                gTarget = Utils.GetGameEntityAtRemoteId(attachmentNet.EntityType, attachmentNet.Id);
+                gTarget = Utils.Game.Misc.GetGameEntityAtRemoteId(attachmentNet.EntityType, attachmentNet.Id);
 
                 if (gTarget?.Exists != true)
                 {
@@ -702,22 +700,22 @@ namespace BlaineRP.Client.Sync
                 }
                 else
                 {
-                    (Vector3 Min, Vector3 Max) vehSize = entity.GetModelDimensions();
+                    entity.GetModelDimensions(out var min, out var max);
 
                     if (attachmentNet.Type == Types.PushVehicle)
                     {
                         if (attachmentNet.SyncData == "1")
                         {
-                            positionBase.Y = vehSize.Max.Y;
-                            positionBase.Z = vehSize.Min.Z;
+                            positionBase.Y = max.Y;
+                            positionBase.Z = min.Z;
 
                             props.PositionOffset.Y = 0.35f;
                             props.Rotation.Z = 180f;
                         }
                         else
                         {
-                            positionBase.Y = vehSize.Min.Y;
-                            positionBase.Z = vehSize.Min.Z;
+                            positionBase.Y = min.Y;
+                            positionBase.Z = max.Z;
 
                             props.PositionOffset.Y = -0.6f;
                             props.Rotation.Z = 0f;
@@ -725,7 +723,7 @@ namespace BlaineRP.Client.Sync
                     }
                     else if (attachmentNet.Type == Types.VehicleTrunk)
                     {
-                        positionBase.Y = -(vehSize.Max.Y - vehSize.Min.Y) / 2f;
+                        positionBase.Y = -(max.Y - min.Y) / 2f;
                     }
                 }
             }
@@ -764,7 +762,7 @@ namespace BlaineRP.Client.Sync
                     Interaction.SetEntityAsDisabled(gEntity, true);
                 }
             }
-            else if (gEntity  == Player.LocalPlayer)
+            else if (gEntity == Player.LocalPlayer)
             {
                 RootAction(attachmentNet.Type, gTarget, true);
 
@@ -794,7 +792,7 @@ namespace BlaineRP.Client.Sync
 
             list.Remove(aObj);
 
-            var gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
+            var gTarget = Utils.Game.Misc.GetGameEntityAtRemoteId(eType, remoteId);
 
             if (gTarget?.Exists == true)
             {
@@ -832,7 +830,7 @@ namespace BlaineRP.Client.Sync
 
         public static async System.Threading.Tasks.Task AttachObject(Entity target, AttachmentObjectNet attachmentNet)
         {
-            var res = await Utils.RequestModel(attachmentNet.Model);
+            var res = await Streaming.RequestModel(attachmentNet.Model);
 
             var gTarget = (GameEntity)target;
 
@@ -856,7 +854,7 @@ namespace BlaineRP.Client.Sync
 
             if (attachmentNet.Type >= Types.WeaponRightTight && attachmentNet.Type <= Types.WeaponLeftBack)
             {
-                await Utils.RequestWeaponAsset(attachmentNet.Model);
+                await Streaming.RequestWeaponAsset(attachmentNet.Model);
 
                 gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(attachmentNet.Model, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
 
@@ -882,16 +880,15 @@ namespace BlaineRP.Client.Sync
                     if (targetData.Data.ID.StartsWith("seashark"))
                         positionBase.Z -= 0.5f;
                 }
-
                 veh.StreamInCustomActionsAdd((entity) =>
-                {
-                    var eVeh = entity as Vehicle;
+                                {
+                                    var eVeh = entity as Vehicle;
 
-                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
+                                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
 
-                    if (Sync.Vehicles.GetData(targetVeh)?.IsFrozen == true)
-                        eVeh.FreezePosition(true);
-                });
+                                    if (Sync.Vehicles.GetData(targetVeh)?.IsFrozen == true)
+                                        eVeh.FreezePosition(true);
+                                });
 
                 gEntity = veh;
 
@@ -900,15 +897,14 @@ namespace BlaineRP.Client.Sync
             else if (attachmentNet.Type == Types.TractorTrailFarmHarv)
             {
                 var veh = new Vehicle(attachmentNet.Model, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
-
                 veh.StreamInCustomActionsAdd((entity) =>
-                {
-                    var eVeh = entity as Vehicle;
+                                {
+                                    var eVeh = entity as Vehicle;
 
-                    eVeh.SetAutomaticallyAttaches(0, 0);
+                                    eVeh.SetAutomaticallyAttaches(0, 0);
 
-                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
-                });
+                                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
+                                });
 
                 gEntity = veh;
             }
@@ -916,7 +912,7 @@ namespace BlaineRP.Client.Sync
             {
                 if (res)
                 {
-                    gEntity = Utils.CreateObjectNoOffsetImmediately(attachmentNet.Model, target.Position.X, target.Position.Y, target.Position.Z);
+                    gEntity = Streaming.CreateObjectNoOffsetImmediately(attachmentNet.Model, target.Position.X, target.Position.Y, target.Position.Z);
                 }
             }
 
@@ -1067,14 +1063,10 @@ namespace BlaineRP.Client.Sync
 
         public static async void AttachAllObjects(Entity target)
         {
-            var objects = target.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
+            var listObjectsNet = target.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null)?.ToObject<List<AttachmentObjectNet>>();
 
-            if (objects == null)
+            if (listObjectsNet == null)
                 return;
-
-            var listObjectsNet = Utils.ConvertJArrayToList<AttachmentObjectNet>(objects);
-
-            //target.SetData(AttachedObjectsKey, new List<AttachmentObject>());
 
             foreach (var x in listObjectsNet)
             {
@@ -1126,7 +1118,7 @@ namespace BlaineRP.Client.Sync
                     {
                         var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
-                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlJustPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.App.Static.EntityInteractionMaxDistance)
+                        if (veh?.Exists != true || Utils.Game.Misc.AnyOnFootMovingControlJustPressed() || PlayerActions.IsAnyActionActive(false,  PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Finger, PlayerActions.Types.FastAnimation, PlayerActions.Types.Scenario, PlayerActions.Types.InVehicle, PlayerActions.Types.InWater, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.App.Static.EntityInteractionMaxDistance)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1137,7 +1129,7 @@ namespace BlaineRP.Client.Sync
                         }
                         else
                         {
-                            Utils.DrawText(Locale.General.Animations.CancelTextPushVehicle, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(Locale.General.Animations.CancelTextPushVehicle, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1182,7 +1174,7 @@ namespace BlaineRP.Client.Sync
                         else
                         {
                             if (!isForced)
-                                Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                                Graphics.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1227,7 +1219,7 @@ namespace BlaineRP.Client.Sync
                         else
                         {
                             if (!isForced)
-                                Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                                Graphics.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1256,7 +1248,7 @@ namespace BlaineRP.Client.Sync
 
                     () =>
                     {
-                        var rootPlayer = Utils.GetPlayerByHandle(Player.LocalPlayer.GetAttachedTo(), true);
+                        var rootPlayer = Utils.Game.Misc.GetPlayerByHandle(Player.LocalPlayer.GetAttachedTo(), true);
 
                         var speed = 0f;
 
@@ -1321,7 +1313,7 @@ namespace BlaineRP.Client.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }
                     })
                 )
@@ -1368,7 +1360,7 @@ namespace BlaineRP.Client.Sync
                             var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
 
                             // lmb - do puff
-                            if (!CEF.Cursor.IsVisible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                            if (!CEF.Cursor.IsVisible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24) && !PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Animation, PlayerActions.Types.FastAnimation, PlayerActions.Types.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1378,7 +1370,7 @@ namespace BlaineRP.Client.Sync
                                 }
                             }
                             // alt - to mouth
-                            else if (((!CEF.Cursor.IsVisible && KeyBinds.IsJustDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                            else if (((!CEF.Cursor.IsVisible && KeyBinds.IsJustDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && !PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Animation, PlayerActions.Types.FastAnimation, PlayerActions.Types.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1388,9 +1380,9 @@ namespace BlaineRP.Client.Sync
                                 }
                             }
 
-                            Utils.DrawText(string.Format(Locale.General.Animations.TextDoPuffSmoke, puffs), 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
-                            Utils.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.TextDoPuffSmoke, puffs), 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1432,7 +1424,7 @@ namespace BlaineRP.Client.Sync
                                 // alt - to hand
                                 if (!CEF.Cursor.IsVisible && KeyBinds.IsJustDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
-                                    if (!lastSent.IsSpam(1000, false, true) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                                    if (!lastSent.IsSpam(1000, false, true) && !PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Animation, PlayerActions.Types.FastAnimation, PlayerActions.Types.OtherAnimation))
                                     {
                                         Events.CallRemote("Players::Smoke::State");
 
@@ -1440,10 +1432,10 @@ namespace BlaineRP.Client.Sync
                                     }
                                 }
 
-                                Utils.DrawText(Locale.General.Animations.TextToHandSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                                Graphics.DrawText(Locale.General.Animations.TextToHandSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                             }
 
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1472,7 +1464,7 @@ namespace BlaineRP.Client.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1501,7 +1493,7 @@ namespace BlaineRP.Client.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Graphics.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1552,7 +1544,7 @@ namespace BlaineRP.Client.Sync
 
                     new Action(() =>
                     {
-                        if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
+                        if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Ragdoll, PlayerActions.Types.Falling, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Crawl, PlayerActions.Types.InVehicle, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting, PlayerActions.Types.MeleeCombat))
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1613,7 +1605,7 @@ namespace BlaineRP.Client.Sync
 
                     new Action(() =>
                     {
-                        if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
+                        if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Ragdoll, PlayerActions.Types.Falling, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Crawl, PlayerActions.Types.InVehicle, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting, PlayerActions.Types.MeleeCombat))
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1633,7 +1625,7 @@ namespace BlaineRP.Client.Sync
 
                 (
                     null,
-                
+
                     () =>
                     {
                         Additional.ExtraColshape.All.Where(x => x.Name == "ems_healing_bed").ToList().ForEach(x => x.Destroy());
@@ -1643,9 +1635,9 @@ namespace BlaineRP.Client.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                        Graphics.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                        if (Utils.CanShowCEF(true, true))
+                        if (Utils.Misc.CanShowCEF(true, true))
                         {
                             if (bind.IsJustPressed)
                             {
@@ -1705,9 +1697,9 @@ namespace BlaineRP.Client.Sync
                         {
                             var key = RAGE.Ui.VirtualKeys.Return;
 
-                            if (Utils.CanShowCEF(true, true) && !Utils.IsAnyCefActive())
+                            if (Utils.Misc.CanShowCEF(true, true) && !Utils.Misc.IsAnyCefActive())
                             {
-                                Utils.DrawText(string.Format("Нажмите {0}, чтобы воспользоваться отмычкой (x{1})", KeyBinds.ExtraBind.GetKeyString(key), lockpickItemAmount), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Graphics.DrawText(string.Format("Нажмите {0}, чтобы воспользоваться отмычкой (x{1})", KeyBinds.ExtraBind.GetKeyString(key), lockpickItemAmount), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                                 if (KeyBinds.IsJustDown(key))
                                 {
@@ -1735,7 +1727,7 @@ namespace BlaineRP.Client.Sync
 
             {
                 Types.PoliceEscort,
-                
+
                 (
                     () =>
                     {
@@ -1760,9 +1752,9 @@ namespace BlaineRP.Client.Sync
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        Utils.DrawText(string.Format("Нажмите {0}, чтобы прекратить вести человека", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                        Graphics.DrawText(string.Format("Нажмите {0}, чтобы прекратить вести человека", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                        if (Utils.CanShowCEF(true, true))
+                        if (Utils.Misc.CanShowCEF(true, true))
                         {
                             if (bind.IsJustPressed)
                             {
@@ -1791,14 +1783,14 @@ namespace BlaineRP.Client.Sync
 
                         var taskKey = "ATTACH_PLAYER_RESURRECT_TASK";
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
 
                         var attach = Sync.Players.GetData(Player.LocalPlayer).AttachedEntities.Where(x => x.Type == Types.PlayerResurrect).FirstOrDefault();
 
                         if (attach == null)
                             return;
 
-                        var targetEntity = Utils.GetGameEntityAtRemoteId(attach.EntityType, attach.RemoteID);
+                        var targetEntity = Utils.Game.Misc.GetGameEntityAtRemoteId(attach.EntityType, attach.RemoteID);
 
                         if (targetEntity?.Exists == true)
                         {
@@ -1809,7 +1801,7 @@ namespace BlaineRP.Client.Sync
                             if (Player.LocalPlayer.GetCoords(false).DistanceTo(pos) < 10f)
                                 Player.LocalPlayer.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
 
-                            Player.LocalPlayer.SetHeading(Utils.GetRotationZToFacePointTo(pos, targetPos));
+                            Player.LocalPlayer.SetHeading(Geometry.GetRotationZToFacePointTo(pos, targetPos));
                         }
 
                         AsyncTask task = null;
@@ -1818,15 +1810,15 @@ namespace BlaineRP.Client.Sync
                         {
                             await RAGE.Game.Invoker.WaitAsync(int.Parse(attach.SyncData.Split('_')[0]));
 
-                            if (!Utils.IsTaskStillPending(taskKey, task))
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 return;
 
                             Events.CallRemote("Player::ResurrectFinish");
 
-                            Utils.CancelPendingTask(taskKey);
+                            AsyncTask.Methods.CancelPendingTask(taskKey);
                         }, 0, false, 0);
 
-                        Utils.SetTaskAsPending(taskKey, task);
+                        AsyncTask.Methods.SetAsPending(task, taskKey);
                     },
 
                     () =>
@@ -1836,7 +1828,7 @@ namespace BlaineRP.Client.Sync
                         KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
                         KeyBinds.Get(KeyBinds.Types.Crawl)?.Enable();
 
-                        Utils.CancelPendingTask("ATTACH_PLAYER_RESURRECT_TASK");
+                        AsyncTask.Methods.CancelPendingTask("ATTACH_PLAYER_RESURRECT_TASK");
                     },
 
                     async () =>
@@ -1962,13 +1954,13 @@ namespace BlaineRP.Client.Sync
 
             if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
             {
-                await Utils.RequestWeaponAsset(hash);
+                await Streaming.RequestWeaponAsset(hash);
 
                 gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(hash, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
             }
             else
             {
-                gEntity = Utils.CreateObjectNoOffsetImmediately(hash, target.Position.X, target.Position.Y, target.Position.Z);
+                gEntity = Streaming.CreateObjectNoOffsetImmediately(hash, target.Position.X, target.Position.Y, target.Position.Z);
             }
 
             if (gEntity == null)

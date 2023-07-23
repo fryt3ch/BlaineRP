@@ -1,6 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -168,7 +168,7 @@ namespace BlaineRP.Client.Data
                     Data = this,
                 };
 
-                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
+                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Misc.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
                 All.Add(Id, this);
             }
@@ -205,7 +205,7 @@ namespace BlaineRP.Client.Data
 
                     if (GaragePosition != null)
                     {
-                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                         {
                             ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -426,7 +426,7 @@ namespace BlaineRP.Client.Data
 
                     loadedColshapes.Add(enterCs);
 
-                    ap.InfoText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z - 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, ap.NumberInRoot + 1, ap.OwnerName ?? Locale.Property.NoOwner), Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
+                    ap.InfoText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z - 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, ap.NumberInRoot + 1, ap.OwnerName ?? Locale.Property.NoOwner), Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
                 }
                 var floorCounter = 0;
 
@@ -445,7 +445,7 @@ namespace BlaineRP.Client.Data
                             Data = this,
                         };
 
-                        loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 0.5f), text, Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                        loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 0.5f), text, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                         loadedColshapes.Add(elevatorCs);
                     }
@@ -461,7 +461,7 @@ namespace BlaineRP.Client.Data
 
                 loadedColshapes.Add(exitCs);
 
-                loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                 LoadedColshapes = loadedColshapes;
                 LoadedTextLabels = loadedTextLabels;

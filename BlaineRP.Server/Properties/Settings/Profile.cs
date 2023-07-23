@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace BlaineRP.Server.Properties.Settings
@@ -29,7 +28,7 @@ namespace BlaineRP.Server.Properties.Settings
 
         [SettingsSection]
         public class GeneralSettings
-{
+        {
             [ClientSync]
             [JsonProperty(PropertyName = "cultureInfo")]
             public CultureInfo CultureInfo { get; private set; } = new CultureInfo("ru-RU", false)

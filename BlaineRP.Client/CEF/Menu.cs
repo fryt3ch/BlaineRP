@@ -1,4 +1,8 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Menu 
+    public class Menu
     {
         private static DateTime LastSwitched;
         private static DateTime LastSent;
@@ -172,7 +176,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("Menu::UpdateAimColor", (object[] args) =>
             {
-                Settings.User.Aim.Color = ((string)args[0]).ToColour();
+                Settings.User.Aim.Color = new Utils.Colour((string)args[0]);
                 Settings.User.Aim.Alpha = args[1] is float ? (float)args[1] : (int)args[1];
             });
             #endregion
@@ -221,7 +225,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("Menu::GetGift", (object[] args) =>
             {
-                var id = Utils.ToUInt32(((string)args[0]).Replace("-gift-btn", ""));
+                var id = Utils.Convert.ToUInt32(((string)args[0]).Replace("-gift-btn", ""));
 
                 if (!LastSent.IsSpam(1000, false, false))
                 {
@@ -235,7 +239,7 @@ namespace BlaineRP.Client.CEF
             {
                 var add = (bool)args[0];
 
-                var id = Utils.ToUInt32(args[1]);
+                var id = Utils.Convert.ToUInt32(args[1]);
 
                 if (add)
                 {
@@ -303,7 +307,7 @@ namespace BlaineRP.Client.CEF
                 { "cid", Locale.Get("SETTING_HIDECIDS") },
                 { "hud", Locale.Get("SETTING_HIDEHUD") },
                 { "quest", Locale.Get("SETTING_HIDEQUEST") },
-            }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
+            }.ToDictionary(x => x.Key, x => Utils.Misc.ReplaceNewLineHtml(x.Value));
 
             var extraDict = new Dictionary<string, string>()
             {
@@ -311,7 +315,7 @@ namespace BlaineRP.Client.CEF
                 { "items", Locale.Get("SETTING_HIDENAMES_ITEMS") },
                 { "reload", Locale.Get("SETTING_AUTORELOAD") },
                 { "finger", Locale.Get("SETTING_FINGERPOINT") },
-            }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
+            }.ToDictionary(x => x.Key, x => Utils.Misc.ReplaceNewLineHtml(x.Value));
 
             CEF.Browser.Window.ExecuteJs("Menu.createManyToggles", "main", mainDict.Select(x => new object[] { x.Key, x.Value }));
 
@@ -320,7 +324,7 @@ namespace BlaineRP.Client.CEF
 
         public static void Show(SectionTypes sType = SectionTypes.Last)
         {
-            if (IsActive || Utils.IsAnyCefActive())
+            if (IsActive || Utils.Misc.IsAnyCefActive())
                 return;
 
             if (LastSwitched.IsSpam(1000, false, false))
@@ -473,9 +477,9 @@ namespace BlaineRP.Client.CEF
 
             properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, x.Data.Class.ToString(), x.Data.GovPrice }));
 
-            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
 
-            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
             properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
 
@@ -510,7 +514,7 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, time.ToString("HH:mm"), $"{player.Name} [#{Utils.ToDecimal(player.GetSharedData<object>("CID", 0))}]", text);
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, time.ToString("HH:mm"), $"{player.Name} [#{Utils.Convert.ToDecimal(player.GetSharedData<object>("CID", 0))}]", text);
             }
         }
 

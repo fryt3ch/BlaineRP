@@ -1,12 +1,11 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using RAGE;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Note 
+    public class Note
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Note);
 

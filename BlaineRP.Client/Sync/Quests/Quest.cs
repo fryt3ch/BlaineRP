@@ -1,9 +1,10 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client.Sync
 {
@@ -220,8 +221,7 @@ namespace BlaineRP.Client.Sync
                     if (mBlip != null)
                     {
                         var coords = mBlip.Position;
-
-                        Utils.SetWaypoint(coords.X, coords.Y);
+                        Misc.SetWaypoint(coords.X, coords.Y);
                     }
                 }
             }

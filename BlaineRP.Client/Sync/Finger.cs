@@ -1,11 +1,14 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Finger 
+    public class Finger
     {
         private static DateTime LastSwitchTime;
         private static DateTime LastSentEntityTime;
@@ -15,21 +18,21 @@ namespace BlaineRP.Client.Sync
 
         public static bool Toggled = false;
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
+        private static PlayerActions.Types[] ActionsToCheck = new PlayerActions.Types[]
         {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
+            PlayerActions.Types.Knocked,
+            PlayerActions.Types.Frozen,
+            PlayerActions.Types.Cuffed,
 
-            Utils.Actions.Crawl,
+            PlayerActions.Types.Crawl,
 
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
+            PlayerActions.Types.Animation,
+            PlayerActions.Types.FastAnimation,
+            PlayerActions.Types.Scenario,
 
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
+            PlayerActions.Types.InWater,
+            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading,
+            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot,
         };
 
         public Finger()
@@ -39,7 +42,7 @@ namespace BlaineRP.Client.Sync
                 if (!Settings.User.Interface.FingerOn)
                     return;
 
-                var entity = Utils.GetEntityPlayerPointsAt(Settings.App.Static.FINGER_POINT_ENTITY_MAX_DISTANCE);
+                var entity = Raycast.GetEntityPedPointsAt(Player.LocalPlayer, Settings.App.Static.FINGER_POINT_ENTITY_MAX_DISTANCE);
 
                 if (entity == null)
                     return;
@@ -67,7 +70,7 @@ namespace BlaineRP.Client.Sync
             if (Toggled)
                 return;
 
-            if (LastSwitchTime.IsSpam(1000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(false, ActionsToCheck))
+            if (LastSwitchTime.IsSpam(1000, false, false) || Utils.Misc.IsAnyCefActive() || PlayerActions.IsAnyActionActive(false, ActionsToCheck))
                 return;
 
             _lastSentEntity = null;

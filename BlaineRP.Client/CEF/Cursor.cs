@@ -1,4 +1,4 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
 
 namespace BlaineRP.Client.CEF
 {
@@ -6,7 +6,7 @@ namespace BlaineRP.Client.CEF
     {
         private static bool ShouldBlockEscMenu()
         {
-            return IsActive || Utils.IsAnyCefActive(true);
+            return IsActive || Misc.IsAnyCefActive(true);
         }
 
         public static bool IsActive { get; private set; }

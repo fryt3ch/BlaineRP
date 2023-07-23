@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +10,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Phone 
+    public class Phone
     {
         public static bool IsActive { get; private set; }
 
@@ -217,7 +220,7 @@ namespace BlaineRP.Client.CEF
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -227,7 +230,7 @@ namespace BlaineRP.Client.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = Utils.ToUInt64(resObj);
+                            balance = Utils.Convert.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -279,7 +282,7 @@ namespace BlaineRP.Client.CEF
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -289,7 +292,7 @@ namespace BlaineRP.Client.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = Utils.ToUInt64(resObj);
+                            balance = Utils.Convert.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -341,7 +344,7 @@ namespace BlaineRP.Client.CEF
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -351,7 +354,7 @@ namespace BlaineRP.Client.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = Utils.ToUInt64(resObj);
+                            balance = Utils.Convert.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -403,7 +406,7 @@ namespace BlaineRP.Client.CEF
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -413,7 +416,7 @@ namespace BlaineRP.Client.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = Utils.ToUInt64(resObj);
+                            balance = Utils.Convert.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -659,7 +662,7 @@ namespace BlaineRP.Client.CEF
                     if (resObj == null)
                         return;
 
-                    var res = Utils.ToUInt32(resObj);
+                    var res = Utils.Convert.ToUInt32(resObj);
 
                     CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bsim-app-info", 1, res);
                 }
@@ -803,7 +806,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (appType == AppTypes.Camera)
                 {
-                    if (Sync.Phone.CanUsePhoneAnim(true) && Utils.CanDoSomething(true, Utils.Actions.InVehicle))
+                    if (Sync.Phone.CanUsePhoneAnim(true) && !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
                     {
                         PhoneApps.CameraApp.Show();
                     }

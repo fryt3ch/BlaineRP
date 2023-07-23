@@ -1,9 +1,7 @@
-﻿using RAGE;
-
-namespace BlaineRP.Client.Additional
+﻿namespace BlaineRP.Client.Additional
 {
     [Script(int.MaxValue)]
-    public class Discord 
+    public class Discord
     {
         public const int StatusUpdateTime = 5_000;
 
@@ -24,7 +22,7 @@ namespace BlaineRP.Client.Additional
             if (header != null)
                 _currentHeader = header;
 
-            RAGE.Discord.Update(_currentContent,_currentHeader);
+            RAGE.Discord.Update(_currentContent, _currentHeader);
         }
 
         public static void SetDefault()

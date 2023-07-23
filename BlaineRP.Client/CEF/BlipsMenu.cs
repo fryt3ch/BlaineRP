@@ -1,15 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class BlipsMenu 
+    public class BlipsMenu
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.BlipsMenu); }
 
@@ -65,7 +65,7 @@ namespace BlaineRP.Client.CEF
 
                 if (state)
                 {
-                    Blip = new Additional.ExtraBlip((uint)Sprite, Position, Name, Scale, Colour, (int)Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
+                    Blip = new Additional.ExtraBlip((uint)Sprite, Position, Name, Scale, Colour, (int)System.Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
                 }
                 else
                 {
@@ -291,7 +291,7 @@ namespace BlaineRP.Client.CEF
 
                 if (aId == "color")
                 {
-                    CurrentColour = Utils.ToByte(args[2]);
+                    CurrentColour = Utils.Convert.ToByte(args[2]);
                 }
                 else if (aId == "icon")
                 {
@@ -306,7 +306,7 @@ namespace BlaineRP.Client.CEF
                     CurrentAlpha = args[2] is int ? (float)(int)args[2] : (float)args[2];
                 }
 
-                var blip = new Additional.ExtraBlip((uint)CurrentSprite, TempBlip.Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange, 0, 0f, uint.MaxValue);
+                var blip = new Additional.ExtraBlip((uint)CurrentSprite, TempBlip.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange, 0, 0f, uint.MaxValue);
 
                 TempBlip.Destroy();
 
@@ -322,7 +322,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Utils.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             CEF.Browser.Switch(Browser.IntTypes.BlipsMenu, true);
@@ -338,11 +338,11 @@ namespace BlaineRP.Client.CEF
 
             if (WasCreating)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
             }
             else if (LastEdited != -1)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.User.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.User.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
             }
 
             CEF.Cursor.Show(true, true);
@@ -350,7 +350,7 @@ namespace BlaineRP.Client.CEF
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
-            var waypointBlip = Utils.GetWaypointBlip();
+            var waypointBlip = Misc.GetWaypointBlip();
 
             if (RAGE.Game.Ui.DoesBlipExist(playerBlip))
                 RAGE.Game.Ui.SetBlipDisplay(playerBlip, 0);
@@ -403,7 +403,7 @@ namespace BlaineRP.Client.CEF
             }
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
-            var waypointBlip = Utils.GetWaypointBlip();
+            var waypointBlip = Misc.GetWaypointBlip();
 
             if (RAGE.Game.Ui.DoesBlipExist(playerBlip))
                 RAGE.Game.Ui.SetBlipDisplay(playerBlip, 2);

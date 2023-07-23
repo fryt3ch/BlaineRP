@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +10,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Gas 
+    public class Gas
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
 
@@ -90,7 +93,7 @@ namespace BlaineRP.Client.CEF
 
             var vehIsPetrol = vDataData.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol;
 
-            var maxFuel = (int)Math.Floor(vDataData.Tank - vData.FuelLevel);
+            var maxFuel = (int)System.Math.Floor(vDataData.Tank - vData.FuelLevel);
 
             if (maxFuel == 0)
             {
@@ -145,7 +148,7 @@ namespace BlaineRP.Client.CEF
                         }
                         else
                         {
-                            var fuelAmount = allGasItems.Where(x => x.Item1 == id).Select(x => Math.Min(x.Item3, maxFuel)).FirstOrDefault();
+                            var fuelAmount = allGasItems.Where(x => x.Item1 == id).Select(x => System.Math.Min(x.Item3, maxFuel)).FirstOrDefault();
 
                             if (fuelAmount > 0)
                             {
@@ -190,7 +193,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var item = allGasItems[0];
 
-                    var maxFuel1 = Math.Min(item.Item3, maxFuel);
+                    var maxFuel1 = System.Math.Min(item.Item3, maxFuel);
 
                     await CEF.ActionBox.ShowRange
                     (
@@ -254,7 +257,7 @@ namespace BlaineRP.Client.CEF
             if (res == null)
                 return;
 
-            Show(Utils.ToDecimal(res));
+            Show(Utils.Convert.ToDecimal(res));
         }
 
         public static async System.Threading.Tasks.Task Show(decimal margin)
@@ -267,7 +270,7 @@ namespace BlaineRP.Client.CEF
             if (vData == null || vData.Data == null)
                 return;
 
-            var maxFuel = (int)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
+            var maxFuel = (int)System.Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
 
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
@@ -276,7 +279,7 @@ namespace BlaineRP.Client.CEF
                 CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("SHOP_GAS_FRACTION_INFO"));
             }
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

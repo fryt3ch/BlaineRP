@@ -1,11 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BlaineRP.Client.Data.Fractions
@@ -20,7 +23,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var pos = lockerPoses[i];
 
-                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var lockerRoomCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract,
 
@@ -43,7 +46,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                 pos.Z -= 1f;
 
-                var arrestMenuCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var arrestMenuCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = Additional.ExtraColshape.InteractionTypes.FractionPoliceArrestMenuInteract,
 
@@ -160,11 +163,11 @@ namespace BlaineRP.Client.Data.Fractions
 
             if (Type == Types.COP_BLAINE)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_BLAINE });
+                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_BLAINE });
             }
             else if (Type == Types.COP_LS)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_LS });
+                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_LS });
             }
 
             foreach (var x in arrestCs)
@@ -301,11 +304,11 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 if (cuffState)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Utils.GetPlayerName(player, true, false, true)));
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Players.GetPlayerName(player, true, false, true)));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Players.GetPlayerName(player, true, false, true)));
                 }
             }
         }
@@ -347,7 +350,7 @@ namespace BlaineRP.Client.Data.Fractions
                     return;
                 }
 
-                if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                     return;
             }
             else
@@ -371,14 +374,14 @@ namespace BlaineRP.Client.Data.Fractions
 
             if (res == byte.MaxValue)
             {
-/*                if (escortState)
-                {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Utils.GetPlayerName(player, true, false, true)));
-                }
-                else
-                {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
-                }*/
+                /*                if (escortState)
+                                {
+                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Utils.GetPlayerName(player, true, false, true)));
+                                }
+                                else
+                                {
+                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
+                                }*/
             }
         }
 
@@ -407,7 +410,7 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             await CEF.Documents.ShowPoliceBlank(true, $"{fData.Name}", $"{player.Name}", $"{Player.LocalPlayer.Name}", Sync.World.ServerTime.ToString("dd.MM.yyyy HH:mm"), new string[] { "", "", "", Locale.Get(fData is Data.Fractions.Prison ? "POLICE_ARREST_TIME_L_1" : "POLICE_ARREST_TIME_L_0") }, async (args) =>
@@ -505,7 +508,7 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.HasItemInHands, PlayerActions.Types.IsAttachedTo))
                 return;
 
             await CEF.ActionBox.ShowSelect("PoliceGPSTrackerDepSelect", Locale.Get("POLICE_GPSTR_0"), new (decimal Id, string Text)[] { (0, Locale.Get("POLICE_GPSTR_1")), (1, Locale.Get("POLICE_GPSTR_2")) }, null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
@@ -528,7 +531,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                 if (res != null)
                 {
-                    var resId = Utils.ToDecimal(res);
+                    var resId = Utils.Convert.ToDecimal(res);
 
                     CEF.ActionBox.Close(true);
 
@@ -539,7 +542,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerFine(Player player)
         {
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             await CEF.ActionBox.ShowInputWithText("PolicePlayerFine", "Выписать штраф", "Введите сумму, на которую вы хотите оштрафовать гражданина и причину.\n\nПример: 500, Езда по встречной полосе", 100, "", null, null, CEF.ActionBox.DefaultBindAction, (rType, str) =>
@@ -585,7 +588,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerRemoveLicense(Player player, List<Sync.Players.LicenseTypes> licenses = null)
         {
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             if (licenses == null)
@@ -670,7 +673,7 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             var res = await Events.CallRemoteProc("Police::PlayerSearch", player, args == null ? -1 : -2);
@@ -861,7 +864,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void VehicleSearch(Vehicle vehicle, object[] args = null)
         {
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             var res = await Events.CallRemoteProc("Police::VehicleSearch", vehicle, args == null ? -1 : -2);
@@ -877,7 +880,7 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            await CEF.ActionBox.ShowSelect("PoliceVehicleSearchOptSelect", Locale.Get("POLICE_VSEARCH_L_0", Utils.GetVehicleName(vehicle, 1)), ((JArray)res).ToObject<List<int>>().OrderBy(x => x).Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_O_{x}"))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            await CEF.ActionBox.ShowSelect("PoliceVehicleSearchOptSelect", Locale.Get("POLICE_VSEARCH_L_0", Utils.Game.Vehicles.GetVehicleName(vehicle, 1)), ((JArray)res).ToObject<List<int>>().OrderBy(x => x).Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_O_{x}"))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
             {
                 if (rType != CEF.ActionBox.ReplyTypes.OK)
                 {
@@ -930,7 +933,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     async void showSelectItemToConfiscate()
                     {
-                        await CEF.ActionBox.ShowSelect("PoliceVehicleSearchItems", Locale.Get("POLICE_VSEARCH_L_1", Utils.GetVehicleName(vehicle, 1)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), CEF.ActionBox.DefaultBindAction, async (rType, itemUid) =>
+                        await CEF.ActionBox.ShowSelect("PoliceVehicleSearchItems", Locale.Get("POLICE_VSEARCH_L_1", Utils.Game.Vehicles.GetVehicleName(vehicle, 1)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), CEF.ActionBox.DefaultBindAction, async (rType, itemUid) =>
                         {
                             if (rType != CEF.ActionBox.ReplyTypes.OK)
                             {
@@ -1071,7 +1074,7 @@ namespace BlaineRP.Client.Data.Fractions
                 var seatIdx = (int)id;
 
                 var res = (int)await Events.CallRemoteProc("Police::FPTV", vehicle, (byte)seatIdx);
-                
+
                 if (res == 255)
                 {
                     CEF.ActionBox.Close(true);
@@ -1111,7 +1114,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             for (int i = 0; i < vehicle.GetMaxNumberOfPassengers(); i++)
             {
-                var player = Utils.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0), true);
+                var player = Utils.Game.Misc.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0), true);
 
                 if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
                     players.Add(player);
@@ -1271,7 +1274,7 @@ namespace BlaineRP.Client.Data.Fractions
     }
 
     [Script(int.MaxValue)]
-    public class PoliceEvents 
+    public class PoliceEvents
     {
         public PoliceEvents()
         {
@@ -1287,7 +1290,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (arrests == null)
                     return;
 
-                var id = Utils.ToUInt32(args[0]);
+                var id = Utils.Convert.ToUInt32(args[0]);
 
                 if (args.Length == 1)
                 {
@@ -1310,7 +1313,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
                 else
                 {
-                    var data = new Police.ArrestInfo() { Id = id, MemberName = (string)args[1], TargetName = (string)args[2], Time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[3])).DateTime };
+                    var data = new Police.ArrestInfo() { Id = id, MemberName = (string)args[1], TargetName = (string)args[2], Time = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[3])).DateTime };
 
                     arrests.Add(data);
 
@@ -1335,9 +1338,9 @@ namespace BlaineRP.Client.Data.Fractions
 
                 var member = (string)args[0];
                 var target = (string)args[1];
-                var amount = Utils.ToUInt32(args[2]);
+                var amount = Utils.Convert.ToUInt32(args[2]);
                 var reason = (string)args[3];
-                var time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).DateTime;
+                var time = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[4])).DateTime;
 
                 var fine = new Police.FineInfo() { Amount = amount, Member = member, Reason = reason, Target = target, Time = time, };
 
@@ -1369,7 +1372,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (calls == null)
                     return;
 
-                var rid = Utils.ToUInt16(args[0]);
+                var rid = Utils.Convert.ToUInt16(args[0]);
 
                 if (args.Length < 4)
                 {
@@ -1389,7 +1392,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
                 else
                 {
-                    var call = new Police.CallInfo() { Type = Utils.ToByte(args[1]), Time = Sync.World.ServerTime, Message = (string)args[2], Position = (Vector3)args[3], Player = RAGE.Elements.Entities.Players.GetAtRemote(rid) };
+                    var call = new Police.CallInfo() { Type = Utils.Convert.ToByte(args[1]), Time = Sync.World.ServerTime, Message = (string)args[2], Position = (Vector3)args[3], Player = RAGE.Elements.Entities.Players.GetAtRemote(rid) };
 
                     calls.Add(call);
 
@@ -1418,7 +1421,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (apbs == null)
                     return;
 
-                var uid = Utils.ToUInt32(args[0]);
+                var uid = Utils.Convert.ToUInt32(args[0]);
 
                 if (args.Length < 4)
                 {
@@ -1472,7 +1475,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (trackers == null)
                     return;
 
-                var uid = Utils.ToUInt32(args[0]);
+                var uid = Utils.Convert.ToUInt32(args[0]);
 
                 if (args.Length < 3)
                 {
@@ -1521,7 +1524,7 @@ namespace BlaineRP.Client.Data.Fractions
                 if (notifics == null)
                     return;
 
-                var uid = Utils.ToUInt16(args[0]);
+                var uid = Utils.Convert.ToUInt16(args[0]);
 
                 if (args.Length < 3)
                 {

@@ -21,7 +21,7 @@ namespace BlaineRP.Client.Data.Jobs
         {
             base.OnStartJob(data);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.ToUInt16(data[0])));
+            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()
@@ -52,7 +52,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             await CEF.ActionBox.ShowSelect
             (
-                "JobBusDriverRouteSelect", Locale.Actions.JobVehicleRouteSelectTitle, Routes.Select(x => ((decimal)counter, string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Utils.GetPriceString(x.Reward), Math.Round(dict[counter++] / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
+                "JobBusDriverRouteSelect", Locale.Actions.JobVehicleRouteSelectTitle, Routes.Select(x => ((decimal)counter, string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Locale.Get("GEN_MONEY_0", x.Reward), System.Math.Round(dict[counter++] / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
 
                 () =>
                 {

@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using RAGE;
 using RAGE.Elements;
 using System.Linq;
 using static BlaineRP.Client.Data.Dialogue;
@@ -6,7 +7,7 @@ using static BlaineRP.Client.Data.Dialogue;
 namespace BlaineRP.Client.Data.NPCDialogues
 {
     [Script(int.MaxValue)]
-    public class Shop 
+    public class Shop
     {
         public Shop()
         {

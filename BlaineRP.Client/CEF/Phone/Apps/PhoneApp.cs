@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -9,7 +12,7 @@ using static BlaineRP.Client.CEF.Phone;
 namespace BlaineRP.Client.CEF.PhoneApps
 {
     [Script(int.MaxValue)]
-    public class PhoneApp 
+    public class PhoneApp
     {
         private static AsyncTask ActiveCallUpdateTask { get; set; }
 
@@ -30,7 +33,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     if (res == null)
                         return;
 
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.Money.PhoneBalanceInfo, pData.PhoneNumber, Utils.GetPriceString(decimal.Parse(res[0])), Utils.GetPriceString(decimal.Parse(res[1])), Utils.GetPriceString(decimal.Parse(res[2]))));
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.Money.PhoneBalanceInfo, pData.PhoneNumber, Locale.Get("GEN_MONEY_0", decimal.Parse(res[0])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[1])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[2]))));
                 }
             },
 
@@ -111,7 +114,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                                 return;
                             }
 
-                            var res = Utils.ToByte(await Events.CallRemoteProc("Police::Call", str));
+                            var res = Utils.Convert.ToByte(await Events.CallRemoteProc("Police::Call", str));
 
                             if (res == 255)
                             {
@@ -134,7 +137,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                                 Additional.ExtraColshape cs2 = null;
 
-                                cs1 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.App.Static.MainDimension)
+                                cs1 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Misc.RedColor, Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -382,7 +385,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     }
                     else
                     {
-                        var callInfo = new CallInfo(false, Utils.ToUInt32(args[1]));
+                        var callInfo = new CallInfo(false, Utils.Convert.ToUInt32(args[1]));
 
                         pData.ActiveCall = callInfo;
 
@@ -481,7 +484,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             Events.Add("PoliceCall::Cancel", (args) =>
             {
-                var reason = Utils.ToInt32(args[0]);
+                var reason = Utils.Convert.ToInt32(args[0]);
 
                 var cs = Player.LocalPlayer.GetData<Additional.ExtraColshape>("PoliceCallWaitCs");
 

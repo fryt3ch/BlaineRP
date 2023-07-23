@@ -1,11 +1,19 @@
-﻿using Newtonsoft.Json.Linq;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
-using System.Reflection;
-using BlaineRP.Client.CEF;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class Vehicles 
+    public class Vehicles
     {
         #region Last Times
         private static DateTime LastBeltToggled;
@@ -161,9 +169,9 @@ namespace BlaineRP.Client.Sync
 
             public float Mileage { get => Vehicle.GetData<float?>("Mileage") ?? 0f; set => Vehicle.SetData("Mileage", value); }
 
-            public uint VID => Utils.ToUInt32(Vehicle.GetSharedData<object>("VID", 0));
+            public uint VID => Utils.Convert.ToUInt32(Vehicle.GetSharedData<object>("VID", 0));
 
-            public uint TID => Utils.ToUInt32(Vehicle.GetSharedData<object>("TID", 0));
+            public uint TID => Utils.Convert.ToUInt32(Vehicle.GetSharedData<object>("TID", 0));
 
             public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
 
@@ -331,7 +339,7 @@ namespace BlaineRP.Client.Sync
                 if (pData == null)
                     return;
 
-                foreach (var x in Utils.GetVehiclesOnScreen(5))
+                foreach (var x in Utils.Game.Misc.GetVehiclesOnScreen(5))
                 {
                     var data = GetData(x);
 
@@ -343,23 +351,23 @@ namespace BlaineRP.Client.Sync
                     if (Vector3.Distance(pos, Player.LocalPlayer.Position) > 10f)
                         continue;
 
-                    if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
+                    if (!Graphics.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         continue;
 
                     if (Settings.User.Other.DebugLabels)
                     {
                         if (pData.AdminLevel > -1)
                         {
-                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == 0 ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"EHP: {x.GetEngineHealth()} | BHP: {x.GetBodyHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"Speed: {x.GetSpeedKm().ToString("0.00")} | ForcedSpeed: {(data.ForcedSpeed * 3.6f).ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == 0 ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"EHP: {x.GetEngineHealth()} | BHP: {x.GetBodyHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"Speed: {x.GetSpeedKm().ToString("0.00")} | ForcedSpeed: {(data.ForcedSpeed * 3.6f).ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                         else
                         {
-                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Utils.DrawText($"EngineHP: {x.GetEngineHealth()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"ID: {x.RemoteId} | VID: {data.VID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"EngineHP: {x.GetEngineHealth()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -592,19 +600,19 @@ namespace BlaineRP.Client.Sync
 
                 if (state)
                 {
-/*                    veh.SetDoorsLocked(2);
-                    veh.SetDoorsLockedForAllPlayers(true);
+                    /*                    veh.SetDoorsLocked(2);
+                                        veh.SetDoorsLockedForAllPlayers(true);
 
-                    veh.SetDoorsLockedForPlayer(Player.LocalPlayer.Handle, true);*/
+                                        veh.SetDoorsLockedForPlayer(Player.LocalPlayer.Handle, true);*/
 
                     RAGE.Game.Audio.PlaySoundFromEntity(-1, "Remote_Control_Close", veh.Handle, "PI_Menu_Sounds", true, 0);
                 }
                 else
                 {
-/*                    veh.SetDoorsLocked(1);
-                    veh.SetDoorsLockedForAllPlayers(false);
+                    /*                    veh.SetDoorsLocked(1);
+                                        veh.SetDoorsLockedForAllPlayers(false);
 
-                    veh.SetDoorsLockedForPlayer(Player.LocalPlayer.Handle, false);*/
+                                        veh.SetDoorsLockedForPlayer(Player.LocalPlayer.Handle, false);*/
 
                     RAGE.Game.Audio.PlaySoundFromEntity(-1, "Remote_Control_Open", veh.Handle, "PI_Menu_Sounds", true, 0);
                 }
@@ -617,7 +625,7 @@ namespace BlaineRP.Client.Sync
             {
                 var veh = vData.Vehicle;
 
-                var state = Utils.ToByte(value);
+                var state = Utils.Convert.ToByte(value);
 
                 if (state == 0)
                 {
@@ -733,7 +741,6 @@ namespace BlaineRP.Client.Sync
                 var veh = vData.Vehicle;
 
                 var colour = (int?)value;
-
                 veh.SetXenonColour(colour < -1 ? null : colour);
             });
 
@@ -742,7 +749,6 @@ namespace BlaineRP.Client.Sync
                 var veh = vData.Vehicle;
 
                 var colour = (int)value;
-
                 veh.SetColourType(colour);
             });
 
@@ -775,13 +781,13 @@ namespace BlaineRP.Client.Sync
 
             AddDataHandler("DirtLevel", (vData, value, oldValue) =>
             {
-                vData.Vehicle.SetDirtLevel(Utils.ToSingle(value));
+                vData.Vehicle.SetDirtLevel(Utils.Convert.ToSingle(value));
             });
             #endregion
 
             Events.Add("Vehicles::Garage::SlotsMenu", async (args) =>
             {
-                if (Utils.IsAnyCefActive(true))
+                if (Utils.Misc.IsAnyCefActive(true))
                     return;
 
                 var freeSlots = ((JArray)args[0]).ToObject<List<int>>();
@@ -896,7 +902,7 @@ namespace BlaineRP.Client.Sync
 
                 var timeout = (int)args[2];
 
-                Utils.CancelPendingTask("Vehicles::WTS");
+                AsyncTask.Methods.CancelPendingTask("Vehicles::WTS");
 
                 AsyncTask task = null;
 
@@ -904,11 +910,11 @@ namespace BlaineRP.Client.Sync
                 {
                     var time = Sync.World.ServerTime;
 
-                    while (Utils.IsTaskStillPending("Vehicles::WTS", task) && Sync.World.ServerTime.Subtract(time).TotalMilliseconds <= timeout)
+                    while (AsyncTask.Methods.IsTaskStillPending("Vehicles::WTS", task) && Sync.World.ServerTime.Subtract(time).TotalMilliseconds <= timeout)
                     {
                         await RAGE.Game.Invoker.WaitAsync(50);
 
-                        if (!Utils.IsTaskStillPending("Vehicles::WTS", task))
+                        if (!AsyncTask.Methods.IsTaskStillPending("Vehicles::WTS", task))
                             return;
 
                         if (Additional.SkyCamera.IsFadedOut || veh?.Exists != true)
@@ -916,7 +922,7 @@ namespace BlaineRP.Client.Sync
 
                         if (Player.LocalPlayer.Vehicle == veh)
                         {
-                            Utils.CancelPendingTask("Vehicles::WTS");
+                            AsyncTask.Methods.CancelPendingTask("Vehicles::WTS");
 
                             return;
                         }
@@ -927,15 +933,15 @@ namespace BlaineRP.Client.Sync
                         }
                     }
 
-                    Utils.CancelPendingTask("Vehicles::WTS");
+                    AsyncTask.Methods.CancelPendingTask("Vehicles::WTS");
                 }, 25, false, 0);
 
-                Utils.SetTaskAsPending("Vehicles::WTS", task);
+                AsyncTask.Methods.SetAsPending(task, "Vehicles::WTS");
             });
 
             Events.Add("Vehicles::JVRO", async (args) =>
             {
-                var rentPrice = Utils.ToDecimal(args[0]);
+                var rentPrice = Utils.Convert.ToDecimal(args[0]);
 
                 var vehicle = Player.LocalPlayer.Vehicle;
 
@@ -949,7 +955,7 @@ namespace BlaineRP.Client.Sync
 
                 await CEF.ActionBox.ShowMoney
                 (
-                    "JobVehicleRentMoney", Locale.Actions.JobVehicleRentTitle, string.Format(Locale.Actions.JobVehicleRentText, $"{vData.Data.Name} [{(vehicle.GetNumberplateText() ?? "null")}]", Utils.GetPriceString(rentPrice)),
+                    "JobVehicleRentMoney", Locale.Actions.JobVehicleRentTitle, string.Format(Locale.Actions.JobVehicleRentText, $"{vData.Data.Name} [{(vehicle.GetNumberplateText() ?? "null")}]", Locale.Get("GEN_MONEY_0", rentPrice)),
 
                     () =>
                     {
@@ -1079,13 +1085,13 @@ namespace BlaineRP.Client.Sync
 
                 if (speed < Settings.App.Static.MIN_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MinSpeed, Math.Floor(Settings.App.Static.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MinSpeed, System.Math.Floor(Settings.App.Static.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
                 else if (speed > Settings.App.Static.MAX_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MaxSpeed, Math.Floor(Settings.App.Static.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MaxSpeed, System.Math.Floor(Settings.App.Static.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
@@ -1111,7 +1117,7 @@ namespace BlaineRP.Client.Sync
 
             var rotVect = veh.GetRotationVelocity();
 
-            if (veh.GetHeightAboveGround() > 1f || Math.Abs(rotVect.Z) > 1.5f)
+            if (veh.GetHeightAboveGround() > 1f || System.Math.Abs(rotVect.Z) > 1.5f)
             {
                 Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Danger, 2500);
 
@@ -1151,7 +1157,9 @@ namespace BlaineRP.Client.Sync
         {
             if (!ignoreIf)
             {
-                if (Player.LocalPlayer.Vehicle?.Exists != true || !Utils.IsCar(Player.LocalPlayer.Vehicle))
+                var vehicle = Player.LocalPlayer.Vehicle;
+
+                if (vehicle?.Exists != true || Data.Vehicles.GetByModel(vehicle.Model)?.Type != Data.Vehicles.Vehicle.Types.Car)
                     return;
 
                 if (LastBeltToggled.IsSpam(1000, false, false))
@@ -1196,7 +1204,7 @@ namespace BlaineRP.Client.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
+                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.Game.Vehicles.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1390,7 +1398,7 @@ namespace BlaineRP.Client.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
+                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.Game.Vehicles.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1445,7 +1453,7 @@ namespace BlaineRP.Client.Sync
                 vehicle = Player.LocalPlayer.Vehicle;
 
                 if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
+                    vehicle = Interaction.CurrentEntity as Vehicle ?? Utils.Game.Vehicles.GetClosestVehicle(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance);
             }
 
             if (vehicle?.Exists != true)
@@ -1651,13 +1659,13 @@ namespace BlaineRP.Client.Sync
 
             if (veh == null)
             {
-                veh = Utils.GetClosestVehicleToSeatIn(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance, seatId);
+                veh = Utils.Game.Vehicles.GetClosestVehicleToSeatIn(Player.LocalPlayer.Position, Settings.App.Static.EntityInteractionMaxDistance, seatId);
 
                 if (veh == null)
                     return;
             }
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.PushingVehicle, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.Scenario, PlayerActions.Types.FastAnimation, PlayerActions.Types.InVehicle, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot, PlayerActions.Types.IsSwimming, PlayerActions.Types.IsAttachedTo))
                 return;
 
             if (veh.IsDead(0))
@@ -1676,8 +1684,7 @@ namespace BlaineRP.Client.Sync
             Player.LocalPlayer.SetData("TEV::V", veh);
             Player.LocalPlayer.SetData("TEV::S", seatId);
             Player.LocalPlayer.SetData("TEV::T", Sync.World.ServerTime);
-
-            Utils.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, -1, seatId - 1, 1.5f, 1, 0);
+            Invoker.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, -1, seatId - 1, 1.5f, 1, 0);
 
             GameEvents.Render -= EnterVehicleRender;
             GameEvents.Render += EnterVehicleRender;
@@ -1691,7 +1698,7 @@ namespace BlaineRP.Client.Sync
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
             var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
-            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.App.Static.EntityInteractionMaxDistance || timePassed > 7500 || (timePassed > 1_000 && Utils.AnyOnFootMovingControlJustPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.App.Static.EntityInteractionMaxDistance || timePassed > 7500 || (timePassed > 1_000 && Utils.Game.Misc.AnyOnFootMovingControlJustPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
                 if (tStatus != 7)
                     Player.LocalPlayer.ClearTasks();
@@ -1798,7 +1805,7 @@ namespace BlaineRP.Client.Sync
                 if (handle <= 0)
                     continue;
 
-                var player = Utils.GetPlayerByHandle(handle, true);
+                var player = Utils.Game.Misc.GetPlayerByHandle(handle, true);
 
                 if (player == null)
                     continue;
@@ -1839,9 +1846,9 @@ namespace BlaineRP.Client.Sync
                     {
                         var curPos = veh.GetCoords(false);
 
-                        var dist = Math.Round(Math.Abs(Vector3.Distance(lastPos, curPos)), 2);
+                        var dist = System.Math.Round(System.Math.Abs(Vector3.Distance(lastPos, curPos)), 2);
                         var fuelDiff = 0.001f * dist;
-                        var dirtLevel = (byte)Math.Round(veh.GetDirtLevel());
+                        var dirtLevel = (byte)System.Math.Round(veh.GetDirtLevel());
 
                         if (dirtLevel > 15)
                             dirtLevel = 15;
@@ -2045,7 +2052,7 @@ namespace BlaineRP.Client.Sync
 
                 if (blip != null)
                 {
-                    var wBlip = Utils.GetWaypointBlip();
+                    var wBlip = Utils.Game.Misc.GetWaypointBlip();
 
                     if (wBlip > 0)
                         RAGE.Game.Ui.SetBlipRoute(wBlip, true);
@@ -2179,7 +2186,7 @@ namespace BlaineRP.Client.Sync
             if (pHandle == Player.LocalPlayer.Handle)
                 return;
 
-            var driver = Utils.GetPlayerByHandle(pHandle, true);
+            var driver = Utils.Game.Misc.GetPlayerByHandle(pHandle, true);
 
             if (driver?.Exists != true)
                 return;
@@ -2222,7 +2229,7 @@ namespace BlaineRP.Client.Sync
                             {
                                 if (!veh.IsInWater() && !trVeh.IsInWater())
                                 {
-                                    var wPos = Utils.FindEntityWaterIntersectionCoord(veh, new Vector3(0f, 0f, 2.5f), 10f, 1.5f, -7.5f, 45f, 0.5f, 31);
+                                    var wPos = Raycast.FindEntityWaterIntersectionCoord(veh, new Vector3(0f, 0f, 2.5f), 10f, 1.5f, -7.5f, 45f, 0.5f, 31);
 
                                     if (wPos != null)
                                     {

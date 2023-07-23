@@ -1,9 +1,6 @@
-﻿using System;
+﻿using BlaineRP.Server;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using BlaineRP.Server;
-using static BlaineRP.Server.Game.Bank;
 
 namespace BlaineRP.Server.Events.NPC
 {

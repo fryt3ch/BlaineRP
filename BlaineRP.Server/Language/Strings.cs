@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlaineRP.Server.Language
+﻿namespace BlaineRP.Server.Language
 {
     public static class Strings
     {

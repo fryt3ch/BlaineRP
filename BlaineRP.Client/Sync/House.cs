@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -9,7 +12,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class House 
+    public class House
     {
         public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 
@@ -162,7 +165,7 @@ namespace BlaineRP.Client.Sync
             {
                 var taskKey = "GarageEnter";
 
-                Utils.CancelPendingTask(taskKey);
+                AsyncTask.Methods.CancelPendingTask(taskKey);
 
                 AsyncTask task = null;
 
@@ -171,7 +174,7 @@ namespace BlaineRP.Client.Sync
                     while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                    if (!Utils.IsTaskStillPending(taskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         return;
 
                     Sync.Players.CloseAll(false);
@@ -180,24 +183,24 @@ namespace BlaineRP.Client.Sync
 
                     var style = Data.Locations.Garage.Style.Get(garage.Type, garage.Variation);
 
-                    var gExitCs = new Additional.Cylinder(new Vector3(style.EnterPosition.X, style.EnterPosition.Y, style.EnterPosition.Z - 1f), 1f, 2f, false, Utils.RedColor, Player.LocalPlayer.Dimension, null)
+                    var gExitCs = new Additional.Cylinder(new Vector3(style.EnterPosition.X, style.EnterPosition.Y, style.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, Player.LocalPlayer.Dimension, null)
                     {
                         InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
                     };
 
                     TempColshapes.Add(gExitCs);
 
-                    Utils.CancelPendingTask(taskKey);
+                    AsyncTask.Methods.CancelPendingTask(taskKey);
                 });
 
-                Utils.SetTaskAsPending(taskKey, task);
+                AsyncTask.Methods.SetAsPending(task, taskKey);
             });
 
             Events.Add("Garage::Exit", (args) =>
             {
                 var taskKey = "GarageEnter";
 
-                Utils.CancelPendingTask(taskKey);
+                AsyncTask.Methods.CancelPendingTask(taskKey);
 
                 foreach (var x in TempColshapes)
                     x?.Destroy();
@@ -209,7 +212,7 @@ namespace BlaineRP.Client.Sync
             {
                 var taskKey = "ARootEnter";
 
-                Utils.CancelPendingTask(taskKey);
+                AsyncTask.Methods.CancelPendingTask(taskKey);
 
                 AsyncTask task = null;
 
@@ -220,14 +223,14 @@ namespace BlaineRP.Client.Sync
                     if (pData == null)
                         return;
 
-                    var arId = Utils.ToUInt32(args[0]);
+                    var arId = Utils.Convert.ToUInt32(args[0]);
 
                     var aRoot = Data.Locations.ApartmentsRoot.All[arId];
 
                     while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                    if (!Utils.IsTaskStillPending(taskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         return;
 
                     aRoot.Load();
@@ -238,17 +241,17 @@ namespace BlaineRP.Client.Sync
                         if (x?.RootId == arId)
                             x.ToggleOwnerBlip(true);
 
-                    Utils.CancelPendingTask(taskKey);
+                    AsyncTask.Methods.CancelPendingTask(taskKey);
                 });
 
-                Utils.SetTaskAsPending(taskKey, task);
+                AsyncTask.Methods.SetAsPending(task, taskKey);
             });
 
             Events.Add("ARoot::Exit", (args) =>
             {
                 var taskKey = "ARootEnter";
 
-                Utils.CancelPendingTask(taskKey);
+                AsyncTask.Methods.CancelPendingTask(taskKey);
 
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -292,7 +295,7 @@ namespace BlaineRP.Client.Sync
 
                     var hType = (HouseTypes)(int)data["T"];
 
-                    var sType = Utils.ToUInt16(data["S"]);
+                    var sType = Utils.Convert.ToUInt16(data["S"]);
 
                     var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
                     var lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);
@@ -301,10 +304,10 @@ namespace BlaineRP.Client.Sync
 
                     var style = Style.Get(sType);
 
-                    while (Additional.SkyCamera.IsFadedOut && Utils.IsTaskStillPending(taskKey, task))
+                    while (Additional.SkyCamera.IsFadedOut && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                    if (!Utils.IsTaskStillPending(taskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         return;
 
                     Additional.SkyCamera.FadeScreen(true, 0, -1);
@@ -320,10 +323,10 @@ namespace BlaineRP.Client.Sync
                         return;
                     }
 
-                    while (!RAGE.Game.Interior.IsInteriorReady(interior) && Utils.IsTaskStillPending(taskKey, task))
+                    while (!RAGE.Game.Interior.IsInteriorReady(interior) && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         await RAGE.Game.Invoker.WaitAsync(5);
 
-                    if (!Utils.IsTaskStillPending(taskKey, task))
+                    if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                     {
                         onStopTask();
 
@@ -364,11 +367,11 @@ namespace BlaineRP.Client.Sync
 
                         int handle = 0;
 
-                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending(taskKey, task))
+                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0 && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         {
                             await RAGE.Game.Invoker.WaitAsync(5);
 
-                            if (!Utils.IsTaskStillPending(taskKey, task))
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             {
                                 onStopTask();
 
@@ -376,7 +379,7 @@ namespace BlaineRP.Client.Sync
                             }
                         }
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         {
                             onStopTask();
 
@@ -417,14 +420,14 @@ namespace BlaineRP.Client.Sync
                         {
                             if (t.GetData<bool>("DoorState"))
                             {
-                                Utils.DrawText(doorLockedStr, x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Graphics.DrawText(doorLockedStr, x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                             else
                             {
-                                Utils.DrawText(doorNotLockedStr, x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Graphics.DrawText(doorNotLockedStr, x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
 
-                            Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            Graphics.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }));
                     }
 
@@ -445,11 +448,11 @@ namespace BlaineRP.Client.Sync
 
                             int handle = 0;
 
-                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending(taskKey, task))
+                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0 && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 {
                                     onStopTask();
 
@@ -457,7 +460,7 @@ namespace BlaineRP.Client.Sync
                                 }
                             }
 
-                            if (!Utils.IsTaskStillPending(taskKey, task))
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             {
                                 onStopTask();
 
@@ -479,7 +482,7 @@ namespace BlaineRP.Client.Sync
                         }
                     }
 
-                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.RedColor, uint.MaxValue);
+                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue);
 
                     exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
 
@@ -491,7 +494,7 @@ namespace BlaineRP.Client.Sync
                         {
                             var gData = Data.Locations.Garage.Style.Get(grType, 0);
 
-                            var gExitCs = new Additional.Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f), 1f, 2f, false, Utils.RedColor, uint.MaxValue, null)
+                            var gExitCs = new Additional.Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
                             };
@@ -508,14 +511,14 @@ namespace BlaineRP.Client.Sync
 
                     TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
 
-                    Utils.CancelPendingTask(taskKey);
+                    AsyncTask.Methods.CancelPendingTask(taskKey);
 
                     GameEvents.DisableAllControls(false);
 
                     Additional.SkyCamera.FadeScreen(false, 500, -1);
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending(taskKey, task);
+                AsyncTask.Methods.SetAsPending(task, taskKey);
             });
 
             Events.Add("House::Exit", (args) => HouseExit(args));
@@ -579,7 +582,7 @@ namespace BlaineRP.Client.Sync
             {
                 if (args[0] is int)
                 {
-                    var fUid = Utils.ToUInt32(args[0]);
+                    var fUid = Utils.Convert.ToUInt32(args[0]);
 
                     var furn = Furniture.GetValueOrDefault(fUid);
 
@@ -644,7 +647,7 @@ namespace BlaineRP.Client.Sync
 
             TempBlips.Add(blip);
 
-            AsyncTask.RunSlim(async () =>
+            AsyncTask.Methods.Run(async () =>
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -699,7 +702,7 @@ namespace BlaineRP.Client.Sync
 
         private static void HouseExit(params object[] args)
         {
-            Utils.CancelPendingTask("House::Enter");
+            AsyncTask.Methods.CancelPendingTask("House::Enter");
 
             Player.LocalPlayer.ResetData("House::CurrentHouse");
 

@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class Browser 
+    public class Browser
     {
         public const string CurrentServer = "sandy";
 

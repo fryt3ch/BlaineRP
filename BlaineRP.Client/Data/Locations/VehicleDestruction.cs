@@ -1,9 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Data
 {
@@ -15,7 +12,7 @@ namespace BlaineRP.Client.Data
             {
                 var blip = new Additional.ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -71,11 +68,11 @@ namespace BlaineRP.Client.Data
                 if (res == null)
                     return;
 
-                var price = Utils.ToDecimal(res);
+                var price = Utils.Convert.ToDecimal(res);
 
                 await CEF.ActionBox.ShowText
                 (
-                    "VehicleDestructConfirm", "Сдать транспорт на свалку", $"Вы действительно хотите сдать {vDataData.Name} #{vData.VID} на свалку?\n\nЗа этот транспорт Вы получите {Utils.GetPriceString(price)} наличными\n\nЕсли у транспорта есть багажник, то все вещи, которые в нём находятся безвозвратно исчезнут\n\nПодтвердите это действие", null, null,
+                    "VehicleDestructConfirm", "Сдать транспорт на свалку", $"Вы действительно хотите сдать {vDataData.Name} #{vData.VID} на свалку?\n\nЗа этот транспорт Вы получите {Locale.Get("GEN_MONEY_0", price)} наличными\n\nЕсли у транспорта есть багажник, то все вещи, которые в нём находятся безвозвратно исчезнут\n\nПодтвердите это действие", null, null,
 
                     CEF.ActionBox.DefaultBindAction,
 

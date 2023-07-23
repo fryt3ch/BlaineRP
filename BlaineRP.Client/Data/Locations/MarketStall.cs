@@ -1,13 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BlaineRP.Client.CEF;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using BlaineRP.Client.CEF;
 
 namespace BlaineRP.Client.Data
 {
@@ -19,17 +18,17 @@ namespace BlaineRP.Client.Data
 
             public int Id { get; set; }
 
-            public ushort CurrentRenterRID => Utils.ToUInt16(Sync.World.GetSharedData<object>($"MARKETSTALL_{Id}_R", ushort.MaxValue));
+            public ushort CurrentRenterRID => Utils.Convert.ToUInt16(Sync.World.GetSharedData<object>($"MARKETSTALL_{Id}_R", ushort.MaxValue));
 
-            public Utils.Vector4 Position { get; set; }
+            public Vector4 Position { get; set; }
 
-            public MarketStall(int Id, Utils.Vector4 Position)
+            public MarketStall(int Id, Vector4 Position)
             {
                 this.Id = Id;
 
                 this.Position = Position;
 
-                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyByFoot,
 
@@ -65,8 +64,8 @@ namespace BlaineRP.Client.Data
 
                 var marketStall = (MarketStall)cs.Data;
 
-                var newRid = Utils.ToUInt16(value ?? ushort.MaxValue);
-                var oldRid = Utils.ToUInt16(oldValue ?? ushort.MaxValue);
+                var newRid = Utils.Convert.ToUInt16(value ?? ushort.MaxValue);
+                var oldRid = Utils.Convert.ToUInt16(oldValue ?? ushort.MaxValue);
 
                 if (newRid == Player.LocalPlayer.RemoteId)
                 {
@@ -77,7 +76,7 @@ namespace BlaineRP.Client.Data
                     Additional.ExtraColshape subCs = null;
                     Additional.ExtraColshape mainCs = null;
 
-                    subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    subCs = new Additional.Sphere(pos, 20f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -90,7 +89,7 @@ namespace BlaineRP.Client.Data
                         },
                     };
 
-                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -201,7 +200,7 @@ namespace BlaineRP.Client.Data
 
                                     Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
 
-                                    var res = Utils.ToByte(await Events.CallRemoteProc("MarketStall::Lock", marketStall.Id, !isStallLocked));
+                                    var res = Utils.Convert.ToByte(await Events.CallRemoteProc("MarketStall::Lock", marketStall.Id, !isStallLocked));
 
                                     if (res == 255)
                                         return;
@@ -254,9 +253,9 @@ namespace BlaineRP.Client.Data
                                     foreach (var x in res)
                                     {
                                         var d = x.Split('_');
-                                        
+
                                         var idx = int.Parse(d[0]);
-                                        
+
                                         var t = items.Where(x => (int)((object[])(((object[])x)[0]))[0] == idx).FirstOrDefault();
 
                                         if (t == null)
@@ -292,10 +291,10 @@ namespace BlaineRP.Client.Data
 
                                         totalEarned += x.Item4;
 
-                                        strings.Add(Locale.Get("MARKETSTALL_SH_0", i + 1, Data.Items.GetName(x.Item2), x.Item3, Utils.GetPriceString(x.Item4)));
+                                        strings.Add(Locale.Get("MARKETSTALL_SH_0", i + 1, Data.Items.GetName(x.Item2), x.Item3, Locale.Get("GEN_MONEY_0", x.Item4)));
                                     }
 
-                                    strings.Add("\n\n" + Locale.Get("MARKETSTALL_SH_1", Utils.GetPriceString(totalEarned)));
+                                    strings.Add("\n\n" + Locale.Get("MARKETSTALL_SH_1", Locale.Get("GEN_MONEY_0", totalEarned)));
 
                                     CEF.ActionBox.Close(false);
 
@@ -335,7 +334,7 @@ namespace BlaineRP.Client.Data
 
                     await CEF.ActionBox.ShowMoney
                     (
-                        $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Utils.GetPriceString(rentPrice)),
+                        $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Locale.Get("GEN_MONEY_0", rentPrice)),
 
                         CEF.ActionBox.DefaultBindAction,
 
@@ -426,7 +425,7 @@ namespace BlaineRP.Client.Data
 
                 var seller = RAGE.Elements.Entities.Players.GetAtRemote(marketStall.CurrentRenterRID);
 
-                var sellerName = Utils.GetPlayerName(seller, true, false, true);
+                var sellerName = Players.GetPlayerName(seller, true, false, true);
 
                 CEF.PlayerMarket.Show($"MARKETSTALL@BUYER_{marketStall.Id}", new object[] { items, sellerName });
             }
@@ -435,14 +434,14 @@ namespace BlaineRP.Client.Data
             {
                 var res = await Sync.World.GetRetrievableData<object>("MARKETSTALL_RP", 0);
 
-                return Utils.ToUInt32(res);
+                return Utils.Convert.ToUInt32(res);
             }
 
             public static void LoadEvents()
             {
                 Events.Add("MarketStall::UPD", (args) =>
                 {
-                    var id = Utils.ToInt32(args[0]);
+                    var id = Utils.Convert.ToInt32(args[0]);
 
                     var cs = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
 
@@ -476,11 +475,11 @@ namespace BlaineRP.Client.Data
                     if (sellHist == null)
                         return;
 
-                    var itemUid = Utils.ToUInt32(args[0]);
+                    var itemUid = Utils.Convert.ToUInt32(args[0]);
                     var itemId = (string)args[1];
 
-                    var itemAmount = Utils.ToUInt32(args[2]);
-                    var itemPrice = Utils.ToDecimal(args[3]);
+                    var itemAmount = Utils.Convert.ToUInt32(args[2]);
+                    var itemPrice = Utils.Convert.ToDecimal(args[3]);
 
                     int histItemIdx = -1;
 

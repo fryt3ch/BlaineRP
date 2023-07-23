@@ -1,8 +1,7 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Game.Fractions;
 using MySqlConnector;
 using System;
 using System.Linq;
-using BlaineRP.Server.Game.Fractions;
 
 namespace BlaineRP.Server
 {

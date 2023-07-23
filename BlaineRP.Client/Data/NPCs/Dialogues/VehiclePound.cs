@@ -1,14 +1,12 @@
-﻿using BlaineRP.Client.CEF;
-using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
-using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCDialogues
 {
     [Script(int.MaxValue)]
-    public class VehiclePound 
+    public class VehiclePound
     {
         public VehiclePound()
         {
@@ -37,7 +35,7 @@ namespace BlaineRP.Client.Data.NPCDialogues
                     {
                         var dataList = data.Split('_').ToList();
 
-                        var price = Utils.GetPriceString(int.Parse(dataList[0]));
+                        var price = Locale.Get("GEN_MONEY_0", int.Parse(dataList[0]));
 
                         var vehs = dataList.Skip(1).Select(x => uint.Parse(x)).ToList();
 

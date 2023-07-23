@@ -1,7 +1,5 @@
 ﻿using GTANetworkAPI;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BlaineRP.Server.Game.Misc
 {
@@ -36,7 +34,7 @@ namespace BlaineRP.Server.Game.Misc
 
         public VehicleDestruction(Vector3 Position)
         {
-            this.Position = Position; 
+            this.Position = Position;
         }
 
         public ulong GetPriceForVehicle(VehicleData.VehicleInfo vInfo)

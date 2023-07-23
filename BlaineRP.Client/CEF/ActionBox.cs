@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Linq;
 namespace BlaineRP.Client.CEF
 {
     [Script(int.MaxValue)]
-    public class ActionBox 
+    public class ActionBox
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.ActionBox); }
 
@@ -70,7 +72,7 @@ namespace BlaineRP.Client.CEF
 
                 if (CurrentType == Types.Range)
                 {
-                    var amount = Utils.ToDecimal(args[1]);
+                    var amount = Utils.Convert.ToDecimal(args[1]);
 
                     if (amount < Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue"))
                     {
@@ -89,7 +91,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (CurrentType == Types.Select)
                 {
-                    var id = Utils.ToDecimal(args[1]);
+                    var id = Utils.Convert.ToDecimal(args[1]);
 
                     CurrentAction?.Invoke(new object[] { rType, id });
                 }
@@ -196,7 +198,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
@@ -216,7 +218,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
@@ -236,7 +238,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.ReplaceNewLineHtml(text) });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text) });
 
             Cursor.Show(true, true);
         }

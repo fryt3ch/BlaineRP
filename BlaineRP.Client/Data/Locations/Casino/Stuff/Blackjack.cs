@@ -1,4 +1,6 @@
-﻿using BlaineRP.Client.Sync;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -270,7 +272,6 @@ namespace BlaineRP.Client.Data
                     {
                         SubName = "NPC_SUBNAME_CASINO_BLACKJACK_WORKER",
                     };
-
                     NPC.Ped.StreamInCustomActionsAdd(OnPedStreamIn);
                 }
 
@@ -281,7 +282,7 @@ namespace BlaineRP.Client.Data
                     if (ped == null)
                         return;
 
-                    var randomClothesNumber = Utils.Random.Next(0, 7);
+                    var randomClothesNumber = Utils.Misc.Random.Next(0, 7);
 
                     if (randomClothesNumber == 0)
                     {
@@ -397,7 +398,7 @@ namespace BlaineRP.Client.Data
                 {
                     var casino = Casino.GetById(casinoId);
 
-                    if (!onLoad && (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null)))
+                    if (!onLoad && (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null)))
                         return;
 
                     var table = casino.GetBlackjackById(tableId);
@@ -736,11 +737,11 @@ namespace BlaineRP.Client.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var strD = resStr.Split('*');
@@ -797,7 +798,7 @@ namespace BlaineRP.Client.Data
 
                         await SpawnAllCards(taskKey, task, dealerHand, playersHands, byte.MaxValue);
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var cardRot = dealerHand[1].MapObject.GetRotation(0);
@@ -823,7 +824,7 @@ namespace BlaineRP.Client.Data
 
                         await RAGE.Game.Invoker.WaitAsync(500);
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         dealerHand[1].MapObject.SetRotation(0f, cardRot.Y, cardRot.Z, 0, false);
@@ -836,24 +837,24 @@ namespace BlaineRP.Client.Data
                             {
                                 await DealerGiveSelfCard((byte)x, dealerHand[x].MapObject);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
                         }
 
                         await RAGE.Game.Invoker.WaitAsync(2000);
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "female_retrieve_all_cards", 3f, 1f, -1, 2, 0f, false, false, false);
 
                         npc.PlayFacialAnim("female_retrieve_all_cards", "anim_casino_b@amb@casino@games@blackjack@dealer");
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
 
                 private void NextStagePlayer(int casinoId, int id, string resStr, bool onLoad, byte type)
@@ -864,11 +865,11 @@ namespace BlaineRP.Client.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var strD = resStr.Split('*');
@@ -944,7 +945,7 @@ namespace BlaineRP.Client.Data
 
                         await SpawnAllCards(taskKey, task, dealerHand, playersHands, byte.MaxValue);
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         if (dealerHand[1].MapObject?.Exists == true)
@@ -974,16 +975,16 @@ namespace BlaineRP.Client.Data
 
                                     await DealerGiveCard(seatIdx, hand[x].MapObject);
 
-                                    if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                         return;
                                 }
                             }
                         }
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
 
                 private void StartCardGiving(int casinoId, int id, string resStr, bool onLoad)
@@ -994,11 +995,11 @@ namespace BlaineRP.Client.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         npc.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
@@ -1016,7 +1017,7 @@ namespace BlaineRP.Client.Data
 
                         await SpawnAllCards(taskKey, task, dealerHand, playersHands, onLoad ? byte.MaxValue : byte.MinValue);
 
-                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                        if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         if (dealerHand[1].MapObject?.Exists == true)
@@ -1041,7 +1042,7 @@ namespace BlaineRP.Client.Data
                             {
                                 await DealerGiveSelfCard(1, dealerHand[i].MapObject);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
 
                                 npc.PlaySpeech($"MINIGAME_BJACK_DEALER_{dealerHand[i].Value}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
@@ -1050,7 +1051,7 @@ namespace BlaineRP.Client.Data
                             {
                                 await DealerGiveSelfCard(0, dealerHand[i].MapObject);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
                         }
@@ -1071,7 +1072,7 @@ namespace BlaineRP.Client.Data
 
                                 await DealerGiveCard((byte)j, playersHands[j][i].MapObject);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
@@ -1098,7 +1099,7 @@ namespace BlaineRP.Client.Data
 
                                 await RAGE.Game.Invoker.WaitAsync(500);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
                             }
 
@@ -1114,7 +1115,7 @@ namespace BlaineRP.Client.Data
 
                                 await RAGE.Game.Invoker.WaitAsync(750);
 
-                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                if (TableObject?.Exists != true || npc?.Exists != true || !AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                     return;
 
                                 npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "female_retrieve_all_cards", 3f, 1f, -1, 2, 0f, false, false, false);
@@ -1132,10 +1133,10 @@ namespace BlaineRP.Client.Data
                             }
                         }
 
-                        Utils.CancelPendingTask(taskKey);
+                        AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
-                    Utils.SetTaskAsPending(taskKey, task);
+                    AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
 
                 public async System.Threading.Tasks.Task SpawnAllCards(string taskKey, AsyncTask task, List<CardData> dealerHand, List<List<CardData>> playersHands, byte alpha = 255)
@@ -1157,9 +1158,9 @@ namespace BlaineRP.Client.Data
 
                         var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
 
-                        await Utils.RequestModel(objModelhash);
+                        await Streaming.RequestModel(objModelhash);
 
-                        if (!Utils.IsTaskStillPending(taskKey, task))
+                        if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
                         var coords = TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
@@ -1193,9 +1194,9 @@ namespace BlaineRP.Client.Data
 
                             var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
 
-                            await Utils.RequestModel(objModelhash);
+                            await Streaming.RequestModel(objModelhash);
 
-                            if (!Utils.IsTaskStillPending(taskKey, task))
+                            if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 return;
 
                             var coords = TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
@@ -1345,7 +1346,7 @@ namespace BlaineRP.Client.Data
                         {
                             var pos = dealerHand[0].MapObject.GetCoords(false);
 
-                            if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
+                            if (Graphics.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
                             {
                                 dealerSum = dealerHand.Where(x => x.MapObject?.Exists == true && !x.MapObject.GetData<bool>("IsFlipped") && x.MapObject.GetAlpha() == 255).Select(x => (int)x.Value).Sum();
 
@@ -1354,13 +1355,13 @@ namespace BlaineRP.Client.Data
                                     var text = $"{dealerSum}";
 
                                     if (dealerSum > LOOSE_AFTER || (playerSum > dealerSum && dealerSum >= DEALER_STOPS_ON))
-                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (dealerSum == BLACKJACK_ON)
-                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (dealerSum > playerSum)
-                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else
-                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                             }
                         }
@@ -1372,24 +1373,24 @@ namespace BlaineRP.Client.Data
                         {
                             var pos = pHand[0].MapObject.GetCoords(false);
 
-                            if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
+                            if (Graphics.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
                             {
                                 var text = $"{playerSum}";
 
                                 if (dealerSum <= LOOSE_AFTER)
                                 {
                                     if (playerSum > LOOSE_AFTER || (dealerSum > playerSum && dealerSum >= DEALER_STOPS_ON && dealerSum <= LOOSE_AFTER))
-                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (playerSum == BLACKJACK_ON)
-                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (playerSum > dealerSum)
-                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else
-                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                        Graphics.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                                 else
                                 {
-                                    Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                    Graphics.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                             }
                         }
@@ -1405,9 +1406,9 @@ namespace BlaineRP.Client.Data
                         {
                             var pos = myBet.MapObject.GetCoords(false);
 
-                            if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
+                            if (Graphics.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
                             {
-                                Utils.DrawText($"{Locale.Get("GEN_CHIPS_0", myBet.Amount)}", x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Graphics.DrawText($"{Locale.Get("GEN_CHIPS_0", myBet.Amount)}", x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                         }
                     }
@@ -1415,14 +1416,14 @@ namespace BlaineRP.Client.Data
 
                 public static async System.Threading.Tasks.Task LoadAllRequired()
                 {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
-                    await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@blackjack@dealer");
+                    await Streaming.RequestAnimDict("anim_casino_b@amb@casino@games@blackjack@dealer");
 
                     var allCards = (CardTypes[])Enum.GetValues(typeof(CardTypes));
 
                     for (int i = 0; i < allCards.Length; i++)
-                        await Utils.RequestModel(RAGE.Util.Joaat.Hash(GetCardModelByType(allCards[i])));
+                        await Streaming.RequestModel(RAGE.Util.Joaat.Hash(GetCardModelByType(allCards[i])));
                 }
             }
         }

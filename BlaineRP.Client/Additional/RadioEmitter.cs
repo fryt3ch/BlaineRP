@@ -1,9 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BlaineRP.Client.Additional
 {
@@ -49,7 +47,7 @@ namespace BlaineRP.Client.Additional
 
         public RadioEmitter(string Id, Vector3 Position, float Range, uint Dimension, EmitterTypes EmitterType, Sync.Radio.StationTypes RadioStationType)
         {
-            this.Colshape = new Additional.Sphere(Position, Range, false, Utils.RedColor, Dimension, null)
+            this.Colshape = new Additional.Sphere(Position, Range, false, Utils.Misc.RedColor, Dimension, null)
             {
                 ApproveType = ExtraColshape.ApproveTypes.None,
 
@@ -76,11 +74,10 @@ namespace BlaineRP.Client.Additional
             if (pos == null)
                 return;
 
-            MapObject = Utils.CreateObjectNoOffsetImmediately(RAGE.Util.Joaat.Hash("prop_boombox_01"), pos.X, pos.Y, pos.Z);
+            MapObject = Streaming.CreateObjectNoOffsetImmediately(RAGE.Util.Joaat.Hash("prop_boombox_01"), pos.X, pos.Y, pos.Z);
 
             MapObject.SetVisible(false, false);
-
-            Utils.LinkStaticEmitterToEntity(emitterStr, MapObject.Handle);
+            Audio.LinkStaticEmitterToEntity(emitterStr, MapObject.Handle);
 
             RAGE.Game.Audio.SetEmitterRadioStation(emitterStr, Sync.Radio.GetRadioStationName(RadioStationType));
 

@@ -1,4 +1,7 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 
@@ -21,7 +24,7 @@ namespace BlaineRP.Client.Sync
 
             if (!Toggled)
             {
-                if (!Utils.CanDoSomething(false, Utils.Actions.InVehicle, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot))
+                if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.InVehicle, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot))
                     return;
 
                 On();
@@ -58,8 +61,8 @@ namespace BlaineRP.Client.Sync
 
                 player.ResetMovementClipset(ClipSetSwitchTime);
 
-                await Utils.RequestClipSet(MovementClipSet);
-                await Utils.RequestClipSet(StrafeClipSet);
+                await Streaming.RequestClipSet(MovementClipSet);
+                await Streaming.RequestClipSet(StrafeClipSet);
 
                 player.SetStealthMovement(false, "DEFAULT_ACTION");
 
@@ -101,10 +104,10 @@ namespace BlaineRP.Client.Sync
 
         private static void OnTick()
         {
-            if (!Utils.CanDoSomething(false, Utils.Actions.InVehicle, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot))
+            if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.InVehicle, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot))
                 Off();
 
-            if (Utils.IsFirstPersonActive())
+            if (Utils.Game.Camera.IsFirstPersonActive())
                 RAGE.Game.Cam.SetFollowPedCamViewMode(0);
         }
     }

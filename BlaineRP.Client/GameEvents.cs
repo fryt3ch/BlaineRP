@@ -1,15 +1,16 @@
 ﻿#define DEBUGGING
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
-using System.Linq;
 
 namespace BlaineRP.Client
 {
     public class GameEvents : Events.Script
     {
-        public static int CurrentFps => (int)Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
+        public static int CurrentFps => (int)System.Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
 
         public delegate void UpdateHandler();
         public delegate void ScreenResolutionChangeHandler(int x, int y);
@@ -75,7 +76,7 @@ namespace BlaineRP.Client
 
                             pPos.Z += 1f;
 
-                            var gEntity = Utils.GetEntityByRaycast(pPos, worldPos, Player.LocalPlayer.Handle, 31) as GameEntity;
+                            var gEntity = Raycast.GetEntityByRaycast(pPos, worldPos, Player.LocalPlayer.Handle, 31) as GameEntity;
 
                             if (gEntity == null)
                                 return;
@@ -143,10 +144,9 @@ namespace BlaineRP.Client
                 System.GC.Collect();
 
                 RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
-
-                Utils.ClearTvChannelPlaylist(-1);
-                Utils.ClearTvChannelPlaylist(0);
-                Utils.ClearTvChannelPlaylist(1);
+                Misc.ClearTvChannelPlaylist(-1);
+                Misc.ClearTvChannelPlaylist(0);
+                Misc.ClearTvChannelPlaylist(1);
 
                 if (RAGE.Game.Audio.IsStreamPlaying())
                     RAGE.Game.Audio.StopStream();
@@ -154,8 +154,7 @@ namespace BlaineRP.Client
                 RAGE.Game.Audio.StopAudioScenes();
 
                 RAGE.Game.Audio.SetAudioFlag("LoadMPData", true);
-
-                Utils.DisableFlightMusic();
+                Audio.DisableFlightMusic();
 
                 LoadHUD();
 
@@ -233,7 +232,7 @@ namespace BlaineRP.Client
                 {
                     var gEntity = entity as GameEntity;
 
-                    if (gEntity == null || !await gEntity.WaitIsLoaded())
+                    if (gEntity == null || !await Streaming.WaitIsLoaded(gEntity))
                         return;
 
                     await Sync.AttachSystem.OnEntityStreamIn(entity);
@@ -337,7 +336,7 @@ namespace BlaineRP.Client
                     RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
                     RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);
 
-                    var pos = Utils.GetWaypointPosition();
+                    var pos = Misc.GetWaypointPosition();
 
                     if (pos != null)
                     {
@@ -530,7 +529,7 @@ namespace BlaineRP.Client
             else
             {
                 RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"CID #{pData.CID}");
-                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, Locale.Get("GEN_PAUSEMENU_MONEY_T", Utils.GetPriceString(pData.Cash), Utils.GetPriceString(pData.BankBalance)));
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, Locale.Get("GEN_PAUSEMENU_MONEY_T", Locale.Get("GEN_MONEY_0", pData.Cash), Locale.Get("GEN_MONEY_0", pData.BankBalance)));
             }
 
             RAGE.Game.Invoker.Invoke(0xC58424BA936EB458, false); // ScaleformMovieMethodAddParamBool

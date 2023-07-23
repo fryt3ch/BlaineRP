@@ -1,10 +1,10 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils;
 using System.Collections.Generic;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
     [Script(int.MaxValue)]
-    internal class JFRM1 
+    internal class JFRM1
     {
         public JFRM1()
         {
@@ -48,7 +48,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
                                 if (srcCs == null)
                                     continue;
 
-                                var cs = new Additional.Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Utils.RedColor, Settings.App.Static.MainDimension, null)
+                                var cs = new Additional.Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyVehicleDriver,
 

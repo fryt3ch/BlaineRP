@@ -1,5 +1,9 @@
 ﻿#define DEBUGGING
 
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -9,7 +13,7 @@ using System.Linq;
 namespace BlaineRP.Client.Sync
 {
     [Script(int.MaxValue)]
-    public class WeaponSystem 
+    public class WeaponSystem
     {
         private const float IN_VEHICLE_DAMAGE_COEF = 0.75f;
 
@@ -483,7 +487,8 @@ namespace BlaineRP.Client.Sync
 
         public WeaponSystem()
         {
-            Utils.JsEval
+            Invoker
+            .JsEval
             (
                 @"mp.game.weapon.unequipEmptyWeapons = false;
 
@@ -509,7 +514,7 @@ namespace BlaineRP.Client.Sync
             });
 
 #if DEBUGGING
-            OnDamage += (hpLoss, armLoss) => Utils.ConsoleOutput($"DAMAGE! HP_LOSS: {hpLoss} | ARM_LOSS: {armLoss}");
+            OnDamage += (hpLoss, armLoss) => Utils.Console.ConsoleOutput($"DAMAGE! HP_LOSS: {hpLoss} | ARM_LOSS: {armLoss}");
 #endif
 
             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
@@ -590,7 +595,7 @@ namespace BlaineRP.Client.Sync
                         var scale = 3f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)Math.Floor(Settings.User.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -599,7 +604,7 @@ namespace BlaineRP.Client.Sync
                         var scale = 1f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)Math.Floor(Settings.User.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -632,7 +637,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var pos = Player.LocalPlayer.GetCoords(false);
 
-                    pos.Z = Utils.GetGroundZCoord(pos, false);
+                    pos.Z = Utils.Game.Misc.GetGroundZCoord(pos, false);
 
                     var heading = Player.LocalPlayer.GetHeading();
 
@@ -749,7 +754,7 @@ namespace BlaineRP.Client.Sync
             // AutoReload
             if (curAmmo == 0 && RAGE.Game.Player.IsPlayerFreeAiming() && (RAGE.Game.Pad.IsControlPressed(32, 24) || RAGE.Game.Pad.IsDisabledControlPressed(32, 24)) && Settings.User.Interface.AutoReload)
             {
-                if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Crawl, Utils.Actions.Finger, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.Scenario, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.IsAttachedTo))
+                if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Crawl, PlayerActions.Types.Finger, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.FastAnimation, PlayerActions.Types.Scenario, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.IsAttachedTo))
                     return;
 
                 if (!LastSentReload.IsSpam(2000, false, false))
@@ -772,10 +777,10 @@ namespace BlaineRP.Client.Sync
             if (weapProp == null || !weapProp.HasAmmo)
                 return;
 
-            if (Utils.IsAnyCefActive())
+            if (Utils.Misc.IsAnyCefActive())
                 return;
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Crawl, Utils.Actions.Finger, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.Scenario, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.IsAttachedTo))
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed, PlayerActions.Types.Crawl, PlayerActions.Types.Finger, PlayerActions.Types.OtherAnimation, PlayerActions.Types.Animation, PlayerActions.Types.FastAnimation, PlayerActions.Types.Scenario, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.IsAttachedTo))
                 return;
 
             if (LastSentReload.IsSpam(2000, false, false) || CEF.Inventory.LastSent.IsSpam(250, false, false) || LastWeaponShot.IsSpam(250, false, false))
@@ -912,7 +917,7 @@ namespace BlaineRP.Client.Sync
                         {
                             if (!pData.IsWounded && !pData.IsKnocked)
                             {
-                                var randRes = Utils.Random.NextDouble();
+                                var randRes = Utils.Misc.Random.NextDouble();
 
                                 if (randRes <= Settings.App.Static.WeaponSystemWoundChance) // wounded chance
                                 {
@@ -932,12 +937,9 @@ namespace BlaineRP.Client.Sync
 
                             Player.LocalPlayer.ApplyDamageTo(1, isBullet);
 
-                            AsyncTask.RunSlim(() => Player.LocalPlayer.SetInvincible(false), 25);
+                            AsyncTask.Methods.Run(() => Player.LocalPlayer.SetInvincible(false), 25);
                         }
-
-#if DEBUGGING
-                        Utils.ConsoleOutputLimited($"Игрок: #{sData.CID} | Урон: {customDamage + 1} | Дистанция: {distance} | Часть тела: {boneIdx}", true, 1000);
-#endif
+                        Utils.Console.ConsoleOutputLimited($"Игрок: #{sData.CID} | Урон: {customDamage + 1} | Дистанция: {distance} | Часть тела: {boneIdx}", true, 1000);
                     }
                     else
                     {

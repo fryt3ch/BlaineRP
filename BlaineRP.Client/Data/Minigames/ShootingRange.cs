@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.Utils.Game;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Linq;
 namespace BlaineRP.Client.Data.Minigames
 {
     [Script(int.MaxValue)]
-    public class ShootingRange 
+    public class ShootingRange
     {
         public enum Types
         {
@@ -248,15 +249,15 @@ namespace BlaineRP.Client.Data.Minigames
                     while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                    if (!Utils.IsTaskStillPending("ShootingRange", task))
+                    if (!AsyncTask.Methods.IsTaskStillPending("ShootingRange", task))
                         return;
 
-                    Utils.CancelPendingTask("ShootingRange");
+                    AsyncTask.Methods.CancelPendingTask("ShootingRange");
 
                     Start(srType, pData.Skills[Sync.Players.SkillTypes.Shooting]);
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending("ShootingRange", task);
+                AsyncTask.Methods.SetAsPending(task, "ShootingRange");
             });
         }
 
@@ -290,23 +291,23 @@ namespace BlaineRP.Client.Data.Minigames
 
             LastTargetAdded = DateTime.MinValue;
 
-            CEF.Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, Math.Round(MinAccuracy, 2)), false);
+            CEF.Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, System.Math.Round(MinAccuracy, 2)), false);
 
             AsyncTask task = null;
 
             task = new AsyncTask(async () =>
             {
-                await Utils.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_01"));
-                await Utils.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_03"));
+                await Streaming.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_01"));
+                await Streaming.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_03"));
 
-                if (!Utils.IsTaskStillPending("SRange::Start::D", task))
+                if (!AsyncTask.Methods.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
                 var scaleformCounter = Additional.Scaleform.CreateCounter("srange_s_counter", Locale.Get("SCALEFORM_SRANGE_CDOWN_HEADER"), Locale.Get("SCALEFORM_SRANGE_CDOWN_CONTENT"), 5, Additional.Scaleform.CounterSoundTypes.Deep);
 
                 await RAGE.Game.Invoker.WaitAsync(5000);
 
-                if (!Utils.IsTaskStillPending("SRange::Start::D", task))
+                if (!AsyncTask.Methods.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
                 Sync.WeaponSystem.DisabledFiring = false;
@@ -317,10 +318,10 @@ namespace BlaineRP.Client.Data.Minigames
                 GameEvents.Render -= Render;
                 GameEvents.Render += Render;
 
-                Utils.CancelPendingTask("SRange::Start::D");
+                AsyncTask.Methods.CancelPendingTask("SRange::Start::D");
             }, 0, false, 0);
 
-            Utils.SetTaskAsPending("SRange::Start::D", task);
+            AsyncTask.Methods.SetAsPending(task, "SRange::Start::D");
         }
 
         public static bool Stop()
@@ -332,8 +333,8 @@ namespace BlaineRP.Client.Data.Minigames
 
             Events.OnPlayerWeaponShot -= ShotHandler;
 
-            Utils.CancelPendingTask("ShootingRange");
-            Utils.CancelPendingTask("SRange::Start::D");
+            AsyncTask.Methods.CancelPendingTask("ShootingRange");
+            AsyncTask.Methods.CancelPendingTask("SRange::Start::D");
 
             Additional.Scaleform.Get("srange_s_counter")?.Destroy();
 
@@ -364,7 +365,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
             CEF.Cursor.OnTickCursor();
 
@@ -375,11 +376,11 @@ namespace BlaineRP.Client.Data.Minigames
                 return;
             }
 
-            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_SCORE_T", CurrentScore, CurrentMaxScore), 0.5f, 0.875f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_SCORE_T", CurrentScore, CurrentMaxScore), 0.5f, 0.875f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
             var totalLooseScore = CurrentTotalShots + CurrentLooseScore;
 
-            var totalAccuracy = Math.Round((CurrentScore == 0 ? 1 / ((float)totalLooseScore + 1f) : CurrentScore / (float)totalLooseScore) * 100f, 2);
+            var totalAccuracy = System.Math.Round((CurrentScore == 0 ? 1 / ((float)totalLooseScore + 1f) : CurrentScore / (float)totalLooseScore) * 100f, 2);
 
             if (totalAccuracy < MinAccuracy)
             {
@@ -392,19 +393,19 @@ namespace BlaineRP.Client.Data.Minigames
 
             if (totalAccuracy < 50f)
             {
-                Utils.DrawText(accText, 0.5f, 0.900f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(accText, 0.5f, 0.900f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else if (totalAccuracy < 75)
             {
-                Utils.DrawText(accText, 0.5f, 0.900f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(accText, 0.5f, 0.900f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else if (totalAccuracy < 90)
             {
-                Utils.DrawText(accText, 0.5f, 0.900f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(accText, 0.5f, 0.900f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else
             {
-                Utils.DrawText(accText, 0.5f, 0.900f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                Graphics.DrawText(accText, 0.5f, 0.900f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
 
             if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)
@@ -417,7 +418,7 @@ namespace BlaineRP.Client.Data.Minigames
                 }
             }
 
-            var fpsCoef = Utils.GetFpsCoef();
+            var fpsCoef = Utils.Misc.GetFpsCoef();
 
             for (int i = 0; i < Targets.Count; i++)
             {
@@ -508,7 +509,7 @@ namespace BlaineRP.Client.Data.Minigames
                         }
                         else
                         {
-                            if (Targets.Where(y => x.Index != y.Index && x.Row == y.Row && y.CurrentState == Target.StateTypes.Idle && Math.Abs(y.CurrentInterpolation - x.CurrentInterpolation) <= 0.075f).Any())
+                            if (Targets.Where(y => x.Index != y.Index && x.Row == y.Row && y.CurrentState == Target.StateTypes.Idle && System.Math.Abs(y.CurrentInterpolation - x.CurrentInterpolation) <= 0.075f).Any())
                             {
                                 x.Direction = !x.Direction;
                             }
@@ -538,7 +539,7 @@ namespace BlaineRP.Client.Data.Minigames
             if (!Stop())
                 return;
 
-            var accuracy = Math.Round((CurrentScore / (float)(CurrentLooseScore + CurrentTotalShots)) * 100f, 2);
+            var accuracy = System.Math.Round((CurrentScore / (float)(CurrentLooseScore + CurrentTotalShots)) * 100f, 2);
 
             Events.CallRemote("SRange::Exit::Shop", CurrentScore, CurrentMaxScore, accuracy);
         }

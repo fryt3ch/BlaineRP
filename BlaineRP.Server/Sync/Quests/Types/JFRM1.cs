@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlaineRP.Server.Sync.Quests.Types
+﻿namespace BlaineRP.Server.Sync.Quests.Types
 {
     public class JFRM1
     {

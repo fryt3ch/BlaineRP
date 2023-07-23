@@ -1,4 +1,7 @@
-﻿namespace BlaineRP.Client.Data
+﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
+
+namespace BlaineRP.Client.Data
 {
     partial class Commands
     {
@@ -37,7 +40,7 @@
         [Command("mutef", false, "Скрыть/показать чат")]
         public static void FractionMute(uint pid, uint mins, string reason)
         {
-            if (!Utils.ToDecimal(mins).IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+            if (!Convert.ToDecimal(mins).IsNumberValid<uint>(1, uint.MaxValue, out _, true))
                 return;
 
             if (!reason.IsTextLengthValid(1, 24, true))
