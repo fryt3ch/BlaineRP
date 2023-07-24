@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 

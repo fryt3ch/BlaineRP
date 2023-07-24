@@ -95,7 +95,7 @@ namespace BlaineRP.Client.CEF
 
                     uint phoneNumberT;
 
-                    if (!uint.TryParse(phoneNumberStr, out phoneNumberT) || CEF.PhoneApps.PhoneApp.DefaultNumbersActions.Where(x => x.Key.Contains(phoneNumberStr)).Any())
+                    if (!uint.TryParse(phoneNumberStr, out phoneNumberT) || Phone.Apps.Phone.DefaultNumbersActions.Where(x => x.Key.Contains(phoneNumberStr)).Any())
                     {
                         CEF.Notification.Show("Police::DBS::PNF0");
 

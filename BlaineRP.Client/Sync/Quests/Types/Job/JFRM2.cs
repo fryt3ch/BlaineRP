@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Utils;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {

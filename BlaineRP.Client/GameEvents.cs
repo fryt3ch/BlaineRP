@@ -101,7 +101,7 @@ namespace BlaineRP.Client
                 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.App.Profile.Current.General.CultureInfo;
                 System.Globalization.CultureInfo.CurrentCulture = Settings.App.Profile.Current.General.CultureInfo;
 
-                (new AsyncTask(() => Update?.Invoke(), 0, true)).Run();
+                (new Utils.AsyncTask(() => Update?.Invoke(), 0, true)).Run();
 
                 Events.Tick += (_) => Render.Invoke();
 
@@ -306,14 +306,14 @@ namespace BlaineRP.Client
 
                 if (Settings.App.Static.DisableIdleCamera)
                 {
-                    (new AsyncTask(() =>
+                    (new Utils.AsyncTask(() =>
                     {
                         RAGE.Game.Invoker.Invoke(0x9E4CFFF989258472);   // InvalidateVehicleIdleCam
                         RAGE.Game.Invoker.Invoke(0xF4F2C0D4EE209E20);   // InvalidateIdleCam
                     }, 25_000, true, 0)).Run();
                 }
 
-                (new AsyncTask(() =>
+                (new Utils.AsyncTask(() =>
                 {
                     int x = 0, y = 0;
 
@@ -329,7 +329,7 @@ namespace BlaineRP.Client
 
                 Vector3 lastWaypointPos = null;
 
-                (new AsyncTask(() =>
+                (new Utils.AsyncTask(() =>
                 {
                     var time = ExtraGameDate ?? Sync.World.ServerTime;
 

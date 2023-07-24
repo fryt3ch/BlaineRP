@@ -21,7 +21,7 @@ namespace BlaineRP.Client.CEF
 
         private static bool _IsAnyCEFActive;
 
-        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || CEF.Phone.IsActive; private set { _IsAnyCEFActive = value; } }
+        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || Phone.Phone.IsActive; private set { _IsAnyCEFActive = value; } }
 
         private static List<IntTypes> NormalInterfaces { get; set; } = new List<IntTypes>()
         {
@@ -157,7 +157,7 @@ namespace BlaineRP.Client.CEF
 
                 Window.ExecuteJs("Hud.setTop", new object[] { new object[] { CurrentServer, Player.LocalPlayer.RemoteId, Entities.Players.Count, true } });
 
-                var hudUpdateTask = new AsyncTask(() =>
+                var hudUpdateTask = new Utils.AsyncTask(() =>
                 {
                     CEF.HUD.UpdateHUD();
 

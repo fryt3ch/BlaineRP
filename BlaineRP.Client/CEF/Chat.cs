@@ -492,7 +492,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive || value == InputVisible)
                 return;
 
-            if (value && Utils.Misc.IsAnyCefActive(true) && !CEF.Death.IsActive && !CEF.Phone.IsActive)
+            if (value && Utils.Misc.IsAnyCefActive(true) && !CEF.Death.IsActive && !Phone.Phone.IsActive)
                 return;
 
             Browser.Window.ExecuteJs("Chat.switchInput", value);

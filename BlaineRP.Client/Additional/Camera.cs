@@ -1,4 +1,4 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -497,7 +497,7 @@ namespace BlaineRP.Client.Additional
                     }
                     else if (bType == State.BehaviourTypes.PointBone)
                     {
-                        pos = (Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                        pos = (Utils.Game.Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                     }
 
                     if (isSource)
@@ -550,7 +550,7 @@ namespace BlaineRP.Client.Additional
                         }
                         else if (bType == State.BehaviourTypes.PointBone)
                         {
-                            LastPosition = (Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                            LastPosition = (Utils.Game.Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                         }
 
                         if (LastPosition != null)

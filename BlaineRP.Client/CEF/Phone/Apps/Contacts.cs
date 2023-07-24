@@ -1,16 +1,16 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
-using static BlaineRP.Client.CEF.Phone;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class ContactsApp
+    public class Contacts
     {
-        public ContactsApp()
+        public Contacts()
         {
             Events.Add("Phone::ContactConfrim", async (args) =>
             {
@@ -19,7 +19,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (LastSent.IsSpam(250, false, false))
+                if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 if (args == null || args.Length < 2)
@@ -45,13 +45,13 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 {
                     if (!char.IsLetterOrDigit(name[i]) && !char.IsWhiteSpace(name[i]))
                     {
-                        CEF.Notification.ShowError(Locale.Notifications.General.StringOnlyLettersNumbersW);
+                        Notification.ShowError(Locale.Notifications.General.StringOnlyLettersNumbersW);
 
                         return;
                     }
                 }
 
-                LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
                 if (!(bool)await Events.CallRemoteProc("Phone::CC", number, name))
                     return;
@@ -63,45 +63,45 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 if (allContacts.Count == 0)
                 {
-                    PhoneApps.ContactsApp.ShowAll(null);
+                    ShowAll(null);
                 }
                 else
                 {
-                    PhoneApps.ContactsApp.ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }).ToList());
+                    ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }).ToList());
                 }
             });
         }
 
         public static void ShowAll(object list)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Contacts;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Contacts;
 
-            Phone.CurrentAppTab = -1;
+            CEF.Phone.Phone.CurrentAppTab = -1;
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawContactsApp", list);
+            Browser.Window.ExecuteJs("Phone.drawContactsApp", list);
         }
 
         public static void ShowEdit(string number, string name)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            if (Phone.CurrentApp != Phone.AppTypes.Contacts)
+            if (CEF.Phone.Phone.CurrentApp != AppTypes.Contacts)
             {
-                CEF.Browser.Window.ExecuteJs("Phone.drawContactsApp();");
+                Browser.Window.ExecuteJs("Phone.drawContactsApp();");
 
-                Phone.CurrentApp = Phone.AppTypes.Contacts;
+                CEF.Phone.Phone.CurrentApp = AppTypes.Contacts;
             }
 
-            Phone.CurrentAppTab = 0;
+            CEF.Phone.Phone.CurrentAppTab = 0;
 
             if (number == null && name == null)
-                CEF.Browser.Window.ExecuteJs("Phone.contactEdit();");
+                Browser.Window.ExecuteJs("Phone.contactEdit();");
             else
-                CEF.Browser.Window.ExecuteJs("Phone.contactEdit", new object[] { new object[] { name, number } });
+                Browser.Window.ExecuteJs("Phone.contactEdit", new object[] { new object[] { name, number } });
         }
     }
 }

@@ -46,7 +46,7 @@ namespace BlaineRP.Client.Data
 
             Additional.ExtraColshapes.TempPolygon = new Additional.Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
-            Additional.ExtraColshapes.PolygonCreationTask = new AsyncTask(() =>
+            Additional.ExtraColshapes.PolygonCreationTask = new Utils.AsyncTask(() =>
             {
                 if (Additional.ExtraColshapes.TempPolygon == null)
                     return true;

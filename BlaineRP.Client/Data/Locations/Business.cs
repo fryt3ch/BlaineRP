@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.CEF.Phone.Apps;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
@@ -154,7 +155,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes1", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothes1", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -173,7 +174,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes2", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothes2", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -192,7 +193,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes3", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothes3", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -218,7 +219,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_bags_preprocess",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -244,7 +245,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -264,7 +265,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -317,7 +318,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "market", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("bizother", "market", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -340,7 +341,7 @@ namespace BlaineRP.Client.Data
 
                 //this.Seller.Data = this;
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "gas", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionGas.X, PositionGas.Y));
+                GPS.AddPosition("bizother", "gas", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionGas.X, PositionGas.Y));
             }
         }
 
@@ -468,7 +469,7 @@ namespace BlaineRP.Client.Data
 
                 new Marker(44, new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.App.Static.MainDimension);
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "tuning", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("bizother", "tuning", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -501,7 +502,7 @@ namespace BlaineRP.Client.Data
 
                 var shootingRangeText = new Additional.ExtraLabel(new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), Locale.Get("SHOP_WEAPON_SRANGE_L"), new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.App.Static.MainDimension);
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -520,7 +521,7 @@ namespace BlaineRP.Client.Data
                     DefaultDialogueId = "seller_furn_g_0",
                 };
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "furn", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
+                GPS.AddPosition("bizother", "furn", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
     }

@@ -514,7 +514,7 @@ namespace BlaineRP.Client.Sync
             });
 
 #if DEBUGGING
-            OnDamage += (hpLoss, armLoss) => Utils.Console.ConsoleOutput($"DAMAGE! HP_LOSS: {hpLoss} | ARM_LOSS: {armLoss}");
+            OnDamage += (hpLoss, armLoss) => Utils.Console.Output($"DAMAGE! HP_LOSS: {hpLoss} | ARM_LOSS: {armLoss}");
 #endif
 
             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
@@ -939,7 +939,7 @@ namespace BlaineRP.Client.Sync
 
                             AsyncTask.Methods.Run(() => Player.LocalPlayer.SetInvincible(false), 25);
                         }
-                        Utils.Console.ConsoleOutputLimited($"Игрок: #{sData.CID} | Урон: {customDamage + 1} | Дистанция: {distance} | Часть тела: {boneIdx}", true, 1000);
+                        Utils.Console.OutputLimited($"Игрок: #{sData.CID} | Урон: {customDamage + 1} | Дистанция: {distance} | Часть тела: {boneIdx}", true, 1000);
                     }
                     else
                     {

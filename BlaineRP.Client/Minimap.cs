@@ -1,4 +1,6 @@
-﻿namespace BlaineRP.Client
+﻿using BlaineRP.Client.Utils;
+
+namespace BlaineRP.Client
 {
     [Script(int.MaxValue)]
     public class MiniMap

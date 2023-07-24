@@ -1,15 +1,17 @@
-﻿using BlaineRP.Client.Extensions.RAGE;
+﻿using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class GPSApp
+    public class GPS
     {
         private static Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>> AllPositions = new Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>>()
         {
@@ -53,7 +55,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
         private static Additional.ExtraBlip CurrentRouteBlip { get; set; }
 
-        public GPSApp()
+        public GPS()
         {
             Events.Add("Phone::ClearRoute", (args) =>
             {
@@ -66,8 +68,8 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         RouteUpdateTask = null;
                     }
 
-                    if (CEF.Phone.CurrentApp == Phone.AppTypes.Navigator && CEF.Phone.CurrentAppTab == -1)
-                        CEF.Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
+                        Browser.Window.ExecuteJs("Phone.removeCurRoute();");
 
                     CurrentRouteBlip.Destroy();
                 }
@@ -169,12 +171,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
         public static void Show()
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Navigator;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Navigator;
 
-            Phone.CurrentAppTab = -1;
+            CEF.Phone.Phone.CurrentAppTab = -1;
 
             string curRouteId = null;
 
@@ -202,25 +204,25 @@ namespace BlaineRP.Client.CEF.PhoneApps
             {
                 RouteUpdateTask = null;
 
-                CEF.Browser.Window.ExecuteJs("Phone.drawGpsApp", null, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+                Browser.Window.ExecuteJs("Phone.drawGpsApp", null, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
             }
             else
             {
-                CEF.Browser.Window.ExecuteJs("Phone.drawGpsApp", new object[] { "asd", "asd1" }, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+                Browser.Window.ExecuteJs("Phone.drawGpsApp", new object[] { "asd", "asd1" }, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
 
                 RouteUpdateTask = new AsyncTask(() =>
                 {
-                    if (Phone.CurrentApp == Phone.AppTypes.Navigator && Phone.CurrentAppTab == -1)
+                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
                     {
                         if (CurrentRouteBlip?.Exists != true)
                         {
                             CurrentRouteBlip = null;
 
-                            CEF.Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+                            Browser.Window.ExecuteJs("Phone.removeCurRoute();");
                         }
                         else
                         {
-                            CEF.Browser.Window.ExecuteJs("Phone.updateCurRoute", new List<object>() { CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null", $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)" });
+                            Browser.Window.ExecuteJs("Phone.updateCurRoute", new List<object>() { CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null", $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)" });
                         }
                     }
                 }, 1000, true, 0);
@@ -236,7 +238,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
             if (subSections == null)
                 return;
 
-            Phone.CurrentAppTab = 1;
+            CEF.Phone.Phone.CurrentAppTab = 1;
 
             if (RouteUpdateTask != null)
             {
@@ -245,7 +247,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 RouteUpdateTask = null;
             }
 
-            CEF.Browser.Window.ExecuteJs("Phone.fillGpsRoutes", new object[] { new object[] { Locale.GPSApp.Names.GetValueOrDefault(sectionId) ?? sectionId, subSections.Select(x => { var data = x.Key.Split('&'); var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1]; return new object[] { data[0], data.Length == 3 ? $"{name}{data[2]}" : name }; }) } }, true);
+            Browser.Window.ExecuteJs("Phone.fillGpsRoutes", new object[] { new object[] { Locale.GPSApp.Names.GetValueOrDefault(sectionId) ?? sectionId, subSections.Select(x => { var data = x.Key.Split('&'); var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1]; return new object[] { data[0], data.Length == 3 ? $"{name}{data[2]}" : name }; }) } }, true);
         }
 
         public static bool AddPosition(string sectionId, string subSectionId, string routeId, string routeNameId, RAGE.Ui.Cursor.Vector2 pos)

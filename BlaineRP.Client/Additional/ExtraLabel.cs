@@ -60,7 +60,7 @@ namespace BlaineRP.Client.Additional
         {
             return;
 
-            (new AsyncTask(() =>
+            (new Utils.AsyncTask(() =>
             {
                 var pos = Player.LocalPlayer.Position;
                 var dim = Player.LocalPlayer.Dimension;

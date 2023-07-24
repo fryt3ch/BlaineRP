@@ -241,7 +241,7 @@ namespace BlaineRP.Client.CEF
                 Browser.Switch(Browser.IntTypes.HUD_Top, true);
                 Browser.Switch(Browser.IntTypes.HUD_Left, true);
 
-                if (!CEF.Phone.IsActive)
+                if (!Phone.Phone.IsActive)
                     Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.User.Interface.HideHints);
 
                 if (!Settings.User.Interface.HideQuest && Sync.Quest.ActualQuest != null)
@@ -249,7 +249,7 @@ namespace BlaineRP.Client.CEF
                     EnableQuest(true);
                 }
 
-                if (SpeedometerMustBeEnabled && !CEF.Phone.IsActive)
+                if (SpeedometerMustBeEnabled && !Phone.Phone.IsActive)
                     Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
             }
             else
@@ -509,7 +509,7 @@ namespace BlaineRP.Client.CEF
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
 
 
-            if (!CEF.Phone.IsActive)
+            if (!Phone.Phone.IsActive)
                 Browser.Switch(Browser.IntTypes.HUD_Speedometer, CEF.Browser.IsActive(Browser.IntTypes.HUD_Left));
 
             StartUpdateSpeedometerSpeed();

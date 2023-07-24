@@ -1,6 +1,8 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using BlaineRP.Client.CEF.Phone.Apps;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -287,7 +289,7 @@ namespace BlaineRP.Client.Sync
 
             public Sync.Animations.Animation ActualAnimation { get => Player.GetData<Sync.Animations.Animation>("ActualAnim"); set { if (value == null) Player.ResetData("ActualAnim"); Player.SetData("ActualAnim", value); } }
 
-            public List<CEF.PhoneApps.SMSApp.SMS> AllSMS { get => Player.GetData<List<CEF.PhoneApps.SMSApp.SMS>>("AllSMS"); set => Player.SetData("AllSMS", value); }
+            public List<SMS.Message> AllSMS { get => Player.GetData<List<SMS.Message>>("AllSMS"); set => Player.SetData("AllSMS", value); }
 
             public Dictionary<uint, string> Contacts { get => Player.GetData<Dictionary<uint, string>>("Contacts"); set => Player.SetData("Contacts", value); }
 
@@ -295,7 +297,7 @@ namespace BlaineRP.Client.Sync
 
             public uint PhoneNumber { get => Player.GetData<uint>("PhoneNumber"); set => Player.SetData("PhoneNumber", value); }
 
-            public CEF.PhoneApps.PhoneApp.CallInfo ActiveCall { get => Player.GetData<CEF.PhoneApps.PhoneApp.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
+            public CEF.Phone.Apps.Phone.CallInfo ActiveCall { get => Player.GetData<CEF.Phone.Apps.Phone.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
 
             public Data.Jobs.Job CurrentJob { get => Player.GetData<Data.Jobs.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
 
@@ -495,9 +497,9 @@ namespace BlaineRP.Client.Sync
                     data.PhoneBlacklist = new List<uint>();
 
                 if (sData.ContainsKey("SMS"))
-                    data.AllSMS = RAGE.Util.Json.Deserialize<List<string>>((string)sData["SMS"]).Select(x => new CEF.PhoneApps.SMSApp.SMS(x)).ToList();
+                    data.AllSMS = RAGE.Util.Json.Deserialize<List<string>>((string)sData["SMS"]).Select(x => new SMS.Message(x)).ToList();
                 else
-                    data.AllSMS = new List<CEF.PhoneApps.SMSApp.SMS>();
+                    data.AllSMS = new List<SMS.Message>();
 
                 if (sData.ContainsKey("Vehicles"))
                     data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Utils.Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
@@ -648,7 +650,7 @@ namespace BlaineRP.Client.Sync
                 Settings.User.Initialization.Load();
                 KeyBinds.LoadAll();
 
-                CEF.Phone.Preload();
+                CEF.Phone.Phone.Preload();
 
                 await CEF.Animations.Load();
 
@@ -668,7 +670,7 @@ namespace BlaineRP.Client.Sync
                 var timeUpdateTask = new AsyncTask(() =>
                 {
                     CEF.HUD.UpdateTime();
-                    CEF.Phone.UpdateTime();
+                    CEF.Phone.Phone.UpdateTime();
                 }, 1_000, true, 0);
 
                 timeUpdateTask.Run();
@@ -902,8 +904,8 @@ namespace BlaineRP.Client.Sync
                     }
                 }
 
-                if (CEF.Phone.CurrentApp == CEF.Phone.AppTypes.Vehicles)
-                    CEF.Phone.ShowApp(null, CEF.Phone.AppTypes.Vehicles);
+                if (CEF.Phone.Phone.CurrentApp == CEF.Phone.Enums.AppTypes.Vehicles)
+                    CEF.Phone.Phone.ShowApp(null, CEF.Phone.Enums.AppTypes.Vehicles);
             });
 
             Events.Add("Player::Waypoint::Set", (args) =>
@@ -911,7 +913,7 @@ namespace BlaineRP.Client.Sync
                 var x = (float)args[0];
                 var y = (float)args[1];
 
-                Misc.SetWaypoint(x, y);
+                Utils.Game.Misc.SetWaypoint(x, y);
             });
 
             Events.Add("Player::Smoke::Start", (object[] args) =>
@@ -1237,8 +1239,8 @@ namespace BlaineRP.Client.Sync
                         data.OwnedVehicles.RemoveAt(idx);
                     }
 
-                    if (CEF.Phone.CurrentApp == CEF.Phone.AppTypes.Vehicles)
-                        CEF.Phone.ShowApp(null, CEF.Phone.AppTypes.Vehicles);
+                    if (CEF.Phone.Phone.CurrentApp == CEF.Phone.Enums.AppTypes.Vehicles)
+                        CEF.Phone.Phone.ShowApp(null, CEF.Phone.Enums.AppTypes.Vehicles);
                 }
                 else if (pType == PropertyTypes.House)
                 {
@@ -1452,7 +1454,7 @@ namespace BlaineRP.Client.Sync
 
                 CEF.ATM.UpdateMoney(bank);
                 CEF.Bank.UpdateMoney(bank);
-                CEF.PhoneApps.BankApp.UpdateBalance(bank);
+                Bank.UpdateBalance(bank);
 
                 var oldBank = oldValue == null ? bank : Utils.Convert.ToUInt64(oldValue);
 

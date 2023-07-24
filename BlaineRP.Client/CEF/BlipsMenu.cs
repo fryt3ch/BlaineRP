@@ -1,5 +1,5 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Utils.Game;
+using BlaineRP.Client.Utils;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
@@ -350,7 +350,7 @@ namespace BlaineRP.Client.CEF
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
-            var waypointBlip = Misc.GetWaypointBlip();
+            var waypointBlip = Utils.Game.Misc.GetWaypointBlip();
 
             if (RAGE.Game.Ui.DoesBlipExist(playerBlip))
                 RAGE.Game.Ui.SetBlipDisplay(playerBlip, 0);
@@ -403,7 +403,7 @@ namespace BlaineRP.Client.CEF
             }
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
-            var waypointBlip = Misc.GetWaypointBlip();
+            var waypointBlip = Utils.Game.Misc.GetWaypointBlip();
 
             if (RAGE.Game.Ui.DoesBlipExist(playerBlip))
                 RAGE.Game.Ui.SetBlipDisplay(playerBlip, 2);

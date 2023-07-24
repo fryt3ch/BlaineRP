@@ -5,10 +5,10 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class CameraApp
+    public class Camera
     {
         public static bool IsActive { get; private set; }
 
@@ -66,7 +66,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
             ("anim@mp_player_intselfiewank", null, "Дергать рукой"),
         };
 
-        public CameraApp()
+        public Camera()
         {
 
         }
@@ -108,11 +108,11 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
 
-            CEF.Phone.Close();
+            CEF.Phone.Phone.Close();
 
-            CEF.HUD.ShowHUD(false);
+            HUD.ShowHUD(false);
 
-            CEF.Chat.Show(false);
+            Chat.Show(false);
 
             IsActive = true;
 
@@ -144,10 +144,10 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             KeyBinds.EnableAll();
 
-            if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(true);
+            if (!BlaineRP.Client.Settings.User.Interface.HideHUD)
+                HUD.ShowHUD(true);
 
-            CEF.Chat.Show(true);
+            Chat.Show(true);
 
             if (_scaleform != null)
             {
@@ -177,14 +177,14 @@ namespace BlaineRP.Client.CEF.PhoneApps
             }
 
             if (Sync.Phone.Toggled)
-                CEF.Phone.Show();
+                CEF.Phone.Phone.Show();
 
             IsActive = false;
         }
 
         private static async void OnRender()
         {
-            CEF.Cursor.OnTickCursor();
+            Cursor.OnTickCursor();
 
             RAGE.Game.Pad.DisableControlAction(32, 44, true); // disable Q
 
@@ -252,7 +252,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     var cameraPos = RAGE.Game.Cam.GetGameplayCamCoord();
                     var playerPos = Player.LocalPlayer.Position;
 
-                    RAGE.Elements.Entities.Players.Streamed.ForEach(x =>
+                    Entities.Players.Streamed.ForEach(x =>
                     {
                         if (x == Player.LocalPlayer)
                             return;
@@ -320,7 +320,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         {
                             Player.LocalPlayer.TaskPlayAnim(anim.Dict, "enter", 4f, 4f, -1, 128, -1f, false, false, false);
 
-                            await RAGE.Game.Invoker.WaitAsync((int)System.Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(anim.Dict, anim.Name)));
+                            await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(anim.Dict, anim.Name)));
 
                             if (!IsActive)
                                 return;
@@ -340,7 +340,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     {
                         Player.LocalPlayer.TaskPlayAnim(_currentAnimationDict, "exit", 4f, 4f, -1, 128, -1f, false, false, false);
 
-                        await RAGE.Game.Invoker.WaitAsync((int)System.Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(_currentAnimationDict, "exit")));
+                        await RAGE.Game.Invoker.WaitAsync((int)Math.Floor(1000 * RAGE.Game.Entity.GetAnimDuration(_currentAnimationDict, "exit")));
 
                         if (!IsActive)
                             return;
@@ -448,7 +448,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             if (notify)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.ScreenshotSaved, fileName));
+                Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.ScreenshotSaved, fileName));
             }
         }
 

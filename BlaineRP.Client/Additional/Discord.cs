@@ -12,7 +12,7 @@
         {
             SetDefault();
 
-            (new AsyncTask(() => RAGE.Discord.Update(_currentContent, _currentHeader), StatusUpdateTime, true, StatusUpdateTime)).Run();
+            (new Utils.AsyncTask(() => RAGE.Discord.Update(_currentContent, _currentHeader), StatusUpdateTime, true, StatusUpdateTime)).Run();
         }
 
         public static void SetStatus(string content, string header = null)

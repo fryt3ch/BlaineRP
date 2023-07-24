@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace BlaineRP.Client
+namespace BlaineRP.Client.Utils
 {
     public class AsyncTask
     {
@@ -28,13 +28,13 @@ namespace BlaineRP.Client
         /// <param name="delayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
         public AsyncTask(Action action, int delay = 0, bool loop = false, int delayToStart = 0)
         {
-            this._func = null;
-            this._action = action;
+            _func = null;
+            _action = action;
 
-            this._delay = delay;
-            this._loop = loop;
+            _delay = delay;
+            _loop = loop;
 
-            this._delayToStart = delayToStart;
+            _delayToStart = delayToStart;
         }
 
         /// <summary>Новое асинхронное задание без возвращаемого значения</summary>
@@ -44,13 +44,13 @@ namespace BlaineRP.Client
         /// <param name="delayToStart">Задержка перед началом (срабатывает только если Loop = true)</param>
         public AsyncTask(Func<bool> func, int delay = 0, bool loop = false, int delayToStart = 0)
         {
-            this._action = null;
-            this._func = func;
+            _action = null;
+            _func = func;
 
-            this._delay = delay;
-            this._loop = loop;
+            _delay = delay;
+            _loop = loop;
 
-            this._delayToStart = delayToStart;
+            _delayToStart = delayToStart;
         }
 
         public void Run()

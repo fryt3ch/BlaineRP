@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BlaineRP.Client.CEF.Phone.Apps;
+using RAGE;
 using System.Collections.Generic;
 
 namespace BlaineRP.Client.Data
@@ -43,7 +44,7 @@ namespace BlaineRP.Client.Data
 
                 Blip = new Additional.ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                CEF.PhoneApps.GPSApp.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
+                GPS.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
             }
         }
 
@@ -75,7 +76,7 @@ namespace BlaineRP.Client.Data
 
                 Blip = new Additional.ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                CEF.PhoneApps.GPSApp.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
+                GPS.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.CEF.Phone.Apps;
+using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
 using RAGE;
@@ -7,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.CEF.Phone
 {
     [Script(int.MaxValue)]
     public class Phone
@@ -23,24 +25,6 @@ namespace BlaineRP.Client.CEF
         public static DateTime LastSent;
 
         private static int EscBindIdx { get; set; } = -1;
-
-        public enum AppTypes
-        {
-            None = 0,
-
-            Settings,
-            Vehicles,
-            Bank,
-            BSim,
-            Camera,
-            Navigator,
-            Radio,
-            Phone,
-            Contacts,
-            SMS,
-            Browser,
-            Taxi,
-        }
 
         private static Dictionary<AppTypes, string> AppsJsNames = new Dictionary<AppTypes, string>()
         {
@@ -67,7 +51,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -86,7 +70,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -99,17 +83,17 @@ namespace BlaineRP.Client.CEF
                 {
                     if (appTab == 0) // callhist
                     {
-                        var callHist = PhoneApps.PhoneApp.CallHistory;
+                        var callHist = Apps.Phone.CallHistory;
 
                         if (callHist.Count == 0)
                         {
-                            PhoneApps.PhoneApp.ShowCallHistory(null);
+                            Apps.Phone.ShowCallHistory(null);
                         }
                         else
                         {
                             var blackList = pData.PhoneBlacklist;
 
-                            PhoneApps.PhoneApp.ShowCallHistory(callHist.Select(x => new object[] { (int)x.Status, x.PhoneNumber, GetContactNameByNumberNull(x.PhoneNumber), blackList.Contains(x.PhoneNumber) }));
+                            Apps.Phone.ShowCallHistory(callHist.Select(x => new object[] { (int)x.Status, x.PhoneNumber, GetContactNameByNumberNull(x.PhoneNumber), blackList.Contains(x.PhoneNumber) }));
                         }
                     }
                     else if (appTab == 1) // blacklist
@@ -118,11 +102,11 @@ namespace BlaineRP.Client.CEF
 
                         if (blacklist.Count == 0)
                         {
-                            PhoneApps.PhoneApp.ShowBlacklist(null, null);
+                            Apps.Phone.ShowBlacklist(null, null);
                         }
                         else
                         {
-                            PhoneApps.PhoneApp.ShowBlacklist(blacklist.Select(x => new object[] { x, GetContactNameByNumberNull(x) }));
+                            Apps.Phone.ShowBlacklist(blacklist.Select(x => new object[] { x, GetContactNameByNumberNull(x) }));
                         }
                     }
                 }
@@ -130,7 +114,7 @@ namespace BlaineRP.Client.CEF
                 {
                     if (appTab == "wallpaper".GetHashCode())
                     {
-                        CEF.Browser.Window.ExecuteCachedJs("Phone.switchTabSettings", "wallpaper", "Выбор обоев");
+                        Browser.Window.ExecuteCachedJs("Phone.switchTabSettings", "wallpaper", "Выбор обоев");
 
                         CurrentAppTab = appTab;
                     }
@@ -144,25 +128,25 @@ namespace BlaineRP.Client.CEF
                         if (receiverNum == "0")
                             receiverNum = null;
 
-                        PhoneApps.SMSApp.ShowWriteNew(receiverNum);
+                        SMS.ShowWriteNew(receiverNum);
                     }
                     else if (appTab == 1) // openChat
                     {
                         var targetNum = uint.Parse(args[1].ToString());
 
-                        var chatList = PhoneApps.SMSApp.GetChatList(pData.AllSMS, targetNum, pData.PhoneNumber);
+                        var chatList = SMS.GetChatList(pData.AllSMS, targetNum, pData.PhoneNumber);
 
                         if (chatList == null)
                             return;
 
-                        PhoneApps.SMSApp.ShowChat(targetNum, chatList, GetContactNameByNumberNull(targetNum));
+                        SMS.ShowChat(targetNum, chatList, GetContactNameByNumberNull(targetNum));
                     }
                 }
                 else if (CurrentApp == AppTypes.Contacts)
                 {
                     if (appTab == 0) // add contact
                     {
-                        PhoneApps.ContactsApp.ShowEdit(null, null);
+                        Contacts.ShowEdit(null, null);
                     }
                 }
                 else if (CurrentApp == AppTypes.Bank)
@@ -171,7 +155,7 @@ namespace BlaineRP.Client.CEF
                     {
                         CurrentAppTab = 0;
 
-                        CEF.Browser.Window.ExecuteJs("Phone.drawBankTab", 0);
+                        Browser.Window.ExecuteJs("Phone.drawBankTab", 0);
                     }
                     else if (appTab == 1) // house
                     {
@@ -179,7 +163,7 @@ namespace BlaineRP.Client.CEF
 
                         if (house == null)
                         {
-                            CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedHouse);
+                            Notification.ShowError(Locale.Notifications.General.NoOwnedHouse);
 
                             return;
                         }
@@ -198,29 +182,29 @@ namespace BlaineRP.Client.CEF
 
                         CurrentAppTab = 1;
 
-                        CEF.Browser.Window.ExecuteJs("Phone.drawBankTab", 1, new object[] { balance, house.Tax });
+                        Browser.Window.ExecuteJs("Phone.drawBankTab", 1, new object[] { balance, house.Tax });
 
-                        PhoneApps.BankApp.CurrentTransactionAction = async (amount) =>
+                        Apps.Bank.CurrentTransactionAction = async (amount) =>
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
 
-                            var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+                            var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
+                                Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -232,7 +216,7 @@ namespace BlaineRP.Client.CEF
 
                             balance = Utils.Convert.ToUInt64(resObj);
 
-                            CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
+                            Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
                     }
                     else if (appTab == 2) // flat
@@ -241,7 +225,7 @@ namespace BlaineRP.Client.CEF
 
                         if (house == null)
                         {
-                            CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedApartments);
+                            Notification.ShowError(Locale.Notifications.General.NoOwnedApartments);
 
                             return;
                         }
@@ -260,29 +244,29 @@ namespace BlaineRP.Client.CEF
 
                         CurrentAppTab = 2;
 
-                        CEF.Browser.Window.ExecuteJs("Phone.drawBankTab", 2, new object[] { balance, house.Tax });
+                        Browser.Window.ExecuteJs("Phone.drawBankTab", 2, new object[] { balance, house.Tax });
 
-                        PhoneApps.BankApp.CurrentTransactionAction = async (amount) =>
+                        Apps.Bank.CurrentTransactionAction = async (amount) =>
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
 
-                            var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+                            var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
+                                Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -294,7 +278,7 @@ namespace BlaineRP.Client.CEF
 
                             balance = Utils.Convert.ToUInt64(resObj);
 
-                            CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
+                            Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
                     }
                     else if (appTab == 3) // garage
@@ -303,7 +287,7 @@ namespace BlaineRP.Client.CEF
 
                         if (garage == null)
                         {
-                            CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedGarage);
+                            Notification.ShowError(Locale.Notifications.General.NoOwnedGarage);
 
                             return;
                         }
@@ -322,29 +306,29 @@ namespace BlaineRP.Client.CEF
 
                         CurrentAppTab = 3;
 
-                        CEF.Browser.Window.ExecuteJs("Phone.drawBankTab", 3, new object[] { balance, garage.Tax });
+                        Browser.Window.ExecuteJs("Phone.drawBankTab", 3, new object[] { balance, garage.Tax });
 
-                        PhoneApps.BankApp.CurrentTransactionAction = async (amount) =>
+                        Apps.Bank.CurrentTransactionAction = async (amount) =>
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
 
-                            var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+                            var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
+                                Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -356,7 +340,7 @@ namespace BlaineRP.Client.CEF
 
                             balance = Utils.Convert.ToUInt64(resObj);
 
-                            CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
+                            Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
                     }
                     else if (appTab == 4) // business
@@ -365,7 +349,7 @@ namespace BlaineRP.Client.CEF
 
                         if (biz == null)
                         {
-                            CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedBusiness);
+                            Notification.ShowError(Locale.Notifications.General.NoOwnedBusiness);
 
                             return;
                         }
@@ -384,29 +368,29 @@ namespace BlaineRP.Client.CEF
 
                         CurrentAppTab = 4;
 
-                        CEF.Browser.Window.ExecuteJs("Phone.drawBankTab", 4, new object[] { balance, biz.Rent });
+                        Browser.Window.ExecuteJs("Phone.drawBankTab", 4, new object[] { balance, biz.Rent });
 
-                        PhoneApps.BankApp.CurrentTransactionAction = async (amount) =>
+                        Apps.Bank.CurrentTransactionAction = async (amount) =>
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
 
-                            var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+                            var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
+                                Notification.ShowError(string.Format(Locale.Notifications.Money.MaximalBalanceNear, Locale.Get("GEN_MONEY_0", maxBalance - balance)));
 
                                 return;
                             }
@@ -418,13 +402,13 @@ namespace BlaineRP.Client.CEF
 
                             balance = Utils.Convert.ToUInt64(resObj);
 
-                            CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
+                            Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
                     }
                 }
                 else if (CurrentApp == AppTypes.Navigator)
                 {
-                    CEF.PhoneApps.GPSApp.ShowTab((string)args[0]);
+                    GPS.ShowTab((string)args[0]);
                 }
             });
 
@@ -460,7 +444,7 @@ namespace BlaineRP.Client.CEF
                         if (!int.TryParse(pcIdxS, out pcIdx))
                             return;
 
-                        var callHist = PhoneApps.PhoneApp.CallHistory;
+                        var callHist = Apps.Phone.CallHistory;
 
                         if (pcIdx < 0 || pcIdx >= callHist.Count)
                             return;
@@ -471,33 +455,33 @@ namespace BlaineRP.Client.CEF
                         {
                             var numStr = number.ToString();
 
-                            PhoneApps.PhoneApp.ShowDefault(numStr);
+                            Apps.Phone.ShowDefault(numStr);
 
-                            PhoneApps.PhoneApp.Call(numStr);
+                            Apps.Phone.Call(numStr);
                         }
                         else if (actId == 1) // sms
                         {
                             var allSms = pData.AllSMS;
                             var pNumber = pData.PhoneNumber;
 
-                            var chatList = PhoneApps.SMSApp.GetChatList(allSms, number, pNumber);
+                            var chatList = SMS.GetChatList(allSms, number, pNumber);
 
                             if (chatList != null)
                             {
-                                PhoneApps.SMSApp.ShowChat(number, chatList, GetContactNameByNumberNull(number));
+                                SMS.ShowChat(number, chatList, GetContactNameByNumberNull(number));
                             }
                             else
                             {
-                                PhoneApps.SMSApp.ShowWriteNew(number.ToString());
+                                SMS.ShowWriteNew(number.ToString());
                             }
                         }
                         else if (actId == 2) // add contact
                         {
-                            PhoneApps.ContactsApp.ShowEdit(number.ToString(), null);
+                            Contacts.ShowEdit(number.ToString(), null);
                         }
                         else if (actId == 3) // add/remove blacklist
                         {
-                            PhoneApps.PhoneApp.BlacklistChange(number, !pData.PhoneBlacklist.Contains(number));
+                            Apps.Phone.BlacklistChange(number, !pData.PhoneBlacklist.Contains(number));
                         }
                     }
                 }
@@ -509,9 +493,9 @@ namespace BlaineRP.Client.CEF
                     {
                         var numStr = elem.ToString();
 
-                        PhoneApps.PhoneApp.ShowDefault(numStr);
+                        Apps.Phone.ShowDefault(numStr);
 
-                        PhoneApps.PhoneApp.Call(numStr);
+                        Apps.Phone.Call(numStr);
                     }
                     else if (actId == 1) // sms
                     {
@@ -522,15 +506,15 @@ namespace BlaineRP.Client.CEF
                         var allSms = pData.AllSMS;
                         var pNumber = pData.PhoneNumber;
 
-                        var chatList = PhoneApps.SMSApp.GetChatList(allSms, number, pNumber);
+                        var chatList = SMS.GetChatList(allSms, number, pNumber);
 
                         if (chatList != null)
                         {
-                            PhoneApps.SMSApp.ShowChat(number, chatList, GetContactNameByNumberNull(number));
+                            SMS.ShowChat(number, chatList, GetContactNameByNumberNull(number));
                         }
                         else
                         {
-                            PhoneApps.SMSApp.ShowWriteNew(numberStr);
+                            SMS.ShowWriteNew(numberStr);
                         }
                     }
                     else if (actId == 2) // edit
@@ -539,7 +523,7 @@ namespace BlaineRP.Client.CEF
 
                         var number = uint.Parse(numberStr);
 
-                        PhoneApps.ContactsApp.ShowEdit(numberStr, GetContactNameByNumber(number));
+                        Contacts.ShowEdit(numberStr, GetContactNameByNumber(number));
                     }
                     else if (actId == 3) // delete
                     {
@@ -575,14 +559,14 @@ namespace BlaineRP.Client.CEF
 
                             if (house == null)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedHouseWGarage);
+                                Notification.ShowError(Locale.Notifications.General.NoOwnedHouseWGarage);
 
                                 return;
                             }
 
                             if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
+                                Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }
@@ -595,14 +579,14 @@ namespace BlaineRP.Client.CEF
 
                             if (garage == null)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedGarage);
+                                Notification.ShowError(Locale.Notifications.General.NoOwnedGarage);
 
                                 return;
                             }
 
                             if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
+                                Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }
@@ -622,7 +606,7 @@ namespace BlaineRP.Client.CEF
                         {
                             if (Player.LocalPlayer.Vehicle?.RemoteId == rid)
                             {
-                                CEF.Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
+                                Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }
@@ -664,7 +648,7 @@ namespace BlaineRP.Client.CEF
 
                     var res = Utils.Convert.ToUInt32(resObj);
 
-                    CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bsim-app-info", 1, res);
+                    Browser.Window.ExecuteJs("Phone.updateInfoLine", "bsim-app-info", 1, res);
                 }
                 else if (CurrentApp == AppTypes.Bank)
                 {
@@ -703,9 +687,9 @@ namespace BlaineRP.Client.CEF
                         var approveContext = $"BankSendToPlayer_{cid}_{amount}";
                         var approveTime = 5_000;
 
-                        if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                        if (Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
                         {
-                            CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                            Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
 
                             if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, true)) ;
                             {
@@ -714,9 +698,9 @@ namespace BlaineRP.Client.CEF
                         }
                         else
                         {
-                            CEF.Notification.ClearAll();
+                            Notification.ClearAll();
 
-                            CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+                            Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
                             await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, false);
                         }
@@ -738,7 +722,7 @@ namespace BlaineRP.Client.CEF
                         if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                             return;
 
-                        PhoneApps.BankApp.CurrentTransactionAction?.Invoke(amount);
+                        Apps.Bank.CurrentTransactionAction?.Invoke(amount);
                     }
                 }
             });
@@ -798,22 +782,22 @@ namespace BlaineRP.Client.CEF
                     if (res == null)
                         return;
 
-                    PhoneApps.BSimApp.Show(pData.PhoneNumber.ToString(), uint.Parse(res[0]), uint.Parse(res[1]), uint.Parse(res[2]));
+                    BSim.Show(pData.PhoneNumber.ToString(), uint.Parse(res[0]), uint.Parse(res[1]), uint.Parse(res[2]));
                 }
                 else if (appType == AppTypes.Phone)
                 {
-                    PhoneApps.PhoneApp.ShowDefault(null);
+                    Apps.Phone.ShowDefault(null);
                 }
                 else if (appType == AppTypes.Camera)
                 {
                     if (Sync.Phone.CanUsePhoneAnim(true) && !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
                     {
-                        PhoneApps.CameraApp.Show();
+                        Apps.Camera.Show();
                     }
                 }
                 else if (appType == AppTypes.Settings)
                 {
-                    PhoneApps.SettingsApp.Show();
+                    Apps.Settings.Show();
                 }
                 else if (appType == AppTypes.Bank)
                 {
@@ -822,15 +806,15 @@ namespace BlaineRP.Client.CEF
                     if (resData == null)
                         return;
 
-                    PhoneApps.BankApp.Show(((CEF.Bank.TariffTypes)int.Parse(resData[0])).ToString(), pData.BankBalance, decimal.Parse(resData[1]));
+                    Apps.Bank.Show(((Bank.TariffTypes)int.Parse(resData[0])).ToString(), pData.BankBalance, decimal.Parse(resData[1]));
                 }
                 else if (appType == AppTypes.Vehicles)
                 {
                     var ownedVehs = pData.OwnedVehicles.Select(x => new object[] { x.VID, $"{x.Data.BrandName}<br>{x.Data.SubName}<br>[#{x.VID}]", x.Data.Type.ToString() }).ToList();
 
-                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{((uint)x.RemoteId) + 10_000}]", x.VehicleData.Type.ToString() }).ToList();
+                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{(uint)x.RemoteId + 10_000}]", x.VehicleData.Type.ToString() }).ToList();
 
-                    PhoneApps.VehiclesApp.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
+                    Vehicles.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }
                 else if (appType == AppTypes.Contacts)
                 {
@@ -838,11 +822,11 @@ namespace BlaineRP.Client.CEF
 
                     if (allContacts.Count == 0)
                     {
-                        PhoneApps.ContactsApp.ShowAll(null);
+                        Contacts.ShowAll(null);
                     }
                     else
                     {
-                        PhoneApps.ContactsApp.ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }));
+                        Contacts.ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }));
                     }
                 }
                 else if (appType == AppTypes.SMS)
@@ -851,26 +835,26 @@ namespace BlaineRP.Client.CEF
 
                     if (allSms.Count == 0)
                     {
-                        PhoneApps.SMSApp.ShowPreviews(null);
+                        SMS.ShowPreviews(null);
                     }
                     else
                     {
                         var pNumber = pData.PhoneNumber;
 
-                        PhoneApps.SMSApp.ShowPreviews(PhoneApps.SMSApp.GetSMSPreviews(allSms, pNumber).Select(x => new object[] { x.Key, GetContactNameByNumberNull(x.Key), x.Value.Date.ToString("HH:mm"), x.Value.Text }));
+                        SMS.ShowPreviews(SMS.GetSMSPreviews(allSms, pNumber).Select(x => new object[] { x.Key, GetContactNameByNumberNull(x.Key), x.Value.Date.ToString("HH:mm"), x.Value.Text }));
                     }
                 }
                 else if (appType == AppTypes.Taxi)
                 {
-                    PhoneApps.TaxiApp.Show(pData);
+                    Taxi.Show(pData);
                 }
                 else if (appType == AppTypes.Radio)
                 {
-                    CEF.PhoneApps.RadioApp.Show();
+                    Radio.Show();
                 }
                 else if (appType == AppTypes.Navigator)
                 {
-                    CEF.PhoneApps.GPSApp.Show();
+                    GPS.Show();
                 }
             }
         }
@@ -882,33 +866,33 @@ namespace BlaineRP.Client.CEF
             if (pData == null)
                 return;
 
-            if (pData.ActiveCall is PhoneApps.PhoneApp.CallInfo callInfo)
+            if (pData.ActiveCall is Apps.Phone.CallInfo callInfo)
             {
-                PhoneApps.PhoneApp.ShowIncomingCall(GetContactNameByNumber(callInfo.Number));
+                Apps.Phone.ShowIncomingCall(GetContactNameByNumber(callInfo.Number));
             }
 
             IsActive = true;
 
-            if (CEF.HUD.SpeedometerEnabled)
-                CEF.Browser.Switch(Browser.IntTypes.HUD_Speedometer, false);
+            if (HUD.SpeedometerEnabled)
+                Browser.Switch(Browser.IntTypes.HUD_Speedometer, false);
 
-            if (CEF.Browser.IsActive(Browser.IntTypes.HUD_Help))
-                CEF.Browser.Switch(Browser.IntTypes.HUD_Help, false);
+            if (Browser.IsActive(Browser.IntTypes.HUD_Help))
+                Browser.Switch(Browser.IntTypes.HUD_Help, false);
 
-            CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, true);
+            Browser.SwitchTemp(Browser.IntTypes.Phone, true);
 
-            CEF.Browser.Window.ExecuteCachedJs("Phone.showPhone", true);
+            Browser.Window.ExecuteCachedJs("Phone.showPhone", true);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
-                if (CEF.Chat.InputVisible)
+                if (Chat.InputVisible)
                     return;
 
-                if (CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "PhonePoliceCallInput" || CEF.ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || CEF.ActionBox.CurrentContextStr == "Phone911Select"))
+                if (ActionBox.CurrentContextStr != null && (ActionBox.CurrentContextStr == "PhonePoliceCallInput" || ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || ActionBox.CurrentContextStr == "Phone911Select"))
                 {
-                    CEF.ActionBox.Close(false);
+                    ActionBox.Close(false);
 
                     return;
                 }
@@ -926,25 +910,25 @@ namespace BlaineRP.Client.CEF
 
             if (pData.ActiveCall != null)
             {
-                CEF.Phone.ShowApp(pData, AppTypes.None);
+                ShowApp(pData, AppTypes.None);
             }
 
             IsActive = false;
 
-            CEF.Browser.Window.ExecuteCachedJs("Phone.showPhone", false);
+            Browser.Window.ExecuteCachedJs("Phone.showPhone", false);
 
-            if (CEF.HUD.SpeedometerMustBeEnabled)
-                CEF.Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
+            if (HUD.SpeedometerMustBeEnabled)
+                Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
 
-            if (CEF.HUD.IsActive && !Settings.User.Interface.HideHints)
-                CEF.Browser.Switch(Browser.IntTypes.HUD_Help, true);
+            if (HUD.IsActive && !Settings.User.Interface.HideHints)
+                Browser.Switch(Browser.IntTypes.HUD_Help, true);
 
-            if (CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "PhonePoliceCallInput" || CEF.ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || CEF.ActionBox.CurrentContextStr == "Phone911Select"))
+            if (ActionBox.CurrentContextStr != null && (ActionBox.CurrentContextStr == "PhonePoliceCallInput" || ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || ActionBox.CurrentContextStr == "Phone911Select"))
             {
-                CEF.ActionBox.Close();
+                ActionBox.Close();
             }
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
             KeyBinds.Unbind(EscBindIdx);
 
@@ -953,33 +937,33 @@ namespace BlaineRP.Client.CEF
 
         public static void Preload()
         {
-            CEF.Browser.Switch(Browser.IntTypes.Phone, true);
+            Browser.Switch(Browser.IntTypes.Phone, true);
 
             SetWallpaper(Settings.User.Other.PhoneWallpaperNum);
 
-            CEF.Browser.Window.ExecuteJs("Phone.setDisturb", Settings.User.Other.PhoneNotDisturb);
+            Browser.Window.ExecuteJs("Phone.setDisturb", Settings.User.Other.PhoneNotDisturb);
         }
 
         public static void UpdateTime()
         {
-            CEF.Browser.Window.ExecuteJs("Phone.setTime", Sync.World.ServerTime.ToString("HH:mm dd.MM.yyyy"));
+            Browser.Window.ExecuteJs("Phone.setTime", Sync.World.ServerTime.ToString("HH:mm dd.MM.yyyy"));
         }
 
         public static void SetWallpaper(int num)
         {
-            CEF.Browser.Window.ExecuteJs("Phone.setWallpaper", num);
+            Browser.Window.ExecuteJs("Phone.setWallpaper", num);
         }
 
         public static void ToggleDoNotDisturb(bool state)
         {
-            CEF.Browser.Window.ExecuteJs("Phone.updateDisturb", state);
+            Browser.Window.ExecuteJs("Phone.updateDisturb", state);
         }
 
         public static void SwitchMenu(bool state)
         {
             CurrentAppTab = -1;
 
-            CEF.Browser.Window.ExecuteCachedJs("Phone.showMenu", state);
+            Browser.Window.ExecuteCachedJs("Phone.showMenu", state);
         }
 
         public static string GetContactNameByNumberNull(uint number)

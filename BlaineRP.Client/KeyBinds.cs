@@ -925,7 +925,7 @@ namespace BlaineRP.Client
 
             Add(new ExtraBind(Types.TakeScreenshot, () =>
             {
-                CEF.PhoneApps.CameraApp.SavePicture(false, false, true);
+                CEF.Phone.Apps.Camera.SavePicture(false, false, true);
             }, true, true)
             { Description = "Сделать скриншот" });
 

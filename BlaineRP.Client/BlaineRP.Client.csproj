@@ -14,11 +14,13 @@
   <ItemGroup>
     <None Remove="Properties\JavaScript\fingerpoint.js" />
     <None Remove="Properties\JavaScript\index.js" />
+    <None Remove="Elements\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Properties\JavaScript\fingerpoint.js" />
     <EmbeddedResource Include="Properties\JavaScript\index.js" />
+    <EmbeddedResource Remove="Elements\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +39,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Language.resx</DependentUpon>
     </Compile>
+    <Compile Remove="Elements\**" />
   </ItemGroup>
 
   <ItemGroup>

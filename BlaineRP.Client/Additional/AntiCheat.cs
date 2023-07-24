@@ -1,6 +1,6 @@
 ﻿using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Utils.Game;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
@@ -17,7 +17,6 @@ namespace BlaineRP.Client.Additional
 
         public static bool LastTeleportWasGround { get; set; }
 
-        #region Variables
         public static Vector3 LastPosition { get; set; }
 
         private static int LastHealth { get; set; }
@@ -49,7 +48,6 @@ namespace BlaineRP.Client.Additional
         public const string AlphaTaskKey = "AC_ALPHA_T";
 
         private static uint DisableCloseAllOnTeleportCounter { get; set; }
-        #endregion
 
         public static void DisableCloseAllOnNextTeleport() => DisableCloseAllOnTeleportCounter++;
 
@@ -631,7 +629,7 @@ namespace BlaineRP.Client.Additional
 
                 if (veh.GetTrailerVehicle(ref trailerVehHandle))
                 {
-                    var trailerVeh = Misc.GetVehicleByHandle(trailerVehHandle, false);
+                    var trailerVeh = Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false);
 
                     if (trailerVeh?.Exists != true)
                     {
@@ -689,7 +687,7 @@ namespace BlaineRP.Client.Additional
         {
             if (Player.LocalPlayer.IsInAnyVehicle(false))
             {
-                if (RAGE.Game.Ui.IsWarningMessageActive() && Misc.GetWarningMessageTitleHash() == 1246147334)
+                if (RAGE.Game.Ui.IsWarningMessageActive() && Utils.Game.Misc.GetWarningMessageTitleHash() == 1246147334)
                 {
                     Player.LocalPlayer.ClearTasksImmediately();
 

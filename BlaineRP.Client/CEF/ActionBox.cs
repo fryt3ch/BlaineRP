@@ -26,13 +26,6 @@ namespace BlaineRP.Client.CEF
             Additional1 = 2,
         }
 
-        private enum ActionTypes
-        {
-            Show = 0,
-            Choose,
-            Close,
-        }
-
         public enum Types : sbyte
         {
             None = -1,

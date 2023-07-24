@@ -6,7 +6,7 @@ namespace BlaineRP.Client.Utils
     {
         private static DateTime _lastLimitedConsoleMsgTime;
 
-        public static void ConsoleOutput(object obj, bool line = true)
+        public static void Output(object obj, bool line = true)
         {
             if (line)
                 RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Info, obj.ToString());
@@ -14,7 +14,7 @@ namespace BlaineRP.Client.Utils
                 RAGE.Ui.Console.Log(RAGE.Ui.ConsoleVerbosity.Info, obj.ToString());
         }
 
-        public static void ConsoleOutputLimited(object obj, bool line = true, int ms = 2000)
+        public static void OutputLimited(object obj, bool line = true, int ms = 2000)
         {
             if (Sync.World.ServerTime.Subtract(_lastLimitedConsoleMsgTime).TotalMilliseconds < ms)
                 return;

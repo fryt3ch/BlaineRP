@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils.Game;
@@ -6,10 +7,10 @@ using RAGE;
 using RAGE.Elements;
 using System;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class TaxiApp
+    public class Taxi
     {
         public static ClientOrderInfo CurrentOrderInfo { get; set; }
 
@@ -25,7 +26,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
             public Additional.ExtraColshape ExitColshape2 { get; set; }
         }
 
-        public TaxiApp()
+        public Taxi()
         {
             Events.Add("Taxi::UO", (args) =>
             {
@@ -38,7 +39,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         CurrentOrderInfo = null;
 
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi3);
+                        Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi3);
 
                         Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                     }
@@ -48,14 +49,14 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     if (CurrentOrderInfo == null)
                         return;
 
-                    CurrentOrderInfo.Driver = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[0]);
+                    CurrentOrderInfo.Driver = Entities.Players.GetAtRemote((ushort)(int)args[0]);
 
                     if (CurrentOrderInfo.Driver == null)
                         return;
 
                     CurrentOrderInfo.DriverNumber = Utils.Convert.ToUInt32(args[1]);
 
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
+                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
                 }
                 else if (args.Length == 1)
                 {
@@ -68,7 +69,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         {
                             CurrentOrderInfo.Driver = null;
 
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
+                            Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
 
                             Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
@@ -79,15 +80,15 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                             CurrentOrderInfo = null;
 
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
+                            Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
 
                             Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
                     }
                 }
 
-                if (CEF.Phone.CurrentApp == Phone.AppTypes.Taxi)
-                    CEF.Phone.ShowApp(null, Phone.AppTypes.Taxi);
+                if (CEF.Phone.Phone.CurrentApp == AppTypes.Taxi)
+                    CEF.Phone.Phone.ShowApp(null, AppTypes.Taxi);
             });
 
             Events.Add("Phone::CabAction", async (args) =>
@@ -97,7 +98,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (CEF.Phone.LastSent.IsSpam(250, false, false))
+                if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 var id = Utils.Convert.ToDecimal(args[0]);
@@ -106,7 +107,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 {
                     if (id == 0)
                     {
-                        CEF.Phone.LastSent = Sync.World.ServerTime;
+                        CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
                         var res = (bool)await Events.CallRemoteProc("Taxi::NO");
 
@@ -114,7 +115,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         {
                             var pos = Player.LocalPlayer.Position;
 
-                            CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Misc.GetStreetName(pos)));
+                            Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Misc.GetStreetName(pos)));
 
                             pos.Z -= 1f;
 
@@ -122,18 +123,18 @@ namespace BlaineRP.Client.CEF.PhoneApps
                             {
                                 Date = Sync.World.ServerTime,
 
-                                ExitColshape1 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension)
+                                ExitColshape1 = new Additional.Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
                                         if (CurrentOrderInfo?.ExitColshape1?.Exists != true)
                                             return;
 
-                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2));
+                                        Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiDistanceWarn, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2));
                                     }
                                 },
 
-                                ExitColshape2 = new Additional.Cylinder(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.App.Static.MainDimension)
+                                ExitColshape2 = new Additional.Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -145,12 +146,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
                                 }
                             };
 
-                            if (CEF.Phone.CurrentApp == Phone.AppTypes.Taxi)
-                                CEF.Phone.ShowApp(null, Phone.AppTypes.Taxi);
+                            if (CEF.Phone.Phone.CurrentApp == AppTypes.Taxi)
+                                CEF.Phone.Phone.ShowApp(null, AppTypes.Taxi);
                         }
                         else
                         {
-                            CEF.Notification.ShowError(Locale.Notifications.General.TaxiError);
+                            Notification.ShowError(Locale.Notifications.General.TaxiError);
                         }
                     }
                 }
@@ -160,7 +161,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     {
                         if (id == 0)
                         {
-                            CEF.Phone.LastSent = Sync.World.ServerTime;
+                            CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Taxi::CO");
                         }
@@ -172,20 +173,20 @@ namespace BlaineRP.Client.CEF.PhoneApps
                             var allSms = pData.AllSMS;
                             var pNumber = pData.PhoneNumber;
 
-                            var chatList = PhoneApps.SMSApp.GetChatList(allSms, CurrentOrderInfo.DriverNumber, pNumber);
+                            var chatList = SMS.GetChatList(allSms, CurrentOrderInfo.DriverNumber, pNumber);
 
                             if (chatList != null)
                             {
-                                PhoneApps.SMSApp.ShowChat(CurrentOrderInfo.DriverNumber, chatList, Phone.GetContactNameByNumberNull(CurrentOrderInfo.DriverNumber));
+                                SMS.ShowChat(CurrentOrderInfo.DriverNumber, chatList, CEF.Phone.Phone.GetContactNameByNumberNull(CurrentOrderInfo.DriverNumber));
                             }
                             else
                             {
-                                PhoneApps.SMSApp.ShowWriteNew(CurrentOrderInfo.DriverNumber.ToString());
+                                SMS.ShowWriteNew(CurrentOrderInfo.DriverNumber.ToString());
                             }
                         }
                         else if (id == 1)
                         {
-                            CEF.PhoneApps.PhoneApp.ShowDefault(CurrentOrderInfo.DriverNumber.ToString());
+                            Phone.ShowDefault(CurrentOrderInfo.DriverNumber.ToString());
                         }
                     }
                 }
@@ -194,26 +195,26 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
         public static void Show(Sync.Players.PlayerData pData)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Taxi;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Taxi;
 
-            Phone.CurrentAppTab = -1;
+            CEF.Phone.Phone.CurrentAppTab = -1;
 
             if (CurrentOrderInfo == null)
             {
-                CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Misc.GetStreetName(Player.LocalPlayer.Position) });
+                Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Misc.GetStreetName(Player.LocalPlayer.Position) });
             }
             else
             {
                 if (CurrentOrderInfo.Driver == null)
                 {
-                    CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 1, new object[] { "Идет поиск водителя", CurrentOrderInfo.Date.ToString("HH:mm dd.MM.yyyy") });
+                    Browser.Window.ExecuteJs("Phone.drawCabApp", 1, new object[] { "Идет поиск водителя", CurrentOrderInfo.Date.ToString("HH:mm dd.MM.yyyy") });
                 }
                 else
                 {
-                    CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 2, new object[] { "Водитель в пути", CurrentOrderInfo.Driver.GetSharedData<int>("CID", 0).ToString() });
+                    Browser.Window.ExecuteJs("Phone.drawCabApp", 2, new object[] { "Водитель в пути", CurrentOrderInfo.Driver.GetSharedData("CID", 0).ToString() });
                 }
             }
         }

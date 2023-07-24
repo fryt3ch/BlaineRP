@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using BlaineRP.Client.CEF.Phone.Apps;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -1260,8 +1261,8 @@ namespace BlaineRP.Client.Data
 
                 var gpsPos = new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y);
 
-                CEF.PhoneApps.GPSApp.AddPosition("bizother", "farm", $"bizother_{Id}", $"{Name} #{SubId}", gpsPos);
-                CEF.PhoneApps.GPSApp.AddPosition("jobs", "jobfarm", $"jobfarm_{Id}", $"{Name} #{SubId}", gpsPos);
+                GPS.AddPosition("bizother", "farm", $"bizother_{Id}", $"{Name} #{SubId}", gpsPos);
+                GPS.AddPosition("jobs", "jobfarm", $"jobfarm_{Id}", $"{Name} #{SubId}", gpsPos);
             }
 
             private static void OnEnterFarm(Farm farm)

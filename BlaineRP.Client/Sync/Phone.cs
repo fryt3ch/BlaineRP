@@ -98,9 +98,9 @@ namespace BlaineRP.Client.Sync
 
                         Toggled = false;
 
-                        CEF.Phone.Close();
+                        CEF.Phone.Phone.Close();
 
-                        CEF.PhoneApps.CameraApp.Close();
+                        CEF.Phone.Apps.Camera.Close();
 
                         if (CurrentTask != null)
                         {
@@ -141,7 +141,7 @@ namespace BlaineRP.Client.Sync
 
                         Toggled = true;
 
-                        CEF.Phone.Show();
+                        CEF.Phone.Phone.Show();
 
                         CurrentTask?.Cancel();
 
@@ -163,7 +163,7 @@ namespace BlaineRP.Client.Sync
                                         lastSyncedType = PhoneStateTypes.Call;
                                     }
                                 }
-                                else if (CEF.PhoneApps.CameraApp.IsActive)
+                                else if (CEF.Phone.Apps.Camera.IsActive)
                                 {
                                     if (lastSyncedType != PhoneStateTypes.Camera)
                                     {
@@ -187,7 +187,7 @@ namespace BlaineRP.Client.Sync
                             }
                             else
                             {
-                                CEF.PhoneApps.CameraApp.Close();
+                                CEF.Phone.Apps.Camera.Close();
 
                                 if (lastSyncedType != PhoneStateTypes.JustOn)
                                 {

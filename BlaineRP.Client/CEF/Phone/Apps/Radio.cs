@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
@@ -6,12 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class RadioApp
+    public class Radio
     {
-        public RadioApp()
+        public Radio()
         {
             Events.Add("Phone::Radio", (args) =>
             {
@@ -46,7 +47,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                     var deltaIdx = (int)args[2] < 0 ? -1 : 1;
 
-                    var newStationIdx = allStations.IndexOf((Sync.Radio.CurrentStationType == Sync.Radio.StationTypes.Off ? Sync.Radio.StationTypes.NSPFM : Sync.Radio.CurrentStationType)) + deltaIdx;
+                    var newStationIdx = allStations.IndexOf(Sync.Radio.CurrentStationType == Sync.Radio.StationTypes.Off ? Sync.Radio.StationTypes.NSPFM : Sync.Radio.CurrentStationType) + deltaIdx;
 
                     if (newStationIdx <= 0)
                         newStationIdx = allStations.Count - 1;
@@ -82,7 +83,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     }
                     else
                     {
-                        Settings.User.Audio.PlayerLocalRadioVolume = volume;
+                        BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume = volume;
 
                         localStreamData.SetVolume(volume);
                     }
@@ -94,12 +95,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
         public static void Show()
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Radio;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Radio;
 
-            Phone.CurrentAppTab = -1;
+            CEF.Phone.Phone.CurrentAppTab = -1;
 
             var sType = Sync.Radio.CurrentStationType == Sync.Radio.StationTypes.Off ? Sync.Radio.StationTypes.NSPFM : Sync.Radio.CurrentStationType;
 
@@ -107,12 +108,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             Sync.Radio.GetCurrentRadioTrackDetails(out trackName1, out trackName2);
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawRadioApp", new List<object> { (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2, Sync.Radio.IsMobilePhoneRadioEnabled, Settings.User.Audio.PlayerLocalRadioVolume });
+            Browser.Window.ExecuteJs("Phone.drawRadioApp", new List<object> { (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2, Sync.Radio.IsMobilePhoneRadioEnabled, BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume });
         }
 
         public static void UpdateRadioStation(Sync.Radio.StationTypes sType)
         {
-            if (Phone.CurrentApp != Phone.AppTypes.Radio)
+            if (CEF.Phone.Phone.CurrentApp != AppTypes.Radio)
                 return;
 
             var mRadioWasEnabled = Sync.Radio.IsMobilePhoneRadioEnabled;
@@ -129,15 +130,15 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             Sync.Radio.GetCurrentRadioTrackDetails(out trackName1, out trackName2);
 
-            CEF.Browser.Window.ExecuteJs("Phone.updateRadioStation", (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2);
+            Browser.Window.ExecuteJs("Phone.updateRadioStation", (int)sType, Sync.Radio.GetRadioStationName(sType), trackName1, trackName2);
         }
 
         public static void UpdateRadioStationState(bool state)
         {
-            if (Phone.CurrentApp != Phone.AppTypes.Radio)
+            if (CEF.Phone.Phone.CurrentApp != AppTypes.Radio)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("Phone.updateRadioPlay", state);
+            Browser.Window.ExecuteJs("Phone.updateRadioPlay", state);
         }
     }
 }

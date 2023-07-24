@@ -151,7 +151,7 @@ namespace BlaineRP.Client.Sync
 
             ToggleMobilePhoneRadio(false);
 
-            var updateTask = new AsyncTask(() =>
+            var updateTask = new Utils.AsyncTask(() =>
             {
                 var sType = GetCurrentStationType();
 
@@ -190,7 +190,7 @@ namespace BlaineRP.Client.Sync
 
                 }
 
-                CEF.PhoneApps.RadioApp.UpdateRadioStation(CurrentStationType == StationTypes.Off ? StationTypes.NSPFM : CurrentStationType);
+                CEF.Phone.Apps.Radio.UpdateRadioStation(CurrentStationType == StationTypes.Off ? StationTypes.NSPFM : CurrentStationType);
             }, 1_000, true, 0);
 
             updateTask.Run();
@@ -315,7 +315,7 @@ namespace BlaineRP.Client.Sync
         {
             if (Player.LocalPlayer.Vehicle is Vehicle veh && veh.GetIsEngineRunning())
             {
-                CEF.PhoneApps.RadioApp.UpdateRadioStationState(false);
+                CEF.Phone.Apps.Radio.UpdateRadioStationState(false);
 
                 ToggleMobilePhoneRadio(false);
 

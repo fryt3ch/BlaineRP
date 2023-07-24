@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -228,7 +229,7 @@ namespace BlaineRP.Client.Data
                         if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             return;
 
-                        var renderTargetHandle = Misc.CreateNamedRenderTargetForModel("casinoscreen_01", RAGE.Util.Joaat.Hash("vw_vwint01_video_overlay"));
+                        var renderTargetHandle = Utils.Game.Misc.CreateNamedRenderTargetForModel("casinoscreen_01", RAGE.Util.Joaat.Hash("vw_vwint01_video_overlay"));
 
                         UpdateCasinoWalls(CurrentWallScreenType);
 
@@ -568,7 +569,8 @@ namespace BlaineRP.Client.Data
 
                 if (wsType == WallScreenTypes.None)
                     return;
-                Misc.SetTvChannelPlaylist(0, wsType.ToString(), false);
+
+                Utils.Game.Misc.SetTvChannelPlaylist(0, wsType.ToString(), false);
 
                 RAGE.Game.Graphics.SetTvAudioFrontend(true);
                 RAGE.Game.Graphics.SetTvVolume(-100f);

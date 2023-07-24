@@ -1647,7 +1647,7 @@ namespace BlaineRP.Client.Sync
             if (Player.LocalPlayer.IsInAnyVehicle(false) || LastVehicleExitedTime.IsSpam(1000, false, false))
                 return;
 
-            if (CEF.PhoneApps.CameraApp.IsActive)
+            if (CEF.Phone.Apps.Camera.IsActive)
                 return;
 
             if (Player.LocalPlayer.GetScriptTaskStatus(2500551826) != 7)

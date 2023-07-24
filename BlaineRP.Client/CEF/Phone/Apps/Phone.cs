@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.CEF.Phone.Enums;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
 using RAGE;
@@ -7,12 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using static BlaineRP.Client.CEF.Phone;
 
-namespace BlaineRP.Client.CEF.PhoneApps
+namespace BlaineRP.Client.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
-    public class PhoneApp
+    public class Phone
     {
         private static AsyncTask ActiveCallUpdateTask { get; set; }
 
@@ -33,7 +33,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     if (res == null)
                         return;
 
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.Money.PhoneBalanceInfo, pData.PhoneNumber, Locale.Get("GEN_MONEY_0", decimal.Parse(res[0])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[1])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[2]))));
+                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.Money.PhoneBalanceInfo, pData.PhoneNumber, Locale.Get("GEN_MONEY_0", decimal.Parse(res[0])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[1])), Locale.Get("GEN_MONEY_0", decimal.Parse(res[2]))));
                 }
             },
 
@@ -42,19 +42,19 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 async () =>
                 {
-                    await CEF.ActionBox.ShowSelect
+                    await ActionBox.ShowSelect
                     (
                         "Phone911Select", Locale.Get("PHONE_ECALL_0"), new (decimal Id, string Text)[] { (102, Locale.Get("PHONE_ECALL_1")), (103, Locale.Get("PHONE_ECALL_2")) }, null, null,
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, false);
+                            if (CEF.Phone.Phone.IsActive)
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, false);
                         },
 
                         async (rType, idD) =>
                         {
-                            CEF.ActionBox.Close(false);
+                            ActionBox.Close(false);
 
                             if (rType == ActionBox.ReplyTypes.Cancel)
                                 return;
@@ -68,11 +68,11 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
+                            if (CEF.Phone.Phone.IsActive)
                             {
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, true);
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, true);
 
-                                CEF.Cursor.Show(true, true);
+                                Cursor.Show(true, true);
                             }
                         }
                     );
@@ -84,21 +84,21 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 async () =>
                 {
-                    await CEF.ActionBox.ShowInputWithText
+                    await ActionBox.ShowInputWithText
                     (
                         "PhonePoliceCallInput", Locale.Get("PHONE_ECALL_3"), Locale.Get("PHONE_ECALL_5"), 24, "", null, null,
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, false);
+                            if (CEF.Phone.Phone.IsActive)
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, false);
                         },
 
                         async (rType, str) =>
                         {
                             if (rType == ActionBox.ReplyTypes.Cancel)
                             {
-                                CEF.ActionBox.Close(false);
+                                ActionBox.Close(false);
 
                                 return;
                             }
@@ -109,7 +109,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                             if (str == null || !pattern.IsMatch(str))
                             {
-                                CEF.Notification.Show("Str::NM");
+                                Notification.Show("Str::NM");
 
                                 return;
                             }
@@ -118,9 +118,9 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                             if (res == 255)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_S_0"));
+                                Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_S_0"));
 
-                                CEF.ActionBox.Close(false);
+                                ActionBox.Close(false);
 
                                 var pos = Player.LocalPlayer.GetCoords(false);
 
@@ -137,18 +137,18 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                                 Additional.ExtraColshape cs2 = null;
 
-                                cs1 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Misc.RedColor, Settings.App.Static.MainDimension)
+                                cs1 = new Additional.Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Misc.RedColor, BlaineRP.Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
                                         if (cs1?.Exists != true)
                                             return;
 
-                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_W_0", Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2));
+                                        Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_W_0", BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2));
                                     }
                                 };
 
-                                cs2 = new Additional.Cylinder(pos, Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.App.Static.MainDimension)
+                                cs2 = new Additional.Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Colour(0, 0, 255, 25), BlaineRP.Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = async (cancel) =>
                                     {
@@ -166,19 +166,19 @@ namespace BlaineRP.Client.CEF.PhoneApps
                             else
                             {
                                 if (res == 1)
-                                    CEF.Notification.ShowError(Locale.Get("PHONE_ECALL_E_1"));
+                                    Notification.ShowError(Locale.Get("PHONE_ECALL_E_1"));
                                 else if (res == 0)
-                                    CEF.Notification.ShowError(Locale.Get("PHONE_ECALL_E_0"));
+                                    Notification.ShowError(Locale.Get("PHONE_ECALL_E_0"));
                             }
                         },
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
+                            if (CEF.Phone.Phone.IsActive)
                             {
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, true);
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, true);
 
-                                CEF.Cursor.Show(true, true);
+                                Cursor.Show(true, true);
                             }
                         }
                     );
@@ -190,21 +190,21 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 async () =>
                 {
-                    await CEF.ActionBox.ShowInputWithText
+                    await ActionBox.ShowInputWithText
                     (
                         "PhoneMedicalCallInput", Locale.Get("PHONE_ECALL_4"), Locale.Get("PHONE_ECALL_6"), 24, "", null, null,
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, false);
+                            if (CEF.Phone.Phone.IsActive)
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, false);
                         },
 
                         async (rType, str) =>
                         {
                             if (rType == ActionBox.ReplyTypes.Cancel)
                             {
-                                CEF.ActionBox.Close(false);
+                                ActionBox.Close(false);
 
                                 return;
                             }
@@ -215,23 +215,23 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                             if (str == null || !pattern.IsMatch(str))
                             {
-                                CEF.Notification.Show("Str::NM");
+                                Notification.Show("Str::NM");
 
                                 return;
                             }
 
-                            CEF.ActionBox.Close(false);
+                            ActionBox.Close(false);
 
                             // call remote
                         },
 
                         () =>
                         {
-                            if (CEF.Phone.IsActive)
+                            if (CEF.Phone.Phone.IsActive)
                             {
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, true);
+                                Browser.SwitchTemp(Browser.IntTypes.Phone, true);
 
-                                CEF.Cursor.Show(true, true);
+                                Cursor.Show(true, true);
                             }
                         }
                     );
@@ -289,11 +289,11 @@ namespace BlaineRP.Client.CEF.PhoneApps
             CallHistory.Add((phoneNumber, status));
         }
 
-        public PhoneApp()
+        public Phone()
         {
             Events.Add("Phone::Call", (args) =>
             {
-                if (LastSent.IsSpam(250, false, false))
+                if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 var number = args[0]?.ToString();
@@ -301,26 +301,26 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 if (number == null || number.Length == 0)
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
-                PhoneApps.PhoneApp.Call(number);
+                Call(number);
             });
 
             Events.Add("Phone::ReplyCall", (args) =>
             {
-                if (LastSent.IsSpam(250, false, false))
+                if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 var ans = (bool)args[0];
 
-                LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
                 Events.CallRemote("Phone::CA", ans);
             });
 
             Events.Add("Phone::BlacklistChange", async (args) =>
             {
-                if (LastSent.IsSpam(250, false, false))
+                if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -369,7 +369,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         var pId = (int)args[1];
 
-                        var player = RAGE.Elements.Entities.Players.All.Where(x => x.RemoteId == pId).FirstOrDefault();
+                        var player = Entities.Players.All.Where(x => x.RemoteId == pId).FirstOrDefault();
 
                         if (player == null)
                             return;
@@ -377,7 +377,7 @@ namespace BlaineRP.Client.CEF.PhoneApps
                         callInfo.Player = player;
                         callInfo.StartDate = Sync.World.ServerTime;
 
-                        ShowActiveCall(GetContactNameByNumber(callInfo.Number), "");
+                        ShowActiveCall(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), "");
 
                         StartActiveCallUpdateTask();
 
@@ -389,19 +389,19 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         pData.ActiveCall = callInfo;
 
-                        if (Settings.User.Other.PhoneNotDisturb)
+                        if (BlaineRP.Client.Settings.User.Other.PhoneNotDisturb)
                         {
                             Events.CallRemote("Phone::CA", false);
                         }
                         else
                         {
-                            if (CEF.Phone.IsActive)
+                            if (CEF.Phone.Phone.IsActive)
                             {
-                                ShowIncomingCall(GetContactNameByNumber(callInfo.Number));
+                                ShowIncomingCall(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number));
                             }
                             else
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationIncCallSubj, string.Format(Locale.General.FiveNotificationIncCallText, KeyBinds.Get(KeyBinds.Types.Phone).GetKeyString()));
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationIncCallSubj, string.Format(Locale.General.FiveNotificationIncCallText, KeyBinds.Get(KeyBinds.Types.Phone).GetKeyString()));
                             }
                         }
                     }
@@ -419,9 +419,9 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                     CancelActiveCallUpdateTask();
 
-                    if (CEF.Phone.IsActive)
+                    if (CEF.Phone.Phone.IsActive)
                     {
-                        CEF.Phone.ShowApp(pData, Phone.AppTypes.None);
+                        CEF.Phone.Phone.ShowApp(pData, AppTypes.None);
                     }
 
                     if (callInfo.Player != null)
@@ -432,39 +432,39 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                         if (cancelType == CancelTypes.ServerAuto)
                         {
-                            CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj0, callDurationText);
+                            Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj0, callDurationText);
                         }
                         else if (cancelType == CancelTypes.NotEnoughBalance)
                         {
                             if (callInfo.IsMeCaller)
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj10, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj10, callDurationText);
                             }
                             else
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj20, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj20, callDurationText);
                             }
                         }
                         else if (cancelType == CancelTypes.Caller)
                         {
                             if (callInfo.IsMeCaller)
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj1, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj1, callDurationText);
                             }
                             else
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj2, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj2, callDurationText);
                             }
                         }
                         else if (cancelType == CancelTypes.Receiver)
                         {
                             if (callInfo.IsMeCaller)
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj2, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj2, callDurationText);
                             }
                             else
                             {
-                                CEF.Notification.ShowFiveCallNotification(GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj1, callDurationText);
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationEndCallSubj1, callDurationText);
                             }
                         }
                     }
@@ -510,12 +510,12 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             if (add && blacklist.Contains(number))
             {
-                CEF.Notification.ShowError(Locale.Notifications.General.AlreadyInPhoneBlacklist);
+                Notification.ShowError(Locale.Notifications.General.AlreadyInPhoneBlacklist);
 
                 return;
             }
 
-            LastSent = Sync.World.ServerTime;
+            CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Phone::BLC", number, add))
             {
@@ -526,11 +526,11 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 if (blacklist.Count == 0)
                 {
-                    PhoneApps.PhoneApp.ShowBlacklist(null, null);
+                    ShowBlacklist(null, null);
                 }
                 else
                 {
-                    PhoneApps.PhoneApp.ShowBlacklist(blacklist.Select(x => new object[] { x, GetContactNameByNumberNull(x) }));
+                    ShowBlacklist(blacklist.Select(x => new object[] { x, CEF.Phone.Phone.GetContactNameByNumberNull(x) }));
                 }
             }
         }
@@ -568,13 +568,13 @@ namespace BlaineRP.Client.CEF.PhoneApps
                     }
                     else if (res == 1)
                     {
-                        CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong1);
+                        Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong1);
 
                         CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
                     }
                     else if (res == 2)
                     {
-                        CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong2);
+                        Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong2);
 
                         CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
                     }
@@ -583,68 +583,68 @@ namespace BlaineRP.Client.CEF.PhoneApps
                 }
             }
 
-            CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong0);
+            Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong0);
         }
 
         public static void ShowDefault(string number = null)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
 
-            Phone.CurrentAppTab = -1;
+            CEF.Phone.Phone.CurrentAppTab = -1;
 
             if (number == null)
-                CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { } });
+                Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { } });
             else
-                CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { number } });
+                Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { number } });
         }
 
         public static void ShowIncomingCall(string number)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
 
-            Phone.CurrentAppTab = 999;
+            CEF.Phone.Phone.CurrentAppTab = 999;
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { true, number } });
+            Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { true, number } });
         }
 
         public static void ShowActiveCall(string number, string text)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
 
-            Phone.CurrentAppTab = 999;
+            CEF.Phone.Phone.CurrentAppTab = 999;
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { false, number, text } });
+            Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { false, number, text } });
         }
 
         public static void ShowCallHistory(object list)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Phone;
-            Phone.CurrentAppTab = 0;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentAppTab = 0;
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawCallList", list);
+            Browser.Window.ExecuteJs("Phone.drawCallList", list);
         }
 
         public static void ShowBlacklist(object list, string number = null)
         {
-            if (Phone.CurrentApp == Phone.AppTypes.None)
-                Phone.SwitchMenu(false);
+            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+                CEF.Phone.Phone.SwitchMenu(false);
 
-            Phone.CurrentApp = Phone.AppTypes.Phone;
-            Phone.CurrentAppTab = 1;
+            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentAppTab = 1;
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawBlackList", list);
+            Browser.Window.ExecuteJs("Phone.drawBlackList", list);
         }
 
         public static void StartActiveCallUpdateTask()
@@ -667,10 +667,10 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
                 activeCallPlayer.VoiceVolume = 1f;
 
-                if (Phone.CurrentApp != Phone.AppTypes.Phone)
+                if (CEF.Phone.Phone.CurrentApp != AppTypes.Phone)
                     return;
 
-                CEF.Browser.Window.ExecuteJs("Phone.updatePhoneStatus", DateTime.UtcNow.Subtract(dateTime).GetBeautyString());
+                Browser.Window.ExecuteJs("Phone.updatePhoneStatus", DateTime.UtcNow.Subtract(dateTime).GetBeautyString());
             }, 1000, true, 0);
 
             ActiveCallUpdateTask.Run();
@@ -686,16 +686,16 @@ namespace BlaineRP.Client.CEF.PhoneApps
 
             ActiveCallUpdateTask = new AsyncTask(() =>
             {
-                if (Phone.CurrentApp != Phone.AppTypes.Phone)
+                if (CEF.Phone.Phone.CurrentApp != AppTypes.Phone)
                     return;
 
                 if (dotsUsed == 3)
                     dotsUsed = 0;
 
                 if (dotsUsed == 0)
-                    CEF.Browser.Window.ExecuteJs("Phone.updatePhoneStatus", Locale.General.PhoneOutgoingCall);
+                    Browser.Window.ExecuteJs("Phone.updatePhoneStatus", Locale.General.PhoneOutgoingCall);
                 else
-                    CEF.Browser.Window.ExecuteJs("Phone.updatePhoneStatus", $"{Locale.General.PhoneOutgoingCall}{new string('.', dotsUsed)}");
+                    Browser.Window.ExecuteJs("Phone.updatePhoneStatus", $"{Locale.General.PhoneOutgoingCall}{new string('.', dotsUsed)}");
 
                 dotsUsed++;
             }, 500, true, 0);
