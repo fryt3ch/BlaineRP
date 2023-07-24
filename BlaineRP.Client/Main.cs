@@ -5,10 +5,12 @@ using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client
 {
-    public class GameEvents : Events.Script
+    public class Main : Events.Script
     {
         public static int CurrentFps => (int)System.Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
 
@@ -44,7 +46,7 @@ namespace BlaineRP.Client
 
         public static DateTime? ExtraGameDate { get; set; }
 
-        public GameEvents()
+        public Main()
         {
             Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClicked?.Invoke(x, y, up, right);
             Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClickedWithRaycast?.Invoke(x, y, up, right, relX, relY, worldPos, eHandle);
@@ -204,7 +206,7 @@ namespace BlaineRP.Client
                     if (player == null || player.Handle == Player.LocalPlayer.Handle || player.Dimension != Player.LocalPlayer.Dimension)
                         return;
 
-                    var pData = Sync.Players.GetData(player);
+                    var pData = PlayerData.GetData(player);
 
                     if (pData == null)
                         return;
@@ -243,7 +245,7 @@ namespace BlaineRP.Client
                     }
                     else if (entity is Player player)
                     {
-                        await Sync.Players.OnPlayerStreamIn(player);
+                        await Players.OnPlayerStreamIn(player);
                     }
                     else if (entity is Ped ped)
                     {
@@ -277,7 +279,7 @@ namespace BlaineRP.Client
                     }
                     else if (entity is Player player)
                     {
-                        await Sync.Players.OnPlayerStreamOut(player);
+                        await Players.OnPlayerStreamOut(player);
                     }
                     else if (entity is Ped ped)
                     {
@@ -360,7 +362,7 @@ namespace BlaineRP.Client
                 {
                     _waypointPosition = position;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -519,7 +521,7 @@ namespace BlaineRP.Client
             // ScaleformMovieMethodAddParamTextureNameString
             RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"{Player.LocalPlayer.Name} ({Player.LocalPlayer.RemoteId})");
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
             {

@@ -2,6 +2,8 @@
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
 
 namespace BlaineRP.Client.Sync.Quests.Types.Job
 {
@@ -10,7 +12,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
     {
         public DRSCHOOL0()
         {
-            new Quest.QuestData(Quest.QuestData.Types.DRSCHOOL0, "Практическая часть", "Автошкола", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.DRSCHOOL0, "Практическая часть", "Автошкола", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,
@@ -31,7 +33,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
 
                             Vector3 pos = null;
 
-                            var licType = (Sync.Players.LicenseTypes)int.Parse(qData[0]);
+                            var licType = (LicenseTypes)int.Parse(qData[0]);
 
                             for (int i = 0; i < Data.Locations.Autoschool.All.Count; i++)
                             {
@@ -74,7 +76,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
 
                             var school = Data.Locations.Autoschool.Get(int.Parse(qData[1]));
 
-                            var licType = (Sync.Players.LicenseTypes)int.Parse(qData[2]);
+                            var licType = (LicenseTypes)int.Parse(qData[2]);
 
                             var veh = RAGE.Elements.Entities.Vehicles.GetAtRemote(ushort.Parse(qData[0]));
 
@@ -209,7 +211,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
                                         if (veh?.Exists != true)
                                             return;
 
-                                        if (Sync.Vehicles.GetData(veh)?.EngineOn == false)
+                                        if (VehicleData.GetData(veh)?.EngineOn == false)
                                         {
                                             engineTask?.Cancel();
 
@@ -280,12 +282,12 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
 
         private static int GetExamFaultCode(Vehicle veh)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return -1;
 
-            var vData = Sync.Vehicles.GetData(veh);
+            var vData = VehicleData.GetData(veh);
 
             if (vData == null || veh?.Exists != true)
                 return 1;

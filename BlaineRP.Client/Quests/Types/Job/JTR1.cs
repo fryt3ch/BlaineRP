@@ -11,7 +11,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
     {
         public JTR1()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JTR1, "Доставка груза", "Дальнобойщик", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.JTR1, "Доставка груза", "Дальнобойщик", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

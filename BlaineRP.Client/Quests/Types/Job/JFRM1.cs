@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
     {
         public JFRM1()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JFRM1, "Сбор пшеницы", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.JFRM1, "Сбор пшеницы", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

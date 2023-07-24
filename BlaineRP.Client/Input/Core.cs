@@ -1,13 +1,15 @@
-﻿using BlaineRP.Client.CEF;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.CEF;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Script = BlaineRP.Client.Animations.Script;
 
-namespace BlaineRP.Client
+namespace BlaineRP.Client.Input
 {
     class KeyBinds
     {
@@ -419,36 +421,36 @@ namespace BlaineRP.Client
                 }
             }
 
-            public ExtraBind(Types Type, Action Action, bool IsDown, bool Changeable, Types Familiar = Types.None, bool InvOnly = false)
+            public ExtraBind(Types type, Action action, bool isDown, bool changeable, Types familiar = Types.None, bool invOnly = false)
             {
                 this.BindIndex = -1;
 
-                this.Type = Type;
-                this.Action = Action;
-                this.IsDown = IsDown;
+                this.Type = type;
+                this.Action = action;
+                this.IsDown = isDown;
 
-                this.Changeable = Changeable;
-                this.Parent = Familiar;
+                this.Changeable = changeable;
+                this.Parent = familiar;
 
-                this.InvOnly = InvOnly;
+                this.InvOnly = invOnly;
 
-                if (Changeable)
+                if (changeable)
                 {
-                    this.Keys = Additional.Storage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{Type}");
+                    this.Keys = Additional.Storage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{type}");
 
                     if (this.Keys == null)
                     {
-                        this.Keys = DefaultBinds[Type];
+                        this.Keys = DefaultBinds[type];
 
-                        Additional.Storage.SetData($"KeyBinds::{Type}", this.Keys);
+                        Additional.Storage.SetData($"KeyBinds::{type}", this.Keys);
                     }
                 }
-                else if (Familiar == Types.None)
-                    this.Keys = DefaultBinds[Type];
+                else if (familiar == Types.None)
+                    this.Keys = DefaultBinds[type];
                 else
-                    this.Keys = Binds.ContainsKey(Familiar) ? Binds[Familiar].Keys : DefaultBinds[Type];
+                    this.Keys = Binds.TryGetValue(familiar, out var bind) ? bind.Keys : DefaultBinds[type];
 
-                Description = Type.ToString();
+                Description = type.ToString();
             }
 
             public void Enable()
@@ -464,31 +466,31 @@ namespace BlaineRP.Client
                 if (BindIndex != -1)
                     return;
 
-                if (Keys.Length == 0)
-                    return;
-
-                if (Keys.Length == 1)
+                switch (Keys.Length)
                 {
-                    BindIndex = KeyBinds.Bind(Keys[0], IsDown, async () =>
-                    {
-                        Action.Invoke();
-                    });
-                }
-                else
-                {
-                    BindIndex = KeyBinds.Bind(Keys[Keys.Length - 1], IsDown, async () =>
-                    {
-                        Func<RAGE.Ui.VirtualKeys, bool> checkFunc = KeyBinds.IsDown;
+                    case 0:
+                        return;
+                    case 1:
+                        BindIndex = KeyBinds.Bind(Keys[0], IsDown, async () =>
+                        {
+                            Action.Invoke();
+                        });
+                        break;
+                    default:
+                        BindIndex = KeyBinds.Bind(Keys[Keys.Length - 1], IsDown, async () =>
+                        {
+                            Func<RAGE.Ui.VirtualKeys, bool> checkFunc = KeyBinds.IsDown;
 
-                        if (!IsDown)
-                            checkFunc = KeyBinds.IsUp;
+                            if (!IsDown)
+                                checkFunc = KeyBinds.IsUp;
 
-                        for (int i = 0; i < Keys.Length - 1; i++)
-                            if (!checkFunc.Invoke(Keys[i]))
-                                return;
+                            for (int i = 0; i < Keys.Length - 1; i++)
+                                if (!checkFunc.Invoke(Keys[i]))
+                                    return;
 
-                        Action.Invoke();
-                    });
+                            Action.Invoke();
+                        });
+                        break;
                 }
             }
 
@@ -543,9 +545,7 @@ namespace BlaineRP.Client
                     Enable();
             }
 
-            public string GetKeyString() => GetKeyString(Keys);
-
-            public static string GetKeyString(params RAGE.Ui.VirtualKeys[] keys) => keys.Length == 0 ? "???" : string.Join(" + ", keys.Select(x => _keyNames.GetValueOrDefault((int)x) ?? ""));
+            public string GetKeyString() => KeyBinds.GetKeyString(Keys);
         }
 
         public static void Add(ExtraBind bind, bool enable = true)
@@ -863,7 +863,7 @@ namespace BlaineRP.Client
             Add(new ExtraBind(Types.Whistle, () =>
             {
                 if (Misc.CanShowCEF(true, true))
-                    Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle);
+                    Script.PlayFastSync(FastTypes.Whistle);
             }, true, true)
             { Description = "Свистеть" });
 
@@ -1196,5 +1196,7 @@ namespace BlaineRP.Client
 
             return res;
         }
+
+        public static string GetKeyString(params RAGE.Ui.VirtualKeys[] keys) => keys.Length == 0 ? "???" : string.Join(" + ", keys.Select(x => _keyNames.GetValueOrDefault((int)x) ?? ""));
     }
 }

@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Main
     {
         public TQ1()
         {
-            new Quest.QuestData(Quest.QuestData.Types.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

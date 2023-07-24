@@ -10,7 +10,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
     {
         public JBD1()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JBD1, "Маршрут - наше всё", "Автобусник", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.JBD1, "Маршрут - наше всё", "Автобусник", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

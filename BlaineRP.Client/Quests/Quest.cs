@@ -5,6 +5,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -17,10 +19,9 @@ namespace BlaineRP.Client.Sync
             public enum Types
             {
                 TQ1 = 0,
-
-                /// <summary>Job Trucker 1</summary>
+                
                 JTR1,
-                /// <summary>Job Bus Driver 1</summary>
+                
                 JBD1,
 
                 JCL1,
@@ -69,9 +70,9 @@ namespace BlaineRP.Client.Sync
 
                 public int MaxProgress { get; set; }
 
-                public Action<Sync.Players.PlayerData, Quest> StartAction { get; set; }
+                public Action<PlayerData, Quest> StartAction { get; set; }
 
-                public Action<Sync.Players.PlayerData, Quest> EndAction { get; set; }
+                public Action<PlayerData, Quest> EndAction { get; set; }
 
                 public StepData(string GoalName, int MaxProgress = 1)
                 {
@@ -143,7 +144,7 @@ namespace BlaineRP.Client.Sync
             this.CurrentData = CurrentData;
         }
 
-        public static Quest GetPlayerQuest(Sync.Players.PlayerData pData, QuestData.Types type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
+        public static Quest GetPlayerQuest(PlayerData pData, QuestData.Types type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
 
         public void MenuIconFunc()
         {
@@ -169,7 +170,7 @@ namespace BlaineRP.Client.Sync
 
         public void UpdateStep(byte newStep)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -195,7 +196,7 @@ namespace BlaineRP.Client.Sync
 
         public void SetActive(bool state, bool route = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -242,7 +243,7 @@ namespace BlaineRP.Client.Sync
 
         public void Initialize()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -260,7 +261,7 @@ namespace BlaineRP.Client.Sync
 
         public void Destroy()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -306,7 +307,7 @@ namespace BlaineRP.Client.Sync
 
         public void SetQuestAsCompleted(bool success, bool notify)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -323,7 +324,7 @@ namespace BlaineRP.Client.Sync
 
         public void SetQuestAsStarted(bool notify)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -340,7 +341,7 @@ namespace BlaineRP.Client.Sync
 
         public void SetQuestAsUpdated(byte step, int stepProgress, string data, bool notify)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -361,7 +362,7 @@ namespace BlaineRP.Client.Sync
 
         public void SetQuestAsUpdatedKeepOldData(byte step, int stepProgress, bool notify)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;

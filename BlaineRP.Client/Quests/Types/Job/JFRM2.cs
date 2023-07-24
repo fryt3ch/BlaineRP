@@ -10,7 +10,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
 
         public JFRM2()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(Enums.QuestTypes.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,
