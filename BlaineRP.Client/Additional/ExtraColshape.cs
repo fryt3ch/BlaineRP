@@ -11,6 +11,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Utils.Game.Players;
+using VehicleData = BlaineRP.Client.EntitiesData.VehicleData;
 
 namespace BlaineRP.Client.Additional
 {
@@ -31,8 +36,8 @@ namespace BlaineRP.Client.Additional
         {
             ExtraColshape.InteractionColshapesAllowed = true;
 
-            GameEvents.Render -= ExtraColshape.Render;
-            GameEvents.Render += ExtraColshape.Render;
+            Main.Render -= ExtraColshape.Render;
+            Main.Render += ExtraColshape.Render;
 
             Events.Add("ExtraColshape::New", (object[] args) =>
             {
@@ -590,7 +595,7 @@ namespace BlaineRP.Client.Additional
                 {
                     if (Player.LocalPlayer.Vehicle is Vehicle veh)
                     {
-                        var vData = Sync.Vehicles.GetData(veh);
+                        var vData = VehicleData.GetData(veh);
 
                         if (vData != null)
                             return true;
@@ -607,7 +612,7 @@ namespace BlaineRP.Client.Additional
                 {
                     if (Player.LocalPlayer.Vehicle is Vehicle veh)
                     {
-                        var vData = Sync.Vehicles.GetData(veh);
+                        var vData = VehicleData.GetData(veh);
 
                         if (vData != null)
                         {
@@ -769,7 +774,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.ElevatorInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -820,7 +825,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.FractionPoliceArrestMenuInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -856,7 +861,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.EstateAgencyInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -886,7 +891,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.DrivingSchoolInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -922,7 +927,7 @@ namespace BlaineRP.Client.Additional
 
                             if (rType == CEF.ActionBox.ReplyTypes.OK)
                             {
-                                var licType = (Sync.Players.LicenseTypes)id;
+                                var licType = (LicenseTypes)id;
 
                                 CEF.AutoschoolTest.Show(schoolId, licType, Locations.Autoschool.Prices.GetValueOrDefault(licType));
                             }
@@ -936,7 +941,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.FractionLockerRoomInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -1013,7 +1018,7 @@ namespace BlaineRP.Client.Additional
             {
                 InteractionTypes.FractionCreationWorkbenchInteract, async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -1271,7 +1276,7 @@ namespace BlaineRP.Client.Additional
                     if (baseVeh == null)
                         return;
 
-                    var bVehData = Sync.Vehicles.GetData(baseVeh);
+                    var bVehData = VehicleData.GetData(baseVeh);
 
                     if (bVehData == null)
                         return;
@@ -1282,7 +1287,7 @@ namespace BlaineRP.Client.Additional
                     {
                         if (trailerVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
                         {
-                            var boatData = Sync.Vehicles.GetData(boat);
+                            var boatData = VehicleData.GetData(boat);
 
                             if (boatData == null)
                                 return;
@@ -1297,7 +1302,7 @@ namespace BlaineRP.Client.Additional
 
                                 (rType, id) =>
                                 {
-                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                                     if (pData == null)
                                         return;

@@ -7,6 +7,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations;
+using BlaineRP.Client.Sync;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data
 {
@@ -355,7 +358,7 @@ namespace BlaineRP.Client.Data
                         ped.SetComponentVariation(11, 0, 0, 0);
                     }
 
-                    Sync.Animations.Play(ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Script.Play(ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
                 }
 
                 public void Spin(int casinoId, int rouletteId, byte targetNumber)
@@ -381,13 +384,13 @@ namespace BlaineRP.Client.Data
 
                         var wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
 
-                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(1_500);
 
                         BallObject?.Destroy();
 
-                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(3_000);
 
@@ -470,7 +473,7 @@ namespace BlaineRP.Client.Data
 
                         NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(1_500);
 
@@ -479,7 +482,7 @@ namespace BlaineRP.Client.Data
 
                         NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
@@ -677,11 +680,11 @@ namespace BlaineRP.Client.Data
 
                     UpdateActiveBets();
 
-                    GameEvents.Render -= Render;
-                    GameEvents.Render += Render;
+                    Main.Render -= Render;
+                    Main.Render += Render;
 
-                    GameEvents.MouseClicked -= OnMouseClick;
-                    GameEvents.MouseClicked += OnMouseClick;
+                    Main.MouseClicked -= OnMouseClick;
+                    Main.MouseClicked += OnMouseClick;
                 }
 
                 public void StopGame()
@@ -701,9 +704,9 @@ namespace BlaineRP.Client.Data
 
                     HoveredBet = BetTypes.None;
 
-                    GameEvents.Render -= Render;
+                    Main.Render -= Render;
 
-                    GameEvents.MouseClicked -= OnMouseClick;
+                    Main.MouseClicked -= OnMouseClick;
 
                     if (ActiveBets != null)
                     {
@@ -837,7 +840,7 @@ namespace BlaineRP.Client.Data
                     if (CurrentRoulette == null || CurrentRoulette.TableObject?.Exists != true)
                         return;
 
-                    var screenRes = new RAGE.Ui.Cursor.Vector2(GameEvents.ScreenResolution.X, GameEvents.ScreenResolution.Y);
+                    var screenRes = new RAGE.Ui.Cursor.Vector2(Main.ScreenResolution.X, Main.ScreenResolution.Y);
 
                     var cursorPos = RAGE.Ui.Cursor.Position;
 

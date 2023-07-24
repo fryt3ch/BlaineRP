@@ -5,6 +5,11 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Components;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -46,7 +51,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var name = (string)args[1];
                     var surname = (string)args[2];
-                    var lics = ((JArray)args[3]).ToObject<HashSet<Sync.Players.LicenseTypes>>();
+                    var lics = ((JArray)args[3]).ToObject<HashSet<LicenseTypes>>();
 
                     ShowLicenses(name, surname, lics);
                 }
@@ -67,7 +72,7 @@ namespace BlaineRP.Client.CEF
                     var name = (string)args[1];
                     var surname = (string)args[2];
 
-                    var diagnose = (Sync.Players.MedicalCard.DiagnoseTypes)(int)args[3];
+                    var diagnose = (MedicalCard.DiagnoseTypes)(int)args[3];
                     var issueFraction = (Data.Fractions.Types)(int)args[4];
                     var docName = (string)args[5];
                     var issueDate = RAGE.Util.Json.Deserialize<DateTime>((string)args[6]);
@@ -96,7 +101,7 @@ namespace BlaineRP.Client.CEF
         {
             await CEF.Browser.Render(Browser.IntTypes.Documents, true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             Cursor.Show(true, true);
         }
@@ -106,7 +111,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -139,7 +144,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 0, new object[] { GetPasportData(name, surname, sex, birthDate, married, cid, dateOfIssue, boundToMilitaryService, losSantosAllowed) });
         }
 
-        public static async System.Threading.Tasks.Task ShowLicenses(string name, string surname, HashSet<Sync.Players.LicenseTypes> licenses)
+        public static async System.Threading.Tasks.Task ShowLicenses(string name, string surname, HashSet<LicenseTypes> licenses)
         {
             if (IsActive)
                 return;
@@ -149,7 +154,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 1, new object[] { null, GetLicensesData(name, surname, licenses) });
         }
 
-        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue)
+        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue)
         {
             if (IsActive)
                 return;
@@ -200,7 +205,7 @@ namespace BlaineRP.Client.CEF
 
             Cursor.Show(false, false);
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 
@@ -209,15 +214,15 @@ namespace BlaineRP.Client.CEF
 
         public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, Locale.Get(sex ? "DOCS_SEX_MALE" : "DOCS_SEX_FEMALE"), birthDate.ToString("dd.MM.yyyy"), married ?? Locale.Get(sex ? "DOCS_NOTMARRIED_MALE" : "DOCS_NOTMARRIED_FEMALE"), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
         public static object[] GetResumeData(string name, string surname, string[] data1) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" } }, new object[] { new object[] { "side2-a", "side2-b" } } } };
-        public static object[] GetLicensesData(string name, string surname, HashSet<Sync.Players.LicenseTypes> licenses)
+        public static object[] GetLicensesData(string name, string surname, HashSet<LicenseTypes> licenses)
         {
-            return new object[] { name, surname, new object[] { new object[] { licenses.Contains(Sync.Players.LicenseTypes.M), licenses.Contains(Sync.Players.LicenseTypes.A), licenses.Contains(Sync.Players.LicenseTypes.B), licenses.Contains(Sync.Players.LicenseTypes.C), licenses.Contains(Sync.Players.LicenseTypes.D), licenses.Contains(Sync.Players.LicenseTypes.Fly), licenses.Contains(Sync.Players.LicenseTypes.Sea) },
-                new object[] { licenses.Contains(Sync.Players.LicenseTypes.Weapons), licenses.Contains(Sync.Players.LicenseTypes.Business), licenses.Contains(Sync.Players.LicenseTypes.Hunting), licenses.Contains(Sync.Players.LicenseTypes.Lawyer), false, false, false } } };
+            return new object[] { name, surname, new object[] { new object[] { licenses.Contains(LicenseTypes.M), licenses.Contains(LicenseTypes.A), licenses.Contains(LicenseTypes.B), licenses.Contains(LicenseTypes.C), licenses.Contains(LicenseTypes.D), licenses.Contains(LicenseTypes.Fly), licenses.Contains(LicenseTypes.Sea) },
+                new object[] { licenses.Contains(LicenseTypes.Weapons), licenses.Contains(LicenseTypes.Business), licenses.Contains(LicenseTypes.Hunting), licenses.Contains(LicenseTypes.Lawyer), false, false, false } } };
         }
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.Get("DOCS_VEHPASS_NOPLATE"), dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get(Sync.Players.MedicalCard.GetDiagnoseNameId(diagnose)), issueFraction.Name, docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get(MedicalCard.GetDiagnoseNameId(diagnose)), issueFraction.Name, docName, dateOfIssue.ToString("dd.MM.yyyy") };
 
         public static object[] GetFractionDocsData(string name, string surname, Data.Fractions.Fraction fData, byte rank) => new object[]
         {

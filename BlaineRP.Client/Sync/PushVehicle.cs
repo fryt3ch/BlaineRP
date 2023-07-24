@@ -3,6 +3,7 @@ using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.EntitiesData;
 
 namespace BlaineRP.Client.Sync
 {
@@ -63,7 +64,7 @@ namespace BlaineRP.Client.Sync
                 if (!vehicle.IsOnAllWheels())
                     return;
 
-                var data = Vehicles.GetData(vehicle);
+                var data = VehicleData.GetData(vehicle);
 
                 if (data == null)
                     return;

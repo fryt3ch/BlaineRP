@@ -8,6 +8,10 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -59,7 +63,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (id == "locate" || id == "rearrange" || id == "remove" || id == "sellfurn") // furn
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -402,7 +406,7 @@ namespace BlaineRP.Client.CEF
             if (house == null)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -432,7 +436,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (Sync.House.CurrentOverviewStyle is ushort curStyle)
                 {
@@ -489,7 +493,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(false, false);
 
-            KeyBinds.Unbind(EscBind);
+            Core.Unbind(EscBind);
 
             foreach (var x in Sync.House.Lights.Values)
             {
@@ -535,7 +539,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            KeyBinds.Unbind(EscBind);
+            Core.Unbind(EscBind);
 
             CEF.Browser.SwitchTemp(Browser.IntTypes.MenuHome, false);
         }
@@ -547,7 +551,7 @@ namespace BlaineRP.Client.CEF
 
             mObj?.Destroy();
 
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             CEF.Browser.SwitchTemp(Browser.IntTypes.MenuHome, true);
 
@@ -590,12 +594,12 @@ namespace BlaineRP.Client.CEF
 
             Sync.House.CurrentOverviewStyle = styleId;
 
-            GameEvents.Render -= StyleOverviewRender;
-            GameEvents.Render += StyleOverviewRender;
+            Main.Render -= StyleOverviewRender;
+            Main.Render += StyleOverviewRender;
 
             CEF.Browser.Switch(Browser.IntTypes.MenuHome, false);
 
-            KeyBinds.DisableAll(KeyBinds.Types.Cursor, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
+            Core.DisableAll(BindTypes.Cursor, BindTypes.MicrophoneOn, BindTypes.MicrophoneOff);
 
             CEF.Cursor.Show(false, false);
         }
@@ -607,9 +611,9 @@ namespace BlaineRP.Client.CEF
 
             Sync.House.CurrentOverviewStyle = null;
 
-            GameEvents.Render -= StyleOverviewRender;
+            Main.Render -= StyleOverviewRender;
 
-            KeyBinds.EnableAll();
+            Core.EnableAll();
 
             if (IsActive)
             {
@@ -631,16 +635,16 @@ namespace BlaineRP.Client.CEF
 
                     Graphics.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", Core.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
                     Graphics.DrawText(text, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", Core.GetKeyString(RAGE.Ui.VirtualKeys.M));
 
                     Graphics.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.M))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.M))
                 {
                     if (IsActive && !isMenuActive)
                     {
@@ -734,7 +738,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempEscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            TempEscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -747,7 +751,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Render(Browser.IntTypes.Elevator, false);
 
             if (TempEscBind != -1)
-                KeyBinds.Unbind(TempEscBind);
+                Core.Unbind(TempEscBind);
 
             TempEscBind = -1;
 

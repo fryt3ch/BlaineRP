@@ -1,0 +1,47 @@
+﻿namespace BlaineRP.Client.Animations.Enums
+{
+    public enum GeneralTypes
+    {
+        None = -1,
+
+        Knocked = 0,
+        PushingVehicle,
+
+        RagdollElectrocute,
+
+        CarryA, CarryB,
+        PiggyBackA, PiggyBackB,
+        HostageA, HostageB,
+
+        LieInTrunk,
+
+        FishingIdle0, FishingProcess0,
+
+        ShovelProcess0,
+
+        MetalDetectorProcess0,
+
+        CuffedStatic,
+
+        FarmPlantSmallShovelProcess0,
+
+        BoxCarry0,
+
+        WateringCan0,
+
+        TreeCollect0,
+
+        BucketCarryOneHand0,
+
+        MilkCow0,
+
+        PoliceEscort0,
+
+        BedLie0,
+
+        CasinoSlotMachineIdle0,
+        CasinoBlackjackIdle0,
+
+        MedicalRevive,
+    }
+}

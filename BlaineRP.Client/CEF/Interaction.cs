@@ -8,6 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -423,8 +428,8 @@ namespace BlaineRP.Client.CEF
                     ShowMenu(InVehicleInteractionInfo);
                 }
 
-                GameEvents.Render -= CheckEntityDistance;
-                GameEvents.Render += CheckEntityDistance;
+                Main.Render -= CheckEntityDistance;
+                Main.Render += CheckEntityDistance;
 
                 return true;
             }
@@ -432,8 +437,8 @@ namespace BlaineRP.Client.CEF
             {
                 ShowMenu(CharacterInteractionInfo);
 
-                GameEvents.Render -= CheckEntityDistance;
-                GameEvents.Render += CheckEntityDistance;
+                Main.Render -= CheckEntityDistance;
+                Main.Render += CheckEntityDistance;
 
                 return true;
             }
@@ -524,9 +529,9 @@ namespace BlaineRP.Client.CEF
 
             Browser.Window.ExecuteJs("Interaction.draw", info.MainType, info.MainLabels, extraLabels.Select(x => x == null ? x : x.Select(y => y ?? "none").ToList()));
 
-            KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
+            Core.Get(BindTypes.Interaction).Disable();
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Cursor.Show(true, true);
         }
@@ -538,7 +543,7 @@ namespace BlaineRP.Client.CEF
             if (veh == null)
                 return;
 
-            var vehData = Sync.Vehicles.GetData(veh);
+            var vehData = VehicleData.GetData(veh);
 
             if (vehData == null)
                 return;
@@ -550,7 +555,7 @@ namespace BlaineRP.Client.CEF
                 if (x.Handle == Player.LocalPlayer.Handle)
                     continue;
 
-                var data = Sync.Players.GetData(x);
+                var data = PlayerData.GetData(x);
 
                 players.Add(new object[] { x.RemoteId, data == null ? "null" : x.GetName(true, false, true) });
             }
@@ -565,7 +570,7 @@ namespace BlaineRP.Client.CEF
 
             await Browser.Render(Browser.IntTypes.Interaction_Passengers, true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Browser.Window.ExecuteJs($"Passengers.fill", players);
 
@@ -614,12 +619,12 @@ namespace BlaineRP.Client.CEF
             Browser.Switch(Browser.IntTypes.Interaction, false);
             Browser.Render(Browser.IntTypes.Interaction_Passengers, false);
 
-            GameEvents.Render -= CheckEntityDistance;
+            Main.Render -= CheckEntityDistance;
 
-            KeyBinds.Get(KeyBinds.Types.Interaction).Enable();
+            Core.Get(BindTypes.Interaction).Enable();
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 
@@ -640,7 +645,7 @@ namespace BlaineRP.Client.CEF
 
         public static async void PlayerCashRequest(Player player, int amount)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -697,7 +702,7 @@ namespace BlaineRP.Client.CEF
 
         public static void PlayerSettleRequest(Player player)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -723,7 +728,7 @@ namespace BlaineRP.Client.CEF
 
         public static void PlayerSellPropertyRequest(Player player, byte type)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -765,7 +770,7 @@ namespace BlaineRP.Client.CEF
 
         public static void PlayerShowDocumentsRequest(Player player, byte type)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -817,7 +822,7 @@ namespace BlaineRP.Client.CEF
 
                         if (rType == CEF.ActionBox.ReplyTypes.OK)
                         {
-                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+                            var pData = PlayerData.GetData(Player.LocalPlayer);
 
                             if (pData == null)
                                 return;
@@ -854,7 +859,7 @@ namespace BlaineRP.Client.CEF
 
         public static async void ResurrectPlayer(Player player)
         {
-            var pData = Sync.Players.GetData(player);
+            var pData = PlayerData.GetData(player);
 
             if (pData == null)
                 return;
@@ -912,7 +917,7 @@ namespace BlaineRP.Client.CEF
 
         public static void GivePlayerHealingItem(Player player, string itemId)
         {
-            var pData = Sync.Players.GetData(player);
+            var pData = PlayerData.GetData(player);
 
             if (pData == null)
                 return;

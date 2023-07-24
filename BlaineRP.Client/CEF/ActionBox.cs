@@ -5,6 +5,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -242,7 +243,7 @@ namespace BlaineRP.Client.CEF
                 return;
 
             for (int i = 0; i < TempBinds.Count; i++)
-                KeyBinds.Unbind(TempBinds[i]);
+                Core.Unbind(TempBinds[i]);
 
             TempBinds.Clear();
 
@@ -265,7 +266,7 @@ namespace BlaineRP.Client.CEF
 
         private static void Bind()
         {
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static Action DefaultBindAction { get; } = () => Bind();

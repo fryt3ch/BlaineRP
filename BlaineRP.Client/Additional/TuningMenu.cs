@@ -328,8 +328,8 @@ namespace BlaineRP.Client.Additional
 
             MenuPool.RefreshIndex();
 
-            GameEvents.Update -= DrawMenu;
-            GameEvents.Update += DrawMenu;
+            Main.Update -= DrawMenu;
+            Main.Update += DrawMenu;
 
             mainMenu.Visible = true;
             mainMenu.MouseControlsEnabled = false;
@@ -340,7 +340,7 @@ namespace BlaineRP.Client.Additional
             {
                 IsActive = false;
 
-                GameEvents.Update -= DrawMenu;
+                Main.Update -= DrawMenu;
 
                 MenuPool?.CloseAllMenus();
 
@@ -359,7 +359,7 @@ namespace BlaineRP.Client.Additional
 
             IsActive = false;
 
-            GameEvents.Update -= DrawMenu;
+            Main.Update -= DrawMenu;
         }
 
         private static void DrawMenu()

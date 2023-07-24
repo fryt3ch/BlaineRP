@@ -30,7 +30,7 @@ namespace BlaineRP.Client.Additional
 
         public AsyncTask CurrentTask { get; set; }
 
-        public GameEvents.UpdateHandler OnRender { get; set; }
+        public Main.UpdateHandler OnRender { get; set; }
 
         public Scaleform(string Id, string ScaleformName)
         {
@@ -45,8 +45,8 @@ namespace BlaineRP.Client.Additional
                 AllScaleforms.Add(Id, this);
             }
 
-            GameEvents.Render -= OnRender;
-            GameEvents.Render += OnRender;
+            Main.Render -= OnRender;
+            Main.Render += OnRender;
         }
 
         public static Scaleform CreateShard(string id, string title, string text, int duration = -1)
@@ -121,21 +121,21 @@ namespace BlaineRP.Client.Additional
 
         public void AddOnRenderAction(Action action)
         {
-            GameEvents.Render -= OnRender;
+            Main.Render -= OnRender;
 
             OnRender -= action.Invoke;
             OnRender += action.Invoke;
 
-            GameEvents.Render += OnRender;
+            Main.Render += OnRender;
         }
 
         public void RemoveOnRenderAction(Action action)
         {
-            GameEvents.Render -= OnRender;
+            Main.Render -= OnRender;
 
             OnRender -= action.Invoke;
 
-            GameEvents.Render += OnRender;
+            Main.Render += OnRender;
         }
 
         private void OnUpdate()
@@ -154,7 +154,7 @@ namespace BlaineRP.Client.Additional
             if (!Exists)
                 return;
 
-            GameEvents.Render -= OnRender;
+            Main.Render -= OnRender;
 
             OnRender = null;
 

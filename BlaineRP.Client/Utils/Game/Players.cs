@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Utils.Game
@@ -8,7 +9,7 @@ namespace BlaineRP.Client.Utils.Game
 
         public static string GetPlayerName(Player player, bool familiarOnly = true, bool dontMask = true, bool includeId = false)
         {
-            var pData = Sync.Players.GetData(player);
+            var pData = PlayerData.GetData(player);
 
             if (pData == null)
             {
@@ -27,8 +28,8 @@ namespace BlaineRP.Client.Utils.Game
 
         public static bool IsPlayerFamiliar(Player player, bool fractionToo = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-            var tData = Sync.Players.GetData(player);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
+            var tData = PlayerData.GetData(player);
 
             if (pData == null || tData == null)
                 return false;

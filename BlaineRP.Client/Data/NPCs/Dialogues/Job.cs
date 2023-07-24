@@ -2,6 +2,9 @@
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
@@ -35,7 +38,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                 if (NPC.CurrentNPC == null)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 var farmJobData = (Data.Jobs.Farmer)Data.Jobs.Job.AllJobs.Values.Where(x => x is Data.Jobs.Farmer farm && farm.FarmBusiness == NPC.CurrentNPC.Data).FirstOrDefault();
 

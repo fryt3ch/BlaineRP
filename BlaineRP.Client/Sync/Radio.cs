@@ -3,6 +3,7 @@ using RAGE.Elements;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
 
 namespace BlaineRP.Client.Sync
 {
@@ -161,7 +162,7 @@ namespace BlaineRP.Client.Sync
 
                 if (Player.LocalPlayer.Vehicle is Vehicle veh)
                 {
-                    var vData = Sync.Vehicles.GetData(veh);
+                    var vData = VehicleData.GetData(veh);
 
                     if (vData != null)
                     {
@@ -299,11 +300,11 @@ namespace BlaineRP.Client.Sync
             RAGE.Game.Audio.SetAudioFlag("MobileRadioInGame", state);
             RAGE.Game.Audio.SetAudioFlag("AllowRadioDuringSwitch", state);
 
-            GameEvents.Render -= MobilePhoneRadioRender;
+            Main.Render -= MobilePhoneRadioRender;
 
             if (state)
             {
-                GameEvents.Render += MobilePhoneRadioRender;
+                Main.Render += MobilePhoneRadioRender;
             }
             else
             {

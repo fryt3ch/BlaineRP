@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Data
         [Command("teleportmarker", true, "Телепорт по метке", "tpmarker", "tpm")]
         public static void TeleportMarker()
         {
-            var position = GameEvents.WaypointPosition;
+            var position = Main.WaypointPosition;
 
             if (position == null)
             {

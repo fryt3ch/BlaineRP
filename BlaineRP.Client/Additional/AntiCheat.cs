@@ -4,6 +4,10 @@ using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Additional
 {
@@ -83,7 +87,7 @@ namespace BlaineRP.Client.Additional
 
                 if (args.Length == 1)
                 {
-                    Sync.Players.CloseAll(false);
+                    Players.CloseAll(false);
 
                     Events.OnPlayerSpawn?.Invoke(null);
 
@@ -104,8 +108,8 @@ namespace BlaineRP.Client.Additional
 
                 var withVehicle = args.Length > 5;
 
-                GameEvents.DisableAllControls(true);
-                KeyBinds.DisableAll();
+                Main.DisableAllControls(true);
+                Core.DisableAll();
 
                 Player.LocalPlayer.Detach(false, false);
 
@@ -117,7 +121,7 @@ namespace BlaineRP.Client.Additional
                 {
                     veh.Detach(false, false);
 
-                    var vData = Sync.Vehicles.GetData(veh);
+                    var vData = VehicleData.GetData(veh);
 
                     if (vData != null)
                     {
@@ -129,7 +133,7 @@ namespace BlaineRP.Client.Additional
                 if (DisableCloseAllOnTeleportCounter > 0)
                     DisableCloseAllOnTeleportCounter--;
                 else
-                    Sync.Players.CloseAll(false);
+                    Players.CloseAll(false);
 
                 task = new AsyncTask(async () =>
                 {
@@ -144,7 +148,7 @@ namespace BlaineRP.Client.Additional
 
                     if (withVehicle && veh != null)
                     {
-                        var vData = Sync.Vehicles.GetData(veh);
+                        var vData = VehicleData.GetData(veh);
 
                         if (vData != null)
                         {
@@ -209,7 +213,7 @@ namespace BlaineRP.Client.Additional
                     {
                         Player.LocalPlayer.ClearTasksImmediately();
 
-                        if (Sync.Players.CharacterLoaded)
+                        if (Players.CharacterLoaded)
                             Player.LocalPlayer.FreezePosition(false);
 
                         Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
@@ -258,8 +262,8 @@ namespace BlaineRP.Client.Additional
                         }
                     }
 
-                    GameEvents.DisableAllControls(false);
-                    KeyBinds.EnableAll();
+                    Main.DisableAllControls(false);
+                    Core.EnableAll();
 
                     Events.OnPlayerSpawn?.Invoke(null);
 
@@ -367,10 +371,10 @@ namespace BlaineRP.Client.Additional
                 Player.LocalPlayer.SetInvincible(value);
                 Player.LocalPlayer.SetCanBeDamaged(!value);
 
-                GameEvents.Render -= InvincibleRender;
+                Main.Render -= InvincibleRender;
 
                 if (value)
-                    GameEvents.Render += InvincibleRender;
+                    Main.Render += InvincibleRender;
             });
 
             Events.Add("AC::State::Weapon", async (object[] args) =>
@@ -410,14 +414,14 @@ namespace BlaineRP.Client.Additional
 
                         CEF.HUD.SwitchAmmo(true);
 
-                        GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
-                        GameEvents.Update += Sync.WeaponSystem.UpdateWeapon;
+                        Main.Update -= Sync.WeaponSystem.UpdateWeapon;
+                        Main.Update += Sync.WeaponSystem.UpdateWeapon;
                     }
                     else
                     {
                         CEF.HUD.SwitchAmmo(false);
 
-                        GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
+                        Main.Update -= Sync.WeaponSystem.UpdateWeapon;
                     }
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
@@ -557,7 +561,7 @@ namespace BlaineRP.Client.Additional
                 if (veh?.Exists != true)
                     continue;
 
-                var vData = Sync.Vehicles.GetData(veh);
+                var vData = VehicleData.GetData(veh);
 
                 if (vData == null)
                     continue;
@@ -691,7 +695,7 @@ namespace BlaineRP.Client.Additional
                 {
                     Player.LocalPlayer.ClearTasksImmediately();
 
-                    GameEvents.CloseGameNow("BETTER YOU DON'T ALT+F4 WHILE USING VEHICLE, MY FRIEND!");
+                    Main.CloseGameNow("BETTER YOU DON'T ALT+F4 WHILE USING VEHICLE, MY FRIEND!");
                 }
             }
         }

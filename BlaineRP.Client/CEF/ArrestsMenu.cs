@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -265,7 +266,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -277,7 +278,7 @@ namespace BlaineRP.Client.CEF
 
             CurrentArrestId = null;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

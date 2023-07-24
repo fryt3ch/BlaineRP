@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.Sync.Quests.Types.Job
+namespace BlaineRP.Client.Quests.Types.Job
 {
     [Script(int.MaxValue)]
     internal class JFRM2
@@ -10,7 +11,7 @@ namespace BlaineRP.Client.Sync.Quests.Types.Job
 
         public JFRM2()
         {
-            new Quest.QuestData(Enums.QuestTypes.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(QuestTypes.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

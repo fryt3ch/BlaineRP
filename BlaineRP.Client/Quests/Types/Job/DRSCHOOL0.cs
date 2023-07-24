@@ -1,18 +1,19 @@
-﻿using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BlaineRP.Client.EntitiesData;
 using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Utils;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Sync.Quests.Types.Job
+namespace BlaineRP.Client.Quests.Types.Job
 {
     [Script(int.MaxValue)]
     internal class DRSCHOOL0
     {
         public DRSCHOOL0()
         {
-            new Quest.QuestData(Enums.QuestTypes.DRSCHOOL0, "Практическая часть", "Автошкола", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(QuestTypes.DRSCHOOL0, "Практическая часть", "Автошкола", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

@@ -32,7 +32,8 @@ namespace BlaineRP.Server.Properties.Settings
         public const byte PlayerDrugAddictionStage2 = 50;
         public const byte PlayerDrugAddictionStage3 = 75;
 
-        public static Dictionary<PlayerData.SkillTypes, int> MaxSkills = new Dictionary<PlayerData.SkillTypes, int>()
+        [ClientSync("playerMaxSkills")]
+        public static Dictionary<PlayerData.SkillTypes, int> PlayerMaxSkills = new Dictionary<PlayerData.SkillTypes, int>()
         {
             { PlayerData.SkillTypes.Strength, 100 },
             { PlayerData.SkillTypes.Shooting, 100 },

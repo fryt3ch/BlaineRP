@@ -5,6 +5,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.Sync
 {
@@ -144,7 +145,7 @@ namespace BlaineRP.Client.Sync
 
                         if (_tempBinds != null)
                         {
-                            _tempBinds.ForEach(x => KeyBinds.Unbind(x));
+                            _tempBinds.ForEach(x => Core.Unbind(x));
 
                             _tempBinds.Clear();
                             _tempBinds = null;
@@ -156,12 +157,12 @@ namespace BlaineRP.Client.Sync
 
                     CurrentTarget = null;
 
-                    GameEvents.Update -= OfferTick;
+                    Main.Update -= OfferTick;
                 }
                 else
                 {
-                    GameEvents.Update -= OfferTick;
-                    GameEvents.Update += OfferTick;
+                    Main.Update -= OfferTick;
+                    Main.Update += OfferTick;
                 }
             });
         }
@@ -173,8 +174,8 @@ namespace BlaineRP.Client.Sync
 
             CurrentTarget = player;
 
-            GameEvents.Update -= OfferTick;
-            GameEvents.Update += OfferTick;
+            Main.Update -= OfferTick;
+            Main.Update += OfferTick;
 
             var name = player.GetName(true, false, true);
 
@@ -184,12 +185,12 @@ namespace BlaineRP.Client.Sync
 
             _tempBinds = new List<int>()
             {
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
                 {
                     Reply(ReplyTypes.Accept);
                 }),
 
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
                 {
                     Reply(ReplyTypes.Deny);
                 }),
@@ -251,7 +252,7 @@ namespace BlaineRP.Client.Sync
                     LastSent = Sync.World.ServerTime;
 
                 if (rType != ReplyTypes.Accept)
-                    GameEvents.Update -= OfferTick;
+                    Main.Update -= OfferTick;
             }
         }
 

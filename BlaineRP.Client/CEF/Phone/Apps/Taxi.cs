@@ -6,6 +6,11 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF.Phone.Apps
 {
@@ -80,7 +85,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                             CurrentOrderInfo = null;
 
-                            Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
+                            Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, Core.Get(BindTypes.SendCoordsToDriver).GetKeyString()));
 
                             Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
@@ -93,7 +98,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             Events.Add("Phone::CabAction", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -193,7 +198,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             });
         }
 
-        public static void Show(Sync.Players.PlayerData pData)
+        public static void Show(PlayerData pData)
         {
             if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
                 CEF.Phone.Phone.SwitchMenu(false);

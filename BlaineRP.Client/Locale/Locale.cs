@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client
 {
@@ -76,37 +78,37 @@ namespace BlaineRP.Client
             #region Players
             public static class Players
             {
-                public static Dictionary<Sync.Players.SkillTypes, string> SkillNames = new Dictionary<Sync.Players.SkillTypes, string>()
+                public static Dictionary<SkillTypes, string> SkillNames = new Dictionary<SkillTypes, string>()
                 {
-                    { Sync.Players.SkillTypes.Shooting, "Стрельба" },
-                    { Sync.Players.SkillTypes.Fishing, "Рыболовство" },
-                    { Sync.Players.SkillTypes.Cooking, "Кулинария" },
-                    { Sync.Players.SkillTypes.Strength, "Сила" },
+                    { SkillTypes.Shooting, "Стрельба" },
+                    { SkillTypes.Fishing, "Рыболовство" },
+                    { SkillTypes.Cooking, "Кулинария" },
+                    { SkillTypes.Strength, "Сила" },
                 };
 
-                public static Dictionary<Sync.Players.SkillTypes, string> SkillNamesGenitive = new Dictionary<Sync.Players.SkillTypes, string>()
+                public static Dictionary<SkillTypes, string> SkillNamesGenitive = new Dictionary<SkillTypes, string>()
                 {
-                    { Sync.Players.SkillTypes.Shooting, "стрельбы" },
-                    { Sync.Players.SkillTypes.Fishing, "рыболовства" },
-                    { Sync.Players.SkillTypes.Cooking, "кулинарии" },
-                    { Sync.Players.SkillTypes.Strength, "силы" },
+                    { SkillTypes.Shooting, "стрельбы" },
+                    { SkillTypes.Fishing, "рыболовства" },
+                    { SkillTypes.Cooking, "кулинарии" },
+                    { SkillTypes.Strength, "силы" },
                 };
 
-                public static Dictionary<Sync.Players.LicenseTypes, string> LicenseNames = new Dictionary<Sync.Players.LicenseTypes, string>()
+                public static Dictionary<LicenseTypes, string> LicenseNames = new Dictionary<LicenseTypes, string>()
                 {
-                    { Sync.Players.LicenseTypes.B, "B (легковой транспорт)" },
-                    { Sync.Players.LicenseTypes.C, "C (грузовой транспорт)" },
-                    { Sync.Players.LicenseTypes.D, "D (маршрутный транспорт)" },
-                    { Sync.Players.LicenseTypes.A, "D (мотоциклы)" },
-                    { Sync.Players.LicenseTypes.M, "M (мопеды)" },
-                    { Sync.Players.LicenseTypes.Sea, "Sea (водный транспорт)" },
-                    { Sync.Players.LicenseTypes.Fly, "Fly (воздушный транспорт)" },
+                    { LicenseTypes.B, "B (легковой транспорт)" },
+                    { LicenseTypes.C, "C (грузовой транспорт)" },
+                    { LicenseTypes.D, "D (маршрутный транспорт)" },
+                    { LicenseTypes.A, "D (мотоциклы)" },
+                    { LicenseTypes.M, "M (мопеды)" },
+                    { LicenseTypes.Sea, "Sea (водный транспорт)" },
+                    { LicenseTypes.Fly, "Fly (воздушный транспорт)" },
                 };
 
-                public static Dictionary<Sync.Players.AchievementTypes, (string Title, string Desc)> AchievementTexts = new Dictionary<Sync.Players.AchievementTypes, (string, string)>()
+                public static Dictionary<AchievementTypes, (string Title, string Desc)> AchievementTexts = new Dictionary<AchievementTypes, (string, string)>()
                 {
-                    { Sync.Players.AchievementTypes.SR1, ("В яблочко!", "Получите навык стрельбы 80 в тире") },
-                    { Sync.Players.AchievementTypes.SR2, ("Концентрация", "Продержите точность 100% в тире при навыке стрельбы 100") }
+                    { AchievementTypes.SR1, ("В яблочко!", "Получите навык стрельбы 80 в тире") },
+                    { AchievementTypes.SR2, ("Концентрация", "Продержите точность 100% в тире при навыке стрельбы 100") }
                 };
             }
             #endregion

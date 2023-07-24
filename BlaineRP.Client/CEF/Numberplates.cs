@@ -5,6 +5,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Linq;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -54,7 +55,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             Player.LocalPlayer.SetData("NumberplatesBuy::NpcId", npcId);
 
@@ -81,7 +82,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

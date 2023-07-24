@@ -5,6 +5,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
@@ -18,7 +21,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -79,7 +82,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -209,7 +212,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -339,7 +342,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -469,7 +472,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -599,7 +602,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
 
                 async (args) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;

@@ -1,4 +1,5 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
 
@@ -108,7 +109,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             CEF.Cursor.Show(true, true);
 
-            _escBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            _escBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -129,7 +130,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
-            KeyBinds.Unbind(_escBindIdx);
+            Core.Unbind(_escBindIdx);
 
             _escBindIdx = -1;
         }

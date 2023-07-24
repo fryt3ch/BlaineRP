@@ -6,6 +6,9 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -214,7 +217,7 @@ namespace BlaineRP.Client.CEF
             if (res == null)
                 return;
 
-            Sync.Players.CloseAll(true);
+            Players.CloseAll(true);
 
             var materialsBuyPrice = Utils.Convert.ToUInt32(res["MB"]);
             var deliveryPrice = Utils.Convert.ToUInt32(res["DP"]);
@@ -262,7 +265,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempEscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            TempEscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             Player.LocalPlayer.SetData("BusinessMenu::Business", biz);
         }
@@ -280,7 +283,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(false, false);
 
-            KeyBinds.Unbind(TempEscBind);
+            Core.Unbind(TempEscBind);
 
             TempEscBind = -1;
 

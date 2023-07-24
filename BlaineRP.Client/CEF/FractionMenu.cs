@@ -8,6 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Types = BlaineRP.Client.Data.Fractions.Types;
+using VehicleData = BlaineRP.Client.EntitiesData.VehicleData;
 
 namespace BlaineRP.Client.CEF
 {
@@ -63,7 +69,7 @@ namespace BlaineRP.Client.CEF
                     if (vData == null)
                         return;
 
-                    if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                    if (VehicleData.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                     {
                         CEF.Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
@@ -81,7 +87,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::ChangeVehAccess", async (args) =>
             {
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -142,7 +148,7 @@ namespace BlaineRP.Client.CEF
                 if (mData == null)
                     return;
 
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -211,7 +217,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::EditPosition", async (args) =>
             {
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -250,7 +256,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::AccessButtons", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -293,7 +299,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::NewsAction", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -373,7 +379,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuFrac::Tooltip", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -481,7 +487,7 @@ namespace BlaineRP.Client.CEF
 
                 var rankToEdit = Player.LocalPlayer.GetData<byte>("FractionMenu::RankEdit::CurrentRank");
 
-                var fData = Sync.Players.GetData(Player.LocalPlayer)?.CurrentFraction;
+                var fData = PlayerData.GetData(Player.LocalPlayer)?.CurrentFraction;
 
                 if (fData == null)
                     return;
@@ -518,7 +524,7 @@ namespace BlaineRP.Client.CEF
             });
         }
 
-        public static async void Show(Types type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, VehicleData> vehs, decimal balance, byte myRank)
+        public static async void Show(Types type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, Data.Fractions.VehicleData> vehs, decimal balance, byte myRank)
         {
             if (IsActive)
                 return;
@@ -529,7 +535,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             CEF.Browser.Window.ExecuteJs
             (
@@ -568,7 +574,7 @@ namespace BlaineRP.Client.CEF
 
             if (EscBindIdx >= 0)
             {
-                KeyBinds.Unbind(EscBindIdx);
+                Core.Unbind(EscBindIdx);
 
                 EscBindIdx = -1;
             }

@@ -5,6 +5,9 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -153,7 +156,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuBank::Show", async (object[] args) =>
             {
-                Sync.Players.CloseAll(true);
+                Players.CloseAll(true);
 
                 Player.LocalPlayer.SetData("CurrentBank::Id", (int)args[0]);
 
@@ -223,7 +226,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -240,7 +243,7 @@ namespace BlaineRP.Client.CEF
             CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 

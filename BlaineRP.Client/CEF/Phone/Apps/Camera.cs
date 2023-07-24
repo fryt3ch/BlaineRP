@@ -4,6 +4,13 @@ using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.CEF.Phone.Apps
 {
@@ -39,7 +46,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
         private static bool _isPlayingAnimFlag;
 
-        private static Sync.Animations.EmotionTypes _currentCameraEmotion;
+        private static EmotionTypes _currentCameraEmotion;
 
         private static string[] _cameraFilters = new string[] { "NG_filmic01", "NG_filmic02", "NG_filmic03", "NG_filmic04", "NG_filmic05", "NG_filmic06", "NG_filmic07", "NG_filmic08", "NG_filmic09", "NG_filmic10", "NG_filmic11", "NG_filmic12", "NG_filmic13", "NG_filmic14", "NG_filmic15", "NG_filmic16", "NG_filmic17", "NG_filmic18", "NG_filmic19", "NG_filmic20", "NG_filmic21", "NG_filmic22", "NG_filmic23", "NG_filmic24", "NG_filmic25" };
 
@@ -76,7 +83,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             if (IsActive)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -106,7 +113,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             _lastSwitched = Sync.World.ServerTime;
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
+            Core.DisableAll(BindTypes.MicrophoneOn, BindTypes.MicrophoneOff);
 
             CEF.Phone.Phone.Close();
 
@@ -131,8 +138,8 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             UpdateInstructionButtons();
 
-            GameEvents.Render -= OnRender;
-            GameEvents.Render += OnRender;
+            Main.Render -= OnRender;
+            Main.Render += OnRender;
         }
 
         public static void Close()
@@ -140,9 +147,9 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             if (!IsActive)
                 return;
 
-            GameEvents.Render -= OnRender;
+            Main.Render -= OnRender;
 
-            KeyBinds.EnableAll();
+            Core.EnableAll();
 
             if (!BlaineRP.Client.Settings.User.Interface.HideHUD)
                 HUD.ShowHUD(true);
@@ -164,11 +171,11 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             RAGE.Game.Graphics.ClearTimecycleModifier();
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData != null)
             {
-                Sync.Animations.Set(Player.LocalPlayer, pData.Emotion);
+                Script.Set(Player.LocalPlayer, pData.Emotion);
             }
 
             if (_currentAnimationDict.Length > 0)
@@ -202,7 +209,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 return;
             }
 
-            if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Return) && !_lastSwitched.IsSpam(750, false, false) && _photoStartCounter == 0)
+            if (Core.IsDown(RAGE.Ui.VirtualKeys.Return) && !_lastSwitched.IsSpam(750, false, false) && _photoStartCounter == 0)
             {
                 _photoStartCounter = 1;
 
@@ -368,17 +375,17 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 {
                     var curCamEmotionNum = (int)_currentCameraEmotion + (RAGE.Game.Pad.IsControlJustPressed(32, 89) ? -1 : 1);
 
-                    if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), curCamEmotionNum))
+                    if (!Enum.IsDefined(typeof(EmotionTypes), curCamEmotionNum))
                     {
                         if (curCamEmotionNum < 0)
-                            curCamEmotionNum = (int)Sync.Animations.EmotionTypes.Electrocuted;
+                            curCamEmotionNum = (int)EmotionTypes.Electrocuted;
                         else
                             curCamEmotionNum = -1;
                     }
 
-                    _currentCameraEmotion = (Sync.Animations.EmotionTypes)curCamEmotionNum;
+                    _currentCameraEmotion = (EmotionTypes)curCamEmotionNum;
 
-                    Sync.Animations.Set(Player.LocalPlayer, _currentCameraEmotion);
+                    Script.Set(Player.LocalPlayer, _currentCameraEmotion);
 
                     UpdateInstructionButtons();
 

@@ -5,6 +5,10 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Animations;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Sync;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data
 {
@@ -145,7 +149,7 @@ namespace BlaineRP.Client.Data
                                             if (ped == null)
                                                 return;
 
-                                            Sync.Animations.Play(ped, new Sync.Animations.Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
+                                            Script.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
                                         });
 
                     //new Additional.RadioEmitter("Casino_0", new Vector3(956.087f, 40.37049f, 79.03804f), 25f, uint.MaxValue, Additional.RadioEmitter.EmitterTypes.se_vw_dlc_casino_main_rm_shop_radio, Sync.Radio.StationTypes.NSPFM);
@@ -233,8 +237,8 @@ namespace BlaineRP.Client.Data
 
                         UpdateCasinoWalls(CurrentWallScreenType);
 
-                        GameEvents.Render -= CasinoWallsRender;
-                        GameEvents.Render += CasinoWallsRender;
+                        Main.Render -= CasinoWallsRender;
+                        Main.Render += CasinoWallsRender;
 
                         var csName = $"CASINO_G_{Id}";
 
@@ -383,7 +387,7 @@ namespace BlaineRP.Client.Data
                         Vehicle = null;
                     }
 
-                    GameEvents.Render -= CasinoWallsRender;
+                    Main.Render -= CasinoWallsRender;
 
                     UpdateCasinoWalls(WallScreenTypes.None);
 
@@ -666,11 +670,11 @@ namespace BlaineRP.Client.Data
 
                         if (animType == 1)
                         {
-                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                         else if (animType == 2)
                         {
-                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                     }
                     else if (type == 1) // chip add
@@ -695,7 +699,7 @@ namespace BlaineRP.Client.Data
 
                         if (player?.Exists == true)
                         {
-                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
 
                         if (Casino.Blackjack.CurrentTable == table && Casino.Blackjack.CurrentSeatIdx == seatIdx)
@@ -766,7 +770,7 @@ namespace BlaineRP.Client.Data
                     luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                 });
 
-                var casinoSlotMachineIdle0Anim = Sync.Animations.GeneralAnimsList.GetValueOrDefault(Sync.Animations.GeneralTypes.CasinoSlotMachineIdle0);
+                var casinoSlotMachineIdle0Anim = Script.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
 
                 if (casinoSlotMachineIdle0Anim != null)
                 {

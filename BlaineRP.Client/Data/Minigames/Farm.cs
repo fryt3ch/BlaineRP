@@ -1,4 +1,6 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -34,10 +36,10 @@ namespace BlaineRP.Client.Data.Minigames
 
         public static void StartCowMilk()
         {
-            KeyBinds.Get(KeyBinds.Types.Crouch).Disable();
+            Core.Get(BindTypes.Crouch).Disable();
 
-            GameEvents.Update -= RenderCowMilk;
-            GameEvents.Update += RenderCowMilk;
+            Main.Update -= RenderCowMilk;
+            Main.Update += RenderCowMilk;
 
             TempTask?.Cancel();
 
@@ -57,9 +59,9 @@ namespace BlaineRP.Client.Data.Minigames
 
             Player.LocalPlayer.ResetData("FARMAT::TEMPBUCKET0");
 
-            KeyBinds.Get(KeyBinds.Types.Crouch).Enable();
+            Core.Get(BindTypes.Crouch).Enable();
 
-            GameEvents.Update -= RenderCowMilk;
+            Main.Update -= RenderCowMilk;
 
             TempTask?.Cancel();
 
@@ -83,8 +85,8 @@ namespace BlaineRP.Client.Data.Minigames
 
         public static async void StartOrangeTreeCollect(int orangesAmount)
         {
-            GameEvents.Update -= RenderOrangeTreeCollect;
-            GameEvents.Update += RenderOrangeTreeCollect;
+            Main.Update -= RenderOrangeTreeCollect;
+            Main.Update += RenderOrangeTreeCollect;
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, true, true);
 
@@ -103,15 +105,15 @@ namespace BlaineRP.Client.Data.Minigames
             {
                 var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
-                KeyBinds.Unbind(bind);
+                Core.Unbind(bind);
             }
 
-            Player.LocalPlayer.SetData("MG::TempData::OrangePicking::EscBind", KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopOrangeTreeCollect(true)));
+            Player.LocalPlayer.SetData("MG::TempData::OrangePicking::EscBind", Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopOrangeTreeCollect(true)));
         }
 
         public static void StopOrangeTreeCollect(bool callRemote)
         {
-            GameEvents.Update -= RenderOrangeTreeCollect;
+            Main.Update -= RenderOrangeTreeCollect;
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
@@ -128,7 +130,7 @@ namespace BlaineRP.Client.Data.Minigames
             {
                 var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
-                KeyBinds.Unbind(bind);
+                Core.Unbind(bind);
 
                 Player.LocalPlayer.ResetData("MG::TempData::OrangePicking::EscBind");
             }

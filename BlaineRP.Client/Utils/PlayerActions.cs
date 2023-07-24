@@ -4,6 +4,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
 
 namespace BlaineRP.Client.Utils
 {
@@ -18,7 +21,7 @@ namespace BlaineRP.Client.Utils
             HasItemInHands, IsAttachedTo, MeleeCombat,
         }
 
-        private static Dictionary<Types, Func<Players.PlayerData, bool, bool>> ActionsFuncs = new Dictionary<Types, Func<Players.PlayerData, bool, bool>>()
+        private static Dictionary<Types, Func<PlayerData, bool, bool>> ActionsFuncs = new Dictionary<Types, Func<PlayerData, bool, bool>>()
         {
             {
                 Types.Knocked, (pData, notify) =>
@@ -58,7 +61,7 @@ namespace BlaineRP.Client.Utils
                     if (pData == null)
                         return false;
 
-                    if (pData.OtherAnim != Animations.OtherTypes.None)
+                    if (pData.OtherAnim != OtherTypes.None)
                     {
                         return true;
                     }
@@ -73,7 +76,7 @@ namespace BlaineRP.Client.Utils
                     if (pData == null)
                         return false;
 
-                    if (pData.GeneralAnim != Animations.GeneralTypes.None)
+                    if (pData.GeneralAnim != GeneralTypes.None)
                     {
                         return true;
                     }
@@ -88,7 +91,7 @@ namespace BlaineRP.Client.Utils
                     if (pData == null)
                         return false;
 
-                    if (pData.FastAnim != Animations.FastTypes.None)
+                    if (pData.FastAnim != FastTypes.None)
                     {
                         return true;
                     }
@@ -174,17 +177,17 @@ namespace BlaineRP.Client.Utils
         {
             foreach (var x in actions)
             {
-                if (!ActionsFuncs[x].Invoke(Players.GetData(Player.LocalPlayer), notify)) continue;
+                if (!ActionsFuncs[x].Invoke(PlayerData.GetData(Player.LocalPlayer), notify)) continue;
 
                 if (notify)
                 {
                     CEF.Notification.Show("ASP::ARN");
                 }
 
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

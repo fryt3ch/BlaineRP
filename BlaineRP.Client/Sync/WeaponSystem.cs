@@ -9,6 +9,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -503,7 +505,7 @@ namespace BlaineRP.Client.Sync
             Events.OnIncomingDamage += IncomingDamage;
             Events.OnOutgoingDamage += OutgoingDamage;
 
-            GameEvents.Update += DamageWatcher;
+            Main.Update += DamageWatcher;
 
             // Armour Broken
             OnDamage += ArmourCheck;
@@ -524,7 +526,7 @@ namespace BlaineRP.Client.Sync
             _DisabledFiringCounter = 0;
 
             #region Render
-            GameEvents.Update += () =>
+            Main.Update += () =>
             {
                 Player.LocalPlayer.SetSuffersCriticalHits(false);
 
@@ -581,7 +583,7 @@ namespace BlaineRP.Client.Sync
                 Player.LocalPlayer.SetResetFlag(200, true);
             };
 
-            GameEvents.Update += () =>
+            Main.Update += () =>
             {
                 if (Player.LocalPlayer.HasWeapon() && RAGE.Game.Cam.IsAimCamActive())
                 {
@@ -595,7 +597,7 @@ namespace BlaineRP.Client.Sync
                         var scale = 3f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / Main.ScreenResolution.X, scale * 32 / Main.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -604,7 +606,7 @@ namespace BlaineRP.Client.Sync
                         var scale = 1f * Settings.User.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / Main.ScreenResolution.X, scale * 32 / Main.ScreenResolution.Y, 0f, Settings.User.Aim.Color.Red, Settings.User.Aim.Color.Green, Settings.User.Aim.Color.Blue, (int)System.Math.Floor(Settings.User.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -619,16 +621,16 @@ namespace BlaineRP.Client.Sync
                 if (player?.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var pData = Sync.Players.GetData(player);
+                var pData = PlayerData.GetData(player);
 
                 if (pData != null)
                 {
-                    Sync.Players.CloseAll(false);
+                    Players.CloseAll(false);
 
                     if ((killer?.Exists != true || killer.Handle == Player.LocalPlayer.Handle) && Sync.World.ServerTime.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
                         killer = LastAttackerInfo.Player;
 
-                    if (Sync.Players.GetData(killer) == null)
+                    if (PlayerData.GetData(killer) == null)
                         killer = Player.LocalPlayer;
 
                     Events.CallRemote("Players::OnDeath", killer);
@@ -872,8 +874,8 @@ namespace BlaineRP.Client.Sync
                 if (!sourcePlayer.Exists || sourcePlayer.GetSelectedWeapon() != weaponHash)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
-                var sData = Sync.Players.GetData(sourcePlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
+                var sData = PlayerData.GetData(sourcePlayer);
 
                 if (pData == null || sData == null)
                     return;
@@ -953,7 +955,7 @@ namespace BlaineRP.Client.Sync
                     if (!veh.Exists || veh.Controller?.Handle != Player.LocalPlayer.Handle)
                         return;
 
-                    var vData = Sync.Vehicles.GetData(veh);
+                    var vData = VehicleData.GetData(veh);
 
                     if (vData == null)
                         return;

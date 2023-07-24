@@ -4,6 +4,8 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -49,7 +51,7 @@ namespace BlaineRP.Client.Sync
             if (LastSwitchTime.IsSpam(1000, false, false))
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -69,7 +71,7 @@ namespace BlaineRP.Client.Sync
             }
         }
 
-        public static void CallChangeState(Sync.Players.PlayerData pData, PhoneStateTypes stateType)
+        public static void CallChangeState(PlayerData pData, PhoneStateTypes stateType)
         {
             if (pData.PhoneStateType == stateType)
                 return;
@@ -81,7 +83,7 @@ namespace BlaineRP.Client.Sync
         {
             if (player.Handle == Player.LocalPlayer.Handle)
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

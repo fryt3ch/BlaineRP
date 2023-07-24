@@ -3,6 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.Data
 {
@@ -364,26 +365,26 @@ namespace BlaineRP.Client.Data
 
             var binds = new List<int>()
             {
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using X axis now!");
                 }),
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 1);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Y axis now!");
                 }),
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 2);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Z axis now!");
                 }),
 
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
                 {
                     if (Utils.Misc.IsAnyCefActive(true))
                         return;
@@ -397,7 +398,7 @@ namespace BlaineRP.Client.Data
 
                     var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
 
-                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    if (Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
                     {
                         if (xyz == 0)
                             rot.X -= sens;
@@ -425,7 +426,7 @@ namespace BlaineRP.Client.Data
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
                 }),
 
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
+                Core.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
                 {
                     if (Utils.Misc.IsAnyCefActive(true))
                         return;
@@ -439,7 +440,7 @@ namespace BlaineRP.Client.Data
 
                     var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
 
-                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    if (Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
                     {
                         if (xyz == 0)
                             rot.X += sens;
@@ -490,7 +491,7 @@ namespace BlaineRP.Client.Data
 
             Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE")?.Destroy();
 
-            Player.LocalPlayer.GetData<List<int>>("Temp::ATTOOL::Binds").ForEach((x) => KeyBinds.Unbind(x));
+            Player.LocalPlayer.GetData<List<int>>("Temp::ATTOOL::Binds").ForEach((x) => Core.Unbind(x));
 
             Player.LocalPlayer.ResetData("Temp::ATTOOL::Sens");
             Player.LocalPlayer.ResetData("Temp::ATTOOL::PosOff");

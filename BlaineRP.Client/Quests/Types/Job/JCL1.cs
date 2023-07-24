@@ -1,17 +1,18 @@
-﻿using BlaineRP.Client.Data;
+﻿using System.Collections.Generic;
+using BlaineRP.Client.Data;
+using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
 
-namespace BlaineRP.Client.Sync.Quests.Types.Job
+namespace BlaineRP.Client.Quests.Types.Job
 {
     [Script(int.MaxValue)]
     internal class JCL1
     {
         public JCL1()
         {
-            new Quest.QuestData(Enums.QuestTypes.JCL1, "Доставка денег", "Инкассатор", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(QuestTypes.JCL1, "Доставка денег", "Инкассатор", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

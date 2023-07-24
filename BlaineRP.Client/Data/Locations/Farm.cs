@@ -10,6 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Quests;
+using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data
 {
@@ -115,11 +123,11 @@ namespace BlaineRP.Client.Data
                             cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                         }
 
-                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+                        var pData = PlayerData.GetData(Player.LocalPlayer);
 
                         if (pData != null && farm.CropFields[fieldIdx].Type == Types.Wheat)
                         {
-                            var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM1);
+                            var quest = Quest.GetPlayerQuest(pData, QuestTypes.JFRM1);
 
                             if (quest != null)
                             {
@@ -152,14 +160,14 @@ namespace BlaineRP.Client.Data
                                     {
                                         if (BindIdx >= 0)
                                         {
-                                            KeyBinds.Unbind(BindIdx);
+                                            Core.Unbind(BindIdx);
 
                                             BindIdx = -1;
                                         }
 
                                         if (farm.CropFields[fieldIdx].Type != Types.Wheat)
                                         {
-                                            BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
+                                            BindIdx = Core.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
 
                                             TextLabel.Text = "Плод созрел\nНажмите E, чтобы собрать его";
                                         }
@@ -224,7 +232,7 @@ namespace BlaineRP.Client.Data
                                     {
                                         if (BindIdx >= 0)
                                         {
-                                            KeyBinds.Unbind(BindIdx);
+                                            Core.Unbind(BindIdx);
 
                                             BindIdx = -1;
                                         }
@@ -305,12 +313,12 @@ namespace BlaineRP.Client.Data
                                 {
                                     if (BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(BindIdx);
+                                        Core.Unbind(BindIdx);
 
                                         BindIdx = -1;
                                     }
 
-                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
+                                    BindIdx = Core.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
 
                                     TextLabel.Text = "Грядка пустая\nНажмите E, чтобы засеять её";
                                 }
@@ -323,7 +331,7 @@ namespace BlaineRP.Client.Data
                         if (CEF.Cursor.IsVisible)
                             return;
 
-                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+                        var pData = PlayerData.GetData(Player.LocalPlayer);
 
                         if (pData == null)
                             return;
@@ -444,11 +452,11 @@ namespace BlaineRP.Client.Data
                         farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                     }
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData != null)
                     {
-                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM2);
+                        var quest = Quest.GetPlayerQuest(pData, QuestTypes.JFRM2);
 
                         if (quest != null)
                         {
@@ -603,7 +611,7 @@ namespace BlaineRP.Client.Data
 
                                     if (CropData.BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(CropData.BindIdx);
+                                        Core.Unbind(CropData.BindIdx);
 
                                         CropData.BindIdx = -1;
                                     }
@@ -794,7 +802,7 @@ namespace BlaineRP.Client.Data
 
                             if (BindIdx >= 0)
                             {
-                                KeyBinds.Unbind(BindIdx);
+                                Core.Unbind(BindIdx);
 
                                 BindIdx = -1;
                             }
@@ -823,12 +831,12 @@ namespace BlaineRP.Client.Data
                                 {
                                     if (BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(BindIdx);
+                                        Core.Unbind(BindIdx);
 
                                         BindIdx = -1;
                                     }
 
-                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
+                                    BindIdx = Core.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
 
                                     Text = "Апельсины созрели\nНажмите E, чтобы собрать их";
                                 }
@@ -847,7 +855,7 @@ namespace BlaineRP.Client.Data
                                 {
                                     if (BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(BindIdx);
+                                        Core.Unbind(BindIdx);
 
                                         BindIdx = -1;
                                     }
@@ -878,12 +886,12 @@ namespace BlaineRP.Client.Data
                             {
                                 if (BindIdx >= 0)
                                 {
-                                    KeyBinds.Unbind(BindIdx);
+                                    Core.Unbind(BindIdx);
 
                                     BindIdx = -1;
                                 }
 
-                                BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
+                                BindIdx = Core.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
 
                                 Text = "Дерево не полито водой\nНажмите E, чтобы полить его";
                             }
@@ -896,7 +904,7 @@ namespace BlaineRP.Client.Data
                     if (CEF.Cursor.IsVisible)
                         return;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -999,12 +1007,12 @@ namespace BlaineRP.Client.Data
                                 {
                                     if (BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(BindIdx);
+                                        Core.Unbind(BindIdx);
 
                                         BindIdx = -1;
                                     }
 
-                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCow(farm, idx));
+                                    BindIdx = Core.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCow(farm, idx));
 
                                     TextLabel.Text = "Корова готова дать молоко\nНажмите E, чтобы подоить её";
                                 }
@@ -1030,7 +1038,7 @@ namespace BlaineRP.Client.Data
                                 {
                                     if (BindIdx >= 0)
                                     {
-                                        KeyBinds.Unbind(BindIdx);
+                                        Core.Unbind(BindIdx);
 
                                         BindIdx = -1;
                                     }
@@ -1060,7 +1068,7 @@ namespace BlaineRP.Client.Data
                     if (CEF.Cursor.IsVisible)
                         return;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -1099,7 +1107,7 @@ namespace BlaineRP.Client.Data
 
                         Player.LocalPlayer.Position = pPos;
 
-                        Sync.Animations.Play(Player.LocalPlayer, Sync.Animations.GeneralTypes.MilkCow0);
+                        Script.Play(Player.LocalPlayer, GeneralTypes.MilkCow0);
 
                         Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
 
@@ -1160,7 +1168,7 @@ namespace BlaineRP.Client.Data
 
                             if (BindIdx >= 0)
                             {
-                                KeyBinds.Unbind(BindIdx);
+                                Core.Unbind(BindIdx);
 
                                 BindIdx = -1;
                             }
@@ -1294,7 +1302,7 @@ namespace BlaineRP.Client.Data
                                 {
                                     OnEnter = (cancel) =>
                                     {
-                                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+                                        var pData = PlayerData.GetData(Player.LocalPlayer);
 
                                         if (pData == null)
                                             return;
@@ -1327,7 +1335,7 @@ namespace BlaineRP.Client.Data
                                 {
                                     OnEnter = (cancel) =>
                                     {
-                                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+                                        var pData = PlayerData.GetData(Player.LocalPlayer);
 
                                         if (pData == null)
                                             return;
@@ -1478,7 +1486,7 @@ namespace BlaineRP.Client.Data
                                 }*/
             }
 
-            public void UpdateTractorTakerData(Sync.Quest quest)
+            public void UpdateTractorTakerData(Quest quest)
             {
                 float x, y, z;
 
@@ -1518,7 +1526,7 @@ namespace BlaineRP.Client.Data
 
                                         OnEnter = async (cancel) =>
                                         {
-                                            var jobVehicle = Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
+                                            var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
 
                                             if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                             {
@@ -1584,7 +1592,7 @@ namespace BlaineRP.Client.Data
                 }
             }
 
-            public void UpdatePlaneIrrigatorData(Sync.Quest quest)
+            public void UpdatePlaneIrrigatorData(Quest quest)
             {
                 float x, y;
 
@@ -1610,7 +1618,7 @@ namespace BlaineRP.Client.Data
                                 {
                                     OnEnter = async (cancel) =>
                                     {
-                                        var jobVehicle = Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
+                                        var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
 
                                         if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                         {

@@ -1,4 +1,7 @@
-﻿using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
@@ -23,11 +26,11 @@ namespace BlaineRP.Client.Data
                         if (Player.LocalPlayer.Vehicle != null)
                         {
                             if (Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
-                                CEF.Notification.ShowHint($"Чтобы продать транспорт, выйдите из него, находитесь рядом с ним и смотрите на него, далее нажмите {KeyBinds.Get(KeyBinds.Types.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
+                                CEF.Notification.ShowHint($"Чтобы продать транспорт, выйдите из него, находитесь рядом с ним и смотрите на него, далее нажмите {Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
                         }
                         else
                         {
-                            CEF.Notification.ShowHint($"Чтобы продать транспорт, смотрите на него, находясь рядом с ним, и нажмите {KeyBinds.Get(KeyBinds.Types.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
+                            CEF.Notification.ShowHint($"Чтобы продать транспорт, смотрите на него, находясь рядом с ним, и нажмите {Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
                         }
                     },
 
@@ -56,7 +59,7 @@ namespace BlaineRP.Client.Data
 
                 var posId = Player.LocalPlayer.GetData<int>("VehicleDestruction::Id");
 
-                var vData = Sync.Vehicles.GetData(veh);
+                var vData = VehicleData.GetData(veh);
 
                 if (vData == null)
                     return;

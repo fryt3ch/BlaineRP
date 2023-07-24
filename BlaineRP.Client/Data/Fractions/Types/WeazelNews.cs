@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -25,7 +26,7 @@ namespace BlaineRP.Client.Data.Fractions
         {
             //CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
-            KeyBinds.CurrentExtraAction0 = null;
+            Core.CurrentExtraAction0 = null;
 
             base.OnEndMembership();
         }

@@ -1,22 +1,19 @@
-﻿using BlaineRP.Client.Extensions.System;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Animations;
-using BlaineRP.Client.Animations.Enums;
-using BlaineRP.Client.EntitiesData;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Animations
 {
     [Script(int.MaxValue)]
     public partial class Script
     {
         public static DateTime LastSent;
-
 
         public Script()
         {
@@ -29,7 +26,7 @@ namespace BlaineRP.Client.Sync
 
                 var type = (FastTypes)(int)args[1];
 
-                var data = FastAnimsList.GetValueOrDefault(type);
+                var data = Script.FastAnimsList.GetValueOrDefault(type);
 
                 if (data == null)
                     return;
@@ -99,7 +96,7 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                Invoker.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, EmotionsList[emotion], 0);
+                Invoker.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, Script.EmotionsList[emotion], 0);
             }
         }
 
@@ -116,9 +113,9 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                await Streaming.RequestClipSet(WalkstylesList[walkstyle]);
+                await Streaming.RequestClipSet(Script.WalkstylesList[walkstyle]);
 
-                player.SetMovementClipset(WalkstylesList[walkstyle], Sync.Crouch.ClipSetSwitchTime);
+                player.SetMovementClipset(Script.WalkstylesList[walkstyle], Sync.Crouch.ClipSetSwitchTime);
             }
         }
 
@@ -127,7 +124,7 @@ namespace BlaineRP.Client.Sync
             if (player == null)
                 return;
 
-            var anim = GeneralAnimsList.GetValueOrDefault(type);
+            var anim = Script.GeneralAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;
@@ -140,7 +137,7 @@ namespace BlaineRP.Client.Sync
             if (player == null)
                 return;
 
-            var anim = OtherAnimsList.GetValueOrDefault(type);
+            var anim = Script.OtherAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;

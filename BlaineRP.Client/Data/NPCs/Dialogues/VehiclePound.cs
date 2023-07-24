@@ -2,6 +2,9 @@
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.NPCDialogues
 {
@@ -17,7 +20,7 @@ namespace BlaineRP.Client.Data.NPCDialogues
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -101,7 +104,7 @@ namespace BlaineRP.Client.Data.NPCDialogues
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;

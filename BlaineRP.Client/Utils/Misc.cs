@@ -22,7 +22,7 @@ namespace BlaineRP.Client.Utils
         public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !CEF.Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
         public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
 
-        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (GameEvents.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : GameEvents.CurrentFps);
+        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (Main.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : Main.CurrentFps);
 
         public static decimal GetGovSellPrice(decimal price) => System.Math.Floor(price / 2m);
 

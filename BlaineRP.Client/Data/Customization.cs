@@ -3,6 +3,9 @@ using Newtonsoft.Json;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
 {
@@ -109,7 +112,7 @@ namespace BlaineRP.Client.Data
             {
                 player.ClearDecorations();
 
-                if (Sync.Players.GetData(player) is Sync.Players.PlayerData pData)
+                if (PlayerData.GetData(player) is PlayerData pData)
                     pData.HairOverlay?.Apply(player);
             }
         }
@@ -233,7 +236,7 @@ namespace BlaineRP.Client.Data
             {
                 player.ClearFacialDecorations();
 
-                if (Sync.Players.GetData(player) is Sync.Players.PlayerData pData && pData.Decorations is List<int> decors)
+                if (PlayerData.GetData(player) is PlayerData pData && pData.Decorations is List<int> decors)
                 {
                     foreach (var x in decors)
                         GetTattooData(x)?.TryApply(player);

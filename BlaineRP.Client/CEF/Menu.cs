@@ -7,6 +7,13 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -184,7 +191,7 @@ namespace BlaineRP.Client.CEF
             #region Update Keybinds
             Events.Add("Menu::UpdateKeyBind", (object[] args) =>
             {
-                KeyBinds.Types id = Enum.Parse<KeyBinds.Types>((string)args[0]);
+                BindTypes id = Enum.Parse<BindTypes>((string)args[0]);
                 int mKey = (int)args[1];
                 int key = (int)args[2];
 
@@ -196,7 +203,7 @@ namespace BlaineRP.Client.CEF
                 if (key != -1)
                     list.Add((RAGE.Ui.VirtualKeys)key);
 
-                KeyBinds.Binds[id].ChangeKeys(list.ToArray());
+                Core.Get(id)?.ChangeKeys(list.ToArray());
             });
             #endregion
 
@@ -216,7 +223,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (type == "menu-controls")
                 {
-                    KeyBinds.DefaultAll();
+                    Core.DefaultAll();
 
                     UpdateKeyBindsData();
                 }
@@ -254,7 +261,7 @@ namespace BlaineRP.Client.CEF
 
                     Gifts.Add(id, (Locale.Notifications.Gifts.SourceNames[reason], GetGiftName((GiftTypes)type, gid, amount)));
 
-                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, string.Format(Locale.Notifications.Gifts.Added, name, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString()));
+                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, string.Format(Locale.Notifications.Gifts.Added, name, Core.Get(BindTypes.Menu).GetKeyString()));
                 }
                 else
                 {
@@ -266,14 +273,14 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("Menu::Quests::Locate", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
 
                 var quests = pData.Quests;
 
-                var quest = quests.Where(x => x.Type == (Sync.Quest.QuestData.Types)Enum.Parse(typeof(Sync.Quest.QuestData.Types), (string)args[0])).FirstOrDefault();
+                var quest = quests.Where(x => x.Type == (QuestTypes)Enum.Parse(typeof(QuestTypes), (string)args[0])).FirstOrDefault();
 
                 if (quest == null)
                     return;
@@ -296,7 +303,7 @@ namespace BlaineRP.Client.CEF
         {
             CEF.Browser.Window.ExecuteJs("Menu.selectOption", "menu-char");
 
-            CEF.Browser.Window.ExecuteJs("Menu.drawSkills", new object[] { Sync.Players.MaxSkills.Select(x => new object[] { x.Key, x.Value }) });
+            CEF.Browser.Window.ExecuteJs("Menu.drawSkills", new object[] { Settings.App.Static.PlayerMaxSkills.Select(x => new object[] { x.Key, x.Value }) });
 
 
             var mainDict = new Dictionary<string, string>()
@@ -331,9 +338,9 @@ namespace BlaineRP.Client.CEF
                 return;
 
             if (TempBindEsc != -1)
-                KeyBinds.Unbind(TempBindEsc);
+                Core.Unbind(TempBindEsc);
 
-            TempBindEsc = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            TempBindEsc = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             if (sType != SectionTypes.Last)
                 Browser.Window.ExecuteJs("Menu.selectOption", Sections[sType]);
@@ -355,7 +362,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            KeyBinds.Unbind(TempBindEsc);
+            Core.Unbind(TempBindEsc);
             TempBindEsc = -1;
 
             Browser.Switch(Browser.IntTypes.Menu, false);
@@ -378,7 +385,7 @@ namespace BlaineRP.Client.CEF
 
         public static void UpdateKeyBindsData()
         {
-            var list = KeyBinds.Binds.Where(x => x.Value.Changeable && !x.Value.InvOnly).Aggregate(new List<object[]>(), (x, y) =>
+            var list = Core.Binds.Where(x => x.Value.Changeable && !x.Value.InvOnly).Aggregate(new List<object[]>(), (x, y) =>
             {
                 x.Add(new object[] { y.Key.ToString(), y.Value.Description, y.Value.Keys });
 
@@ -430,15 +437,15 @@ namespace BlaineRP.Client.CEF
 
         public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? "null");
 
-        public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs("Menu.setSkill", type, current);
+        public static void UpdateSkill(SkillTypes type, int current) => Browser.Window.ExecuteJs("Menu.setSkill", type, current);
 
-        public static void UpdateAchievement(Sync.Players.AchievementTypes aType, int current, int max) => Browser.Window.ExecuteJs("Menu.updateAchProgress", aType.ToString(), current, max);
+        public static void UpdateAchievement(AchievementTypes aType, int current, int max) => Browser.Window.ExecuteJs("Menu.updateAchProgress", aType.ToString(), current, max);
 
-        public static void AddAchievement(Sync.Players.AchievementTypes aType, int current, int max, string name, string desc) => Browser.Window.ExecuteJs("Menu.newAchievement", new object[] { new object[] { aType.ToString(), name, desc, current, max } });
+        public static void AddAchievement(AchievementTypes aType, int current, int max, string name, string desc) => Browser.Window.ExecuteJs("Menu.newAchievement", new object[] { new object[] { aType.ToString(), name, desc, current, max } });
 
         public static void UpdateQuestProgress() => Browser.Window.ExecuteJs("Menu.updateQuestProgress"); // id, new_progress
 
-        public static void Load(Sync.Players.PlayerData pData, TimeSpan timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
+        public static void Load(PlayerData pData, TimeSpan timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
         {
             Browser.Window.ExecuteJs("Menu.setOrganisation", "none"); // temp
 
@@ -462,10 +469,10 @@ namespace BlaineRP.Client.CEF
             UpdateQuests(pData);
         }
 
-        public static void UpdateProperties(Sync.Players.PlayerData pData = null)
+        public static void UpdateProperties(PlayerData pData = null)
         {
             if (pData == null)
-                pData = Sync.Players.GetData(Player.LocalPlayer);
+                pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -477,21 +484,21 @@ namespace BlaineRP.Client.CEF
 
             properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, x.Data.Class.ToString(), x.Data.GovPrice }));
 
-            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", PropertyTypes.Business.ToString(), x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
 
-            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
-            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
 
-            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }
 
-        public static void UpdateQuests(Sync.Players.PlayerData pData = null)
+        public static void UpdateQuests(PlayerData pData = null)
         {
             if (pData == null)
-                pData = Sync.Players.GetData(Player.LocalPlayer);
+                pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;

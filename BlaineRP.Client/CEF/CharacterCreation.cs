@@ -6,6 +6,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -438,7 +439,7 @@ namespace BlaineRP.Client.CEF
         public static async System.Threading.Tasks.Task Close()
         {
             foreach (var bind in _tempBinds)
-                KeyBinds.Unbind(bind);
+                Core.Unbind(bind);
 
             _tempBinds = null;
 
@@ -457,7 +458,7 @@ namespace BlaineRP.Client.CEF
 
             Cursor.Show(false, false);
 
-            GameEvents.Render -= ClearTasksRender;
+            Main.Render -= ClearTasksRender;
 
             Additional.Camera.Disable();
 
@@ -499,8 +500,8 @@ namespace BlaineRP.Client.CEF
 
             _cursorTask = null;
 
-            GameEvents.Render -= ClearTasksRender;
-            GameEvents.Render += ClearTasksRender;
+            Main.Render -= ClearTasksRender;
+            Main.Render += ClearTasksRender;
 
             CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
 
@@ -510,7 +511,7 @@ namespace BlaineRP.Client.CEF
 
             Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
                 if (_cursorTask != null)
                     return;
@@ -521,7 +522,7 @@ namespace BlaineRP.Client.CEF
                 _cursorTask.Run();
             }));
 
-            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
                 if (_cursorTask == null)
                     return;
@@ -531,7 +532,7 @@ namespace BlaineRP.Client.CEF
                 _cursorTask = null;
             }));
 
-            _tempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
                 ChangeView(++_currentCameraStateNum);
             }));
@@ -568,7 +569,7 @@ namespace BlaineRP.Client.CEF
             {
                 if (curPos.X == 0)
                     newHeading -= 5;
-                else if (curPos.X + 10 >= GameEvents.ScreenResolution.X)
+                else if (curPos.X + 10 >= Main.ScreenResolution.X)
                     newHeading += 5;
             }
 

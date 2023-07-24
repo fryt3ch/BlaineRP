@@ -7,6 +7,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data.Minigames.Casino
 {
@@ -237,9 +242,9 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
             CEF.Cursor.Show(true, true);
 
-            GameEvents.DisableAllControls(true);
+            Main.DisableAllControls(true);
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.Cursor);
+            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
             roulette.StartGame();
 
@@ -249,7 +254,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     AddLastBet(x);
             }
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static async void ShowSlotMachine(Data.Locations.Casino casino, Data.Locations.Casino.SlotMachine slotMachine, decimal chipsBalance, decimal jackpot)
@@ -299,11 +304,11 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
             CEF.Cursor.Show(true, true);
 
-            GameEvents.DisableAllControls(true);
+            Main.DisableAllControls(true);
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.Cursor);
+            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static async void ShowBlackjack(Data.Locations.Casino casino, Data.Locations.Casino.Blackjack blackJack, byte seatIdx, decimal chipsBalance)
@@ -311,7 +316,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             if (IsActive)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             var realSeatIdx = (seatIdx > 3 ? 0 : seatIdx) + 1;
 
@@ -333,9 +338,9 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                 if (actAnim != null)
                 {
-                    Sync.Animations.Stop(Player.LocalPlayer);
+                    Script.Stop(Player.LocalPlayer);
 
-                    Sync.Animations.Play(Player.LocalPlayer, actAnim);
+                    Script.Play(Player.LocalPlayer, actAnim);
                 }
             }
 
@@ -365,11 +370,11 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
             CEF.Cursor.Show(true, true);
 
-            GameEvents.DisableMove(true);
+            Main.DisableMove(true);
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.Cursor);
+            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             var stateData = blackJack.CurrentStateData;
 
@@ -447,7 +452,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     Player.LocalPlayer.Position = curMachine.MachineObj.GetOffsetFromInWorldCoords(0f, -1f, 0.5f);
                 }
 
-                GameEvents.DisableAllControls(false);
+                Main.DisableAllControls(false);
             }
             else if (CurrentType == Types.Blackjack)
             {
@@ -487,7 +492,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                 }
 
-                GameEvents.DisableMove(false);
+                Main.DisableMove(false);
 
                 curTable.StopGame();
             }
@@ -495,7 +500,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             {
                 Data.Locations.Casino.Roulette.CurrentRoulette?.StopGame();
 
-                GameEvents.DisableAllControls(false);
+                Main.DisableAllControls(false);
             }
 
             CurrentType = Types.None;
@@ -513,9 +518,9 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
             CEF.Chat.Show(true);
 
-            KeyBinds.EnableAll();
+            Core.EnableAll();
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
         }

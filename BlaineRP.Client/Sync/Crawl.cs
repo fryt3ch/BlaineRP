@@ -63,8 +63,8 @@ namespace BlaineRP.Client.Sync
 
                 CurrentMoveAnim = null;
 
-                GameEvents.Render -= OnTick;
-                GameEvents.Render += OnTick;
+                Main.Render -= OnTick;
+                Main.Render += OnTick;
 
                 Player.LocalPlayer.TaskPlayAnim(AnimDict, "front", 8.0f, 1000, -1, 2, 0, false, false, false);
 
@@ -81,7 +81,7 @@ namespace BlaineRP.Client.Sync
 
                 Events.CallRemote("Players::ToggleCrawlingSync", false);
 
-                GameEvents.Render -= OnTick;
+                Main.Render -= OnTick;
             }
             else
             {

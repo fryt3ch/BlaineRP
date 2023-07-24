@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Settings.User
 {
@@ -16,15 +18,15 @@ namespace BlaineRP.Client.Settings.User
             public static bool PhoneNotDisturb = false;
 
             public static HashSet<string> FavoriteAnimations => new HashSet<string>();
-            public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
-            public static Sync.Animations.WalkstyleTypes CurrentWalkstyle = Sync.Animations.WalkstyleTypes.None;
+            public static EmotionTypes CurrentEmotion = EmotionTypes.None;
+            public static WalkstyleTypes CurrentWalkstyle = WalkstyleTypes.None;
 
             public static List<CEF.BlipsMenu.LocalBlip> LocalBlips => new List<CEF.BlipsMenu.LocalBlip>();
         }
 
         private static HashSet<string> _FavoriteAnimations;
-        private static Sync.Animations.EmotionTypes _CurrentEmotion;
-        private static Sync.Animations.WalkstyleTypes _CurrentWalkstyle;
+        private static EmotionTypes _CurrentEmotion;
+        private static WalkstyleTypes _CurrentWalkstyle;
 
         private static List<CEF.BlipsMenu.LocalBlip> _LocalBlips;
 
@@ -47,8 +49,8 @@ namespace BlaineRP.Client.Settings.User
         public static bool PhoneNotDisturb { get => _PhoneNotDisturb; set { if (value != _PhoneNotDisturb) Additional.Storage.SetData("Settings::Phone::NotDisturb", value); _PhoneNotDisturb = value; } }
 
         public static HashSet<string> FavoriteAnimations { get => _FavoriteAnimations; set { Additional.Storage.SetData("Settings::Animations::Favorites", value); _FavoriteAnimations = value; } }
-        public static Sync.Animations.EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
-        public static Sync.Animations.WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
+        public static EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
+        public static WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
 
         public static List<CEF.BlipsMenu.LocalBlip> LocalBlips { get => _LocalBlips; set { Additional.Storage.SetData("Settings::LocalBlips", value); _LocalBlips = value; } }
     }

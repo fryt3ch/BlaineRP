@@ -2,6 +2,9 @@
 using BlaineRP.Client.Extensions.System;
 using RAGE.Elements;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
@@ -13,7 +16,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
         {
             new Dialogue("casino_cashier_def", null, async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

@@ -6,6 +6,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -34,7 +36,7 @@ namespace BlaineRP.Client.Sync
             // Changing Volume Of Talkers
             new AsyncTask(() =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -45,7 +47,7 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = _talkers[i];
 
-                    var tData = Sync.Players.GetData(player);
+                    var tData = PlayerData.GetData(player);
 
                     if (tData == null)
                         continue;
@@ -74,7 +76,7 @@ namespace BlaineRP.Client.Sync
             // Update Facial Anim On Talkers
             new AsyncTask(() =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -111,7 +113,7 @@ namespace BlaineRP.Client.Sync
                 if (player.Handle == Player.LocalPlayer.Handle)
                     continue;
 
-                var data = Sync.Players.GetData(player);
+                var data = PlayerData.GetData(player);
 
                 if (data == null)
                     continue;
@@ -125,7 +127,7 @@ namespace BlaineRP.Client.Sync
 
         public static void Start()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null || pData.VoiceRange > 0f)
                 return;
@@ -149,12 +151,12 @@ namespace BlaineRP.Client.Sync
 
         public static void Stop()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null || pData.VoiceRange <= 0f)
                 return;
 
-            GameEvents.Update -= OnTick;
+            Main.Update -= OnTick;
 
             Events.CallRemote("Microphone::Switch", false);
 
@@ -166,7 +168,7 @@ namespace BlaineRP.Client.Sync
         {
             _listeners.Clear();
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -191,7 +193,7 @@ namespace BlaineRP.Client.Sync
                     if (player.Handle == Player.LocalPlayer.Handle || activeCall?.Player == player)
                         continue;
 
-                    var tData = Sync.Players.GetData(player);
+                    var tData = PlayerData.GetData(player);
 
                     if (tData == null)
                         continue;

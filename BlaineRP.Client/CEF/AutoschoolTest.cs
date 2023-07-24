@@ -5,6 +5,9 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -15,7 +18,7 @@ namespace BlaineRP.Client.CEF
 
         public static bool IsActiveTest { get; set; }
 
-        private static Sync.Players.LicenseTypes CurrentLicenseType { get; set; }
+        private static LicenseTypes CurrentLicenseType { get; set; }
 
         private static int CurrentSchoolId { get; set; }
 
@@ -23,14 +26,14 @@ namespace BlaineRP.Client.CEF
 
         private static Additional.ExtraColshape CloseColshape { get; set; }
 
-        private static Dictionary<Sync.Players.LicenseTypes, (int TestId, int MaxQuestions)> JsLibsData = new Dictionary<Sync.Players.LicenseTypes, (int, int)>()
+        private static Dictionary<LicenseTypes, (int TestId, int MaxQuestions)> JsLibsData = new Dictionary<LicenseTypes, (int, int)>()
         {
-            { Sync.Players.LicenseTypes.B, (0, 4) },
-            { Sync.Players.LicenseTypes.D, (0, 4) },
-            { Sync.Players.LicenseTypes.C, (0, 4) },
-            { Sync.Players.LicenseTypes.A, (0, 4) },
-            { Sync.Players.LicenseTypes.Sea, (0, 4) },
-            { Sync.Players.LicenseTypes.Fly, (0, 4) },
+            { LicenseTypes.B, (0, 4) },
+            { LicenseTypes.D, (0, 4) },
+            { LicenseTypes.C, (0, 4) },
+            { LicenseTypes.A, (0, 4) },
+            { LicenseTypes.Sea, (0, 4) },
+            { LicenseTypes.Fly, (0, 4) },
         };
 
         private static int EscBindIdx { get; set; }
@@ -67,7 +70,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("AutoSchool::Close", (args) => Close(false));
         }
 
-        public static async void Show(int schoolId, Sync.Players.LicenseTypes licType, uint price)
+        public static async void Show(int schoolId, LicenseTypes licType, uint price)
         {
             if (IsActive)
                 return;
@@ -91,7 +94,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static void ShowTest(int questionsAmount)
@@ -99,7 +102,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive || IsActiveTest)
                 return;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 
@@ -123,7 +126,7 @@ namespace BlaineRP.Client.CEF
 
             if (EscBindIdx >= 0)
             {
-                KeyBinds.Unbind(EscBindIdx);
+                Core.Unbind(EscBindIdx);
 
                 EscBindIdx = -1;
             }

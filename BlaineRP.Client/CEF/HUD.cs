@@ -6,6 +6,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Quests;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -60,7 +65,7 @@ namespace BlaineRP.Client.CEF
 
                 { Types.Menu_Apartments, () => CEF.HouseMenu.ShowRequest() },
 
-                { Types.WeaponSkinsMenu, () => Sync.Players.TryShowWeaponSkinsMenu() },
+                { Types.WeaponSkinsMenu, () => Players.TryShowWeaponSkinsMenu() },
 
                 { Types.Job_Menu, () => Data.Jobs.Job.ShowJobMenu() },
 
@@ -81,7 +86,7 @@ namespace BlaineRP.Client.CEF
 
                     Types type = (Types)args[0];
 
-                    var kbAction = KeyBinds.HudMenuBinds.Where(x => x.Value == type).Select(x => KeyBinds.Get(x.Key).Action).FirstOrDefault();
+                    var kbAction = Core.HudMenuBinds.Where(x => x.Value == type).Select(x => Core.Get(x.Key).Action).FirstOrDefault();
 
                     if (kbAction != null)
                     {
@@ -130,22 +135,22 @@ namespace BlaineRP.Client.CEF
                     if ((types?.Count ?? 0) == 0)
                         return;
 
-                    TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
+                    TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
 
                     CEF.Browser.Switch(CEF.Browser.IntTypes.HUD_Menu, true);
 
                     Cursor.Show(true, true);
 
-                    KeyBinds.Get(KeyBinds.Types.Menu).Disable();
+                    Core.Get(Input.Enums.BindTypes.Menu).Disable();
 
                     CEF.Browser.Window.ExecuteJs("Hud.drawMenu", new object[] { types.Select(x => new object[] { x, Locale.HudMenu.Names.GetValueOrDefault(x) ?? "null" }) });
 
                     var cPos = RAGE.Ui.Cursor.Position;
 
-                    if (cPos.X + 50 > GameEvents.ScreenResolution.X || cPos.Y + 50 > GameEvents.ScreenResolution.Y)
+                    if (cPos.X + 50 > Main.ScreenResolution.X || cPos.Y + 50 > Main.ScreenResolution.Y)
                     {
-                        cPos.X = GameEvents.ScreenResolution.X / 2;
-                        cPos.Y = GameEvents.ScreenResolution.Y / 2;
+                        cPos.X = Main.ScreenResolution.X / 2;
+                        cPos.Y = Main.ScreenResolution.Y / 2;
                     }
 
                     CEF.Browser.Window.ExecuteJs("Hud.positionMenu", cPos.X, cPos.Y);
@@ -156,7 +161,7 @@ namespace BlaineRP.Client.CEF
                         return;
 
                     foreach (var x in TempBinds.ToList())
-                        KeyBinds.Unbind(x);
+                        Core.Unbind(x);
 
                     TempBinds.Clear();
 
@@ -164,7 +169,7 @@ namespace BlaineRP.Client.CEF
 
                     Cursor.Show(false, false);
 
-                    KeyBinds.Get(KeyBinds.Types.Menu).Enable();
+                    Core.Get(Input.Enums.BindTypes.Menu).Enable();
                 }
             }
         }
@@ -226,10 +231,10 @@ namespace BlaineRP.Client.CEF
 
         public static void ShowHUD(bool value)
         {
-            if (!Sync.Players.CharacterLoaded)
+            if (!Players.CharacterLoaded)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -244,7 +249,7 @@ namespace BlaineRP.Client.CEF
                 if (!Phone.Phone.IsActive)
                     Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.User.Interface.HideHints);
 
-                if (!Settings.User.Interface.HideQuest && Sync.Quest.ActualQuest != null)
+                if (!Settings.User.Interface.HideQuest && Quest.ActualQuest != null)
                 {
                     EnableQuest(true);
                 }
@@ -362,7 +367,7 @@ namespace BlaineRP.Client.CEF
         public static void SwitchInteractionText(bool state, string text = null, RAGE.Ui.VirtualKeys key = RAGE.Ui.VirtualKeys.E)
         {
             if (text != null)
-                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.ExtraBind.GetKeyString(key));
+                Browser.Window.ExecuteJs("Hud.drawInteract", text, Core.GetKeyString(key));
 
             Browser.Switch(Browser.IntTypes.HUD_Interact, state);
 
@@ -371,11 +376,11 @@ namespace BlaineRP.Client.CEF
                 //RAGE.Game.Audio.PlaySoundFrontend(-1, "Enter_Area", "DLC_Lowrider_Relay_Race_Sounds", true);
 
                 if (InteractionBind != -1)
-                    KeyBinds.Unbind(InteractionBind);
+                    Core.Unbind(InteractionBind);
 
-                InteractionBind = KeyBinds.Bind(key, true, () =>
+                InteractionBind = Core.Bind(key, true, () =>
                 {
-                    if (KeyBinds.Get(KeyBinds.Types.Interaction)?.IsDisabled == true)
+                    if (Core.Get(BindTypes.Interaction)?.IsDisabled == true)
                         return;
 
                     InteractionAction?.Invoke();
@@ -385,32 +390,32 @@ namespace BlaineRP.Client.CEF
             {
                 if (InteractionBind != -1)
                 {
-                    KeyBinds.Unbind(InteractionBind);
+                    Core.Unbind(InteractionBind);
 
                     InteractionBind = -1;
                 }
             }
         }
 
-        public static void SetQuestParams(string questGiver, string questName, string goal, Sync.Quest.QuestData.ColourTypes cType) => CEF.Browser.Window.ExecuteJs("Hud.drawQuest", new object[] { new object[] { questName, questGiver, goal, (int)cType } });
+        public static void SetQuestParams(string questGiver, string questName, string goal, Quest.QuestData.ColourTypes cType) => CEF.Browser.Window.ExecuteJs("Hud.drawQuest", new object[] { new object[] { questName, questGiver, goal, (int)cType } });
 
         public static void EnableQuest(bool state)
         {
-            if (!Sync.Players.CharacterLoaded)
+            if (!Players.CharacterLoaded)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
             if (state)
             {
-                if (Sync.Quest.ActualQuest != null)
+                if (Quest.ActualQuest != null)
                 {
                     CEF.Browser.Switch(Browser.IntTypes.HUD_Quest, true);
 
-                    Sync.Quest.ActualQuest.UpdateHudQuest();
+                    Quest.ActualQuest.UpdateHudQuest();
                 }
             }
             else
@@ -438,12 +443,12 @@ namespace BlaineRP.Client.CEF
             float safezone = RAGE.Game.Graphics.GetSafeZoneSize();
             float aspectratio = RAGE.Game.Graphics.GetAspectRatio(false);
 
-            float scaleX = 1f / GameEvents.ScreenResolution.X, scaleY = 1f / GameEvents.ScreenResolution.Y;
+            float scaleX = 1f / Main.ScreenResolution.X, scaleY = 1f / Main.ScreenResolution.Y;
 
-            float minimapWidth = scaleX * (GameEvents.ScreenResolution.X / (4 * aspectratio)) * (MiniMap.ZoomState == 2 ? 1.6f : 1f);
+            float minimapWidth = scaleX * (Main.ScreenResolution.X / (4 * aspectratio)) * (MiniMap.ZoomState == 2 ? 1.6f : 1f);
 
-            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (System.Math.Abs(safezone - 1f) * 10f))));
-            float minimapBottomY = 1f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (System.Math.Abs(safezone - 1f) * 10f)));
+            float minimapRigthX = minimapWidth + (scaleX * (Main.ScreenResolution.X * (sfX * (System.Math.Abs(safezone - 1f) * 10f))));
+            float minimapBottomY = 1f - scaleY * (Main.ScreenResolution.Y * (sfY * (System.Math.Abs(safezone - 1f) * 10f)));
 
             /*        width: scaleX * (resolution.x / (4 * aspectRatio)),
                     height: scaleY * (resolution.y / 5.674),
@@ -479,7 +484,7 @@ namespace BlaineRP.Client.CEF
             if (veh?.Exists != true)
                 return;
 
-            var data = Sync.Vehicles.GetData(veh);
+            var data = VehicleData.GetData(veh);
 
             if (data == null)
             {
@@ -498,7 +503,7 @@ namespace BlaineRP.Client.CEF
             {
                 SwitchEngineIcon(data.EngineOn);
                 SwitchDoorsIcon(data.DoorsLocked);
-                SwitchBeltIcon(Sync.Players.GetData(Player.LocalPlayer).BeltOn);
+                SwitchBeltIcon(PlayerData.GetData(Player.LocalPlayer).BeltOn);
 
                 StartUpdateSpeedometerInfo();
             }
@@ -532,7 +537,7 @@ namespace BlaineRP.Client.CEF
 
         private static async void StartUpdateSpeedometerInfo()
         {
-            var data = Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle);
+            var data = VehicleData.GetData(Player.LocalPlayer.Vehicle);
 
             while (Player.LocalPlayer.Vehicle != null)
             {
@@ -579,7 +584,7 @@ namespace BlaineRP.Client.CEF
 
                     if (!BeltOffSoundOn)
                     {
-                        if (currentSpeed >= 100 && !Sync.Players.GetData(Player.LocalPlayer).BeltOn)
+                        if (currentSpeed >= 100 && !PlayerData.GetData(Player.LocalPlayer).BeltOn)
                             PlayBeltOffSound(true);
                     }
                     else if (currentSpeed < 100)

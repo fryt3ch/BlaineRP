@@ -8,6 +8,10 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -609,7 +613,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (CurrentType == Types.Trade)
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -626,41 +630,41 @@ namespace BlaineRP.Client.CEF
 
                     var properties = new List<string>();
 
-                    var propIds = new List<(Sync.Players.PropertyTypes, uint)>();
+                    var propIds = new List<(PropertyTypes, uint)>();
 
                     foreach (var x in pData.OwnedVehicles)
                     {
                         properties.Add(string.Format(Locale.Property.VehicleTradeInfoStr, x.Data.TypeName, x.Data.Name, x.VID));
 
-                        propIds.Add((Sync.Players.PropertyTypes.Vehicle, x.VID));
+                        propIds.Add((PropertyTypes.Vehicle, x.VID));
                     }
 
                     foreach (var x in pData.OwnedHouses)
                     {
                         properties.Add(string.Format(Locale.Property.HouseTradeInfoStr, x.Id));
 
-                        propIds.Add((Sync.Players.PropertyTypes.House, x.Id));
+                        propIds.Add((PropertyTypes.House, x.Id));
                     }
 
                     foreach (var x in pData.OwnedApartments)
                     {
                         properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
-                        propIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
+                        propIds.Add((PropertyTypes.Apartments, x.Id));
                     }
 
                     foreach (var x in pData.OwnedGarages)
                     {
                         properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
-                        propIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
+                        propIds.Add((PropertyTypes.Garage, x.Id));
                     }
 
                     foreach (var x in pData.OwnedBusinesses)
                     {
                         properties.Add(string.Format(Locale.Property.BusinessTradeInfoStr, x.Name, x.SubId));
 
-                        propIds.Add((Sync.Players.PropertyTypes.Business, (uint)x.Id));
+                        propIds.Add((PropertyTypes.Business, (uint)x.Id));
                     }
 
                     Player.LocalPlayer.SetData("Trade::Temp::PropIds", propIds);
@@ -1089,34 +1093,34 @@ namespace BlaineRP.Client.CEF
                         }
                         else
                         {
-                            var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
+                            var pType = (PropertyTypes)(int)curArgs[3];
                             var propId = Utils.Convert.ToUInt32(curArgs[4]);
 
                             string text = null;
 
-                            if (pType == Sync.Players.PropertyTypes.Vehicle)
+                            if (pType == PropertyTypes.Vehicle)
                             {
                                 var vData = Data.Vehicles.GetById((string)curArgs[5]);
 
                                 text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.House)
+                            else if (pType == PropertyTypes.House)
                             {
                                 text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Apartments)
+                            else if (pType == PropertyTypes.Apartments)
                             {
                                 var aps = Data.Locations.Apartments.All[propId];
 
                                 text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Garage)
+                            else if (pType == PropertyTypes.Garage)
                             {
                                 var garage = Data.Locations.Garage.All[propId];
 
                                 text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Business)
+                            else if (pType == PropertyTypes.Business)
                             {
                                 var biz = Data.Locations.Business.All[(int)propId];
 
@@ -1161,34 +1165,34 @@ namespace BlaineRP.Client.CEF
                         }
                         else
                         {
-                            var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
+                            var pType = (PropertyTypes)(int)curArgs[3];
                             var propId = Utils.Convert.ToUInt32(curArgs[4]);
 
                             string text = null;
 
-                            if (pType == Sync.Players.PropertyTypes.Vehicle)
+                            if (pType == PropertyTypes.Vehicle)
                             {
                                 var vData = Data.Vehicles.GetById((string)curArgs[5]);
 
                                 text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.House)
+                            else if (pType == PropertyTypes.House)
                             {
                                 text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Apartments)
+                            else if (pType == PropertyTypes.Apartments)
                             {
                                 var aps = Data.Locations.Apartments.All[propId];
 
                                 text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Garage)
+                            else if (pType == PropertyTypes.Garage)
                             {
                                 var garage = Data.Locations.Garage.All[propId];
 
                                 text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
-                            else if (pType == Sync.Players.PropertyTypes.Business)
+                            else if (pType == PropertyTypes.Business)
                             {
                                 var biz = Data.Locations.Business.All[(int)propId];
 
@@ -1340,7 +1344,7 @@ namespace BlaineRP.Client.CEF
                 if (CurrentType != Types.Trade)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1394,7 +1398,7 @@ namespace BlaineRP.Client.CEF
                     int idx = (int)args[1];
                     bool state = (bool)args[2];
 
-                    var propIds = Player.LocalPlayer.GetData<List<(Sync.Players.PropertyTypes, uint)>>("Trade::Temp::PropIds");
+                    var propIds = Player.LocalPlayer.GetData<List<(PropertyTypes, uint)>>("Trade::Temp::PropIds");
 
                     if (propIds == null)
                         return;
@@ -1474,20 +1478,24 @@ namespace BlaineRP.Client.CEF
                 string slotStr = (string)args[1];
                 int slot = (int)args[2];
 
-                KeyBinds.Types type = (KeyBinds.Types)Enum.Parse(typeof(KeyBinds.Types), slotStr + slot.ToString());
+                Input.Enums.BindTypes type = (Input.Enums.BindTypes)Enum.Parse(typeof(Input.Enums.BindTypes), slotStr + slot.ToString());
 
                 if (keyCode == RAGE.Ui.VirtualKeys.Escape)
                     return;
 
                 if (keyCode == RAGE.Ui.VirtualKeys.Back)
                 {
-                    KeyBinds.Binds[type].ChangeKeys(new RAGE.Ui.VirtualKeys[] { });
+                    Core.Get(type)?.ChangeKeys(new RAGE.Ui.VirtualKeys[] { });
 
                     return;
                 }
 
-                KeyBinds.Binds[type].ChangeKeys(new RAGE.Ui.VirtualKeys[] { keyCode });
-                CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Bind.Header, string.Format(Locale.Notifications.Bind.Binded, KeyBinds.Binds[type].GetKeyString()));
+                if (Core.Get(type) is Core.ExtraBind eBind)
+                {
+                    eBind.ChangeKeys(new RAGE.Ui.VirtualKeys[] { keyCode });
+
+                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Bind.Header, string.Format(Locale.Notifications.Bind.Binded, eBind.GetKeyString()));
+                }
             });
             #endregion
 
@@ -1532,8 +1540,8 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            GameEvents.Update -= OnTickCheck;
-            GameEvents.Update += OnTickCheck;
+            Main.Update -= OnTickCheck;
+            Main.Update += OnTickCheck;
 
             Sync.World.EnabledItemsOnGround = false;
             Client.Interaction.EnabledVisual = false;
@@ -1557,10 +1565,10 @@ namespace BlaineRP.Client.CEF
                 Browser.Switch(Browser.IntTypes.Trade, true);
             }
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
 
-            TempBindEsc = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            TempBindEsc = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (ActionBox.CurrentContextStr == "Inventory")
                 {
@@ -1578,7 +1586,7 @@ namespace BlaineRP.Client.CEF
                     Close(true);
             });
 
-            GameEvents.DisableAllControls(true);
+            Main.DisableAllControls(true);
 
             if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
@@ -1645,21 +1653,21 @@ namespace BlaineRP.Client.CEF
             Browser.Window.ExecuteJs("Inventory.defaultSlot();");
 
             foreach (var bind in TempBinds.ToList())
-                KeyBinds.Unbind(bind);
+                Core.Unbind(bind);
 
             TempBinds.Clear();
 
             if (TempBindEsc != -1)
-                KeyBinds.Unbind(TempBindEsc);
+                Core.Unbind(TempBindEsc);
 
             TempBindEsc = -1;
 
-            GameEvents.Update -= OnTickCheck;
+            Main.Update -= OnTickCheck;
 
             Sync.World.EnabledItemsOnGround = true;
             Client.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
 
-            GameEvents.DisableAllControls(false);
+            Main.DisableAllControls(false);
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
@@ -2374,7 +2382,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive || CurrentType != Types.Inventory)
                 return;
 
-            Browser.Window.ExecuteJs("Inventory.fillBind", KeyBinds.Binds.Where(x => x.Value.InvOnly).Select(x => x.Value.Keys.Length == 0 ? null : (int?)x.Value.Keys[0]));
+            Browser.Window.ExecuteJs("Inventory.fillBind", Core.Binds.Where(x => x.Value.InvOnly).Select(x => x.Value.Keys.Length == 0 ? null : (int?)x.Value.Keys[0]));
         }
 
         public static void UpdateStates()
@@ -2382,7 +2390,7 @@ namespace BlaineRP.Client.CEF
             if (CurrentType != Types.Inventory)
                 return;
 
-            var data = Sync.Players.GetData(Player.LocalPlayer);
+            var data = PlayerData.GetData(Player.LocalPlayer);
 
             if (data == null)
                 return;

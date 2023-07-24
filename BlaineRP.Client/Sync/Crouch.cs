@@ -4,6 +4,9 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -53,8 +56,8 @@ namespace BlaineRP.Client.Sync
             {
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    GameEvents.Update -= OnTick;
-                    GameEvents.Update += OnTick;
+                    Main.Update -= OnTick;
+                    Main.Update += OnTick;
 
                     Toggled = true;
                 }
@@ -78,7 +81,7 @@ namespace BlaineRP.Client.Sync
                 if (!Toggled)
                     return;
 
-                GameEvents.Update -= OnTick;
+                Main.Update -= OnTick;
 
                 Events.CallRemote("Players::ToggleCrouchingSync", false);
             }
@@ -92,13 +95,13 @@ namespace BlaineRP.Client.Sync
                 player.ResetMovementClipset(ClipSetSwitchTime);
                 player.ResetStrafeClipset();
 
-                var pData = Sync.Players.GetData(player);
+                var pData = PlayerData.GetData(player);
 
                 if (pData == null)
                     return;
 
-                if (pData.Walkstyle != Animations.WalkstyleTypes.None)
-                    Sync.Animations.Set(player, pData.Walkstyle);
+                if (pData.Walkstyle != WalkstyleTypes.None)
+                    Animations.Script.Set(player, pData.Walkstyle);
             }
         }
 

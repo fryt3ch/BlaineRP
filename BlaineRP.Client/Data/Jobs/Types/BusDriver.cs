@@ -3,6 +3,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Quests;
+using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.Jobs
 {
@@ -66,20 +71,20 @@ namespace BlaineRP.Client.Data.Jobs
 
                     Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
 
-                    GameEvents.Update -= checkAction.Invoke;
-                    GameEvents.Update += checkAction.Invoke;
+                    Main.Update -= checkAction.Invoke;
+                    Main.Update += checkAction.Invoke;
                 },
 
                 async (rType, id) =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
 
                     if (rType == CEF.ActionBox.ReplyTypes.OK)
                     {
-                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1);
+                        var quest = Quest.GetPlayerQuest(pData, QuestTypes.JBD1);
 
                         if (quest == null || quest.Step > 0)
                             return;
@@ -113,7 +118,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     if (checkAction != null)
                     {
-                        GameEvents.Update -= checkAction.Invoke;
+                        Main.Update -= checkAction.Invoke;
 
                         Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
                     }

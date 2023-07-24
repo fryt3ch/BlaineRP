@@ -2,6 +2,8 @@
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client
 {
@@ -33,7 +35,7 @@ namespace BlaineRP.Client
             if (nametags == null)
                 return;
 
-            var data = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+            var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
 
             if (data == null)
                 return;
@@ -54,7 +56,7 @@ namespace BlaineRP.Client
 
                 player.SetResetFlag(200, true);
 
-                var pData = Sync.Players.GetData(player);
+                var pData = PlayerData.GetData(player);
 
                 if (Settings.User.Other.DebugLabels && data.AdminLevel > -1)
                 {
@@ -91,21 +93,21 @@ namespace BlaineRP.Client
                 float healthScale = player.GetRealHealth() / playerMaxHealth;
                 float armourScale = player.GetArmour() / 100f;
 
-                y += scale * (0.05f * (GameEvents.ScreenResolution.Y / 1080));
+                y += scale * (0.05f * (Main.ScreenResolution.Y / 1080));
 
                 if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("mpleaderboard"))
                 {
                     if (pData.VoiceRange < 0f)
                     {
-                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", "leaderboard_audio_mute", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / GameEvents.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / GameEvents.ScreenResolution.Y, 0f, 255, 0, 0, 255, 0);
+                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", "leaderboard_audio_mute", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / Main.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / Main.ScreenResolution.Y, 0f, 255, 0, 0, 255, 0);
                     }
                     else if (pData.VoiceRange > 0f)
                     {
-                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", $"leaderboard_audio_{(player.VoiceVolume <= 0f ? "inactive" : System.Math.Ceiling(3f * player.VoiceVolume).ToString())}", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / GameEvents.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / GameEvents.ScreenResolution.Y, 0f, 255, 255, 255, 255, 0);
+                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", $"leaderboard_audio_{(player.VoiceVolume <= 0f ? "inactive" : System.Math.Ceiling(3f * player.VoiceVolume).ToString())}", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / Main.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / Main.ScreenResolution.Y, 0f, 255, 255, 255, 255, 0);
                     }
                     else if (pData.IsInvalid)
                     {
-                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", "leaderboard_audio_mute", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / GameEvents.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / GameEvents.ScreenResolution.Y, 0f, 255, 155, 0, 255, 0);
+                        RAGE.Game.Graphics.DrawSprite("mpleaderboard", "leaderboard_audio_mute", x, y - Interval / 2f, 0.8f * VoiceTextureResolution.X / Main.ScreenResolution.X, 0.8f * VoiceTextureResolution.Y / Main.ScreenResolution.Y, 0f, 255, 155, 0, 255, 0);
                     }
                 }
                 else

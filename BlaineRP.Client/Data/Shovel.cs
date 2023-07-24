@@ -1,4 +1,7 @@
-﻿using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
@@ -11,7 +14,7 @@ namespace BlaineRP.Client.Data
         {
             Events.Add("MG::SHOV::S", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

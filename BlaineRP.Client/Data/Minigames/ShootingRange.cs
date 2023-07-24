@@ -5,6 +5,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Data.Minigames
 {
@@ -236,7 +241,7 @@ namespace BlaineRP.Client.Data.Minigames
         {
             Events.Add("SRange::Start", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -255,7 +260,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                     AsyncTask.Methods.CancelPendingTask("ShootingRange");
 
-                    Start(srType, pData.Skills[Sync.Players.SkillTypes.Shooting]);
+                    Start(srType, pData.Skills[SkillTypes.Shooting]);
                 }, 0, false, 0);
 
                 AsyncTask.Methods.SetAsPending(task, "ShootingRange");
@@ -316,8 +321,8 @@ namespace BlaineRP.Client.Data.Minigames
                 Events.OnPlayerWeaponShot -= ShotHandler;
                 Events.OnPlayerWeaponShot += ShotHandler;
 
-                GameEvents.Render -= Render;
-                GameEvents.Render += Render;
+                Main.Render -= Render;
+                Main.Render += Render;
 
                 AsyncTask.Methods.CancelPendingTask("SRange::Start::D");
             }, 0, false, 0);
@@ -330,7 +335,7 @@ namespace BlaineRP.Client.Data.Minigames
             if (CurrentType == null)
                 return false;
 
-            GameEvents.Render -= Render;
+            Main.Render -= Render;
 
             Events.OnPlayerWeaponShot -= ShotHandler;
 
@@ -366,11 +371,11 @@ namespace BlaineRP.Client.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", Core.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
             CEF.Cursor.OnTickCursor();
 
-            if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Escape))
+            if (Core.IsDown(RAGE.Ui.VirtualKeys.Escape))
             {
                 Finish();
 

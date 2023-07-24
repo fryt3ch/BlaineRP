@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -210,14 +214,14 @@ namespace BlaineRP.Client.CEF
                 var message = (string)args[2];
                 var player2 = args.Length > 3 ? Entities.Players.GetAtRemote((ushort)(int)args[3]) : null;
 
-                var data = Sync.Players.GetData(player);
+                var data = PlayerData.GetData(player);
 
                 if (data == null)
                     return;
 
-                var name = player != Player.LocalPlayer ? Players.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
+                var name = player != Player.LocalPlayer ? Utils.Game.Players.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
 
-                var name2 = player2 != null ? Players.GetPlayerName(player2, true, false, true) : null;
+                var name2 = player2 != null ? Utils.Game.Players.GetPlayerName(player2, true, false, true) : null;
 
                 if (name2 != null)
                     message = string.Format(message, name2);
@@ -263,7 +267,7 @@ namespace BlaineRP.Client.CEF
                 if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -309,7 +313,7 @@ namespace BlaineRP.Client.CEF
                 if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -501,15 +505,15 @@ namespace BlaineRP.Client.CEF
 
             if (value)
             {
-                EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false));
+                EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false));
 
-                KeyBinds.Get(KeyBinds.Types.ChatInput).Disable();
+                Core.Get(BindTypes.ChatInput).Disable();
             }
             else
             {
-                KeyBinds.Get(KeyBinds.Types.ChatInput).Enable();
+                Core.Get(BindTypes.ChatInput).Enable();
 
-                KeyBinds.Unbind(EscBindIdx);
+                Core.Unbind(EscBindIdx);
 
                 EscBindIdx = -1;
             }

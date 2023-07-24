@@ -4,6 +4,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Quests;
+using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.Jobs
 {
@@ -27,7 +33,7 @@ namespace BlaineRP.Client.Data.Jobs
 
         public static Job Get(int id) => AllJobs.GetValueOrDefault(id);
 
-        private static Dictionary<Types, Action<Sync.Players.PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<Types, Action<Sync.Players.PlayerData, Job>>()
+        private static Dictionary<Types, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<Types, Action<PlayerData, Job>>()
             {
                 {
                     Types.Trucker,
@@ -36,7 +42,7 @@ namespace BlaineRP.Client.Data.Jobs
                     {
                         var truckerJob = job as Trucker;
 
-                        if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JTR1)?.Step > 0)
+                        if (Quest.GetPlayerQuest(pData, QuestTypes.JTR1)?.Step > 0)
                         {
                             CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
@@ -71,7 +77,7 @@ namespace BlaineRP.Client.Data.Jobs
                     {
                         var truckerJob = job as Collector;
 
-                        if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JCL1)?.Step > 0)
+                        if (Quest.GetPlayerQuest(pData, QuestTypes.JCL1)?.Step > 0)
                         {
                             CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
@@ -141,7 +147,7 @@ namespace BlaineRP.Client.Data.Jobs
                     {
                         var busJob = job as BusDriver;
 
-                        if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1)?.Step > 0)
+                        if (Quest.GetPlayerQuest(pData, QuestTypes.JBD1)?.Step > 0)
                         {
                             CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
@@ -167,7 +173,7 @@ namespace BlaineRP.Client.Data.Jobs
 
         public static void ShowJobMenu()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -255,7 +261,7 @@ namespace BlaineRP.Client.Data.Jobs
         {
             Events.Add("Player::SCJ", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -305,7 +311,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             Events.Add("Job::TR::OC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -340,7 +346,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, Core.Get(Input.Enums.BindTypes.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }
@@ -370,7 +376,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             Events.Add("Job::CL::OC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -404,7 +410,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, Core.Get(Input.Enums.BindTypes.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }
@@ -434,7 +440,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             Events.Add("Job::CAB::OC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -467,7 +473,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, Core.Get(Input.Enums.BindTypes.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }

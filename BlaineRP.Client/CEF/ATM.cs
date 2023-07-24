@@ -5,6 +5,10 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -53,7 +57,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("ATM::Show", (object[] args) =>
             {
-                Sync.Players.CloseAll(true);
+                Players.CloseAll(true);
 
                 Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
 
@@ -69,7 +73,7 @@ namespace BlaineRP.Client.CEF
             if (Misc.IsAnyCefActive(true))
                 return;
 
-            var data = Sync.Players.GetData(Player.LocalPlayer);
+            var data = PlayerData.GetData(Player.LocalPlayer);
 
             if (data == null)
                 return;
@@ -89,7 +93,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close()
@@ -106,7 +110,7 @@ namespace BlaineRP.Client.CEF
             CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 

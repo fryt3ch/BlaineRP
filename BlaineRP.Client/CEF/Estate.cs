@@ -7,6 +7,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -19,7 +24,7 @@ namespace BlaineRP.Client.CEF
 
         public static Types? CurrentType { get; set; }
 
-        public static Sync.Players.PropertyTypes? CurrentPropertyType { get; set; }
+        public static PropertyTypes? CurrentPropertyType { get; set; }
 
         private static int EscBindIdx { get; set; } = -1;
 
@@ -43,7 +48,7 @@ namespace BlaineRP.Client.CEF
                 if (!IsActive)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -115,7 +120,7 @@ namespace BlaineRP.Client.CEF
                             }
                             else if (CurrentType == Types.SellEstate)
                             {
-                                var ids = Player.LocalPlayer.GetData<List<(Sync.Players.PropertyTypes, uint)>>("Estate::CurrentData");
+                                var ids = Player.LocalPlayer.GetData<List<(PropertyTypes, uint)>>("Estate::CurrentData");
 
                                 if (ids == null)
                                     return;
@@ -151,7 +156,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (CurrentType == Types.Info)
                 {
-                    if (CurrentPropertyType == Sync.Players.PropertyTypes.House || CurrentPropertyType == Sync.Players.PropertyTypes.Apartments)
+                    if (CurrentPropertyType == PropertyTypes.House || CurrentPropertyType == PropertyTypes.Apartments)
                     {
                         var houseBase = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("Estate::CurrentData");
 
@@ -180,7 +185,7 @@ namespace BlaineRP.Client.CEF
 
                         return;
                     }
-                    else if (CurrentPropertyType == Sync.Players.PropertyTypes.Business)
+                    else if (CurrentPropertyType == PropertyTypes.Business)
                     {
                         var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("Estate::CurrentData");
 
@@ -267,7 +272,7 @@ namespace BlaineRP.Client.CEF
 
         public static async System.Threading.Tasks.Task ShowVehicleInfo(string id, decimal vid, int engine, bool turbo, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -284,7 +289,7 @@ namespace BlaineRP.Client.CEF
                 return;
 
             CurrentType = Types.Info;
-            CurrentPropertyType = Sync.Players.PropertyTypes.Vehicle;
+            CurrentPropertyType = PropertyTypes.Vehicle;
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
@@ -293,12 +298,12 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Data.Locations.HouseBase houseBase, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -310,7 +315,7 @@ namespace BlaineRP.Client.CEF
                 return;
 
             CurrentType = Types.Info;
-            CurrentPropertyType = houseBase.Type == Sync.House.HouseTypes.House ? Sync.Players.PropertyTypes.House : Sync.Players.PropertyTypes.Apartments;
+            CurrentPropertyType = houseBase.Type == Sync.House.HouseTypes.House ? PropertyTypes.House : PropertyTypes.Apartments;
 
             Player.LocalPlayer.SetData("Estate::CurrentData", houseBase);
 
@@ -337,12 +342,12 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowBusinessInfo(Data.Locations.Business business, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -354,7 +359,7 @@ namespace BlaineRP.Client.CEF
                 return;
 
             CurrentType = Types.Info;
-            CurrentPropertyType = Sync.Players.PropertyTypes.Business;
+            CurrentPropertyType = PropertyTypes.Business;
 
             Player.LocalPlayer.SetData("Estate::CurrentData", business);
 
@@ -374,17 +379,17 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellEstate(Player targetPlayer, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
-            var tData = Sync.Players.GetData(targetPlayer);
+            var tData = PlayerData.GetData(targetPlayer);
 
             if (tData == null)
                 return;
@@ -399,27 +404,27 @@ namespace BlaineRP.Client.CEF
 
             var estToSell = new List<object>();
 
-            var estIds = new List<(Sync.Players.PropertyTypes, uint)>();
+            var estIds = new List<(PropertyTypes, uint)>();
 
             foreach (var x in pData.OwnedHouses.ToList())
             {
                 estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
 
-                estIds.Add((Sync.Players.PropertyTypes.House, x.Id));
+                estIds.Add((PropertyTypes.House, x.Id));
             }
 
             foreach (var x in pData.OwnedApartments.ToList())
             {
                 estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
 
-                estIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
+                estIds.Add((PropertyTypes.Apartments, x.Id));
             }
 
             foreach (var x in pData.OwnedGarages.ToList())
             {
                 estToSell.Add(new object[] { "Garage", Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
 
-                estIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
+                estIds.Add((PropertyTypes.Garage, x.Id));
             }
 
             if (estToSell.Count == 0)
@@ -434,14 +439,14 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             TargetPlayer = targetPlayer;
         }
 
         public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, decimal price, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -470,12 +475,12 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, decimal price, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -497,17 +502,17 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellVehicle(Player targetPlayer, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
-            var tData = Sync.Players.GetData(targetPlayer);
+            var tData = PlayerData.GetData(targetPlayer);
 
             if (tData == null)
                 return;
@@ -536,14 +541,14 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             TargetPlayer = targetPlayer;
         }
 
         public static async System.Threading.Tasks.Task ShowOfferVehicle(Data.Vehicles.Vehicle vData, Player targetPlayer, decimal price, uint vid, string plate, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -565,17 +570,17 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellBusiness(Player targetPlayer, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
-            var tData = Sync.Players.GetData(targetPlayer);
+            var tData = PlayerData.GetData(targetPlayer);
 
             if (tData == null)
                 return;
@@ -604,14 +609,14 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             TargetPlayer = targetPlayer;
         }
 
         public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, decimal price, bool showCursor = true)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -633,7 +638,7 @@ namespace BlaineRP.Client.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -655,7 +660,7 @@ namespace BlaineRP.Client.CEF
             CurrentType = null;
             CurrentPropertyType = null;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 
@@ -808,7 +813,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
@@ -833,7 +838,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(false, false);
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
         }

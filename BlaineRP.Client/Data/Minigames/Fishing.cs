@@ -4,6 +4,10 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.Minigames
 {
@@ -14,7 +18,7 @@ namespace BlaineRP.Client.Data.Minigames
         {
             Events.Add("MG::F::S", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -100,7 +104,7 @@ namespace BlaineRP.Client.Data.Minigames
                         Player.LocalPlayer.SetData("MG::F::CT", timeToCatch);
                         Player.LocalPlayer.SetData("MG::F::CTC", catchCount);
 
-                        GameEvents.Render += FishingProcessRender;
+                        Main.Render += FishingProcessRender;
                     }, 0, false, 0);
 
                     AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
@@ -112,7 +116,7 @@ namespace BlaineRP.Client.Data.Minigames
         {
             AsyncTask.Methods.CancelPendingTask("MG::F::S::D");
 
-            GameEvents.Render -= FishingProcessRender;
+            Main.Render -= FishingProcessRender;
 
             Player.LocalPlayer.ResetData("MG::F::E");
             Player.LocalPlayer.ResetData("MG::F::T");
@@ -164,8 +168,8 @@ namespace BlaineRP.Client.Data.Minigames
 
             if (timePassed > 500)
             {
-                var leftDown = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.A);
-                var rightDown = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.D);
+                var leftDown = Core.IsDown(RAGE.Ui.VirtualKeys.A);
+                var rightDown = Core.IsDown(RAGE.Ui.VirtualKeys.D);
 
                 var deSpeed = 0.00001f;
 

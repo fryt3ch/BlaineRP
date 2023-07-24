@@ -1,4 +1,7 @@
-﻿using RAGE.Elements;
+﻿using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
+using RAGE.Elements;
 using static BlaineRP.Client.Data.Dialogue;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
@@ -15,7 +18,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;

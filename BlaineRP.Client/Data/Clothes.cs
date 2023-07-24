@@ -3,6 +3,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
 {
@@ -113,7 +116,7 @@ namespace BlaineRP.Client.Data
                 {
                     Unwear(typeof(Data.Items.Ring));
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData != null)
                     {
@@ -315,7 +318,7 @@ namespace BlaineRP.Client.Data
                 {
                     Unwear(typeof(Data.Items.Ring));
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData != null)
                     {

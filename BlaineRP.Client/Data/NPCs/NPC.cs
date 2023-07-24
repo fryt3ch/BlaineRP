@@ -7,6 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BlaineRP.Client.Animations;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data
 {
@@ -60,9 +66,9 @@ namespace BlaineRP.Client.Data
 
         public PedAnimationTypes AnimationType { get => Ped.GetData<PedAnimationTypes>("AnimType"); set => Ped.SetData("AnimType", value); }
 
-        public Sync.Animations.Animation DefaultAnimation { get => Ped.GetData<Sync.Animations.Animation>("DefaultAnim"); set { if (value != null) { Ped.SetData("DefaultAnim", value); } else { Ped.ResetData("DefaultAnim"); } } }
+        public Animation DefaultAnimation { get => Ped.GetData<Animation>("DefaultAnim"); set { if (value != null) { Ped.SetData("DefaultAnim", value); } else { Ped.ResetData("DefaultAnim"); } } }
 
-        public Sync.Animations.Animation CurrentAnimation { get => Ped.GetData<Sync.Animations.Animation>("CurrentAnim") ?? DefaultAnimation; set { if (value != null) { Ped.SetData("CurrentAnim", value); if (IsStreamed) Sync.Animations.Play(Ped, value, -1); } else { Ped.ResetData("CurrentAnim"); if (IsStreamed) Sync.Animations.Stop(Ped); } } }
+        public Animation CurrentAnimation { get => Ped.GetData<Animation>("CurrentAnim") ?? DefaultAnimation; set { if (value != null) { Ped.SetData("CurrentAnim", value); if (IsStreamed) Script.Play(Ped, value, -1); } else { Ped.ResetData("CurrentAnim"); if (IsStreamed) Script.Stop(Ped); } } }
 
         public float DefaultHeading { get; set; }
 
@@ -138,9 +144,9 @@ namespace BlaineRP.Client.Data
 
             data.Ped.SetHeading(data.DefaultHeading);
 
-            if (data.CurrentAnimation is Sync.Animations.Animation curAnim)
+            if (data.CurrentAnimation is Animation curAnim)
             {
-                Sync.Animations.Play(ped, curAnim, -1);
+                Script.Play(ped, curAnim, -1);
             }
         }
 
@@ -162,11 +168,11 @@ namespace BlaineRP.Client.Data
         {
             LastSent = DateTime.MinValue;
 
-            GameEvents.Render += () =>
+            Main.Render += () =>
             {
                 float screenX = 0f, screenY = 0f;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -335,7 +341,7 @@ namespace BlaineRP.Client.Data
         {
             if (EscBindIdx >= 0)
             {
-                KeyBinds.Unbind(EscBindIdx);
+                Core.Unbind(EscBindIdx);
 
                 EscBindIdx = -1;
 
@@ -350,7 +356,7 @@ namespace BlaineRP.Client.Data
             if (EscBindIdx >= 0)
                 return false;
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => NPC.CurrentNPC?.SwitchDialogue(false));
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => NPC.CurrentNPC?.SwitchDialogue(false));
 
             return true;
         }

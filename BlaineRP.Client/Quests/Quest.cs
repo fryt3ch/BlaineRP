@@ -2,88 +2,19 @@
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Quests.Enums;
 using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Quests
 {
-    public class Quest
+    public partial class Quest
     {
         public static Quest ActualQuest { get; private set; }
 
-        public class QuestData
-        {
-            public enum Types
-            {
-                TQ1 = 0,
-                
-                JTR1,
-                
-                JBD1,
-
-                JCL1,
-
-                JFRM1,
-                JFRM2,
-
-                DRSCHOOL0,
-            }
-
-            public enum ColourTypes
-            {
-                Dark = 0,
-                Red,
-            }
-
-            public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>();
-
-            public Types Type { get; set; }
-
-            public ColourTypes ColourType { get; set; }
-
-            public string Name { get; set; }
-
-            public string GiverName { get; set; }
-
-            public Dictionary<byte, StepData> Steps { get; set; }
-
-            public QuestData(Types Type, string Name, string GiverName, Dictionary<byte, StepData> Steps)
-            {
-                this.Type = Type;
-
-                this.Name = Name;
-                this.GiverName = GiverName;
-
-                this.Steps = Steps;
-
-                this.ColourType = ColourTypes.Dark;
-
-                All.TryAdd(Type, this);
-            }
-
-            public class StepData
-            {
-                public string GoalName { get; set; }
-
-                public int MaxProgress { get; set; }
-
-                public Action<PlayerData, Quest> StartAction { get; set; }
-
-                public Action<PlayerData, Quest> EndAction { get; set; }
-
-                public StepData(string GoalName, int MaxProgress = 1)
-                {
-                    this.GoalName = GoalName;
-
-                    this.MaxProgress = MaxProgress;
-                }
-            }
-        }
-
-        public QuestData.Types Type { get; set; }
+        public QuestTypes Type { get; set; }
 
         public QuestData Data => QuestData.All[Type];
 
@@ -134,7 +65,7 @@ namespace BlaineRP.Client.Sync
             }
         }
 
-        public Quest(QuestData.Types Type, byte Step, int StepProgress, string CurrentData)
+        public Quest(QuestTypes Type, byte Step, int StepProgress, string CurrentData)
         {
             this.Type = Type;
 
@@ -144,7 +75,7 @@ namespace BlaineRP.Client.Sync
             this.CurrentData = CurrentData;
         }
 
-        public static Quest GetPlayerQuest(PlayerData pData, QuestData.Types type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
+        public static Quest GetPlayerQuest(PlayerData pData, QuestTypes type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
 
         public void MenuIconFunc()
         {

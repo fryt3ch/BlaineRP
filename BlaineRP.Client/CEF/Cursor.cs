@@ -59,8 +59,8 @@ namespace BlaineRP.Client.CEF
                     StopBlockingEscTask = null;
                 }
 
-                GameEvents.Render -= OnTickCursor;
-                GameEvents.Render += OnTickCursor;
+                Main.Render -= OnTickCursor;
+                Main.Render += OnTickCursor;
             }
             else
             {
@@ -68,7 +68,7 @@ namespace BlaineRP.Client.CEF
                 {
                     StopBlockingEscTask = new AsyncTask(() =>
                     {
-                        GameEvents.Render -= OnTickCursor;
+                        Main.Render -= OnTickCursor;
 
                         StopBlockingEscTask = null;
                     }, 500, false, 0);

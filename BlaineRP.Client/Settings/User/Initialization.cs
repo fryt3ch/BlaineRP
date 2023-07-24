@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Settings.User
 {
@@ -47,17 +49,17 @@ namespace BlaineRP.Client.Settings.User
             Other.FavoriteAnimations = Additional.Storage.GetData<HashSet<string>>("Settings::Animations::Favorites") ?? Other.Default.FavoriteAnimations;
 
             var tStr = Additional.Storage.GetData<string>("Settings::Animations::Emotion") ?? Other.Default.CurrentEmotion.ToString();
-            Sync.Animations.EmotionTypes emotion = Sync.Animations.EmotionTypes.None;
+            EmotionTypes emotion = EmotionTypes.None;
 
-            if (!Enum.TryParse<Sync.Animations.EmotionTypes>(tStr, out emotion))
+            if (!Enum.TryParse<EmotionTypes>(tStr, out emotion))
                 Other.CurrentEmotion = Other.Default.CurrentEmotion;
             else
                 Other.CurrentEmotion = emotion;
 
             tStr = Additional.Storage.GetData<string>("Settings::Animations::Walkstyle") ?? Other.Default.CurrentWalkstyle.ToString();
-            Sync.Animations.WalkstyleTypes walkstyle = Sync.Animations.WalkstyleTypes.None;
+            WalkstyleTypes walkstyle = WalkstyleTypes.None;
 
-            if (!Enum.TryParse<Sync.Animations.WalkstyleTypes>(tStr, out walkstyle))
+            if (!Enum.TryParse<WalkstyleTypes>(tStr, out walkstyle))
                 Other.CurrentWalkstyle = Other.Default.CurrentWalkstyle;
             else
                 Other.CurrentWalkstyle = walkstyle;

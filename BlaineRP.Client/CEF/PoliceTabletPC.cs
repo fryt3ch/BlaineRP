@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -29,7 +32,7 @@ namespace BlaineRP.Client.CEF
         {
             Events.Add("PoliceTablet::Code", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -261,7 +264,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("PoliceTablet::Action", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -297,7 +300,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("PoliceTablet::ArrestShow", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -389,7 +392,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("PoliceTablet::ShowGPS", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -502,7 +505,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("PoliceTablet::RemoveGPS", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -546,7 +549,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -593,7 +596,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -602,7 +605,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Browser.Window.ExecuteJs("PoliceTablet.draw", fData.Name, new object[] { new object[] { $"{Player.LocalPlayer.Name}", $"{fData.GetRankName(myRank)} [{myRank}]", isOnDuty, fineCount, arrestCount } });
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             CEF.Cursor.Show(true, true);
 
@@ -707,7 +710,7 @@ namespace BlaineRP.Client.CEF
             if (CurrentFoundPlayerData != null)
                 CurrentFoundPlayerData = null;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

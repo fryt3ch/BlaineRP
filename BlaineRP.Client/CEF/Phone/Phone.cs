@@ -8,6 +8,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Radio = BlaineRP.Client.CEF.Phone.Apps.Radio;
+using Vehicles = BlaineRP.Client.CEF.Phone.Apps.Vehicles;
 
 namespace BlaineRP.Client.CEF.Phone
 {
@@ -51,7 +57,7 @@ namespace BlaineRP.Client.CEF.Phone
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -70,7 +76,7 @@ namespace BlaineRP.Client.CEF.Phone
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -414,7 +420,7 @@ namespace BlaineRP.Client.CEF.Phone
 
             Events.Add("Phone::Tooltip", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -564,7 +570,7 @@ namespace BlaineRP.Client.CEF.Phone
                                 return;
                             }
 
-                            if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                            if (VehicleData.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
                                 Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
@@ -584,7 +590,7 @@ namespace BlaineRP.Client.CEF.Phone
                                 return;
                             }
 
-                            if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                            if (VehicleData.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
                                 Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
@@ -757,11 +763,11 @@ namespace BlaineRP.Client.CEF.Phone
             });
         }
 
-        public static async void ShowApp(Sync.Players.PlayerData pData, AppTypes appType)
+        public static async void ShowApp(PlayerData pData, AppTypes appType)
         {
             if (pData == null)
             {
-                pData = Sync.Players.GetData(Player.LocalPlayer);
+                pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -861,7 +867,7 @@ namespace BlaineRP.Client.CEF.Phone
 
         public static void Show()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -885,7 +891,7 @@ namespace BlaineRP.Client.CEF.Phone
 
             Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (Chat.InputVisible)
                     return;
@@ -903,7 +909,7 @@ namespace BlaineRP.Client.CEF.Phone
 
         public static void Close()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -930,7 +936,7 @@ namespace BlaineRP.Client.CEF.Phone
 
             Cursor.Show(false, false);
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
         }
@@ -968,7 +974,7 @@ namespace BlaineRP.Client.CEF.Phone
 
         public static string GetContactNameByNumberNull(uint number)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return null;

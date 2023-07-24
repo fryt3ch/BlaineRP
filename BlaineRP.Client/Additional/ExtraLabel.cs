@@ -79,8 +79,8 @@ namespace BlaineRP.Client.Additional
                 }
             }, 1000, true, 1000)).Run();
 
-            GameEvents.Render -= Render;
-            GameEvents.Render += Render;
+            Main.Render -= Render;
+            Main.Render += Render;
         }
 
         public void SetData<T>(string key, T value)

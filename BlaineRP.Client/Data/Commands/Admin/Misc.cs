@@ -38,13 +38,13 @@ namespace BlaineRP.Client.Data
             if (second >= 60)
                 second = 0;
 
-            GameEvents.ExtraGameDate = new DateTime(realDate.Year, realDate.Month, realDate.Day, hour, minute, second);
+            Main.ExtraGameDate = new DateTime(realDate.Year, realDate.Month, realDate.Day, hour, minute, second);
         }
 
         [Command("resettime", true, "rst")]
         public static void ResetTime()
         {
-            GameEvents.ExtraGameDate = null;
+            Main.ExtraGameDate = null;
         }
 
         [Command("anim", true, "Смена измерения", "playanim")]

@@ -9,6 +9,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
 {
@@ -178,7 +180,7 @@ namespace BlaineRP.Client.Sync
                     if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         return;
 
-                    Sync.Players.CloseAll(false);
+                    Players.CloseAll(false);
 
                     var garage = Data.Locations.Garage.All[(uint)(int)args[0]];
 
@@ -219,7 +221,7 @@ namespace BlaineRP.Client.Sync
 
                 task = new AsyncTask(async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -254,7 +256,7 @@ namespace BlaineRP.Client.Sync
 
                 AsyncTask.Methods.CancelPendingTask(taskKey);
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -285,7 +287,7 @@ namespace BlaineRP.Client.Sync
                 {
                     Additional.SkyCamera.FadeScreen(false, 500, -1);
 
-                    GameEvents.DisableAllControls(false);
+                    Main.DisableAllControls(false);
                 }
 
                 task = new AsyncTask(async () =>
@@ -313,7 +315,7 @@ namespace BlaineRP.Client.Sync
 
                     Additional.SkyCamera.FadeScreen(true, 0, -1);
 
-                    GameEvents.DisableAllControls(true);
+                    Main.DisableAllControls(true);
 
                     var interior = RAGE.Game.Interior.GetInteriorAtCoords(style.InteriorPosition.X, style.InteriorPosition.Y, style.InteriorPosition.Z);
 
@@ -334,12 +336,12 @@ namespace BlaineRP.Client.Sync
                         return;
                     }
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
 
-                    Sync.Players.CloseAll(false);
+                    Players.CloseAll(false);
 
                     Player.LocalPlayer.SetData("House::CurrentHouse::WI", (uint)data["WI"]);
                     Player.LocalPlayer.SetData("House::CurrentHouse::LI", (uint)data["LI"]);
@@ -514,7 +516,7 @@ namespace BlaineRP.Client.Sync
 
                     AsyncTask.Methods.CancelPendingTask(taskKey);
 
-                    GameEvents.DisableAllControls(false);
+                    Main.DisableAllControls(false);
 
                     Additional.SkyCamera.FadeScreen(false, 500, -1);
                 }, 0, false, 0);
@@ -707,7 +709,7 @@ namespace BlaineRP.Client.Sync
 
             Player.LocalPlayer.ResetData("House::CurrentHouse");
 
-            Sync.Players.CloseAll(false);
+            Players.CloseAll(false);
 
             foreach (var x in TempBlips)
                 x?.Destroy();

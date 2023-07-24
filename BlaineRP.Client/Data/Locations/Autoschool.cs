@@ -2,6 +2,8 @@
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
 {
@@ -9,15 +11,15 @@ namespace BlaineRP.Client.Data
     {
         public class Autoschool
         {
-            public static Dictionary<Sync.Players.LicenseTypes, uint> Prices { get; set; }
+            public static Dictionary<LicenseTypes, uint> Prices { get; set; }
 
             public static List<Autoschool> All { get; private set; } = new List<Autoschool>();
 
             public static Autoschool Get(int id) => id < 1 || id > All.Count ? null : All[id - 1];
 
-            public Dictionary<Sync.Players.LicenseTypes, Vector3[]> PracticeRoutes { get; set; }
+            public Dictionary<LicenseTypes, Vector3[]> PracticeRoutes { get; set; }
 
-            public Dictionary<Sync.Players.LicenseTypes, Vector3> VehiclesPositions { get; set; }
+            public Dictionary<LicenseTypes, Vector3> VehiclesPositions { get; set; }
 
             public int Id => All.IndexOf(this) + 1;
 
@@ -25,9 +27,9 @@ namespace BlaineRP.Client.Data
             {
                 All.Add(this);
 
-                this.PracticeRoutes = RAGE.Util.Json.Deserialize<Dictionary<Sync.Players.LicenseTypes, Vector3[]>>(PracticeRoutesStr);
+                this.PracticeRoutes = RAGE.Util.Json.Deserialize<Dictionary<LicenseTypes, Vector3[]>>(PracticeRoutesStr);
 
-                this.VehiclesPositions = RAGE.Util.Json.Deserialize<Dictionary<Sync.Players.LicenseTypes, Vector3>>(VehiclesPositionsStr);
+                this.VehiclesPositions = RAGE.Util.Json.Deserialize<Dictionary<LicenseTypes, Vector3>>(VehiclesPositionsStr);
 
                 var id = Id;
 
@@ -55,7 +57,7 @@ namespace BlaineRP.Client.Data
                 }
             }
 
-            public static Sync.Players.LicenseTypes GetLicenseTypeForPracticeRoute(Sync.Players.LicenseTypes licType) => licType == Sync.Players.LicenseTypes.B || licType == Sync.Players.LicenseTypes.A || licType == Sync.Players.LicenseTypes.C || licType == Sync.Players.LicenseTypes.D ? Sync.Players.LicenseTypes.B : licType;
+            public static LicenseTypes GetLicenseTypeForPracticeRoute(LicenseTypes licType) => licType == LicenseTypes.B || licType == LicenseTypes.A || licType == LicenseTypes.C || licType == LicenseTypes.D ? LicenseTypes.B : licType;
         }
     }
 }

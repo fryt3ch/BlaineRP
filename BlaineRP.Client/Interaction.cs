@@ -3,6 +3,8 @@ using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
 
 namespace BlaineRP.Client
 {
@@ -10,7 +12,7 @@ namespace BlaineRP.Client
     {
         private static bool _Enabled = false;
 
-        public static bool Enabled { get => _Enabled; set { if (!_Enabled && value) { GameEvents.Render -= Render; GameEvents.Render += Render; _Enabled = value; } else if (_Enabled && !value) { GameEvents.Render -= Render; _Enabled = value; CurrentEntity = null; } } }
+        public static bool Enabled { get => _Enabled; set { if (!_Enabled && value) { Main.Render -= Render; Main.Render += Render; _Enabled = value; } else if (_Enabled && !value) { Main.Render -= Render; _Enabled = value; CurrentEntity = null; } } }
 
         public static bool EnabledVisual { get; set; }
 
@@ -120,7 +122,7 @@ namespace BlaineRP.Client
             if (!EnabledVisual)
                 return;
 
-            Graphics.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+            Graphics.DrawText(Core.Get(BindTypes.Interaction).GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
         }
 
         public static bool SetEntityAsDisabled(Entity entity, bool state)

@@ -8,6 +8,11 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData.Components;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -258,13 +263,13 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            if (Sync.Animations.LastSent.IsSpam(500, false, true))
+            if (Script.LastSent.IsSpam(500, false, true))
                 return;
 
             var heading = obj.GetHeading();
             var pos = obj.GetCoords(false);
 
-            Sync.Animations.LastSent = Sync.World.ServerTime;
+            Script.LastSent = Sync.World.ServerTime;
 
             var res = (bool)await Events.CallRemoteProc("EMS::BedOcc", fTypeNum, bedIdx);
 
@@ -274,7 +279,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                 Player.LocalPlayer.SetHeading(heading + 240f);
 
-                Sync.Animations.Play(Player.LocalPlayer, Sync.Animations.GeneralTypes.BedLie0);
+                Script.Play(Player.LocalPlayer, GeneralTypes.BedLie0);
 
                 Additional.ExtraColshape cs = null;
 
@@ -320,9 +325,9 @@ namespace BlaineRP.Client.Data.Fractions
 
                 var isWounded = infoObj["ws"].ToObject<bool>();
 
-                var preDiagnosisType = infoObj["dType"].ToObject<Sync.Players.MedicalCard.DiagnoseTypes>();
+                var preDiagnosisType = infoObj["dType"].ToObject<MedicalCard.DiagnoseTypes>();
 
-                var text = Locale.Get("EMS_DIAGNOSTICS_TEXT_0", health, mood, satiety, drugAddiction, isWounded ? Locale.Get("GEN_TEXT_YES_0") : Locale.Get("GEN_TEXT_NO_0"), Locale.Get(Sync.Players.MedicalCard.GetDiagnoseNameId(preDiagnosisType)));
+                var text = Locale.Get("EMS_DIAGNOSTICS_TEXT_0", health, mood, satiety, drugAddiction, isWounded ? Locale.Get("GEN_TEXT_YES_0") : Locale.Get("GEN_TEXT_NO_0"), Locale.Get(MedicalCard.GetDiagnoseNameId(preDiagnosisType)));
 
                 await CEF.ActionBox.ShowText("EMS_SHOWPLAYERDIAGNOSTICS", Locale.Get("EMS_DIAGNOSTICS_TEXT_L", player.GetName(true, false, true)), text, null, null, CEF.ActionBox.DefaultBindAction, (rType) =>
                 {

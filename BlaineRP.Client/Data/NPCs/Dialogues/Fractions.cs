@@ -3,6 +3,9 @@ using Newtonsoft.Json.Linq;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.NPCs.Dialogues
 {
@@ -34,7 +37,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
             new Dialogue("cop_a_regv", "Постановка транспорта на учёт заключается в регистрации гос. номера на Ваш транспорт, это стандартная юридическая процедура после любой фактической смены гос. номера.\nЧтобы сделать это, на Вашем транспорте должен быть установлен гос. номер. Хотите выбрать конкретный транспорт и продолжить?\n", null,
                 new Dialogue.Button("Да, давайте", async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -141,7 +144,7 @@ namespace BlaineRP.Client.Data.NPCs.Dialogues
             new Dialogue("cop_a_unregv", "Снятие транспорта с учёта заключается в откреплении зарегистрированного гос. номера от Вашего транспорта. После выполнения данной процедуры Вы не сможете легально пользоваться этим транспортом без гос. номера или с любым фактически установленным на него гос. номером, для этого Вам необходимо будет снова поставить транспорт на учёт. Хотите выбрать конкретный транспорт и продолжить?\n", null,
                 new Dialogue.Button("Да, давайте", async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;

@@ -49,7 +49,7 @@ namespace BlaineRP.Client.CEF
                 {
                     await Browser.Render(Browser.IntTypes.Login, true, true);
 
-                    GameEvents.OnReady();
+                    Main.OnReady();
 
                     var login = Additional.Storage.GetData<string>("Auth::Login");
                     var token = Additional.Storage.GetData<string>("Auth::Token");
@@ -62,7 +62,7 @@ namespace BlaineRP.Client.CEF
                 {
                     await Browser.Render(Browser.IntTypes.Registration, true, true);
 
-                    GameEvents.OnReady();
+                    Main.OnReady();
 
                     Browser.Window.ExecuteJs("AuthReg.fillPanel", Browser.DefaultServer, socialClubName);
 

@@ -181,13 +181,13 @@ namespace BlaineRP.Client.Sync
 
             if (data.Type == Types.NRPPrison)
             {
-                GameEvents.Render -= NonRpJailRender;
-                GameEvents.Render += NonRpJailRender;
+                Main.Render -= NonRpJailRender;
+                Main.Render += NonRpJailRender;
             }
             else if (data.Type == Types.Arrest)
             {
-                GameEvents.Render -= ArrestRender;
-                GameEvents.Render += ArrestRender;
+                Main.Render -= ArrestRender;
+                Main.Render += ArrestRender;
 
                 var dataS = data.AdditionalData.Split('_');
 
@@ -208,8 +208,8 @@ namespace BlaineRP.Client.Sync
             }
             else if (data.Type == Types.FederalPrison)
             {
-                GameEvents.Render -= FederalPrisonRender;
-                GameEvents.Render += FederalPrisonRender;
+                Main.Render -= FederalPrisonRender;
+                Main.Render += FederalPrisonRender;
             }
         }
 
@@ -222,17 +222,17 @@ namespace BlaineRP.Client.Sync
 
             if (data.Type == Types.NRPPrison)
             {
-                GameEvents.Render -= NonRpJailRender;
+                Main.Render -= NonRpJailRender;
             }
             else if (data.Type == Types.Arrest)
             {
-                GameEvents.Render -= ArrestRender;
+                Main.Render -= ArrestRender;
 
                 Additional.ExtraColshape.All.Where(x => x.Name == "CopArrestCell").ToList().ForEach(x => x.Destroy());
             }
             else if (data.Type == Types.FederalPrison)
             {
-                GameEvents.Render -= FederalPrisonRender;
+                Main.Render -= FederalPrisonRender;
             }
         }
 

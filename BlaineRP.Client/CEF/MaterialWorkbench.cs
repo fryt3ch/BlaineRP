@@ -3,6 +3,10 @@ using BlaineRP.Client.Extensions.System;
 using RAGE;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -37,7 +41,7 @@ namespace BlaineRP.Client.CEF
                 if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
-                var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+                var pData = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -72,7 +76,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -83,7 +87,7 @@ namespace BlaineRP.Client.CEF
             TempData = null;
 
             if (EscBindIdx >= 0)
-                KeyBinds.Unbind(EscBindIdx);
+                Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

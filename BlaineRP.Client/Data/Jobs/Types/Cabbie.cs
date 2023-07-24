@@ -5,6 +5,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Data.Jobs
 {
@@ -62,15 +64,15 @@ namespace BlaineRP.Client.Data.Jobs
 
                     Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
 
-                    GameEvents.Update -= checkAction.Invoke;
-                    GameEvents.Update += checkAction.Invoke;
+                    Main.Update -= checkAction.Invoke;
+                    Main.Update += checkAction.Invoke;
                 },
 
                 async (rType, idD) =>
                 {
                     var id = (int)idD;
 
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -156,7 +158,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     if (checkAction != null)
                     {
-                        GameEvents.Update -= checkAction.Invoke;
+                        Main.Update -= checkAction.Invoke;
 
                         Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
                     }

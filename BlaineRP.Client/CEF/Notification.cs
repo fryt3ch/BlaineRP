@@ -1,9 +1,11 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Utils.Game;
 using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Utils.Game.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -283,16 +285,16 @@ namespace BlaineRP.Client.CEF
 
             { "License::NTB", new Instance(Types.Error, Locale.Notifications.General.NoLicenseToBuy, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Business}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения бизнесом!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Weapons}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения оружием!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.A}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории A (мотоциклы)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.B}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории B (легковой транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.C}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории C (грузовой транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.D}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории D (маршрутный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Sea}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Sea (водный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Fly}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Air (воздушный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Lawyer}", new Instance(Types.Error, "У Вас отсутствует лицензия на работу адвокатом!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Hunting}", new Instance(Types.Error, "У Вас отсутствует лицензия на охоту!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Business}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения бизнесом!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Weapons}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения оружием!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.A}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории A (мотоциклы)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.B}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории B (легковой транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.C}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории C (грузовой транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.D}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории D (маршрутный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Sea}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Sea (водный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Fly}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Air (воздушный транспорт)!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Lawyer}", new Instance(Types.Error, "У Вас отсутствует лицензия на работу адвокатом!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { $"Lic::N_{(int)LicenseTypes.Hunting}", new Instance(Types.Error, "У Вас отсутствует лицензия на охоту!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
             { "Report::N", new Instance(Types.Success, "Ваше сообщение принято, ответ будет дан администрацией в ближайшее время!\n\nС каждым новым отправленным сообщением Ваш запрос будет перемещен в конец очереди.\n\nНомер Вашего запроса в очереди: {0}", Locale.Get("NOTIFICATION_HEADER_DEF")) },
             { "Report::S", new Instance(Types.Error, "Вы сможете отправить новое сообщение к этому запросу через {0}", Locale.Get("NOTIFICATION_HEADER_ERROR")) },

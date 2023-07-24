@@ -7,6 +7,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -251,7 +254,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         private static void OnMaterialsChanged(string key, object value, object oldValue)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -304,7 +307,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
             }
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -347,7 +350,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
             }
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -360,7 +363,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         private static void OnRankNameChanged(string key, object value, object oldValue)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -379,7 +382,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public static async void ShowFractionMenu()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -483,7 +486,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public void PlayerInvite(Player player)
         {
-            var tData = Sync.Players.GetData(player);
+            var tData = PlayerData.GetData(player);
 
             if (tData == null)
                 return;
@@ -521,7 +524,7 @@ namespace BlaineRP.Client.Data.Fractions
         {
             Events.Add("Player::SCF", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

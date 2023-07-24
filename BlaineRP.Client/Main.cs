@@ -6,6 +6,8 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
 using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client
@@ -415,9 +417,9 @@ namespace BlaineRP.Client
 
             Additional.AntiCheat.Enable();
 
-            KeyBinds.LoadMain();
+            Core.LoadMain();
 
-            CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, KeyBinds.Get(KeyBinds.Types.Cursor).GetKeyString()), false);
+            CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, Core.Get(BindTypes.Cursor).GetKeyString()), false);
         }
 
         public static void DisableAllControls(bool state)

@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
 {
@@ -79,7 +82,7 @@ namespace BlaineRP.Client.Data
 
             var inst = All.Where(x => x.Attribute.Name == cmdName || x.Attribute.Aliases.Contains(cmdName)).FirstOrDefault();
 
-            if (inst == null || inst.Attribute.AdminOnly && (Sync.Players.GetData(Player.LocalPlayer)?.AdminLevel ?? -1) < 0)
+            if (inst == null || inst.Attribute.AdminOnly && (PlayerData.GetData(Player.LocalPlayer)?.AdminLevel ?? -1) < 0)
             {
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Commands.Header, Locale.Notifications.Commands.NotFound);
 

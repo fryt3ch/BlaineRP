@@ -7,6 +7,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -45,18 +51,18 @@ namespace BlaineRP.Client.CEF
                 var prefix = id.Substring(0, 2);
                 id = id.Remove(0, 2);
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
 
                 if (prefix == "a-")
                 {
-                    var anim = (Sync.Animations.OtherTypes)Enum.Parse(typeof(Sync.Animations.OtherTypes), id);
+                    var anim = (OtherTypes)Enum.Parse(typeof(OtherTypes), id);
 
                     if (anim == pData.OtherAnim)
                     {
-                        Events.CallRemote("Players::SetAnim", (int)Sync.Animations.OtherTypes.None);
+                        Events.CallRemote("Players::SetAnim", (int)OtherTypes.None);
                     }
                     else
                     {
@@ -71,11 +77,11 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (prefix == "s-")
                 {
-                    var scenario = (Sync.Animations.ScenarioTypes)Enum.Parse(typeof(Sync.Animations.ScenarioTypes), id);
+                    var scenario = (ScenarioTypes)Enum.Parse(typeof(ScenarioTypes), id);
                 }
                 else if (prefix == "e-")
                 {
-                    var emotion = (Sync.Animations.EmotionTypes)Enum.Parse(typeof(Sync.Animations.EmotionTypes), id);
+                    var emotion = (EmotionTypes)Enum.Parse(typeof(EmotionTypes), id);
 
                     if (pData.Emotion == emotion)
                         return;
@@ -84,7 +90,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (prefix == "w-")
                 {
-                    var walkstyle = (Sync.Animations.WalkstyleTypes)Enum.Parse(typeof(Sync.Animations.WalkstyleTypes), id);
+                    var walkstyle = (WalkstyleTypes)Enum.Parse(typeof(WalkstyleTypes), id);
 
                     if (pData.Walkstyle == walkstyle)
                         return;
@@ -123,14 +129,14 @@ namespace BlaineRP.Client.CEF
 
             CEF.Browser.Switch(Browser.IntTypes.Animations, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
 
-            GameEvents.Render -= CEF.Animations.Render;
+            Main.Render -= CEF.Animations.Render;
 
-            var cancelAnimKb = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+            var cancelAnimKb = Core.Get(BindTypes.CancelAnimation);
 
             if (!cancelAnimKb.IsDisabled)
-                KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
+                Core.Get(BindTypes.CancelAnimation).Disable();
 
             if (Queue.Count > 0)
             {
@@ -151,38 +157,38 @@ namespace BlaineRP.Client.CEF
             CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds.ToList())
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
-            if (pData.OtherAnim != Sync.Animations.OtherTypes.None)
+            if (pData.OtherAnim != OtherTypes.None)
             {
-                GameEvents.Render -= CEF.Animations.Render;
-                GameEvents.Render += CEF.Animations.Render;
+                Main.Render -= CEF.Animations.Render;
+                Main.Render += CEF.Animations.Render;
 
-                KeyBinds.Get(KeyBinds.Types.CancelAnimation).Enable();
+                Core.Get(BindTypes.CancelAnimation).Enable();
             }
         }
 
         public static void Cancel()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
 
-            if (pData.OtherAnim == Sync.Animations.OtherTypes.None)
+            if (pData.OtherAnim == OtherTypes.None)
                 return;
 
             if (LastSent.IsSpam(500, false, false))
                 return;
 
-            Events.CallRemote("Players::SetAnim", (int)Sync.Animations.OtherTypes.None);
+            Events.CallRemote("Players::SetAnim", (int)OtherTypes.None);
         }
 
         public static void ToggleAnim(string animId, bool state)
@@ -195,7 +201,7 @@ namespace BlaineRP.Client.CEF
 
         public static void Render()
         {
-            Graphics.DrawText(string.Format(Locale.General.Animations.CancelText, KeyBinds.Get(KeyBinds.Types.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(string.Format(Locale.General.Animations.CancelText, Core.Get(BindTypes.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public static async System.Threading.Tasks.Task Load()

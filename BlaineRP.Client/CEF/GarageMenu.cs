@@ -6,6 +6,10 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -103,7 +107,7 @@ namespace BlaineRP.Client.CEF
             if (Misc.IsAnyCefActive(true))
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -158,7 +162,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close()
@@ -175,7 +179,7 @@ namespace BlaineRP.Client.CEF
             CurrentGarageRoot = null;
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             CEF.Cursor.Show(false, false);
 

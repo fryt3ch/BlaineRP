@@ -11,6 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Input;
+using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.CEF
 {
@@ -537,20 +540,20 @@ namespace BlaineRP.Client.CEF
 
                     CEF.Cursor.Show(false, false);
 
-                    GameEvents.Render -= CharacterCreation.ClearTasksRender;
+                    Main.Render -= CharacterCreation.ClearTasksRender;
 
-                    GameEvents.DisableAllControls(false);
+                    Main.DisableAllControls(false);
 
-                    GameEvents.Render -= TestDriveRender;
-                    GameEvents.Render += TestDriveRender;
+                    Main.Render -= TestDriveRender;
+                    Main.Render += TestDriveRender;
 
-                    TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.F4, true, () => Additional.TuningMenu.Show()));
+                    TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.F4, true, () => Additional.TuningMenu.Show()));
                 }
             });
 
             Events.Add("Shop::Choose", async (object[] args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1073,7 +1076,7 @@ namespace BlaineRP.Client.CEF
                 if (AllowedCameraStates == null)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1219,7 +1222,7 @@ namespace BlaineRP.Client.CEF
                 if (CurrentType == Types.None)
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1236,7 +1239,7 @@ namespace BlaineRP.Client.CEF
                     if (TempVehicle == null)
                         return;
 
-                    var vData = Sync.Vehicles.GetData(TempVehicle);
+                    var vData = VehicleData.GetData(TempVehicle);
 
                     if (vData == null)
                         return;
@@ -1633,7 +1636,7 @@ namespace BlaineRP.Client.CEF
 
         public static async System.Threading.Tasks.Task Show(Types type, float? heading, object[] args)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -1661,12 +1664,12 @@ namespace BlaineRP.Client.CEF
 
                     Client.Interaction.Enabled = false;
 
-                    GameEvents.Render -= CharacterCreation.ClearTasksRender;
-                    GameEvents.Render += CharacterCreation.ClearTasksRender;
+                    Main.Render -= CharacterCreation.ClearTasksRender;
+                    Main.Render += CharacterCreation.ClearTasksRender;
 
-                    GameEvents.DisableAllControls(true);
+                    Main.DisableAllControls(true);
 
-                    KeyBinds.DisableAll(KeyBinds.Types.Cursor);
+                    Core.DisableAll(Input.Enums.BindTypes.Cursor);
 
                     if (type == Types.BarberShop)
                     {
@@ -2056,7 +2059,7 @@ namespace BlaineRP.Client.CEF
 
                         var veh = (Vehicle)args[1];
 
-                        var vData = Sync.Vehicles.GetData(veh);
+                        var vData = VehicleData.GetData(veh);
 
                         if (vData == null)
                             return;
@@ -2067,8 +2070,8 @@ namespace BlaineRP.Client.CEF
 
                         TempVehicle = veh;
 
-                        GameEvents.Render -= RenderTuning;
-                        GameEvents.Render += RenderTuning;
+                        Main.Render -= RenderTuning;
+                        Main.Render += RenderTuning;
 
                         await Browser.Render(Browser.IntTypes.Tuning, true, false);
 
@@ -2300,7 +2303,7 @@ namespace BlaineRP.Client.CEF
 
             CurrentCameraStateNum = 0;
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
                 if (CursorTask != null)
                     return;
@@ -2311,7 +2314,7 @@ namespace BlaineRP.Client.CEF
                 CursorTask.Run();
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
                 if (CursorTask == null)
                     return;
@@ -2321,12 +2324,12 @@ namespace BlaineRP.Client.CEF
                 CursorTask = null;
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
                 ChangeView(CurrentCameraStateNum + 1);
             }));
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (CEF.ActionBox.IsActive)
                 {
@@ -2357,7 +2360,7 @@ namespace BlaineRP.Client.CEF
             if (CurrentType == Types.None)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -2369,7 +2372,7 @@ namespace BlaineRP.Client.CEF
 
             if (request)
             {
-                GameEvents.Render -= RenderTuning;
+                Main.Render -= RenderTuning;
 
                 Events.CallRemote("Business::Exit");
             }
@@ -2472,9 +2475,9 @@ namespace BlaineRP.Client.CEF
 
                     Player.LocalPlayer.SetVisible(true, false);
 
-                    GameEvents.Render -= CharacterCreation.ClearTasksRender;
+                    Main.Render -= CharacterCreation.ClearTasksRender;
 
-                    GameEvents.DisableAllControls(false);
+                    Main.DisableAllControls(false);
 
                     Client.Interaction.Enabled = true;
 
@@ -2483,7 +2486,7 @@ namespace BlaineRP.Client.CEF
                     if (!Settings.User.Interface.HideHUD)
                         CEF.HUD.ShowHUD(true);
 
-                    KeyBinds.EnableAll();
+                    Core.EnableAll();
 
                     Additional.Camera.Disable();
                 }
@@ -2501,7 +2504,7 @@ namespace BlaineRP.Client.CEF
                 CurrentType = Types.None;
 
                 foreach (var x in TempBinds)
-                    KeyBinds.Unbind(x);
+                    Core.Unbind(x);
 
                 TempBinds.Clear();
 
@@ -2547,15 +2550,15 @@ namespace BlaineRP.Client.CEF
 
             Additional.TuningMenu.Close();
 
-            KeyBinds.Unbind(TempBinds[TempBinds.Count - 1]);
+            Core.Unbind(TempBinds[TempBinds.Count - 1]);
             TempBinds.RemoveAt(TempBinds.Count - 1);
 
             CEF.HUD.ShowHUD(false);
 
-            GameEvents.Render -= CharacterCreation.ClearTasksRender;
-            GameEvents.Render += CharacterCreation.ClearTasksRender;
+            Main.Render -= CharacterCreation.ClearTasksRender;
+            Main.Render += CharacterCreation.ClearTasksRender;
 
-            GameEvents.DisableAllControls(true);
+            Main.DisableAllControls(true);
 
             TestDriveActive = false;
 
@@ -2617,7 +2620,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Browser.Switch(Browser.IntTypes.Shop, true);
 
-            GameEvents.Render -= TestDriveRender;
+            Main.Render -= TestDriveRender;
         }
 
         private static void TestDriveRender()
@@ -2665,7 +2668,7 @@ namespace BlaineRP.Client.CEF
             {
                 if (curPos.X == 0)
                     newHeading -= 5;
-                else if (curPos.X + 10 >= GameEvents.ScreenResolution.X)
+                else if (curPos.X + 10 >= Main.ScreenResolution.X)
                     newHeading += 5;
             }
 
@@ -2763,9 +2766,9 @@ namespace BlaineRP.Client.CEF
 
             CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, false);
 
-            GameEvents.DisableAllControls(true);
+            Main.DisableAllControls(true);
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
+            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.MicrophoneOff);
 
             CEF.HUD.ShowHUD(false);
             CEF.Chat.Show(false);
@@ -2785,8 +2788,8 @@ namespace BlaineRP.Client.CEF
 
             if (renderType == 1)
             {
-                GameEvents.Render -= RetailPreviewFurnitureRender;
-                GameEvents.Render += RetailPreviewFurnitureRender;
+                Main.Render -= RetailPreviewFurnitureRender;
+                Main.Render += RetailPreviewFurnitureRender;
             }
         }
 
@@ -2813,16 +2816,16 @@ namespace BlaineRP.Client.CEF
 
             Additional.Camera.Disable(0);
 
-            GameEvents.DisableAllControls(false);
+            Main.DisableAllControls(false);
 
-            KeyBinds.EnableAll();
+            Core.EnableAll();
 
             if (!Settings.User.Interface.HideHUD)
                 CEF.HUD.ShowHUD(true);
 
             CEF.Chat.Show(true);
 
-            GameEvents.Render -= RetailPreviewFurnitureRender;
+            Main.Render -= RetailPreviewFurnitureRender;
         }
 
         private static void RetailPreviewFurnitureRender()
@@ -2838,7 +2841,7 @@ namespace BlaineRP.Client.CEF
 
                 Graphics.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                text = Locale.Get("SHOP_RET_PREVIEW_HELP_0", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
+                text = Locale.Get("SHOP_RET_PREVIEW_HELP_0", Core.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
                 Graphics.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 

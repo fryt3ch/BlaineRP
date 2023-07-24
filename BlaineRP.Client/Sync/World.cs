@@ -7,6 +7,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
 
 namespace BlaineRP.Client.Sync
 {
@@ -170,7 +172,7 @@ namespace BlaineRP.Client.Sync
         private static bool _enabledItemsOnGround;
 
         /// <summary>Включено ли взаимодействие с предметами на земле в данный момент?</summary>
-        public static bool EnabledItemsOnGround { get => _enabledItemsOnGround; set { if (!_enabledItemsOnGround && value) { GameEvents.Render -= ItemsOnGroundRender; GameEvents.Render += ItemsOnGroundRender; } else if (_enabledItemsOnGround && !value) GameEvents.Render -= ItemsOnGroundRender; _enabledItemsOnGround = value; ClosestItemOnGround = null; } }
+        public static bool EnabledItemsOnGround { get => _enabledItemsOnGround; set { if (!_enabledItemsOnGround && value) { Main.Render -= ItemsOnGroundRender; Main.Render += ItemsOnGroundRender; } else if (_enabledItemsOnGround && !value) Main.Render -= ItemsOnGroundRender; _enabledItemsOnGround = value; ClosestItemOnGround = null; } }
 
         public static List<ItemOnGround> ItemsOnGround { get; set; } = new List<ItemOnGround>();
 
@@ -472,7 +474,7 @@ namespace BlaineRP.Client.Sync
                 }
 
                 if (temp == ClosestItemOnGround && !Settings.User.Interface.HideInteractionBtn)
-                    Graphics.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(Core.Get(BindTypes.TakeItem).GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
 

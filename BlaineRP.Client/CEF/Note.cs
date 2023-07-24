@@ -1,6 +1,7 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using RAGE;
 using System;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -81,7 +82,7 @@ namespace BlaineRP.Client.CEF
 
             if (EscBind >= 0)
             {
-                KeyBinds.Unbind(EscBind);
+                Core.Unbind(EscBind);
 
                 EscBind = -1;
             }
@@ -104,7 +105,7 @@ namespace BlaineRP.Client.CEF
 
         private static void Bind()
         {
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 Close();
             });

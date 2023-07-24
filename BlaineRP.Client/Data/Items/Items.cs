@@ -7,6 +7,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
 {
@@ -449,7 +451,7 @@ namespace BlaineRP.Client.Data
             {
                 public int MaxAmount { get; set; }
 
-                public Sync.Animations.FastTypes Animation { get; set; }
+                public FastTypes Animation { get; set; }
 
                 public Sync.AttachSystem.Types AttachType { get; set; }
 

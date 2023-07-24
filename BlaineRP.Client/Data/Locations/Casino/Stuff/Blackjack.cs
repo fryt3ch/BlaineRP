@@ -7,6 +7,9 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Animations;
+using BlaineRP.Client.Sync;
+using Script = BlaineRP.Client.Animations.Script;
 
 namespace BlaineRP.Client.Data
 {
@@ -379,7 +382,7 @@ namespace BlaineRP.Client.Data
                         ped.SetComponentVariation(11, 1, 0, 0);
                     }
 
-                    Sync.Animations.Play(ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Script.Play(ped, new Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
                 }
 
                 public string GetCurrestStateString()
@@ -698,8 +701,8 @@ namespace BlaineRP.Client.Data
                         }
                     }
 
-                    GameEvents.Render -= OnGameRender;
-                    GameEvents.Render += OnGameRender;
+                    Main.Render -= OnGameRender;
+                    Main.Render += OnGameRender;
                 }
 
                 public void StopGame()
@@ -727,7 +730,7 @@ namespace BlaineRP.Client.Data
                         }
                     }
 
-                    GameEvents.Render -= OnGameRender;
+                    Main.Render -= OnGameRender;
                 }
 
                 private void FinishGame(int casinoId, int id, string resStr, bool onLoad)

@@ -6,6 +6,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -128,7 +129,7 @@ namespace BlaineRP.Client.CEF
                 LastPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
                 LastRot = RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2);
 
-                GameEvents.Render += CurrentRenderAction.Invoke;
+                Main.Render += CurrentRenderAction.Invoke;
             }
             else
             {
@@ -137,12 +138,12 @@ namespace BlaineRP.Client.CEF
                 LastPos = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z);
                 LastRot = new Vector3(0f, 0f, (Colshape as Additional.Polygon)?.Heading ?? 0f);
 
-                GameEvents.Render += CurrentRenderAction.Invoke;
+                Main.Render += CurrentRenderAction.Invoke;
             }
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => finishAction?.Invoke(LastPos == null ? null : new Vector3(LastPos.X, LastPos.Y, LastPos.Z), LastRot == null ? null : new Vector3(LastRot.X, LastRot.Y, LastRot.Z))));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Return, true, () => finishAction?.Invoke(LastPos == null ? null : new Vector3(LastPos.X, LastPos.Y, LastPos.Z), LastRot == null ? null : new Vector3(LastRot.X, LastRot.Y, LastRot.Z))));
         }
 
         public static void Close(bool invokeCurrentCloseAction = true)
@@ -153,7 +154,7 @@ namespace BlaineRP.Client.CEF
             if (invokeCurrentCloseAction)
                 CurrentCloseAction?.Invoke();
 
-            GameEvents.Render -= CurrentRenderAction.Invoke;
+            Main.Render -= CurrentRenderAction.Invoke;
 
             CEF.Browser.Window.ExecuteCachedJs("mapEditor_destroy();");
 
@@ -171,7 +172,7 @@ namespace BlaineRP.Client.CEF
             LastPos = null;
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 
@@ -246,20 +247,20 @@ namespace BlaineRP.Client.CEF
 
             var showRotZ = false;
 
-            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
-            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            if (!Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
                 float xOff = 0f, yOff = 0f;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                     xOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                     xOff += diffPos;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                     yOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
                 LastPos.X += xOff;
@@ -267,24 +268,24 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
                     LastPos.Z += diffPos;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
                     LastPos.Z -= diffPos;
                 }
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
                     LastRot.Z -= diffRot;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
                     LastRot.Z += diffRot;
                 }
@@ -343,20 +344,20 @@ namespace BlaineRP.Client.CEF
 
             var showRotZ = false;
 
-            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
-            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            if (!Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
                 float xOff = 0f, yOff = 0f;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                     xOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                     xOff += diffPos;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                     yOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
                 LastPos.X += xOff;
@@ -364,24 +365,24 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
                     LastPos.Z += diffPos;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
                     LastPos.Z -= diffPos;
                 }
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
                     LastRot.Z -= diffRot;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
                     LastRot.Z += diffRot;
                 }
@@ -425,20 +426,20 @@ namespace BlaineRP.Client.CEF
 
             var showRotZ = false;
 
-            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
-            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            if (!Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
                 float xOff = 0f, yOff = 0f;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                     xOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                     xOff += diffPos;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                     yOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
                 LastPos.X += xOff;
@@ -446,24 +447,24 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
                     LastPos.Z += diffPos;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
                     LastPos.Z -= diffPos;
                 }
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
                     LastRot.Z -= diffRot;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
                     LastRot.Z += diffRot;
                 }
@@ -507,20 +508,20 @@ namespace BlaineRP.Client.CEF
 
             var showRotZ = false;
 
-            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
-            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            if (!Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
                 float xOff = 0f, yOff = 0f;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                     xOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                     xOff += diffPos;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                     yOff -= diffPos;
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
                 LastPos.X += xOff;
@@ -528,24 +529,24 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
                     LastPos.Y += diffPos;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
                     LastPos.Y -= diffPos;
                 }
 
-                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (Core.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
                     LastRot.Z -= diffRot;
                 }
-                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (Core.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
                     LastRot.Z += diffRot;
                 }

@@ -2,7 +2,6 @@
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
-using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -10,6 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
+using Players = BlaineRP.Client.Utils.Game.Players;
 
 namespace BlaineRP.Client.Data.Fractions
 {
@@ -98,7 +102,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
-            KeyBinds.CurrentExtraAction0 = () =>
+            Core.CurrentExtraAction0 = () =>
             {
                 if (Interaction.CurrentEntity is Player player)
                 {
@@ -113,7 +117,7 @@ namespace BlaineRP.Client.Data.Fractions
                 }
             };
 
-            KeyBinds.CurrentExtraAction1 = () =>
+            Core.CurrentExtraAction1 = () =>
             {
                 if (Interaction.CurrentEntity is Player player)
                 {
@@ -195,8 +199,8 @@ namespace BlaineRP.Client.Data.Fractions
         {
             CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
-            KeyBinds.CurrentExtraAction0 = null;
-            KeyBinds.CurrentExtraAction1 = null;
+            Core.CurrentExtraAction0 = null;
+            Core.CurrentExtraAction1 = null;
 
             Additional.ExtraColshape.All.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
 
@@ -224,7 +228,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async static void ShowPoliceTabletPc()
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -254,7 +258,7 @@ namespace BlaineRP.Client.Data.Fractions
             if (player?.Exists != true)
                 return;
 
-            var tData = Sync.Players.GetData(player);
+            var tData = PlayerData.GetData(player);
 
             if (tData == null)
                 return;
@@ -318,7 +322,7 @@ namespace BlaineRP.Client.Data.Fractions
             if (player?.Exists != true)
                 return;
 
-            var tData = Sync.Players.GetData(player);
+            var tData = PlayerData.GetData(player);
 
             if (tData == null)
                 return;
@@ -387,7 +391,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerArrest(Player player)
         {
-            var tData = Sync.Players.GetData(player);
+            var tData = PlayerData.GetData(player);
 
             if (tData == null)
                 return;
@@ -586,14 +590,14 @@ namespace BlaineRP.Client.Data.Fractions
             }, null);
         }
 
-        public async void PlayerRemoveLicense(Player player, List<Sync.Players.LicenseTypes> licenses = null)
+        public async void PlayerRemoveLicense(Player player, List<LicenseTypes> licenses = null)
         {
             if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
             if (licenses == null)
             {
-                licenses = (await Events.CallRemoteProc("Police::RmLic", player, string.Empty) as JArray)?.ToObject<List<int>>().Select(x => (Sync.Players.LicenseTypes)x).ToList();
+                licenses = (await Events.CallRemoteProc("Police::RmLic", player, string.Empty) as JArray)?.ToObject<List<int>>().Select(x => (LicenseTypes)x).ToList();
             }
 
             if (licenses == null)
@@ -617,7 +621,7 @@ namespace BlaineRP.Client.Data.Fractions
                     return;
                 }
 
-                var licType = (Sync.Players.LicenseTypes)id;
+                var licType = (LicenseTypes)id;
 
                 if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
                     return;
@@ -666,7 +670,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerSearch(Player player, object[] args = null)
         {
-            if (Sync.Players.GetData(player)?.IsCuffed != true)
+            if (PlayerData.GetData(player)?.IsCuffed != true)
             {
                 CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_0"), -1);
 
@@ -986,7 +990,7 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerMaskOff(Player player)
         {
-            var tData = Sync.Players.GetData(player);
+            var tData = PlayerData.GetData(player);
 
             if (tData == null)
                 return;
@@ -1023,12 +1027,12 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerToVehicle(Vehicle vehicle)
         {
-            var vData = Sync.Vehicles.GetData(vehicle);
+            var vData = EntitiesData.VehicleData.GetData(vehicle);
 
             if (vData == null)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -1100,12 +1104,12 @@ namespace BlaineRP.Client.Data.Fractions
 
         public async void PlayerFromVehicle(Vehicle vehicle)
         {
-            var vData = Sync.Vehicles.GetData(vehicle);
+            var vData = EntitiesData.VehicleData.GetData(vehicle);
 
             if (vData == null)
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -1116,7 +1120,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var player = Utils.Game.Misc.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0), true);
 
-                if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
+                if (player?.Exists == true && player != Player.LocalPlayer && (PlayerData.GetData(player)?.IsCuffed == true || PlayerData.GetData(player)?.IsKnocked == true))
                     players.Add(player);
             }
 
@@ -1126,7 +1130,7 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var player = Entities.Players.GetAtRemote(trunkAttach.RemoteID);
 
-                if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
+                if (player?.Exists == true && player != Player.LocalPlayer && (PlayerData.GetData(player)?.IsCuffed == true || PlayerData.GetData(player)?.IsKnocked == true))
                     players.Add(player);
             }
 
@@ -1280,7 +1284,7 @@ namespace BlaineRP.Client.Data.Fractions
         {
             Events.Add("FPolice::ARRESTSC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1326,7 +1330,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Events.Add("FPolice::FINEC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1362,7 +1366,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Events.Add("FPolice::CC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1411,7 +1415,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Events.Add("FPolice::APBC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1465,7 +1469,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Events.Add("FPolice::GPSTC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -1514,7 +1518,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Events.Add("FPolice::NOTIFC", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

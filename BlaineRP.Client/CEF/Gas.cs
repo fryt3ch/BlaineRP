@@ -6,6 +6,10 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF
 {
@@ -38,7 +42,7 @@ namespace BlaineRP.Client.CEF
                 if (stationId == -1)
                     return;
 
-                var vData = Sync.Vehicles.GetData(TargetVehicle);
+                var vData = VehicleData.GetData(TargetVehicle);
 
                 if (vData == null || vData.Data == null)
                     return;
@@ -69,14 +73,14 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            var vData = Sync.Vehicles.GetData(vehicle);
+            var vData = VehicleData.GetData(vehicle);
 
             if (vData == null || vData.Data == null)
                 return;
 
             var vDataData = vData.Data;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -265,7 +269,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive || TargetVehicle == null)
                 return;
 
-            var vData = Sync.Vehicles.GetData(TargetVehicle);
+            var vData = VehicleData.GetData(TargetVehicle);
 
             if (vData == null || vData.Data == null)
                 return;
@@ -294,10 +298,10 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            GameEvents.Render -= Render;
-            GameEvents.Render += Render;
+            Main.Render -= Render;
+            Main.Render += Render;
 
-            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -313,13 +317,13 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(false, false);
 
-            GameEvents.Render -= Render;
+            Main.Render -= Render;
 
             CEF.Browser.Render(Browser.IntTypes.VehicleMisc, false);
 
             TargetVehicle = null;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

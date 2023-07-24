@@ -73,7 +73,7 @@ namespace BlaineRP.Server.Game
                 },
             };
 
-            lines.Add($"Autoschool.Prices = RAGE.Util.Json.Deserialize<Dictionary<Sync.Players.LicenseTypes, uint>>(\"{Prices.SerializeToJson().Replace('\"', '\'')}\");");
+            lines.Add($"Autoschool.Prices = RAGE.Util.Json.Deserialize<Dictionary<BlaineRP.Client.EntitiesData.Enums.LicenseTypes, uint>>(\"{Prices.SerializeToJson().Replace('\"', '\'')}\");");
 
             foreach (var x in All)
             {

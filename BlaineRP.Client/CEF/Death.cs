@@ -1,4 +1,7 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -42,7 +45,7 @@ namespace BlaineRP.Client.CEF
 
         public static async System.Threading.Tasks.Task Show()
         {
-            if (IsActive || Sync.Players.GetData(Player.LocalPlayer)?.IsKnocked != true)
+            if (IsActive || PlayerData.GetData(Player.LocalPlayer)?.IsKnocked != true)
                 return;
 
             await Browser.Render(Browser.IntTypes.Death, true);

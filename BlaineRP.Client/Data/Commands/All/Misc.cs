@@ -3,6 +3,7 @@ using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
+using BlaineRP.Client.EntitiesData;
 
 namespace BlaineRP.Client.Data
 {
@@ -52,7 +53,7 @@ namespace BlaineRP.Client.Data
             }
             else
             {
-                var veh = id > ushort.MaxValue ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => Sync.Vehicles.GetData(x)?.VID == id).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault();
+                var veh = id > ushort.MaxValue ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => VehicleData.GetData(x)?.VID == id).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault();
 
                 if (veh == null)
                 {

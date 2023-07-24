@@ -8,6 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Input;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.CEF.Phone.Apps
 {
@@ -23,7 +28,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                 async () =>
                 {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData == null)
                         return;
@@ -323,7 +328,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 if (CEF.Phone.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -353,7 +358,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             Events.Add("Phone::ACS", (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;
@@ -401,7 +406,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                             }
                             else
                             {
-                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationIncCallSubj, string.Format(Locale.General.FiveNotificationIncCallText, KeyBinds.Get(KeyBinds.Types.Phone).GetKeyString()));
+                                Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), Locale.General.FiveNotificationIncCallSubj, string.Format(Locale.General.FiveNotificationIncCallText, Core.Get(BindTypes.Phone).GetKeyString()));
                             }
                         }
                     }
@@ -501,7 +506,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
         public static async void BlacklistChange(uint number, bool add)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -537,7 +542,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
         public static async void Call(string number)
         {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData == null)
                 return;
@@ -655,7 +660,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             ActiveCallUpdateTask = new AsyncTask(() =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = PlayerData.GetData(Player.LocalPlayer);
 
                 if (pData == null)
                     return;

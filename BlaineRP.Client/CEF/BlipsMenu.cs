@@ -5,6 +5,7 @@ using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -107,7 +108,7 @@ namespace BlaineRP.Client.CEF
 
                 var allBlips = Settings.User.Other.LocalBlips;
 
-                var blip = new LocalBlip(CurrentSprite, name, CurrentColour, CurrentScale, CurrentAlpha, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, false, true);
+                var blip = new LocalBlip(CurrentSprite, name, CurrentColour, CurrentScale, CurrentAlpha, CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition ?? Player.LocalPlayer.Position, false, true);
 
                 TempBlip?.Destroy();
 
@@ -198,7 +199,7 @@ namespace BlaineRP.Client.CEF
 
                     CurrentUsePos = state;
 
-                    TempBlip.Position = (CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition) ?? Player.LocalPlayer.Position;
+                    TempBlip.Position = (CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition) ?? Player.LocalPlayer.Position;
                 }
                 else
                 {
@@ -338,7 +339,7 @@ namespace BlaineRP.Client.CEF
 
             if (WasCreating)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
             }
             else if (LastEdited != -1)
             {
@@ -347,7 +348,7 @@ namespace BlaineRP.Client.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
             var waypointBlip = Utils.Game.Misc.GetWaypointBlip();
@@ -364,7 +365,7 @@ namespace BlaineRP.Client.CEF
             {
                 if (TempBlip != null && LastEdited == -1)
                 {
-                    TempBlip.Position = CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position;
+                    TempBlip.Position = CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition ?? Player.LocalPlayer.Position;
                 }
 
             }, 500, true, 0);
@@ -382,7 +383,7 @@ namespace BlaineRP.Client.CEF
             CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+                Core.Unbind(x);
 
             TempBinds.Clear();
 

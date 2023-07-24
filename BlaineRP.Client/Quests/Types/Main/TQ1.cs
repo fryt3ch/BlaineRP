@@ -1,14 +1,15 @@
-﻿using RAGE;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using BlaineRP.Client.Quests.Enums;
+using RAGE;
 
-namespace BlaineRP.Client.Sync.Quests.Types.Main
+namespace BlaineRP.Client.Quests.Types.Main
 {
     [Script(int.MaxValue)]
     internal class TQ1
     {
         public TQ1()
         {
-            new Quest.QuestData(Enums.QuestTypes.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<byte, Quest.QuestData.StepData>()
+            new Quest.QuestData(QuestTypes.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<byte, Quest.QuestData.StepData>()
             {
                 {
                     0,

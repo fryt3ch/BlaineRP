@@ -3,6 +3,7 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using System.Collections.Generic;
+using BlaineRP.Client.Input;
 
 namespace BlaineRP.Client.CEF
 {
@@ -164,16 +165,16 @@ namespace BlaineRP.Client.CEF
                 CEF.Inventory.InventoryUpdated -= OnInventoryUpdatedMarketStallSeller;
                 CEF.Inventory.InventoryUpdated += OnInventoryUpdatedMarketStallSeller;
 
-                GameEvents.Render -= RenderMarketStallSeller;
-                GameEvents.Render += RenderMarketStallSeller;
+                Main.Render -= RenderMarketStallSeller;
+                Main.Render += RenderMarketStallSeller;
 
-                EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+                EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
             }
             else if (d[0] == "MARKETSTALL@BUYER")
             {
                 CEF.Browser.Window.ExecuteJs("Retail.draw", "market", new object[] { addData[0] }, addData[1], false);
 
-                EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+                EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
             }
 
             CEF.Cursor.Show(true, true);
@@ -184,13 +185,13 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            KeyBinds.Unbind(EscBindIdx);
+            Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 
             CurrentContext = null;
 
-            GameEvents.Render -= RenderMarketStallSeller;
+            Main.Render -= RenderMarketStallSeller;
 
             CEF.Inventory.InventoryUpdated -= OnInventoryUpdatedMarketStallSeller;
 
