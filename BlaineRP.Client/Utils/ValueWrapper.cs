@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Additional
+﻿namespace BlaineRP.Client.Utils
 {
     public class RefValue<T> where T : struct
     {

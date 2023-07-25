@@ -7,7 +7,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Management.Camera;
+using BlaineRP.Client.Game.Management.Weapons.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Data
@@ -453,7 +458,7 @@ namespace BlaineRP.Client.Data
 
                 public FastTypes Animation { get; set; }
 
-                public Sync.AttachSystem.Types AttachType { get; set; }
+                public AttachmentTypes AttachType { get; set; }
 
                 public ItemData(string Name, float Weight, int Satiety, int Mood, int Health, int MaxAmount) : base(Name, Weight, Satiety, Mood, Health)
                 {
@@ -560,9 +565,9 @@ namespace BlaineRP.Client.Data
         {
             new public class ItemData : Item.ItemData
             {
-                public Sync.WeaponSystem.Weapon.ComponentTypes Type { get; set; }
+                public WeaponComponentTypes Type { get; set; }
 
-                public ItemData(string Name, float Weight, Sync.WeaponSystem.Weapon.ComponentTypes Type) : base(Name, Weight)
+                public ItemData(string Name, float Weight, WeaponComponentTypes Type) : base(Name, Weight)
                 {
                     this.Type = Type;
                 }
@@ -897,7 +902,7 @@ namespace BlaineRP.Client.Data
 
                 if (!res)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
+                    Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
 
                     return null;
                 }
@@ -906,7 +911,7 @@ namespace BlaineRP.Client.Data
 
                 if (waterPos == null)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
+                    Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
 
                     return null;
                 }
@@ -924,16 +929,16 @@ namespace BlaineRP.Client.Data
 
                 if (!res)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
+                    Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
 
                     return null;
                 }
 
-                var materialType = Materials.GetTypeByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f), Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f), Player.LocalPlayer.Handle, 31);
+                var materialType = Materials.GetTypeByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f), Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f), Player.LocalPlayer.Handle, 31);
 
                 if (!Materials.CanTypeBeDug(materialType))
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Inventory.DiggingNotAllowedHere);
+                    Notification.ShowError(Locale.Notifications.Inventory.DiggingNotAllowedHere);
 
                     return null;
                 }
@@ -948,7 +953,7 @@ namespace BlaineRP.Client.Data
         {
             new KeyValuePair<System.Type, Action<int, string>>(typeof(PlaceableItem), (slot, itemId) =>
             {
-                CEF.Inventory.Close(true);
+                Inventory.Close(true);
 
                 StartPlaceItem(itemId, slot);
             }),
@@ -965,9 +970,9 @@ namespace BlaineRP.Client.Data
             if (itemData == null)
                 return;
 
-            var coords = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+            var coords = Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
-            if (CEF.MapEditor.IsActive)
+            if (MapEditor.IsActive)
                 return;
 
             var mapObject = Streaming.CreateObjectNoOffsetImmediately(itemData.Model, coords.X, coords.Y, coords.Z);
@@ -977,26 +982,26 @@ namespace BlaineRP.Client.Data
 
             mapObject.SetData("ItemIdx", itemIdx);
 
-            CEF.MapEditor.Show
+            MapEditor.Show
             (
-                mapObject, "PlaceableItemEdit", new CEF.MapEditor.Mode(true, true, false, false, true, false),
+                mapObject, "PlaceableItemEdit", new MapEditor.Mode(true, true, false, false, true, false),
 
                 () =>
                 {
-                    CEF.Cursor.Show(true, true);
+                    Cursor.Show(true, true);
 
-                    CEF.Notification.ShowHint("Поставьте предмет в желаемое место (так же, можете задать ему желаемый поворот)");
+                    Notification.ShowHint("Поставьте предмет в желаемое место (так же, можете задать ему желаемый поворот)");
                 },
 
-                () => CEF.MapEditor.RenderPlaceItem(),
+                () => MapEditor.RenderPlaceItem(),
 
                 () =>
                 {
                     mapObject?.Destroy();
 
-                    CEF.Cursor.Show(false, false);
+                    Cursor.Show(false, false);
 
-                    CEF.Notification.ShowHint("Вы отменили установку предмета на землю!");
+                    Notification.ShowHint("Вы отменили установку предмета на землю!");
                 },
 
                 (pos, rot) =>
@@ -1012,9 +1017,9 @@ namespace BlaineRP.Client.Data
             {
                 mObj?.Destroy();
 
-                CEF.Cursor.Show(false, false);
+                Cursor.Show(false, false);
 
-                CEF.MapEditor.Close(false);
+                MapEditor.Close(false);
 
                 return;
             }
@@ -1027,18 +1032,18 @@ namespace BlaineRP.Client.Data
 
             if (itemIdx < 0)
             {
-                CEF.Cursor.Show(false, false);
+                Cursor.Show(false, false);
 
-                CEF.MapEditor.Close(false);
+                MapEditor.Close(false);
 
                 return;
             }
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
-            CEF.MapEditor.Close(false);
+            MapEditor.Close(false);
 
-            CEF.Inventory.BindedAction(5, "pockets", itemIdx, pos.X.ToString(), pos.Y.ToString(), pos.Z.ToString(), heading.ToString());
+            Inventory.BindedAction(5, "pockets", itemIdx, pos.X.ToString(), pos.Y.ToString(), pos.Z.ToString(), heading.ToString());
         }
         #endregion
     }

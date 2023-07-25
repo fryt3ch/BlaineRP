@@ -1,18 +1,18 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Quests;
-using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Jobs.Enums;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Quests;
+using BlaineRP.Client.Quests.Enums;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Data.Jobs
+namespace BlaineRP.Client.Game.Jobs.Types
 {
     public class Trucker : Job
     {
@@ -24,7 +24,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             public int MPIdx { get; set; }
 
-            public Data.Locations.Business TargetBusiness { get; set; }
+            public Client.Data.Locations.Business TargetBusiness { get; set; }
 
             public OrderInfo()
             {
@@ -34,7 +34,7 @@ namespace BlaineRP.Client.Data.Jobs
 
         public List<Vector3> MaterialsPositions { get; set; }
 
-        public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, Types.Trucker)
+        public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, JobTypes.Trucker)
         {
             this.MaterialsPositions = MaterialsPositions;
 
@@ -62,7 +62,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                 var id = uint.Parse(t[0]);
 
-                var business = Data.Locations.Business.All[int.Parse(t[1])];
+                var business = Client.Data.Locations.Business.All[int.Parse(t[1])];
 
                 return new OrderInfo() { Id = id, TargetBusiness = business, MPIdx = int.Parse(t[2]), Reward = uint.Parse(t[3]) };
             }).OrderByDescending(x => x.Reward).ToList();
@@ -126,7 +126,7 @@ namespace BlaineRP.Client.Data.Jobs
                         if (quest == null)
                             return;
 
-                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Trucker.OrderInfo>>("AOL");
+                        var orders = pData.CurrentJob?.GetCurrentData<List<Trucker.OrderInfo>>("AOL");
 
                         if (orders == null)
                             return;

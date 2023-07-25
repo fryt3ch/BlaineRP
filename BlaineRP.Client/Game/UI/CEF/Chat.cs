@@ -1,22 +1,22 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils.Game;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Commands.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Chat
@@ -28,7 +28,7 @@ namespace BlaineRP.Client.CEF
 
         private static Regex TodoMessageRegex = new Regex(@".+\*.+");
 
-        private static string TimeStr { get => Settings.User.Chat.ShowTime ? (Settings.User.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
+        private static string TimeStr { get => Settings.User.Chat.ShowTime ? (Settings.User.Interface.UseServerTime ? "[" + World.Core.ServerTime.ToString("HH:mm:ss") + "] " : "[" + World.Core.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
         public enum MessageTypes
         {
@@ -275,7 +275,7 @@ namespace BlaineRP.Client.CEF
                 if (pData == null)
                     return;
 
-                if (Data.Fractions.Fraction.AllMembers == null)
+                if (Fraction.AllMembers == null)
                     return;
 
                 var fData = pData.CurrentFraction;
@@ -289,7 +289,7 @@ namespace BlaineRP.Client.CEF
                 var rid = Utils.Convert.ToUInt16(args[1]);
                 var message = (string)args[2];
 
-                var mData = Data.Fractions.Fraction.AllMembers.GetValueOrDefault(cid);
+                var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
                 if (mData == null)
                     return;
@@ -321,7 +321,7 @@ namespace BlaineRP.Client.CEF
                 if (pData == null)
                     return;
 
-                if (Data.Fractions.Fraction.AllMembers == null)
+                if (Fraction.AllMembers == null)
                     return;
 
                 var fData = pData.CurrentFraction;
@@ -334,10 +334,10 @@ namespace BlaineRP.Client.CEF
                 var cid = Utils.Convert.ToUInt32(args[0]);
                 var rid = Utils.Convert.ToUInt16(args[1]);
                 var message = (string)args[2];
-                var fType = (Data.Fractions.Types)Utils.Convert.ToInt32(args[3]);
+                var fType = (FractionTypes)Utils.Convert.ToInt32(args[3]);
                 var fRank = Utils.Convert.ToByte(args[4]);
 
-                var tFData = Data.Fractions.Fraction.Get(fType);
+                var tFData = Fraction.Get(fType);
 
                 if (tFData == null)
                     return;

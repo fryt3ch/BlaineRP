@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Management.PedRelations
 {
     [Script(int.MaxValue)]
-    public class Relations
+    public class Core
     {
         public enum Types
         {
@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Additional
             Neutral = 3,
             Dislike = 4,
             Hate = 5,
-            Pedestrians = 255
+            Pedestrians = 255,
         }
 
         public enum Groups
@@ -24,9 +24,9 @@ namespace BlaineRP.Client.Additional
             Enemy,
         }
 
-        private static Dictionary<Groups, uint> GroupHashes = new Dictionary<Groups, uint>();
+        private static readonly Dictionary<Groups, uint> _groupHashes = new Dictionary<Groups, uint>();
 
-        public Relations()
+        public Core()
         {
             foreach (Groups group in (Groups[])Enum.GetValues(typeof(Groups)))
             {
@@ -34,16 +34,16 @@ namespace BlaineRP.Client.Additional
 
                 RAGE.Game.Ped.AddRelationshipGroup(group.ToString(), ref hash);
 
-                GroupHashes.Add(group, (uint)hash);
+                _groupHashes.Add(group, (uint)hash);
             }
 
-            RAGE.Game.Ped.SetRelationshipBetweenGroups((int)Types.Companion, GroupHashes[Groups.Friendly], GroupHashes[Groups.Friendly]);
-            RAGE.Game.Ped.SetRelationshipBetweenGroups((int)Types.Hate, GroupHashes[Groups.Friendly], GroupHashes[Groups.Enemy]);
+            RAGE.Game.Ped.SetRelationshipBetweenGroups((int)Types.Companion, _groupHashes[Groups.Friendly], _groupHashes[Groups.Friendly]);
+            RAGE.Game.Ped.SetRelationshipBetweenGroups((int)Types.Hate, _groupHashes[Groups.Friendly], _groupHashes[Groups.Enemy]);
 
             //SetRelationshipGroup(RAGE.Elements.Player.LocalPlayer, Groups.Friendly);
         }
 
-        public static void SetRelationshipGroup(RAGE.Elements.Player player, Groups group) => player.SetRelationshipGroupHash(GroupHashes[group]);
-        public static Groups GetRelationshipGroup(RAGE.Elements.Player player) => GroupHashes.Where(x => x.Value == player.GetRelationshipGroupHash()).Select(x => x.Key).FirstOrDefault();
+        public static void SetRelationshipGroup(RAGE.Elements.Player player, Groups group) => player.SetRelationshipGroupHash(_groupHashes[group]);
+        public static Groups GetRelationshipGroup(RAGE.Elements.Player player) => _groupHashes.Where(x => x.Value == player.GetRelationshipGroupHash()).Select(x => x.Key).FirstOrDefault();
     }
 }

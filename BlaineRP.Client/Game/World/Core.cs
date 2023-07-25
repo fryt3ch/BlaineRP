@@ -2,20 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Local;
 using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World.Enums;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Management.Doors.Core;
 
 namespace BlaineRP.Client.Game.World
 {
     [Script(int.MaxValue)]
-    public class WorldCore
+    public partial class Core
     {
         public static DateTime ServerTime { get; private set; } = DateTime.UtcNow;
 
@@ -23,144 +21,7 @@ namespace BlaineRP.Client.Game.World
 
         public static long ServerTimestampMilliseconds => GetSharedData<long>("cst");
 
-        public class ItemOnGround
-        {
-            public static DateTime LastShowed;
-            public static DateTime LastSent;
-
-            public enum Types : byte
-            {
-                /// <summary>Стандартный тип предмета на земле</summary>
-                /// <remarks>Автоматически удаляется с определенными условиями, может быть подобран кем угодно</remarks>
-                Default = 0,
-
-                /// <summary>Тип предмета на земле, который был намеренно установлен игроком (предметы, наследующие вбстрактный класс PlaceableItem)</summary>
-                /// <remarks>Предметы данного типа не удаляется автоматически, так же не могут быть подобраны кем угодно (пока действуют определенные условия)</remarks>
-                PlacedItem,
-            }
-
-            public MapObject Object { get; set; }
-
-            public Types Type => (Types)(byte)Object.GetSharedData<int>("IOG", 0);
-
-            public int Amount => Object.GetSharedData<int>("A", 0);
-
-            public string Id => Object.GetSharedData<string>("I", null);
-
-            public uint Uid => Utils.Convert.ToUInt32(Object.GetSharedData<object>("U", 0));
-
-            public bool IsLocked => Object.GetSharedData<bool>("L", false);
-
-            public string Name { get; private set; }
-
-            private ItemOnGround(MapObject Object)
-            {
-                this.Object = Object;
-
-                this.Name = Data.Items.GetName(Id);
-            }
-
-            public static ItemOnGround GetItemOnGroundObject(MapObject obj)
-            {
-                if (obj == null)
-                    return null;
-
-                if (ItemsOnGround.Where(x => x.Object == obj).FirstOrDefault() is ItemOnGround existingIog)
-                    return existingIog;
-
-                return new ItemOnGround(obj);
-            }
-
-            public async void TakeItem()
-            {
-                if (Utils.Misc.IsAnyCefActive(true))
-                    return;
-
-                if (Player.LocalPlayer.IsInAnyVehicle(false))
-                    return;
-
-                if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Cuffed, PlayerActions.Types.Frozen))
-                    return;
-
-                if (Amount == 1)
-                {
-                    if (LastSent.IsSpam(500, false, false))
-                        return;
-
-                    Events.CallRemote("Inventory::Take", Uid, 1);
-
-                    LastSent = WorldCore.ServerTime;
-                }
-                else
-                {
-                    if (LastShowed.IsSpam(500, false, false))
-                        return;
-
-                    LastShowed = WorldCore.ServerTime;
-
-                    var iog = this;
-
-                    await ActionBox.ShowRange
-                    (
-                        "ItemOnGroundTakeRange", string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, ActionBox.RangeSubTypes.Default,
-
-                        ActionBox.DefaultBindAction,
-
-                        (rType, amountD) =>
-                        {
-                            if (WorldCore.ItemOnGround.LastSent.IsSpam(500, false, true))
-                                return;
-
-                            int amount;
-
-                            if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
-                                return;
-
-                            ActionBox.Close(true);
-
-                            if (iog?.Object?.Exists != true)
-                                return;
-
-                            if (Player.LocalPlayer.IsInAnyVehicle(false))
-                                return;
-
-                            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Cuffed, PlayerActions.Types.Frozen))
-                                return;
-
-                            if (rType == ActionBox.ReplyTypes.OK)
-                            {
-                                Events.CallRemote("Inventory::Take", iog.Uid, amount);
-
-                                WorldCore.ItemOnGround.LastSent = WorldCore.ServerTime;
-                            }
-                        },
-
-                        null
-                    );
-                }
-            }
-        }
-
         public static bool Preloaded { get; private set; }
-
-        public enum WeatherTypes : byte
-        {
-            BLIZZARD = 0,
-            CLEAR,
-            CLEARING,
-            CLOUDS,
-            EXTRASUNNY,
-            FOGGY,
-            HALLOWEEN,
-            NEUTRAL,
-            OVERCAST,
-            RAIN,
-            SMOG,
-            SNOW,
-            SNOWLIGHT,
-            THUNDER,
-            XMAS,
-        }
 
         public static WeatherTypes CurrentWeatherServer => (WeatherTypes)GetSharedData<int>("Weather");
 
@@ -225,130 +86,6 @@ namespace BlaineRP.Client.Game.World
             ServerDataColshape = Entities.Colshapes.All.Where(x => x?.HasSharedData("ServerData") == true).FirstOrDefault();
         }
 
-        public static void Preload()
-        {
-            if (Preloaded)
-                return;
-
-            Preloaded = true;
-
-            AddDataHandler("cst", (value, oldValue) =>
-            {
-                var of = DateTimeOffset.FromUnixTimeMilliseconds((long)value);
-
-                ServerTime = of.DateTime;
-                LocalTime = of.Add(-Settings.App.Profile.Current.General.TimeUtcOffset).LocalDateTime;
-            });
-
-            for (int i = 0; i < RAGE.Elements.Entities.Objects.All.Count; i++)
-            {
-                var x = RAGE.Elements.Entities.Objects.All[i];
-
-                if (x.GetSharedData<int>("IOG", -1) >= 0)
-                {
-                    x.NotifyStreaming = true;
-                }
-            }
-
-            for (int i = 0; i < RAGE.Elements.Entities.Colshapes.All.Count; i++)
-            {
-                var x = RAGE.Elements.Entities.Colshapes.All[i];
-
-                if (x == null)
-                    continue;
-
-                if (x.HasSharedData("Type") != true)
-                    continue;
-
-                Events.CallLocal("ExtraColshape::New", x);
-            }
-
-            AddDataHandler("Weather", (value, oldValue) =>
-            {
-                var weather = (WeatherTypes)(int)value;
-
-                if (CurrentWeatherCustom != null || CurrentWeatherSpecial != null)
-                    return;
-
-                SetWeatherNow(weather);
-            });
-
-            InvokeHandler("Weather", GetSharedData<int>("Weather"), 0);
-
-            foreach (var x in Data.Locations.Business.All.Values)
-            {
-                var id = x.Id;
-                var obj = x;
-
-                AddDataHandler($"Business::{id}::OName", (value, oldValue) =>
-                {
-                    var name = (string)value;
-
-                    obj.UpdateOwnerName(name);
-                });
-
-                InvokeHandler($"Business::{id}::OName", obj.OwnerName, null);
-            }
-
-            foreach (var x in Data.Locations.House.All.Values)
-            {
-                var id = x.Id;
-                var obj = x;
-
-                AddDataHandler($"House::{id}::OName", (value, oldValue) =>
-                {
-                    var name = (string)value;
-
-                    obj.UpdateOwnerName(name);
-                });
-
-                InvokeHandler($"House::{id}::OName", obj.OwnerName, null);
-            }
-
-            foreach (var x in Data.Locations.Apartments.All.Values)
-            {
-                var id = x.Id;
-                var obj = x;
-
-                AddDataHandler($"Apartments::{id}::OName", (value, oldValue) =>
-                {
-                    var name = (string)value;
-
-                    obj.UpdateOwnerName(name);
-                });
-
-                //InvokeHandler($"Apartments::{id}::OName", GetSharedData<string>($"Apartments::{id}::OName"), null);
-            }
-
-            foreach (var x in Data.Locations.ApartmentsRoot.All.Values)
-                x.UpdateTextLabel();
-
-            foreach (var x in Data.Locations.Garage.All.Values)
-            {
-                var id = x.Id;
-                var obj = x;
-
-                AddDataHandler($"Garages::{id}::OName", (value, oldValue) =>
-                {
-                    var name = (string)value;
-
-                    obj.UpdateOwnerName(name);
-                });
-
-                InvokeHandler($"Garages::{id}::OName", obj.OwnerName, null);
-            }
-
-            Data.Fractions.Gang.GangZone.PostInitialize();
-
-            Core.Door.PostInitializeAll();
-
-            foreach (var x in Data.Fractions.Fraction.All)
-            {
-                Data.Fractions.Fraction.OnStorageLockedChanged($"FRAC::SL_{(int)x.Key}", x.Value.StorageLocked, null);
-                Data.Fractions.Fraction.OnCreationWorkbenchLockedChanged($"FRAC::CWBL_{(int)x.Key}", x.Value.CreationWorkbenchLocked, null);
-            }
-        }
-
         public static async System.Threading.Tasks.Task OnMapObjectStreamIn(MapObject obj)
         {
             if (obj.IsLocal)
@@ -400,7 +137,7 @@ namespace BlaineRP.Client.Game.World
             obj.ResetData();
         }
 
-        public WorldCore()
+        public Core()
         {
             Events.AddDataHandler("IOG", (Entity entity, object value, object oldValue) =>
             {

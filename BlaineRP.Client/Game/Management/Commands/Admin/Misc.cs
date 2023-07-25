@@ -1,9 +1,10 @@
-﻿using BlaineRP.Client.Extensions.System;
+﻿using System;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
-using System;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
@@ -16,18 +17,18 @@ namespace BlaineRP.Client.Management.Commands
         [Command("dopayday", true, "Сделать PayDay")]
         public static void DoPayDay()
         {
-            if (LastSent.IsSpam(500, false, true))
+            if (Commands.Core.LastSent.IsSpam(500, false, true))
                 return;
 
-            CallRemote("s_payday");
+            Commands.Core.CallRemote("s_payday");
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("settime", true, "st")]
         public static void SetTime(byte hour, byte minute = 0, byte second = 0)
         {
-            var realDate = Sync.World.ServerTime;
+            var realDate = World.Core.ServerTime;
 
             if (hour >= 24)
                 hour = 0;
@@ -65,34 +66,34 @@ namespace BlaineRP.Client.Management.Commands
         [Command("setclothes", true, "Надеть временную одежду", "sc", "sclothes")]
         public static void SetClothes(uint slot, uint drawable, uint texture = 0)
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, true);
+            Commands.Core.CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, true);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("setaccs", true, "Надеть временный аксессуар", "sa", "saccs")]
         public static void SetAccs(uint slot, uint drawable, uint texture = 0)
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, false);
+            Commands.Core.CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, false);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("resetclothes", true, "Сбросить временную одежду (и аксессуары)", "rsc", "rsclothes")]
         public static void ResetClothes()
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, -1, -1, -1, true);
+            Commands.Core.CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, -1, -1, -1, true);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
     }
 }

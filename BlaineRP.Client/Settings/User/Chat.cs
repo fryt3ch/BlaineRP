@@ -1,4 +1,7 @@
-﻿namespace BlaineRP.Client.Settings.User
+﻿using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.UI.CEF;
+
+namespace BlaineRP.Client.Settings.User
 {
     public static class Chat
     {
@@ -15,9 +18,9 @@
         private static int _Height;
         private static int _FontSize;
 
-        public static bool UseFilter { get => _UseFilter; set { if (value != _UseFilter) Additional.Storage.SetData("Settings::Chat::UseFilter", value); _UseFilter = value; CEF.Menu.UpdateToggle("sett-filter", value); } }
-        public static bool ShowTime { get => _ShowTime; set { if (value != _ShowTime) Additional.Storage.SetData("Settings::Chat::ShowTime", value); _ShowTime = value; CEF.Menu.UpdateToggle("sett-timestamp", value); } }
-        public static int Height { get => _Height; set { if (value != _Height) Additional.Storage.SetData("Settings::Chat::Height", value); _Height = value; CEF.Chat.SetHeight(value); } }
-        public static int FontSize { get => _FontSize; set { if (value != _FontSize) Additional.Storage.SetData("Settings::Chat::FontSize", value); _FontSize = value; CEF.Chat.SetFontSize(value); } }
+        public static bool UseFilter { get => _UseFilter; set { if (value != _UseFilter) RageStorage.SetData("Settings::Chat::UseFilter", value); _UseFilter = value; Menu.UpdateToggle("sett-filter", value); } }
+        public static bool ShowTime { get => _ShowTime; set { if (value != _ShowTime) RageStorage.SetData("Settings::Chat::ShowTime", value); _ShowTime = value; Menu.UpdateToggle("sett-timestamp", value); } }
+        public static int Height { get => _Height; set { if (value != _Height) RageStorage.SetData("Settings::Chat::Height", value); _Height = value; Game.UI.CEF.Chat.SetHeight(value); } }
+        public static int FontSize { get => _FontSize; set { if (value != _FontSize) RageStorage.SetData("Settings::Chat::FontSize", value); _FontSize = value; Game.UI.CEF.Chat.SetFontSize(value); } }
     }
 }

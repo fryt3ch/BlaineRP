@@ -1,13 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Linq;
-using BlaineRP.Client.Input;
+using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Numberplates
@@ -18,7 +23,7 @@ namespace BlaineRP.Client.CEF
 
         private static int EscBindIdx { get; set; } = -1;
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public Numberplates()
         {
@@ -28,14 +33,14 @@ namespace BlaineRP.Client.CEF
                 var num = (int)args[1];
                 var signsAmount = (int)args[2];
 
-                var npcData = Data.NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
+                var npcData = NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
 
                 if (npcData == null)
                     return;
 
                 if (!LastSent.IsSpam(1000, false, true))
                 {
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = (string)await npcData.CallRemoteProc("cop_np_buy", $"np_{num}", signsAmount, byCash ? 1 : 0);
 
@@ -51,7 +56,7 @@ namespace BlaineRP.Client.CEF
         {
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Data.Fractions.Police.NumberplatePrices.Select(x => x.Value.Select(y => System.Math.Floor(y * margin))) });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Police.NumberplatePrices.Select(x => x.Value.Select(y => System.Math.Floor(y * margin))) });
 
             CEF.Cursor.Show(true, true);
 
@@ -59,7 +64,7 @@ namespace BlaineRP.Client.CEF
 
             Player.LocalPlayer.SetData("NumberplatesBuy::NpcId", npcId);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

@@ -1,21 +1,20 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.Animations.Enums;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Animations
@@ -36,7 +35,7 @@ namespace BlaineRP.Client.CEF
 
         public Animations()
         {
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             TempBinds = new List<int>();
             Queue = new Queue<(string, object[])>();
@@ -72,7 +71,7 @@ namespace BlaineRP.Client.CEF
 
                         Events.CallRemote("Players::SetAnim", (int)anim);
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
 
                 }

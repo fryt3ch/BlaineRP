@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 
@@ -22,12 +23,12 @@ namespace BlaineRP.Client.Input
             { BindTypes.Help, 6 },
         };
 
-        public static Dictionary<BindTypes, CEF.HUD.Menu.Types> HudMenuBinds { get; private set; } = new Dictionary<BindTypes, CEF.HUD.Menu.Types>()
+        public static Dictionary<BindTypes, HUD.Menu.Types> HudMenuBinds { get; private set; } = new Dictionary<BindTypes, HUD.Menu.Types>()
         {
-            { BindTypes.Animations, CEF.HUD.Menu.Types.Animations },
-            { BindTypes.Inventory, CEF.HUD.Menu.Types.Inventory },
-            { BindTypes.Phone, CEF.HUD.Menu.Types.Phone },
-            { BindTypes.BlipsMenu, CEF.HUD.Menu.Types.BlipsMenu },
+            { BindTypes.Animations, HUD.Menu.Types.Animations },
+            { BindTypes.Inventory, HUD.Menu.Types.Inventory },
+            { BindTypes.Phone, HUD.Menu.Types.Phone },
+            { BindTypes.BlipsMenu, HUD.Menu.Types.BlipsMenu },
         };
 
         public static Action CurrentExtraAction0 { get; set; }
@@ -41,10 +42,10 @@ namespace BlaineRP.Client.Input
         public static void Add(ExtraBind bind, bool enable = true)
         {
             if (_helpBinds.TryGetValue(bind.Type, out var helpBind))
-                CEF.Browser.Window.ExecuteJs("Hud.changeHelpKey", helpBind, bind.GetKeyString());
+                Browser.Window.ExecuteJs("Hud.changeHelpKey", helpBind, bind.GetKeyString());
 
             if (HudMenuBinds.TryGetValue(bind.Type, out var menuBind))
-                CEF.HUD.Menu.UpdateCurrentTypes(bind.Keys.Length == 0, menuBind);
+                HUD.Menu.UpdateCurrentTypes(bind.Keys.Length == 0, menuBind);
 
             if (Binds.Remove(bind.Type, out var oldBind))
                 oldBind.Disable();
@@ -104,10 +105,10 @@ namespace BlaineRP.Client.Input
                     {
                         if (!RAGE.Game.Ui.IsPauseMenuActive())
                         {
-                            if (CEF.Cursor.IsVisible)
-                                CEF.Cursor.Show(false, false);
+                            if (Cursor.IsVisible)
+                                Cursor.Show(false, false);
                             else
-                                CEF.Cursor.Show(!CursorNotFreezeInput, true);
+                                Cursor.Show(!CursorNotFreezeInput, true);
                         }
                     },
                     true,

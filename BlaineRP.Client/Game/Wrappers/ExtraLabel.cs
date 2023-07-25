@@ -1,16 +1,16 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using System.Collections.Generic;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Wrappers
 {
     public class ExtraLabel
     {
         private static List<ExtraLabel> All { get; set; } = new List<ExtraLabel>();
         private static List<ExtraLabel> Streamed { get; set; } = new List<ExtraLabel>();
 
-        private static Utils.UidHandlers.UInt16 UidHandler = new Utils.UidHandlers.UInt16(0);
+        private static readonly Utils.UidHandlers.UInt16 _uidHandler = new Utils.UidHandlers.UInt16(0);
 
         private Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
@@ -42,7 +42,7 @@ namespace BlaineRP.Client.Additional
 
             return;
 
-            Id = UidHandler.MoveNextUid();
+            Id = _uidHandler.MoveNextUid();
 
             All.Add(this);
 
@@ -115,7 +115,7 @@ namespace BlaineRP.Client.Additional
 
             Streamed.Remove(this);
 
-            UidHandler.SetUidAsFree(Id);
+            _uidHandler.SetUidAsFree(Id);
 
             Data.Clear();
 

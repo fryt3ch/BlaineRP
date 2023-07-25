@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using BlaineRP.Client.Game.EntitiesData.Enums;
 
 namespace BlaineRP.Client.Settings.App
 {
@@ -38,7 +39,7 @@ namespace BlaineRP.Client.Settings.App
         public static uint StuffDimension => GetOther<uint>("stuffDimension");
         public static int PlayerMaxHealth => GetOther<int>("playerMaxHealth");
 
-        public static Dictionary<EntitiesData.Enums.SkillTypes, int> PlayerMaxSkills => GetOther<Dictionary<EntitiesData.Enums.SkillTypes, int>>("playerMaxSkills");
+        public static Dictionary<SkillTypes, int> PlayerMaxSkills => GetOther<Dictionary<SkillTypes, int>>("playerMaxSkills");
 
         #region TO_REPLACE
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client
 {
@@ -6,32 +7,6 @@ namespace BlaineRP.Client
     {
         public static partial class Notifications
         {
-            public static class Blip
-            {
-                public static string Header = "GPS";
-
-                public static string ReachedGPS = "Вы достигли точки маршрута!";
-
-                public static Dictionary<Additional.ExtraBlip.Types, string> TypesText = new Dictionary<Additional.ExtraBlip.Types, string>()
-                {
-                    { Additional.ExtraBlip.Types.GPS, "Местоположение отмечено у вас на карте!" }
-                };
-            }
-
-            public static class AntiSpam
-            {
-                public static string Header = "Анти-спам";
-
-                public static string DontFlood = "Не так быстро!";
-                public static string Warning = "Прекратите спаммить!\nВ случае продолжения, вы будете кикнуты!\nВаш лимит: {0}/{1}";
-
-                public static string CooldownText1 = "Вы должны подождать некоторое время, прежде чем вновь сможете сделать это!";
-                public static string CooldownText2 = "Вы устали, подождите некоторое время и возвращайтесь!";
-                public static string CooldownText3 = "Подождите еще {0}, прежде чем сделать это!";
-
-                public static string CooldownText4 = "Сейчас вы не можете сделать это, приходите завтра!";
-            }
-
             public static class General
             {
                 public static string Kick = "Вы были выгнаны с сервера!\nПричина: {0}";
@@ -350,12 +325,12 @@ namespace BlaineRP.Client
 
                 public static string Added = "{0} у вас в подарках!\n\nЗабрать: {1} - Меню - Подарки";
 
-                public static Dictionary<CEF.Menu.GiftSourceTypes, string> SourceNames = new Dictionary<CEF.Menu.GiftSourceTypes, string>()
+                public static Dictionary<Menu.GiftSourceTypes, string> SourceNames = new Dictionary<Menu.GiftSourceTypes, string>()
                 {
-                    { CEF.Menu.GiftSourceTypes.Server, "Сервер" },
-                    { CEF.Menu.GiftSourceTypes.Shop, "Магазин" },
-                    { CEF.Menu.GiftSourceTypes.Achievement, "Достижение" },
-                    { CEF.Menu.GiftSourceTypes.Casino, "Казино" },
+                    { Menu.GiftSourceTypes.Server, "Сервер" },
+                    { Menu.GiftSourceTypes.Shop, "Магазин" },
+                    { Menu.GiftSourceTypes.Achievement, "Достижение" },
+                    { Menu.GiftSourceTypes.Casino, "Казино" },
                 };
             }
 

@@ -5,10 +5,14 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Sync;
+using Core = BlaineRP.Client.Input.Core;
 using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Data.Minigames
@@ -91,7 +95,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                 this.CurrentState = StateTypes.Opening;
 
-                CreationTime = Sync.World.ServerTime;
+                CreationTime = Game.World.Core.ServerTime;
                 RotationX = rData.TargetRotation.X;
             }
 
@@ -252,7 +256,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                 task = new AsyncTask(async () =>
                 {
-                    while (Additional.SkyCamera.IsFadedOut)
+                    while (SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
                     if (!AsyncTask.Methods.IsTaskStillPending("ShootingRange", task))
@@ -274,7 +278,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             CurrentType = type;
 
-            Sync.WeaponSystem.DisabledFiring = true;
+            Game.Management.Weapons.Core.DisabledFiring = true;
 
             Targets = new List<Target>();
 
@@ -297,7 +301,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             LastTargetAdded = DateTime.MinValue;
 
-            CEF.Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, System.Math.Round(MinAccuracy, 2)), false);
+            Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, System.Math.Round(MinAccuracy, 2)), false);
 
             AsyncTask task = null;
 
@@ -309,14 +313,14 @@ namespace BlaineRP.Client.Data.Minigames
                 if (!AsyncTask.Methods.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
-                var scaleformCounter = Additional.Scaleform.CreateCounter("srange_s_counter", Locale.Get("SCALEFORM_SRANGE_CDOWN_HEADER"), Locale.Get("SCALEFORM_SRANGE_CDOWN_CONTENT"), 5, Additional.Scaleform.CounterSoundTypes.Deep);
+                var scaleformCounter = Scaleform.CreateCounter("srange_s_counter", Locale.Get("SCALEFORM_SRANGE_CDOWN_HEADER"), Locale.Get("SCALEFORM_SRANGE_CDOWN_CONTENT"), 5, Scaleform.CounterSoundTypes.Deep);
 
                 await RAGE.Game.Invoker.WaitAsync(5000);
 
                 if (!AsyncTask.Methods.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
-                Sync.WeaponSystem.DisabledFiring = false;
+                Game.Management.Weapons.Core.DisabledFiring = false;
 
                 Events.OnPlayerWeaponShot -= ShotHandler;
                 Events.OnPlayerWeaponShot += ShotHandler;
@@ -342,11 +346,11 @@ namespace BlaineRP.Client.Data.Minigames
             AsyncTask.Methods.CancelPendingTask("ShootingRange");
             AsyncTask.Methods.CancelPendingTask("SRange::Start::D");
 
-            Additional.Scaleform.Get("srange_s_counter")?.Destroy();
+            Scaleform.Get("srange_s_counter")?.Destroy();
 
             CurrentType = null;
 
-            Sync.WeaponSystem.DisabledFiring = false;
+            Game.Management.Weapons.Core.DisabledFiring = false;
 
             if (Targets != null)
             {
@@ -371,11 +375,11 @@ namespace BlaineRP.Client.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", Core.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", Input.Core.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            CEF.Cursor.OnTickCursor();
+            Cursor.OnTickCursor();
 
-            if (Core.IsDown(RAGE.Ui.VirtualKeys.Escape))
+            if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Escape))
             {
                 Finish();
 
@@ -414,13 +418,13 @@ namespace BlaineRP.Client.Data.Minigames
                 Graphics.DrawText(accText, 0.5f, 0.900f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
 
-            if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)
+            if (Targets.Count <= 5 && Game.World.Core.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)
             {
                 var target = Target.TryCreateNew(srType);
 
                 if (target != null)
                 {
-                    LastTargetAdded = Sync.World.ServerTime;
+                    LastTargetAdded = Game.World.Core.ServerTime;
                 }
             }
 
@@ -479,7 +483,7 @@ namespace BlaineRP.Client.Data.Minigames
                 }
                 else if (x.CurrentState == Target.StateTypes.Idle)
                 {
-                    if (Sync.World.ServerTime.Subtract(x.CreationTime).TotalMilliseconds >= OldTargetDelay)
+                    if (Game.World.Core.ServerTime.Subtract(x.CreationTime).TotalMilliseconds >= OldTargetDelay)
                     {
                         RAGE.Game.Audio.PlaySoundFromEntity(-1, "Pin_Bad", obj.Handle, "DLC_HEIST_BIOLAB_PREP_HACKING_SOUNDS", false, 0);
 
@@ -491,14 +495,14 @@ namespace BlaineRP.Client.Data.Minigames
                     {
                         if (x.Object.HasBeenDamagedByAnyPed())
                         {
-                            if (Sync.World.ServerTime.Subtract(LastShotRegistered).TotalMilliseconds < 100)
+                            if (Game.World.Core.ServerTime.Subtract(LastShotRegistered).TotalMilliseconds < 100)
                             {
                                 x.Object.ClearLastDamageEntity();
 
                                 continue;
                             }
 
-                            LastShotRegistered = Sync.World.ServerTime;
+                            LastShotRegistered = Game.World.Core.ServerTime;
 
                             //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Hit_Head_Black", obj.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
 

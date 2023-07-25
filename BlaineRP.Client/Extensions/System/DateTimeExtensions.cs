@@ -1,4 +1,5 @@
 ﻿using System;
+using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Extensions.System
 {
@@ -13,6 +14,6 @@ namespace BlaineRP.Client.Extensions.System
         /// <param name="timeout">Таймаут</param>
         /// <param name="updateTime">Обновить ли переданный DateTime на актуальный?</param>
         /// <param name="notify">Уведомить ли игрока о том, чтобы он подождал?</param>
-        public static bool IsSpam(this ref DateTime dt, int timeout = 500, bool updateTime = false, bool notify = false) => CEF.Notification.SpamCheck(ref dt, timeout, updateTime, notify);
+        public static bool IsSpam(this ref DateTime dt, int timeout = 500, bool updateTime = false, bool notify = false) => Notification.SpamCheck(ref dt, timeout, updateTime, notify);
     }
 }

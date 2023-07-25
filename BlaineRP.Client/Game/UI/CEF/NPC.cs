@@ -1,9 +1,8 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Utils;
-
 using RAGE;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class NPC
@@ -49,15 +48,15 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Misc.ReplaceNewLineHtml(text), buttons);
+            CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Utils.Misc.ReplaceNewLineHtml(text), buttons);
         }
 
         public static void Reply(int buttonId)
         {
-            if (Data.NPCs.NPC.CurrentNPC == null)
+            if (NPCs.NPC.CurrentNPC == null)
                 return;
 
-            Data.NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
+            NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
         }
     }
 }

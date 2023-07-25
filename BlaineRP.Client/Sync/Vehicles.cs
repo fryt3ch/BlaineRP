@@ -1,15 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.CEF;
-using BlaineRP.Client.EntitiesData;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
+
 using Newtonsoft.Json.Linq;
+
 using RAGE;
 using RAGE.Elements;
+using Camera = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Camera;
+using Core = BlaineRP.Client.Game.Management.Radio.Core;
+using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
 namespace BlaineRP.Client.Sync
 {
@@ -64,13 +77,13 @@ namespace BlaineRP.Client.Sync
 
             public ushort RemoteId { get; set; }
 
-            public Data.Vehicles.Vehicle VehicleData { get; set; }
+            public Game.Data.Vehicles.Vehicle VehicleData { get; set; }
 
             public int TimeToDelete { get; set; }
 
             public int TimeLeftToDelete { get; set; }
 
-            public RentedVehicle(ushort RemoteId, Data.Vehicles.Vehicle VehicleData)
+            public RentedVehicle(ushort RemoteId, Game.Data.Vehicles.Vehicle VehicleData)
             {
                 this.RemoteId = RemoteId;
                 this.VehicleData = VehicleData;
@@ -86,7 +99,7 @@ namespace BlaineRP.Client.Sync
                     Locale.Get("NOTIFICATION_HEADER_DEF"),
                     string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft,
                         $"\"{VehicleData.Name}\"",
-                        World.ServerTime.AddMilliseconds(TimeLeftToDelete).Subtract(World.ServerTime).GetBeautyString()));
+                        Game.World.Core.ServerTime.AddMilliseconds(TimeLeftToDelete).Subtract(Game.World.Core.ServerTime).GetBeautyString()));
             }
 
             public static void Check()
@@ -400,7 +413,7 @@ namespace BlaineRP.Client.Sync
                 Main.Render -= InVehicleRender;
                 Main.Render += InVehicleRender;
 
-                Data.NPC.CurrentNPC?.SwitchDialogue(false);
+                NPC.CurrentNPC?.SwitchDialogue(false);
 
                 var data = VehicleData.GetData(vehicle);
 
@@ -418,7 +431,7 @@ namespace BlaineRP.Client.Sync
 
                     InvokeHandler("Engine::On", data, data.EngineOn, null);
 
-                    Radio.SetCurrentRadioStationType(data.Radio);
+                    Core.SetCurrentRadioStationType(data.Radio);
                 }
                 else
                 {
@@ -603,9 +616,9 @@ namespace BlaineRP.Client.Sync
                                 {
                                     var veh = vData.Vehicle;
 
-                                    var statinTypeNum = value == null ? Radio.StationTypes.Off : (Radio.StationTypes)(int)value;
+                                    var statinTypeNum = value == null ? RadioStationTypes.Off : (RadioStationTypes)(int)value;
 
-                                    Radio.SetVehicleRadioStation(veh, statinTypeNum);
+                                    Core.SetVehicleRadioStation(veh, statinTypeNum);
                                 });
 
                             AddDataHandler("Trunk::Locked",
@@ -844,16 +857,16 @@ namespace BlaineRP.Client.Sync
 
                                     task = new AsyncTask(async () =>
                                         {
-                                            var time = World.ServerTime;
+                                            var time = Game.World.Core.ServerTime;
 
-                                            while (AsyncTask.Methods.IsTaskStillPending("Vehicles::WTS", task) && World.ServerTime.Subtract(time).TotalMilliseconds <= timeout)
+                                            while (AsyncTask.Methods.IsTaskStillPending("Vehicles::WTS", task) && Game.World.Core.ServerTime.Subtract(time).TotalMilliseconds <= timeout)
                                             {
                                                 await RAGE.Game.Invoker.WaitAsync(50);
 
                                                 if (!AsyncTask.Methods.IsTaskStillPending("Vehicles::WTS", task))
                                                     return;
 
-                                                if (Additional.SkyCamera.IsFadedOut || veh?.Exists != true)
+                                                if (SkyCamera.IsFadedOut || veh?.Exists != true)
                                                     continue;
 
                                                 if (Player.LocalPlayer.Vehicle == veh)
@@ -918,7 +931,7 @@ namespace BlaineRP.Client.Sync
 
                                             if (rType == ActionBox.ReplyTypes.OK || rType == ActionBox.ReplyTypes.Cancel)
                                             {
-                                                ActionBox.LastSent = World.ServerTime;
+                                                ActionBox.LastSent = Game.World.Core.ServerTime;
 
                                                 var res = (int)await Events.CallRemoteProc("Vehicles::JVRS", rType == ActionBox.ReplyTypes.OK);
 
@@ -1041,7 +1054,7 @@ namespace BlaineRP.Client.Sync
 
                                 Events.CallRemote("Players::ToggleCruiseControl", vehicle?.GetSpeed() ?? 0f);
 
-                                _lastCruiseControlToggled = World.ServerTime;
+                                _lastCruiseControlToggled = Game.World.Core.ServerTime;
                             }
 
                             public static void CruiseControlTick()
@@ -1112,14 +1125,14 @@ namespace BlaineRP.Client.Sync
                                 {
                                     var vehicle = Player.LocalPlayer.Vehicle;
 
-                                    if (vehicle?.Exists != true || Data.Vehicles.GetByModel(vehicle.Model)?.Type != Data.Vehicles.Vehicle.Types.Car)
+                                    if (vehicle?.Exists != true || Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type != Game.Data.Vehicles.Types.Car)
                                         return;
 
                                     if (_lastBeltToggled.IsSpam(1000, false, false))
                                         return;
                                 }
 
-                                _lastBeltToggled = World.ServerTime;
+                                _lastBeltToggled = Game.World.Core.ServerTime;
 
                                 Events.CallRemote("Players::ToggleBelt");
                             }
@@ -1129,13 +1142,13 @@ namespace BlaineRP.Client.Sync
                                 RAGE.Game.Pad.DisableControlAction(32, 75, true);
 
                                 if (RAGE.Game.Pad.IsDisabledControlJustPressed(32, 75))
-                                    if (World.ServerTime.Subtract(_lastSeatBeltShowed).TotalMilliseconds > 500)
+                                    if (Game.World.Core.ServerTime.Subtract(_lastSeatBeltShowed).TotalMilliseconds > 500)
                                     {
                                         Notification.Show(Notification.Types.Information,
                                             Locale.Notifications.Vehicles.SeatBelt.Header,
                                             Locale.Notifications.Vehicles.SeatBelt.TakeOffToLeave);
 
-                                        _lastSeatBeltShowed = World.ServerTime;
+                                        _lastSeatBeltShowed = Game.World.Core.ServerTime;
                                     }
 
                                 if (Player.LocalPlayer.Vehicle?.Exists != true)
@@ -1153,7 +1166,7 @@ namespace BlaineRP.Client.Sync
                                 if (_lastDoorsLockToggled.IsSpam(500, false, true))
                                     return;
 
-                                _lastDoorsLockToggled = World.ServerTime;
+                                _lastDoorsLockToggled = Game.World.Core.ServerTime;
 
                                 if (vehicle == null)
                                 {
@@ -1236,7 +1249,7 @@ namespace BlaineRP.Client.Sync
                                 if (_lastEngineToggled.IsSpam(1000, false, true))
                                     return;
 
-                                _lastEngineToggled = World.ServerTime;
+                                _lastEngineToggled = Game.World.Core.ServerTime;
 
                                 var res = (int)await Events.CallRemoteProc("Vehicles::ET", veh, (byte)(state ? 1 : 0));
 
@@ -1270,7 +1283,7 @@ namespace BlaineRP.Client.Sync
                                 if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                     return;
 
-                                _lastIndicatorToggled = World.ServerTime;
+                                _lastIndicatorToggled = Game.World.Core.ServerTime;
 
                                 var state = vData.IndicatorsState;
 
@@ -1324,7 +1337,7 @@ namespace BlaineRP.Client.Sync
                                 if (vehClass == 13 || vehClass == 14 || vehClass == 15 || vehClass == 16)
                                     return;
 
-                                _lastLightsToggled = World.ServerTime;
+                                _lastLightsToggled = Game.World.Core.ServerTime;
 
                                 var state = vData.LightsOn;
 
@@ -1338,7 +1351,7 @@ namespace BlaineRP.Client.Sync
                                 if (_lastDoorsLockToggled.IsSpam(1000, false, true))
                                     return;
 
-                                _lastDoorsLockToggled = World.ServerTime;
+                                _lastDoorsLockToggled = Game.World.Core.ServerTime;
 
                                 if (vehicle == null)
                                 {
@@ -1390,7 +1403,7 @@ namespace BlaineRP.Client.Sync
                                 if (_lastDoorsLockToggled.IsSpam(500, false, true))
                                     return;
 
-                                _lastDoorsLockToggled = World.ServerTime;
+                                _lastDoorsLockToggled = Game.World.Core.ServerTime;
 
                                 if (vehicle == null)
                                 {
@@ -1447,9 +1460,9 @@ namespace BlaineRP.Client.Sync
                                 if (!vehicle.HasLandingGear())
                                     return;
 
-                                var vType = Data.Vehicles.GetByModel(vehicle.Model);
+                                var vType = Game.Data.Vehicles.Core.GetByModel(vehicle.Model);
 
-                                if (vType?.Type != Data.Vehicles.Vehicle.Types.Plane || vType.ID == "duster")
+                                if (vType?.Type != Game.Data.Vehicles.Types.Plane || vType.ID == "duster")
                                     return;
 
                                 if (vehicle.IsLocal)
@@ -1468,7 +1481,7 @@ namespace BlaineRP.Client.Sync
                                     if (_lastCruiseControlToggled.IsSpam(1000, false, true))
                                         return;
 
-                                    _lastCruiseControlToggled = World.ServerTime;
+                                    _lastCruiseControlToggled = Game.World.Core.ServerTime;
 
                                     var state = vData.IsPlaneChassisOff;
 
@@ -1580,7 +1593,7 @@ namespace BlaineRP.Client.Sync
                                 if (Player.LocalPlayer.IsInAnyVehicle(false) || _lastVehicleExitedTime.IsSpam(1000, false, false))
                                     return;
 
-                                if (CEF.Phone.Apps.Camera.IsActive)
+                                if (Camera.IsActive)
                                     return;
 
                                 if (Player.LocalPlayer.GetScriptTaskStatus(2500551826) != 7)
@@ -1632,7 +1645,7 @@ namespace BlaineRP.Client.Sync
 
                                 Player.LocalPlayer.SetData("TEV::V", veh);
                                 Player.LocalPlayer.SetData("TEV::S", seatId);
-                                Player.LocalPlayer.SetData("TEV::T", World.ServerTime);
+                                Player.LocalPlayer.SetData("TEV::T", Game.World.Core.ServerTime);
                                 Invoker.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, -1, seatId - 1, 1.5f, 1, 0);
 
                                 Main.Render -= EnterVehicleRender;
@@ -1645,7 +1658,7 @@ namespace BlaineRP.Client.Sync
 
                                 var seatId = Player.LocalPlayer.GetData<int>("TEV::S");
                                 var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
-                                var timePassed = World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
+                                var timePassed = Game.World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
                                 if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) ||
                                     Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.App.Static.EntityInteractionMaxDistance ||
@@ -1674,7 +1687,7 @@ namespace BlaineRP.Client.Sync
                             {
                                 if (!Player.LocalPlayer.IsInAnyVehicle(false))
                                 {
-                                    _lastVehicleExitedTime = World.ServerTime;
+                                    _lastVehicleExitedTime = Game.World.Core.ServerTime;
 
                                     Main.Render -= InVehicleRender;
                                 }
@@ -1993,7 +2006,7 @@ namespace BlaineRP.Client.Sync
 
                                     pData.AutoPilot = null;
 
-                                    var blip = Player.LocalPlayer.GetData<Additional.ExtraBlip>("AutoPilot::Blip");
+                                    var blip = Player.LocalPlayer.GetData<ExtraBlip>("AutoPilot::Blip");
 
                                     if (blip != null)
                                     {
@@ -2029,7 +2042,7 @@ namespace BlaineRP.Client.Sync
 
                                     if (!vData.Data.HasAutoPilot)
                                     {
-                                        if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Plane)
+                                        if (vData.Data.Type != Game.Data.Vehicles.Types.Plane)
                                             Notification.Show(Notification.Types.Error,
                                                 Locale.Notifications.Vehicles.Additional.HeaderAutoPilot,
                                                 Locale.Notifications.Vehicles.Additional.Unsupported);
@@ -2050,7 +2063,7 @@ namespace BlaineRP.Client.Sync
 
                                     RAGE.Game.Ui.ClearGpsPlayerWaypoint();
 
-                                    var blip = new Additional.ExtraBlip(162,
+                                    var blip = new ExtraBlip(162,
                                         pos,
                                         null,
                                         1f,
@@ -2061,7 +2074,7 @@ namespace BlaineRP.Client.Sync
                                         0,
                                         0f,
                                         Player.LocalPlayer.Dimension,
-                                        Additional.ExtraBlip.Types.AutoPilot);
+                                        ExtraBlip.Types.AutoPilot);
 
                                     blip.SetAsReachable(7.5f);
                                     blip.SetRoute(true);
@@ -2129,12 +2142,12 @@ namespace BlaineRP.Client.Sync
                                 if (veh == null || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || vData.ForcedSpeed != 0f)
                                     return;
 
-                                if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                                if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                                     return;
 
                                 Events.CallRemote("Vehicles::Anchor", !vData.IsAnchored);
 
-                                _lastCruiseControlToggled = World.ServerTime;
+                                _lastCruiseControlToggled = Game.World.Core.ServerTime;
                             }
 
                             public static void SendCoordsToDriver()
@@ -2168,7 +2181,7 @@ namespace BlaineRP.Client.Sync
                                     return;
                                 }
 
-                                Offers.Request(driver, Offers.Types.WaypointShare, new { X = wpPos.X, Y = wpPos.Y, });
+                                Offers.Request(driver, OfferTypes.WaypointShare, new { X = wpPos.X, Y = wpPos.Y, });
                             }
 
                             public static async void BoatFromTrailerToWater(Vehicle veh)
@@ -2178,7 +2191,7 @@ namespace BlaineRP.Client.Sync
                                 if (vData == null)
                                     return;
 
-                                if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                                if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                                     return;
 
                                 if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)

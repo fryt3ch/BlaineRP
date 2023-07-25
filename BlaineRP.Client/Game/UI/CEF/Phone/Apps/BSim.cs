@@ -1,7 +1,7 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
-using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     public class BSim
     {

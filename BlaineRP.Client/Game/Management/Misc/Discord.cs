@@ -1,9 +1,9 @@
-﻿namespace BlaineRP.Client.Additional
+﻿namespace BlaineRP.Client.Game.Management.Misc
 {
     [Script(int.MaxValue)]
     public class Discord
     {
-        public const int StatusUpdateTime = 5_000;
+        private const int StatusUpdateTime = 5_000;
 
         private static string _currentHeader;
         private static string _currentContent;

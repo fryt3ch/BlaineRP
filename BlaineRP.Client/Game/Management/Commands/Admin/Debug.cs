@@ -1,18 +1,23 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Data.NPCs;
+using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
         [Command("colshape_delete", true, "Удалить колшейп", "cs_del")]
         public static void ColshapeDelete(uint id)
         {
-            var cs = Additional.ExtraColshape.GetById((int)id);
+            var cs = ExtraColshape.GetById((int)id);
 
             cs?.Destroy();
         }
@@ -20,12 +25,12 @@ namespace BlaineRP.Client.Management.Commands
         [Command("poly_stop", true, "Закончить создание полигона")]
         public static void PolygonStop()
         {
-            if (Additional.ExtraColshapes.PolygonCreationTask != null)
+            if (Wrappers.Colshapes.Core.PolygonCreationTask != null)
             {
-                Additional.ExtraColshapes.PolygonCreationTask.Cancel();
-                Additional.ExtraColshapes.PolygonCreationTask = null;
+                Wrappers.Colshapes.Core.PolygonCreationTask.Cancel();
+                Wrappers.Colshapes.Core.PolygonCreationTask = null;
 
-                Additional.ExtraColshapes.TempPolygon = null;
+                Wrappers.Colshapes.Core.TempPolygon = null;
             }
         }
 
@@ -38,58 +43,58 @@ namespace BlaineRP.Client.Management.Commands
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 0.5f;
 
-            if (Additional.ExtraColshapes.PolygonCreationTask != null)
+            if (Wrappers.Colshapes.Core.PolygonCreationTask != null)
             {
-                Additional.ExtraColshapes.PolygonCreationTask.Cancel();
+                Wrappers.Colshapes.Core.PolygonCreationTask.Cancel();
 
-                Additional.ExtraColshapes.TempPolygon?.Destroy();
+                Wrappers.Colshapes.Core.TempPolygon?.Destroy();
             }
 
-            Additional.ExtraColshapes.TempPolygon = new Additional.Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            Wrappers.Colshapes.Core.TempPolygon = new Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
-            Additional.ExtraColshapes.PolygonCreationTask = new Utils.AsyncTask(() =>
+            Wrappers.Colshapes.Core.PolygonCreationTask = new Utils.AsyncTask(() =>
             {
-                if (Additional.ExtraColshapes.TempPolygon == null)
+                if (Wrappers.Colshapes.Core.TempPolygon == null)
                     return true;
 
                 var newVertice = Player.LocalPlayer.Position;
                 newVertice.Z -= 1f;
 
-                var vertices = Additional.ExtraColshapes.TempPolygon.Vertices;
+                var vertices = Wrappers.Colshapes.Core.TempPolygon.Vertices;
 
                 if (vertices[vertices.Count - 1].DistanceTo(newVertice) < step)
                     return false;
 
-                Additional.ExtraColshapes.TempPolygon.AddVertice(newVertice);
+                Wrappers.Colshapes.Core.TempPolygon.AddVertice(newVertice);
 
                 //Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Polygon_{(height > 0 ? "3D" : "2D")}] New pos: {newVertice}");
 
                 return false;
             }, 100, true, 0);
 
-            Additional.ExtraColshapes.PolygonCreationTask.Run();
+            Wrappers.Colshapes.Core.PolygonCreationTask.Run();
         }
 
         [Command("poly_rotate", true, "Повернуть полигон", "poly_rt")]
         public static void PolygonRotate(uint id, float angle)
         {
-            var col = Additional.ExtraColshape.GetById((int)id);
+            var col = ExtraColshape.GetById((int)id);
 
-            if (!(col is Additional.Polygon))
+            if (!(col is Polygon))
                 return;
 
-            (col as Additional.Polygon).Rotate(angle);
+            (col as Polygon).Rotate(angle);
         }
 
         [Command("poly_angle", true, "Задать поворот полигона", "poly_ang")]
         public static void PolygonAngle(uint id, float angle)
         {
-            var col = Additional.ExtraColshape.GetById((int)id);
+            var col = ExtraColshape.GetById((int)id);
 
-            if (!(col is Additional.Polygon))
+            if (!(col is Polygon))
                 return;
 
-            (col as Additional.Polygon).SetHeading(angle);
+            (col as Polygon).SetHeading(angle);
         }
 
         [Command("colshape_new_circle", true, "Создать КШ Круг", "cs_n_crl")]
@@ -101,7 +106,7 @@ namespace BlaineRP.Client.Management.Commands
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Circle(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Circle(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Circle_2D] Pos: {newVertice} | Radius: {radius}");
         }
@@ -115,7 +120,7 @@ namespace BlaineRP.Client.Management.Commands
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Cylinder(newVertice, radius, height, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Cylinder(newVertice, radius, height, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Tube_3D] Pos: {newVertice} | Radius: {radius} | Height: {height}");
         }
@@ -129,7 +134,7 @@ namespace BlaineRP.Client.Management.Commands
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Sphere(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Sphere(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Sphere_3D] Pos: {newVertice} | Radius: {radius}");
         }
@@ -145,7 +150,7 @@ namespace BlaineRP.Client.Management.Commands
 
             if (sX != 0 && sY != 0)
             {
-                new Additional.Cuboid(newVertice, sX, sY, height, 0, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
+                new Cuboid(newVertice, sX, sY, height, 0, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
 
                 Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos: {newVertice} | Width: {sX} | Depth: {sY} | Height: {height}");
             }
@@ -154,7 +159,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("cuboid_setwidth", true, "Добавить вершину к полигону", "c3d_width")]
         public static void CuboidSetWidth(uint id, float width)
         {
-            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Cuboid;
+            var poly = ExtraColshape.GetById((int)id) as Cuboid;
 
             if (poly == null)
                 return;
@@ -165,7 +170,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("cuboid_setdepth", true, "Добавить вершину к полигону", "c3d_depth")]
         public static void CuboidSetDepth(uint id, float depth)
         {
-            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Cuboid;
+            var poly = ExtraColshape.GetById((int)id) as Cuboid;
 
             if (poly == null)
                 return;
@@ -176,7 +181,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("poly_addvertice", true, "Добавить вершину к полигону", "poly_addv")]
         public static void PolyAddVertice(uint id, int idx = -1)
         {
-            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Polygon;
+            var poly = ExtraColshape.GetById((int)id) as Polygon;
 
             if (poly == null)
                 return;
@@ -193,7 +198,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("poly_removevertice", true, "Удалить вершину у полигона", "poly_rmv")]
         public static void PolyRemoveVertice(uint id, uint vertId)
         {
-            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Polygon;
+            var poly = ExtraColshape.GetById((int)id) as Polygon;
 
             if (poly == null)
                 return;
@@ -207,14 +212,14 @@ namespace BlaineRP.Client.Management.Commands
             if (height < 0f)
                 return;
 
-            var cs = Additional.ExtraColshape.GetById((int)id);
+            var cs = ExtraColshape.GetById((int)id);
 
             if (cs == null)
                 return;
 
-            if (cs is Additional.Polygon poly)
+            if (cs is Polygon poly)
                 poly.SetHeight(height);
-            else if (cs is Additional.Cylinder cyl)
+            else if (cs is Cylinder cyl)
                 cyl.Height = height;
         }
 
@@ -224,21 +229,21 @@ namespace BlaineRP.Client.Management.Commands
             if (radius < 0f)
                 return;
 
-            var cs = Additional.ExtraColshape.GetById((int)id);
+            var cs = ExtraColshape.GetById((int)id);
 
             if (cs == null)
                 return;
 
-            if (cs is Additional.Cylinder cyl)
+            if (cs is Cylinder cyl)
                 cyl.Radius = radius;
-            else if (cs is Additional.Sphere sph)
+            else if (cs is Sphere sph)
                 sph.Radius = radius;
         }
 
         [Command("colshape_save_server", true, "Задать высоту полигону", "poly_sheight")]
         public static void ColshapeSaveServer(uint id)
         {
-            var poly = Additional.ExtraColshape.GetById((int)id);
+            var poly = ExtraColshape.GetById((int)id);
 
             if (poly == null)
                 return;
@@ -253,7 +258,7 @@ namespace BlaineRP.Client.Management.Commands
             else
                 Settings.User.Other.HighPolygonsMode = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode"));
+            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode"));
         }
 
         [Command("colshapes_visible", true, "Сменить видимость колшейпов", "cs_vis")]
@@ -264,7 +269,7 @@ namespace BlaineRP.Client.Management.Commands
             else
                 Settings.User.Other.ColshapesVisible = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible"));
+            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible"));
         }
 
         [Command("5sound", true, "Проиграть звук из GTA5", "gta5sound")]
@@ -540,7 +545,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("prop_del", true, "Установить сытость игроку")]
         public static void DelProp(int? handle = null)
         {
-            var gEntity = handle is int handleInt ? Misc.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+            var gEntity = handle is int handleInt ? Utils.Game.Misc.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
 
             if (gEntity == null)
                 return;
@@ -578,19 +583,19 @@ namespace BlaineRP.Client.Management.Commands
             if (gEntity?.Exists != true)
                 return;
 
-            if (CEF.MapEditor.IsActive)
-                CEF.MapEditor.Close();
+            if (MapEditor.IsActive)
+                MapEditor.Close();
 
-            CEF.MapEditor.Show
+            MapEditor.Show
             (
-                gEntity, "DebugEntityEdit", new CEF.MapEditor.Mode(true, true, true, true, true, true),
+                gEntity, "DebugEntityEdit", new MapEditor.Mode(true, true, true, true, true, true),
 
                 () =>
                 {
 
                 },
 
-                () => CEF.MapEditor.Render(),
+                () => MapEditor.Render(),
 
                 () =>
                 {
@@ -607,33 +612,33 @@ namespace BlaineRP.Client.Management.Commands
         [Command("entity_select_edit_stop", true, "Установить сытость игроку")]
         public static void EntitySelectorEditStop()
         {
-            if (!CEF.MapEditor.IsActive)
+            if (!MapEditor.IsActive)
                 return;
 
-            CEF.MapEditor.Close();
+            MapEditor.Close();
         }
 
         [Command("colshape_edit_start", true, "Установить сытость игроку")]
         public static void ColshapeEditStart(int id)
         {
-            var colshape = Additional.ExtraColshape.GetById(id);
+            var colshape = ExtraColshape.GetById(id);
 
             if (colshape == null)
                 return;
 
-            if (CEF.MapEditor.IsActive)
-                CEF.MapEditor.Close();
+            if (MapEditor.IsActive)
+                MapEditor.Close();
 
-            CEF.MapEditor.Show
+            MapEditor.Show
             (
-                colshape, "DebugColshapeEdit", new CEF.MapEditor.Mode(true, true, true, false, true, false),
+                colshape, "DebugColshapeEdit", new MapEditor.Mode(true, true, true, false, true, false),
 
                 () =>
                 {
 
                 },
 
-                () => CEF.MapEditor.RenderColshape(),
+                () => MapEditor.RenderColshape(),
 
                 () =>
                 {
@@ -653,16 +658,16 @@ namespace BlaineRP.Client.Management.Commands
         [Command("colshape_edit_stop", true, "Установить сытость игроку")]
         public static void ColshapeEditStop()
         {
-            if (!CEF.MapEditor.IsActive)
+            if (!MapEditor.IsActive)
                 return;
 
-            CEF.MapEditor.Close();
+            MapEditor.Close();
         }
 
         [Command("farm_pos_save", true, "Установить сытость игроку")]
         public static void FarmPosSave()
         {
-            var farm = Data.Locations.Farm.All[38] as Data.Locations.Farm;
+            var farm = Client.Data.Locations.Farm.All[38] as Client.Data.Locations.Farm;
 
             var t = new Dictionary<int, Dictionary<int, List<List<float>>>>();
 
@@ -723,7 +728,7 @@ namespace BlaineRP.Client.Management.Commands
         {
             var pos = Player.LocalPlayer.Position;
 
-            var blip = new Additional.ExtraBlip(model, pos, name, 1f, color, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Default);
+            var blip = new ExtraBlip(model, pos, name, 1f, color, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, ExtraBlip.Types.Default);
         }
 
         [Command("tp_house", true, "Получить текущую позицию")]
@@ -763,9 +768,9 @@ namespace BlaineRP.Client.Management.Commands
         [Command("new_house", true, "Получить текущую позицию")]
         public static void NewHouse()
         {
-            var last = Data.Locations.House.All.Last();
+            var last = Client.Data.Locations.House.All.Last();
 
-            var house = new Data.Locations.House(last.Key + 1, Player.LocalPlayer.Position, Sync.House.Style.RoomTypes.Two, Data.Locations.Garage.Types.Two, new Vector3(0f, 0f, 0f), 0, Data.Locations.HouseBase.ClassTypes.A, 0);
+            var house = new Client.Data.Locations.House(last.Key + 1, Player.LocalPlayer.Position, Sync.House.Style.RoomTypes.Two, Client.Data.Locations.Garage.Types.Two, new Vector3(0f, 0f, 0f), 0, Client.Data.Locations.HouseBase.ClassTypes.A, 0);
 
             Player.LocalPlayer.SetData($"House::{house.Id}::RotZ", Player.LocalPlayer.GetHeading());
 
@@ -775,9 +780,9 @@ namespace BlaineRP.Client.Management.Commands
         [Command("del_house", true, "")]
         public static void DelHouse(uint id)
         {
-            Data.Locations.House house;
+            Client.Data.Locations.House house;
 
-            if (Data.Locations.House.All.Remove(id, out house))
+            if (Client.Data.Locations.House.All.Remove(id, out house))
             {
                 house.ToggleOwnerBlip(false);
 
@@ -789,7 +794,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("garage_house", true, "")]
         public static void GarageHouse(uint id)
         {
-            var house = Data.Locations.House.All.GetValueOrDefault(id);
+            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -802,7 +807,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("enter_house", true, "")]
         public static void EnterHouse(uint id)
         {
-            var house = Data.Locations.House.All.GetValueOrDefault(id);
+            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -819,7 +824,7 @@ namespace BlaineRP.Client.Management.Commands
         [Command("save_house", true, "")]
         public static async void SaveHouse(uint id)
         {
-            var house = Data.Locations.House.All.GetValueOrDefault(id);
+            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;

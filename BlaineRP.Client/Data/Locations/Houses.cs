@@ -3,6 +3,13 @@ using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -39,11 +46,11 @@ namespace BlaineRP.Client.Data
 
             public Sync.House.Style.RoomTypes RoomType { get; set; }
 
-            public Additional.ExtraColshape Colshape { get; set; }
+            public ExtraColshape Colshape { get; set; }
 
-            public Additional.ExtraLabel InfoText { get; set; }
+            public ExtraLabel InfoText { get; set; }
 
-            public abstract Additional.ExtraBlip OwnerBlip { get; set; }
+            public abstract ExtraBlip OwnerBlip { get; set; }
 
             public HouseBase(Sync.House.HouseTypes Type, uint Id, uint Price, Sync.House.Style.RoomTypes RoomType, ClassTypes Class, uint Tax)
             {
@@ -65,9 +72,9 @@ namespace BlaineRP.Client.Data
         {
             public static Dictionary<uint, Apartments> All = new Dictionary<uint, Apartments>();
 
-            public override string OwnerName => Sync.World.GetSharedData<string>($"Apartments::{Id}::OName");
+            public override string OwnerName => Core.GetSharedData<string>($"Apartments::{Id}::OName");
 
-            public override Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Apartments::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Apartments::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Apartments::{Id}::OBlip", value); } }
+            public override ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"Apartments::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Apartments::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Apartments::{Id}::OBlip", value); } }
 
             public uint RootId { get; }
 
@@ -104,13 +111,13 @@ namespace BlaineRP.Client.Data
                     {
                         //aRoot.Blip.SetDisplay(0);
 
-                        OwnerBlip = new Additional.ExtraBlip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
+                        OwnerBlip = new ExtraBlip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
                     else if (curARoot.Id == aRoot.Id)
                     {
                         //aRoot.Blip.SetDisplay(2);
 
-                        OwnerBlip = new Additional.ExtraBlip(475, Position, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension);
+                        OwnerBlip = new ExtraBlip(475, Position, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension);
                     }
                 }
                 else
@@ -138,7 +145,7 @@ namespace BlaineRP.Client.Data
         {
             public static Dictionary<uint, House> All = new Dictionary<uint, House>();
 
-            public override string OwnerName => Sync.World.GetSharedData<string>($"House::{Id}::OName");
+            public override string OwnerName => Core.GetSharedData<string>($"House::{Id}::OName");
 
             public Garage.Types? GarageType { get; set; }
 
@@ -146,11 +153,11 @@ namespace BlaineRP.Client.Data
 
             public override Vector3 Position { get; }
 
-            public override Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
+            public override ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
 
-            public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
+            public ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
 
-            public Additional.ExtraBlip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
+            public ExtraBlip OwnerGarageBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
 
             public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, uint Price, ClassTypes Class, uint Tax) : base(Sync.House.HouseTypes.House, Id, Price, RoomType, Class, Tax)
             {
@@ -160,15 +167,15 @@ namespace BlaineRP.Client.Data
 
                 this.GaragePosition = GaragePosition;
 
-                Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                Colshape = new Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                 {
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter,
-                    ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
+                    InteractionType = InteractionTypes.HouseEnter,
+                    ActionType = ActionTypes.HouseEnter,
 
                     Data = this,
                 };
 
-                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Misc.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
+                InfoText = new ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z - 0.5f), "", Misc.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
                 All.Add(Id, this);
             }
@@ -196,25 +203,25 @@ namespace BlaineRP.Client.Data
                 {
                     if (GarageType == null)
                     {
-                        OwnerBlip = new Additional.ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
+                        OwnerBlip = new ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
                     else
                     {
-                        OwnerBlip = new Additional.ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
+                        OwnerBlip = new ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                     }
 
                     if (GaragePosition != null)
                     {
-                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                        OwnerGarageColshape = new Sphere(GaragePosition, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                         {
-                            ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+                            ApproveType = ApproveTypes.OnlyServerVehicleDriver,
 
-                            ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
+                            ActionType = ActionTypes.HouseEnter,
 
                             Data = this,
                         };
 
-                        OwnerGarageBlip = new Additional.ExtraBlip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.App.Static.MainDimension);
+                        OwnerGarageBlip = new ExtraBlip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.App.Static.MainDimension);
                     }
                 }
                 else
@@ -360,21 +367,21 @@ namespace BlaineRP.Client.Data
 
             public Vector3 PositionEnter { get; set; }
 
-            public Additional.ExtraColshape Colshape { get; set; }
+            public ExtraColshape Colshape { get; set; }
 
-            public Additional.ExtraLabel InfoText { get; set; }
+            public ExtraLabel InfoText { get; set; }
 
-            public Additional.ExtraBlip Blip { get; set; }
+            public ExtraBlip Blip { get; set; }
 
             public string Name { get; }
 
             public List<Apartments> AllApartments => Apartments.All.Values.Where(x => x.RootId == Id).ToList();
 
-            public List<Additional.ExtraColshape> LoadedColshapes { get => Player.LocalPlayer.GetData<List<Additional.ExtraColshape>>("ApartmentsRoot::LoadedColshapes"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedColshapes"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedColshapes", value); } }
+            public List<ExtraColshape> LoadedColshapes { get => Player.LocalPlayer.GetData<List<ExtraColshape>>("ApartmentsRoot::LoadedColshapes"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedColshapes"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedColshapes", value); } }
 
-            public List<Additional.ExtraLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<Additional.ExtraLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
+            public List<ExtraLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<ExtraLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
 
-            public List<Additional.ExtraBlip> LoadedBlips { get => Player.LocalPlayer.GetData<List<Additional.ExtraBlip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
+            public List<ExtraBlip> LoadedBlips { get => Player.LocalPlayer.GetData<List<ExtraBlip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
 
             public ApartmentsRoot(uint Id, byte ShellTypeNum, Vector3 PositionEnter)
             {
@@ -388,25 +395,25 @@ namespace BlaineRP.Client.Data
 
                 All.Add(Id, this);
 
-                this.Colshape = new Additional.Cylinder(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
+                this.Colshape = new Cylinder(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                 {
-                    ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootEnter,
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter,
+                    ActionType = ActionTypes.ApartmentsRootEnter,
+                    InteractionType = InteractionTypes.ApartmentsRootEnter,
 
                     Data = this,
                 };
 
-                InfoText = new Additional.ExtraLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
+                InfoText = new ExtraLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z - 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
 
-                Blip = new Additional.ExtraBlip(475, PositionEnter, "Жилой комплекс", 1f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                Blip = new ExtraBlip(475, PositionEnter, "Жилой комплекс", 1f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             }
 
             public void Load()
             {
                 var aps = AllApartments;
 
-                var loadedColshapes = new List<Additional.ExtraColshape>();
-                var loadedTextLabels = new List<Additional.ExtraLabel>();
+                var loadedColshapes = new List<ExtraColshape>();
+                var loadedTextLabels = new List<ExtraLabel>();
 
                 var shell = Shell;
 
@@ -416,17 +423,17 @@ namespace BlaineRP.Client.Data
 
                     var pos = ap.Position;
 
-                    var enterCs = new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
+                    var enterCs = new Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
                     {
-                        ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
-                        InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter,
+                        ActionType = ActionTypes.HouseEnter,
+                        InteractionType = InteractionTypes.HouseEnter,
 
                         Data = ap,
                     };
 
                     loadedColshapes.Add(enterCs);
 
-                    ap.InfoText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z - 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, ap.NumberInRoot + 1, ap.OwnerName ?? Locale.Property.NoOwner), Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
+                    ap.InfoText = new ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z - 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, ap.NumberInRoot + 1, ap.OwnerName ?? Locale.Property.NoOwner), Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
                 }
                 var floorCounter = 0;
 
@@ -438,30 +445,30 @@ namespace BlaineRP.Client.Data
                     {
                         var floorPos = shell.ElevatorPositions[i][j];
 
-                        var elevatorCs = new Additional.Cylinder(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
+                        var elevatorCs = new Cylinder(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
                         {
-                            InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator,
+                            InteractionType = InteractionTypes.ApartmentsRootElevator,
 
                             Data = this,
                         };
 
-                        loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 0.5f), text, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                        loadedTextLabels.Add(new ExtraLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z - 0.5f), text, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                         loadedColshapes.Add(elevatorCs);
                     }
                 }
 
-                var exitCs = new Additional.Cylinder(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
+                var exitCs = new Cylinder(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
                 {
-                    ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootExit,
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit,
+                    ActionType = ActionTypes.ApartmentsRootExit,
+                    InteractionType = InteractionTypes.ApartmentsRootExit,
 
                     Data = this,
                 };
 
                 loadedColshapes.Add(exitCs);
 
-                loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                loadedTextLabels.Add(new ExtraLabel(new Vector3(shell.EnterPosition.X, shell.EnterPosition.Y, shell.EnterPosition.Z - 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Misc.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                 LoadedColshapes = loadedColshapes;
                 LoadedTextLabels = loadedTextLabels;

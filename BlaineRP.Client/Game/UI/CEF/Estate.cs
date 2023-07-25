@@ -1,21 +1,22 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils.Game;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Estate
@@ -30,7 +31,7 @@ namespace BlaineRP.Client.CEF
 
         private static int EscBindIdx { get; set; } = -1;
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         private static Player TargetPlayer { get; set; }
 
@@ -63,7 +64,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(250, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if (CurrentType == Types.SellVehicle || CurrentType == Types.SellBusiness || CurrentType == Types.SellEstate)
                 {
@@ -107,7 +108,7 @@ namespace BlaineRP.Client.CEF
                             }
                             else if (CurrentType == Types.SellBusiness)
                             {
-                                var businesses = Player.LocalPlayer.GetData<List<Data.Locations.Business>>("Estate::CurrentData");
+                                var businesses = Player.LocalPlayer.GetData<List<Client.Data.Locations.Business>>("Estate::CurrentData");
 
                                 if (businesses == null)
                                     return;
@@ -160,7 +161,7 @@ namespace BlaineRP.Client.CEF
                 {
                     if (CurrentPropertyType == PropertyTypes.House || CurrentPropertyType == PropertyTypes.Apartments)
                     {
-                        var houseBase = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("Estate::CurrentData");
+                        var houseBase = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("Estate::CurrentData");
 
                         if (houseBase == null)
                             return;
@@ -189,7 +190,7 @@ namespace BlaineRP.Client.CEF
                     }
                     else if (CurrentPropertyType == PropertyTypes.Business)
                     {
-                        var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("Estate::CurrentData");
+                        var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("Estate::CurrentData");
 
                         if (biz == null)
                             return;
@@ -221,7 +222,7 @@ namespace BlaineRP.Client.CEF
 
                     if (subType == 0)
                     {
-                        var vData = Data.Vehicles.GetById((string)args[2]);
+                        var vData = Data.Vehicles.Core.GetById((string)args[2]);
                         var vid = Utils.Convert.ToUInt32(args[3]);
 
                         var player = (Player)args[4];
@@ -232,7 +233,7 @@ namespace BlaineRP.Client.CEF
                     }
                     else if (subType == 1)
                     {
-                        var business = Data.Locations.Business.All[(int)args[2]];
+                        var business = Client.Data.Locations.Business.All[(int)args[2]];
 
                         var player = (Player)args[3];
                         var price = Utils.Convert.ToDecimal(args[4]);
@@ -243,7 +244,7 @@ namespace BlaineRP.Client.CEF
                     {
                         var id = Utils.Convert.ToUInt32(args[2]);
 
-                        var houseBase = subType == 2 ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
+                        var houseBase = subType == 2 ? (Client.Data.Locations.HouseBase)Client.Data.Locations.House.All[id] : (Client.Data.Locations.HouseBase)Client.Data.Locations.Apartments.All[id];
 
                         var player = (Player)args[3];
                         var price = Utils.Convert.ToDecimal(args[4]);
@@ -252,7 +253,7 @@ namespace BlaineRP.Client.CEF
                     }
                     else if (subType == 4)
                     {
-                        var garage = Data.Locations.Garage.All[Utils.Convert.ToUInt32(args[2])];
+                        var garage = Client.Data.Locations.Garage.All[Utils.Convert.ToUInt32(args[2])];
 
                         var player = (Player)args[3];
                         var price = Utils.Convert.ToDecimal(args[4]);
@@ -285,7 +286,7 @@ namespace BlaineRP.Client.CEF
             if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
-            var vData = Data.Vehicles.GetById(id);
+            var vData = Data.Vehicles.Core.GetById(id);
 
             if (vData == null)
                 return;
@@ -303,7 +304,7 @@ namespace BlaineRP.Client.CEF
             EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Data.Locations.HouseBase houseBase, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Client.Data.Locations.HouseBase houseBase, bool showCursor = true)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -323,7 +324,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {
@@ -332,11 +333,11 @@ namespace BlaineRP.Client.CEF
                 }
             };
 
-            if (houseBase is Data.Locations.House rHouse)
+            if (houseBase is Client.Data.Locations.House rHouse)
             {
                 CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", houseBase.Id, new object[] { houseBase.OwnerName, houseBase.Price, houseBase.Tax, (int)houseBase.RoomType, rHouse.GarageType == null ? "0" : ((int)rHouse.GarageType).ToString() }, houseBase.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(houseBase));
             }
-            else if (houseBase is Data.Locations.Apartments rApartments)
+            else if (houseBase is Client.Data.Locations.Apartments rApartments)
             {
                 CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "flat", rApartments.NumberInRoot + 1, new object[] { houseBase.OwnerName, houseBase.Price, houseBase.Tax, (int)houseBase.RoomType }, houseBase.OwnerName == null ? null : (bool?)pData.OwnedApartments.Contains(houseBase));
             }
@@ -347,7 +348,7 @@ namespace BlaineRP.Client.CEF
             EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task ShowBusinessInfo(Data.Locations.Business business, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowBusinessInfo(Client.Data.Locations.Business business, bool showCursor = true)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -367,7 +368,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {
@@ -410,21 +411,21 @@ namespace BlaineRP.Client.CEF
 
             foreach (var x in pData.OwnedHouses.ToList())
             {
-                estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
+                estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Utils.Game.Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
 
                 estIds.Add((PropertyTypes.House, x.Id));
             }
 
             foreach (var x in pData.OwnedApartments.ToList())
             {
-                estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
+                estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Client.Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
 
                 estIds.Add((PropertyTypes.Apartments, x.Id));
             }
 
             foreach (var x in pData.OwnedGarages.ToList())
             {
-                estToSell.Add(new object[] { "Garage", Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
+                estToSell.Add(new object[] { "Garage", Locale.General.PropertyGarageString, Client.Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
 
                 estIds.Add((PropertyTypes.Garage, x.Id));
             }
@@ -446,7 +447,7 @@ namespace BlaineRP.Client.CEF
             TargetPlayer = targetPlayer;
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, decimal price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferHouseBase(Client.Data.Locations.HouseBase houseBase, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -465,11 +466,11 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            if (houseBase is Data.Locations.House house)
+            if (houseBase is Client.Data.Locations.House house)
             {
-                CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "house", house.Id, new object[] { targetPlayer.GetName(true, false, true), price, house.Price, house.Tax, (int)house.RoomType, house.GarageType is Data.Locations.Garage.Types gType ? (int)gType : 0 });
+                CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "house", house.Id, new object[] { targetPlayer.GetName(true, false, true), price, house.Price, house.Tax, (int)house.RoomType, house.GarageType is Client.Data.Locations.Garage.Types gType ? (int)gType : 0 });
             }
-            else if (houseBase is Data.Locations.Apartments aps)
+            else if (houseBase is Client.Data.Locations.Apartments aps)
             {
                 CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "flat", aps.NumberInRoot + 1, new object[] { targetPlayer.GetName(true, false, true), price, aps.Price, aps.Tax, (int)aps.RoomType });
             }
@@ -480,7 +481,7 @@ namespace BlaineRP.Client.CEF
             EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, decimal price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferGarage(Client.Data.Locations.Garage garage, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -597,7 +598,7 @@ namespace BlaineRP.Client.CEF
 
             var businesses = pData.OwnedBusinesses.ToList();
 
-            var estToSell = businesses.Select(x => new object[] { "Biz", x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }).ToList();
+            var estToSell = businesses.Select(x => new object[] { "Biz", x.Name, Utils.Game.Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }).ToList();
 
             if (estToSell.Count == 0)
                 return;
@@ -616,7 +617,7 @@ namespace BlaineRP.Client.CEF
             TargetPlayer = targetPlayer;
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, decimal price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferBusiness(Client.Data.Locations.Business business, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -682,7 +683,7 @@ namespace BlaineRP.Client.CEF
         private static int AgencyId { get; set; }
         private static int PosId { get; set; }
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public EstateAgency()
         {
@@ -699,7 +700,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var houseId = uint.Parse(idS[1]);
 
-                    var houseData = Data.Locations.House.All[houseId];
+                    var houseData = Client.Data.Locations.House.All[houseId];
 
                     if (houseData.OwnerName != null)
                     {
@@ -711,20 +712,20 @@ namespace BlaineRP.Client.CEF
                     if (Estate.LastSent.IsSpam(1000, false, true))
                         return;
 
-                    Estate.LastSent = Sync.World.ServerTime;
+                    Estate.LastSent = World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("EstAgency::GPS", AgencyId, PosId, (byte)0);
 
                     if (res)
                     {
-                        Additional.ExtraBlips.CreateGPS(houseData.Position, Settings.App.Static.MainDimension, true);
+                        Wrappers.Blips.Core.CreateGPS(houseData.Position, Settings.App.Static.MainDimension, true);
                     }
                 }
                 else if (idS[0] == "a")
                 {
                     var apsId = uint.Parse(idS[1]);
 
-                    var apsData = Data.Locations.Apartments.All[apsId];
+                    var apsData = Client.Data.Locations.Apartments.All[apsId];
 
                     if (apsData.OwnerName != null)
                     {
@@ -733,13 +734,13 @@ namespace BlaineRP.Client.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootId].PositionEnter, Settings.App.Static.MainDimension, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootId].Shell.StartFloor + apsData.FloorIdx}, кв. {apsData.NumberInRoot + 1}");
+                    Wrappers.Blips.Core.CreateGPS(Client.Data.Locations.ApartmentsRoot.All[apsData.RootId].PositionEnter, Settings.App.Static.MainDimension, true, $"\n\nЭтаж: {Client.Data.Locations.ApartmentsRoot.All[apsData.RootId].Shell.StartFloor + apsData.FloorIdx}, кв. {apsData.NumberInRoot + 1}");
                 }
                 else if (idS[0] == "g")
                 {
                     var garageId = uint.Parse(idS[1]);
 
-                    var garageData = Data.Locations.Garage.All[garageId];
+                    var garageData = Client.Data.Locations.Garage.All[garageId];
 
                     if (garageData.OwnerName != null)
                     {
@@ -748,7 +749,7 @@ namespace BlaineRP.Client.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootId].EnterColshape.Position, Settings.App.Static.MainDimension, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
+                    Wrappers.Blips.Core.CreateGPS(Client.Data.Locations.GarageRoot.All[garageData.RootId].EnterColshape.Position, Settings.App.Static.MainDimension, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
                 }
             });
         }
@@ -759,12 +760,12 @@ namespace BlaineRP.Client.CEF
                 return;
 
             // id, name, price, tax, rooms, garage capacity
-            var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Misc.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
+            var houses = Client.Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.Game.Misc.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
 
             // id, name, price, tax, rooms
             var apartments = new List<object>();
 
-            foreach (var x in Data.Locations.ApartmentsRoot.All.Values)
+            foreach (var x in Client.Data.Locations.ApartmentsRoot.All.Values)
             {
                 var arName = x.Name;
 
@@ -784,7 +785,7 @@ namespace BlaineRP.Client.CEF
 
             uint gCounter = 1;
 
-            foreach (var x in Data.Locations.GarageRoot.All.Values)
+            foreach (var x in Client.Data.Locations.GarageRoot.All.Values)
             {
                 uint counter = 1;
 
@@ -817,7 +818,7 @@ namespace BlaineRP.Client.CEF
 
             EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

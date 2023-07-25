@@ -1,7 +1,7 @@
 ﻿using BlaineRP.Client.Utils.Game;
 using RAGE;
 
-namespace BlaineRP.Client.Game.Helpers
+namespace BlaineRP.Client.Game.Management
 {
     [Script(int.MaxValue)]
     public class RageStorage

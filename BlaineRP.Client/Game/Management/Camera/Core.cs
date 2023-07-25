@@ -5,7 +5,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Camera
 {
-    partial class CameraTemp
+    partial class Core
     {
         /// <summary>Минимально возможный FOV</summary>
         private static float MinFov { get; set; }

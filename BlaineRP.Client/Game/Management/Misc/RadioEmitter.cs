@@ -1,12 +1,13 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using System.Linq;
+using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System.Linq;
-using BlaineRP.Client.Game.Management.Radio;
-using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Sync;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Management.Misc
 {
     public class RadioEmitter
     {
@@ -38,7 +39,7 @@ namespace BlaineRP.Client.Additional
 
         public EmitterTypes EmitterType { get; set; }
 
-        public static RadioEmitter GetById(string Id) => Additional.ExtraColshape.All.Where(x => x.Name == Id).FirstOrDefault()?.Data as RadioEmitter;
+        public static RadioEmitter GetById(string Id) => ExtraColshape.All.Where(x => x.Name == Id).FirstOrDefault()?.Data as RadioEmitter;
 
         public void Destroy()
         {
@@ -50,9 +51,9 @@ namespace BlaineRP.Client.Additional
 
         public RadioEmitter(string Id, Vector3 Position, float Range, uint Dimension, EmitterTypes EmitterType, RadioStationTypes RadioStationType)
         {
-            this.Colshape = new Additional.Sphere(Position, Range, false, Utils.Misc.RedColor, Dimension, null)
+            this.Colshape = new Sphere(Position, Range, false, Utils.Misc.RedColor, Dimension, null)
             {
-                ApproveType = ExtraColshape.ApproveTypes.None,
+                ApproveType = ApproveTypes.None,
 
                 OnEnter = OnEnterColshape,
                 OnExit = OnExitColshape,

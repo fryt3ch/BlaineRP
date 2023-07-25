@@ -4,7 +4,7 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 
-namespace BlaineRP.Client.Game.Local
+namespace BlaineRP.Client.Game.Misc
 {
     [Script(int.MaxValue)]
     public class NameTags

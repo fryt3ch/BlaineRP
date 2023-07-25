@@ -4,10 +4,12 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Sync;
+using Core = BlaineRP.Client.Input.Core;
 
 namespace BlaineRP.Client.Data.Minigames
 {
@@ -34,7 +36,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                     task = new AsyncTask(async () =>
                     {
-                        var sTime = Sync.World.ServerTime;
+                        var sTime = Game.World.Core.ServerTime;
 
                         while (true)
                         {
@@ -54,7 +56,7 @@ namespace BlaineRP.Client.Data.Minigames
                                                             return;
                                                         }*/
 
-                            if (Sync.World.ServerTime.Subtract(sTime).TotalMilliseconds >= waitTime)
+                            if (Game.World.Core.ServerTime.Subtract(sTime).TotalMilliseconds >= waitTime)
                             {
                                 Events.CallRemote("MG::F::P", Player.LocalPlayer.GetData<float>("MG::F::T::WZ"));
 
@@ -83,7 +85,7 @@ namespace BlaineRP.Client.Data.Minigames
                         {
                             await RAGE.Game.Invoker.WaitAsync(25);
 
-                            fakeFishObj = pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ItemFishG).Select(x => x.Object).FirstOrDefault();
+                            fakeFishObj = pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.ItemFishG).Select(x => x.Object).FirstOrDefault();
                         }
 
                         if (task?.IsCancelled != false)
@@ -98,7 +100,7 @@ namespace BlaineRP.Client.Data.Minigames
                         Player.LocalPlayer.SetData("MG::F::Interp", 0.5f);
 
                         Player.LocalPlayer.SetData("MG::F::E", fakeFishObj);
-                        Player.LocalPlayer.SetData("MG::F::T", Sync.World.ServerTime);
+                        Player.LocalPlayer.SetData("MG::F::T", Game.World.Core.ServerTime);
                         Player.LocalPlayer.SetData("MG::F::SP", fSpeed);
                         Player.LocalPlayer.SetData("MG::F::MSP", fSpeed);
                         Player.LocalPlayer.SetData("MG::F::CT", timeToCatch);
@@ -127,7 +129,7 @@ namespace BlaineRP.Client.Data.Minigames
 
         private static void FishingProcessRender()
         {
-            var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
+            var timePassed = Game.World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
             var timeCatched = Player.LocalPlayer.GetData<int>("MG::F::CTC");
 
             if (timePassed > Player.LocalPlayer.GetData<int>("MG::F::CT"))
@@ -168,8 +170,8 @@ namespace BlaineRP.Client.Data.Minigames
 
             if (timePassed > 500)
             {
-                var leftDown = Core.IsDown(RAGE.Ui.VirtualKeys.A);
-                var rightDown = Core.IsDown(RAGE.Ui.VirtualKeys.D);
+                var leftDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.A);
+                var rightDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.D);
 
                 var deSpeed = 0.00001f;
 

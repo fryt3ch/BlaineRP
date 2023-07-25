@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data.Jobs;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Jobs.Enums;
+using BlaineRP.Client.Game.Jobs.Types;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Game.Wrappers.Colshapes;
@@ -20,10 +21,10 @@ namespace BlaineRP.Client.Game.Jobs
 
         public static Job Get(int id) => AllJobs.GetValueOrDefault(id);
 
-        private static Dictionary<Types, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<Types, Action<PlayerData, Job>>()
+        private static Dictionary<JobTypes, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<JobTypes, Action<PlayerData, Job>>()
             {
                 {
-                    Types.Trucker,
+                    JobTypes.Trucker,
 
                     (pData, job) =>
                     {
@@ -58,7 +59,7 @@ namespace BlaineRP.Client.Game.Jobs
                 },
 
                 {
-                    Types.Collector,
+                    JobTypes.Collector,
 
                     (pData, job) =>
                     {
@@ -93,7 +94,7 @@ namespace BlaineRP.Client.Game.Jobs
                 },
 
                 {
-                    Types.Cabbie,
+                    JobTypes.Cabbie,
 
                     (pData, job) =>
                     {
@@ -128,7 +129,7 @@ namespace BlaineRP.Client.Game.Jobs
                 },
 
                 {
-                    Types.BusDriver,
+                    JobTypes.BusDriver,
 
                     (pData, job) =>
                     {
@@ -182,7 +183,7 @@ namespace BlaineRP.Client.Game.Jobs
 
         public int SubId => AllJobs.Values.Where(x => x.Type == Type).ToList().IndexOf(this);
 
-        public Types Type { get; set; }
+        public JobTypes Type { get; set; }
 
         public string Name => Locale.Property.JobNames.GetValueOrDefault(Type) ?? "null";
 
@@ -192,7 +193,7 @@ namespace BlaineRP.Client.Game.Jobs
 
         private Dictionary<string, object> CurrentData { get; set; }
 
-        public Job(int Id, Types Type)
+        public Job(int Id, JobTypes Type)
         {
             this.Type = Type;
             this.Id = Id;

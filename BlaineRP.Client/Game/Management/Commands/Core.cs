@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using BlaineRP.Client.Data;
-using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     [Script(int.MaxValue)]
     public partial class Core
@@ -36,7 +36,7 @@ namespace BlaineRP.Client.Management.Commands
 
             if (inst == null || inst.Attribute.AdminOnly && (PlayerData.GetData(Player.LocalPlayer)?.AdminLevel ?? -1) < 0)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Commands.Header, Locale.Notifications.Commands.NotFound);
+                Notification.Show(Notification.Types.Error, Locale.Notifications.Commands.Header, Locale.Notifications.Commands.NotFound);
 
                 return;
             }
@@ -88,7 +88,7 @@ namespace BlaineRP.Client.Management.Commands
 
             if (!correct)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Commands.Header, string.Format(Locale.Notifications.Commands.WrongUsing, $"/{inst.Attribute.Name} {string.Join(", ", inst.Parameters.Select(x => x.HasDefaultValue ? x.Name.ToUpper() + "?" : x.Name.ToUpper()))}"));
+                Notification.Show(Notification.Types.Error, Locale.Notifications.Commands.Header, string.Format(Locale.Notifications.Commands.WrongUsing, $"/{inst.Attribute.Name} {string.Join(", ", inst.Parameters.Select(x => x.HasDefaultValue ? x.Name.ToUpper() + "?" : x.Name.ToUpper()))}"));
 
                 return;
             }

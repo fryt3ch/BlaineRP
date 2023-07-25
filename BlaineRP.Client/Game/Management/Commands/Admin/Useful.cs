@@ -1,36 +1,37 @@
 ﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
         [Command("invisibility", true, "Включить/выключить невидимость", "inv", "invis")]
         public static void Invisibility(bool? state = null)
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_invis", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
+            Commands.Core.CallRemote("p_invis", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
         }
 
         [Command("godmode", true, "Включить/выключить бессмертие", "gm")]
         public static void GodMode(bool? state = null)
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_gm", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
+            Commands.Core.CallRemote("p_gm", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
         }
 
         [Command("fly", true, "Включить/выключить режим полета")]
         public static void Fly(bool? state = null)
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_fly", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
+            Commands.Core.CallRemote("p_fly", Player.LocalPlayer.RemoteId, state == null ? "" : state.ToString());
         }
 
         [Command("sethealth", true, "Установить здоровье (игроку)", "sethp", "shp")]
@@ -39,12 +40,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_hp", pid, value);
+            Commands.Core.CallRemote("p_hp", pid, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("health", true, "Установить здоровье (себе)", "hp")]
@@ -53,12 +54,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_hp", Player.LocalPlayer.RemoteId, value);
+            Commands.Core.CallRemote("p_hp", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("mood", true, "Установить настроение (себе)")]
@@ -67,12 +68,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_mood", Player.LocalPlayer.RemoteId, value);
+            Commands.Core.CallRemote("p_mood", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("satiety", true, "Установить сытость (себе)")]
@@ -81,12 +82,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_satiety", Player.LocalPlayer.RemoteId, value);
+            Commands.Core.CallRemote("p_satiety", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("setmood", true, "Установить настроение игроку")]
@@ -95,12 +96,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_mood", pid, value);
+            Commands.Core.CallRemote("p_mood", pid, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("setsatiety", true, "Установить сытость игроку")]
@@ -109,12 +110,12 @@ namespace BlaineRP.Client.Management.Commands
             if (value > 100)
                 value = 100;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_satiety", pid, value);
+            Commands.Core.CallRemote("p_satiety", pid, value);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("pos", true, "Получить текущую позицию", "position")]

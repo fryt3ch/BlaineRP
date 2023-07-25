@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 
@@ -25,7 +27,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (qData == null || qData.Length != 1)
                                 return;
 
-                            var job = pData.CurrentJob as Data.Jobs.Farmer;
+                            var job = pData.CurrentJob as Farmer;
 
                             if (job == null)
                                 return;
@@ -50,7 +52,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 if (effects == null || effects.Count == 0)
                                     return;
 
-                                if (Sync.World.ServerTimestampMilliseconds - quest.GetActualData<long>("FARMJOBTEMPFXT::PW") >= PLANE_IRRIGATION_WATER_FX_TIME)
+                                if (Core.ServerTimestampMilliseconds - quest.GetActualData<long>("FARMJOBTEMPFXT::PW") >= PLANE_IRRIGATION_WATER_FX_TIME)
                                 {
                                     for (int i = 0; i < effects.Count; i++)
                                     {

@@ -1,20 +1,21 @@
-﻿using BlaineRP.Client.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Data;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Camera;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class HouseMenu
@@ -44,7 +45,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuHome::Action", async (args) =>
             {
-                var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
+                var house = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("House::CurrentHouse");
 
                 if (house == null)
                     return;
@@ -58,7 +59,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     Events.CallRemote("House::Lock", id == "entry", !state);
                 }
@@ -94,7 +95,7 @@ namespace BlaineRP.Client.CEF
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
 
                         if ((bool)await Events.CallRemoteProc("House::Menu::Furn::Start", fUid))
                         {
@@ -105,7 +106,7 @@ namespace BlaineRP.Client.CEF
 
                             if (furn == null)
                             {
-                                var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+                                var pos = Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
                                 furn = Streaming.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 
@@ -118,12 +119,12 @@ namespace BlaineRP.Client.CEF
                             {
                                 var pos = furn.GetCoords(false);
                                 var rot = furn.GetRotation(2);
-                                var model = furn.GetData<Data.Furniture>("Data")?.Model ?? 0;
+                                var model = furn.GetData<Client.Data.Furniture>("Data")?.Model ?? 0;
 
                                 furn.SetVisible(false, false);
                                 furn.SetCollision(false, false);
 
-                                furn.GetData<Additional.ExtraBlip>("Blip")?.Destroy();
+                                furn.GetData<ExtraBlip>("Blip")?.Destroy();
 
                                 furn = Streaming.CreateObjectNoOffsetImmediately(model, pos.X, pos.Y, pos.Z);
 
@@ -173,7 +174,7 @@ namespace BlaineRP.Client.CEF
 
                         Events.CallRemote("House::Menu::Furn::Remove", fUid);
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
                     else if (id == "sellfurn")
                     {
@@ -186,9 +187,9 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    if (!Player.LocalPlayer.HasData("HouseMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("HouseMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
+                    if (!Player.LocalPlayer.HasData("HouseMenu::SellGov::ApproveTime") || World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("HouseMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
                     {
-                        Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", Sync.World.ServerTime);
+                        Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", World.Core.ServerTime);
 
                         CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(house.Price))), 5000);
                     }
@@ -224,7 +225,7 @@ namespace BlaineRP.Client.CEF
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
 
                         CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, true);
 
@@ -250,14 +251,14 @@ namespace BlaineRP.Client.CEF
                         var approveContext = $"HouseMenuBuyStyle_{layoutId}";
                         var approveTime = 5_000;
 
-                        if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                        if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                         {
                             if (LastSent.IsSpam(1000, false, true))
                                 return;
 
-                            LastSent = Sync.World.ServerTime;
+                            LastSent = World.Core.ServerTime;
 
-                            CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                            CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
                             CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), curStyle.IsTypeFamiliar(layoutId) ? Locale.Get("HOUSE_STYLE_APPROVE_0") : Locale.Get("HOUSE_STYLE_APPROVE_1"), approveTime);
                         }
@@ -306,7 +307,7 @@ namespace BlaineRP.Client.CEF
 
                     Events.CallRemote("House::Menu::Light::RGB", lIdx, rgb.Red, rgb.Green, rgb.Blue);
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
                 }
             });
 
@@ -339,7 +340,7 @@ namespace BlaineRP.Client.CEF
                     Events.CallRemote("House::Menu::Light::State", lIdx, state);
                 }
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
             });
 
             Events.Add("HomeMenu::UpdateLightColor", (args) =>
@@ -402,7 +403,7 @@ namespace BlaineRP.Client.CEF
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                 return;
 
-            var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
+            var house = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("House::CurrentHouse");
 
             if (house == null)
                 return;
@@ -416,18 +417,18 @@ namespace BlaineRP.Client.CEF
 
             object[] info = null;
 
-            if (house is Data.Locations.House rHouse)
+            if (house is Client.Data.Locations.House rHouse)
             {
                 info = new object[] { house.Id, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, rHouse.GarageType == null ? 0 : (int)rHouse.GarageType, new object[] { doorState, contState } };
             }
-            else if (house is Data.Locations.Apartments rApartments)
+            else if (house is Client.Data.Locations.Apartments rApartments)
             {
                 info = new object[] { rApartments.NumberInRoot + 1, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, 0, new object[] { doorState, contState } };
             }
 
             var layouts = new object[] { Sync.House.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).OrderBy(x => x.Key).Select(x => new object[] { $"hlo_{x.Key}", Sync.House.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Sync.House.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
 
-            var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
+            var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Client.Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
             var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", Locale.Get(x.Value.Objects.Count > 1 ? "HOUSEMENU_LAMPS_SET" : "HOUSEMENU_LAMPS_SINGLE", x.Key + 1), x.Value.State, x.Value.RGB.HEX });
 
@@ -479,7 +480,7 @@ namespace BlaineRP.Client.CEF
 
             Events.CallRemote("House::Menu::Show");
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -527,11 +528,11 @@ namespace BlaineRP.Client.CEF
 
         public static void RemoveSettler(uint cid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeRoommate", cid);
 
-        public static void AddInstalledFurniture(uint uid, Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "installed", uid, fData.Id, fData.Name);
+        public static void AddInstalledFurniture(uint uid, Client.Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "installed", uid, fData.Id, fData.Name);
 
         public static void RemoveInstalledFurniture(uint uid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeFurniture", "installed", uid);
 
-        public static void AddOwnedFurniture(uint uid, Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "possible", uid, fData.Id, fData.Name);
+        public static void AddOwnedFurniture(uint uid, Client.Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "possible", uid, fData.Id, fData.Name);
 
         public static void RemoveOwnedFurniture(uint uid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeFurniture", "possible", uid);
 
@@ -571,7 +572,7 @@ namespace BlaineRP.Client.CEF
             if (LastSent.IsSpam(1000, false, false))
                 return;
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             var res = Utils.Convert.ToByte(await Events.CallRemoteProc("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z));
 
@@ -715,7 +716,7 @@ namespace BlaineRP.Client.CEF
 
                     Events.CallRemote("ARoot::Elevator", elevI, elevJ, floor - shell.StartFloor);
 
-                    HouseMenu.LastSent = Sync.World.ServerTime;
+                    HouseMenu.LastSent = World.Core.ServerTime;
 
                     Close();
                 }

@@ -1,21 +1,24 @@
-﻿using BlaineRP.Client.Extensions.System;
+﻿using System.Linq;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System.Linq;
-using BlaineRP.Client.EntitiesData;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
         [Command("ping", false, "")]
         public static async void Ping()
         {
-            if (LastSent.IsSpam(500, false, true))
+            if (Commands.Core.LastSent.IsSpam(500, false, true))
                 return;
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
 
             var res = Convert.ToDecimal(await Events.CallRemoteProc("Misc::GetPing"));
 
@@ -30,7 +33,7 @@ namespace BlaineRP.Client.Management.Commands
             else
                 Settings.User.Other.DebugLabels = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
+            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
         }
 
         [Command("raytrace", false, "Показ дополнительных сведений о всех сущностях")]
@@ -41,7 +44,7 @@ namespace BlaineRP.Client.Management.Commands
             else
                 Settings.User.Other.RaytraceEnabled = (bool)state;
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
+            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
         }
 
         [Command("lock", false, "Блокировка транспорта")]
@@ -57,14 +60,14 @@ namespace BlaineRP.Client.Management.Commands
 
                 if (veh == null)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.NotFound);
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.NotFound);
 
                     return;
                 }
 
                 if (Vector3.Distance(Player.LocalPlayer.Position, veh.Position) > 10f)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
 
                     return;
                 }
@@ -76,13 +79,13 @@ namespace BlaineRP.Client.Management.Commands
         [Command("report", false, "Связь с администрацией", "rep", "ask")]
         public static void Report(string text)
         {
-            CEF.Menu.ReportSend(text);
+            Menu.ReportSend(text);
         }
 
         [Command("cleargps", false, "Связь с администрацией", "cgps", "gpsclear", "gpsc")]
         public static void ClearGPS()
         {
-            Additional.ExtraBlip.DestroyAllByType(Additional.ExtraBlip.Types.GPS);
+            ExtraBlip.DestroyAllByType(ExtraBlip.Types.GPS);
         }
     }
 }

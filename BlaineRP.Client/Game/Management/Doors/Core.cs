@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.Doors
+namespace BlaineRP.Client.Game.Management.Doors
 {
     [Script(int.MaxValue)]
     public class Core
@@ -32,7 +36,7 @@ namespace BlaineRP.Client.Management.Doors
 
             public uint Id { get; set; }
 
-            public bool IsLocked => Sync.World.GetSharedData<bool>($"DOORS_{Id}_L", false);
+            public bool IsLocked => World.Core.GetSharedData<bool>($"DOORS_{Id}_L", false);
 
             public Door(uint Id, uint Model, Vector3 Position, uint Dimension)
             {
@@ -43,7 +47,7 @@ namespace BlaineRP.Client.Management.Doors
 
                 All.Add(this);
 
-                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 5f, false, Utils.Misc.RedColor, Dimension, null)
+                var cs = new Sphere(new Vector3(Position.X, Position.Y, Position.Z), 5f, false, Utils.Misc.RedColor, Dimension, null)
                 {
                     Name = $"DoorSys_{Id}",
 
@@ -51,7 +55,7 @@ namespace BlaineRP.Client.Management.Doors
                     OnExit = OnExitColshape,
                 };
 
-                Sync.World.AddDataHandler($"DOORS_{Id}_L", OnLockStateChange);
+                World.Core.AddDataHandler($"DOORS_{Id}_L", OnLockStateChange);
             }
 
             public Door(uint Id, string Model, Vector3 Position, uint Dimension) : this(Id, RAGE.Util.Joaat.Hash(Model), Position, Dimension) { }
@@ -62,7 +66,7 @@ namespace BlaineRP.Client.Management.Doors
             {
                 var id = $"DoorSys_{Id}";
 
-                var cs = Additional.ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
+                var cs = ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
 
                 if (cs == null)
                     return;
@@ -105,7 +109,7 @@ namespace BlaineRP.Client.Management.Doors
                     if (LastSent.IsSpam(500, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Door::Lock", Id, !IsLocked);
                 }));
@@ -115,7 +119,7 @@ namespace BlaineRP.Client.Management.Doors
             {
                 var id = $"DoorSys_{Id}";
 
-                var cs = Additional.ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
+                var cs = ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
 
                 if (cs == null)
                     return;

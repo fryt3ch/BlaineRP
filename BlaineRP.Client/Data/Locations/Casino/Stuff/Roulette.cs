@@ -7,9 +7,15 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Animations;
 using BlaineRP.Client.Sync;
-using Script = BlaineRP.Client.Animations.Script;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Management.Camera;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using Audio = BlaineRP.Client.Utils.Game.Audio;
+using Core = BlaineRP.Client.Game.Animations.Core;
+using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
 namespace BlaineRP.Client.Data
 {
@@ -96,7 +102,7 @@ namespace BlaineRP.Client.Data
 
                 public List<BetTypes> LastBets { get; set; }
 
-                public Additional.ExtraLabel TextLabel { get; set; }
+                public ExtraLabel TextLabel { get; set; }
 
                 public string CurrentStateData { get; set; }
 
@@ -221,7 +227,7 @@ namespace BlaineRP.Client.Data
 
                             var task = new AsyncTask(() =>
                             {
-                                updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
+                                updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Game.World.Core.ServerTime).GetBeautyString()}");
                             }, 1_000, true, 0);
 
                             task.Run();
@@ -358,7 +364,7 @@ namespace BlaineRP.Client.Data
                         ped.SetComponentVariation(11, 0, 0, 0);
                     }
 
-                    Script.Play(ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Core.Play(ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
                 }
 
                 public void Spin(int casinoId, int rouletteId, byte targetNumber)
@@ -384,13 +390,13 @@ namespace BlaineRP.Client.Data
 
                         var wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
 
-                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(1_500);
 
                         BallObject?.Destroy();
 
-                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(3_000);
 
@@ -473,7 +479,7 @@ namespace BlaineRP.Client.Data
 
                         NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         await RAGE.Game.Invoker.WaitAsync(1_500);
 
@@ -482,7 +488,7 @@ namespace BlaineRP.Client.Data
 
                         NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                        Script.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                         AsyncTask.Methods.CancelPendingTask(taskKey);
                     }, 0, false, 0);
@@ -507,9 +513,9 @@ namespace BlaineRP.Client.Data
 
                     var tableHeading = TableObject.GetHeading();
 
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.CasinoRouletteGame, TableObject, null, 500, null, null, null);
+                    Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.CasinoRouletteGame, TableObject, null, 500, null, null, null);
 
-                    Additional.Camera.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
+                    Game.Management.Camera.Core.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
 
                     HoverDatas = new Dictionary<BetTypes, HoverData>();
 
@@ -698,7 +704,7 @@ namespace BlaineRP.Client.Data
                         TextLabel.Color = color;
                     }
 
-                    Additional.Camera.Disable(750);
+                    Game.Management.Camera.Core.Disable(750);
 
                     CurrentRoulette = null;
 
@@ -768,7 +774,7 @@ namespace BlaineRP.Client.Data
 
                     var betType = HoveredBet;
 
-                    if (!CEF.Cursor.IsVisible || betType == BetTypes.None)
+                    if (!Cursor.IsVisible || betType == BetTypes.None)
                         return;
 
                     var roulette = CurrentRoulette;
@@ -789,7 +795,7 @@ namespace BlaineRP.Client.Data
 
                     if (stateData == null || !(stateData[0] == 'S' || stateData[0] == 'I'))
                     {
-                        CEF.Notification.Show("Casino::CSB");
+                        Notification.Show("Casino::CSB");
 
                         return;
                     }
@@ -802,7 +808,7 @@ namespace BlaineRP.Client.Data
 
                         if (sameBet != null)
                         {
-                            CEF.Notification.ShowError("Вы уже сделали ставку на этот сектор!", -1);
+                            Notification.ShowError("Вы уже сделали ставку на этот сектор!", -1);
 
                             return;
                         }
@@ -810,7 +816,7 @@ namespace BlaineRP.Client.Data
 
                     if (bet < roulette.MinBet || bet > roulette.MaxBet)
                     {
-                        CEF.Notification.ShowError($"На этом столе разрешены ставки от {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MinBet)} до {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MaxBet)}", -1);
+                        Notification.ShowError($"На этом столе разрешены ставки от {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MinBet)} до {Locale.Get("GEN_CHIPS_0", CurrentRoulette.MaxBet)}", -1);
 
                         return;
                     }
@@ -818,7 +824,7 @@ namespace BlaineRP.Client.Data
                     if (Casino.LastSent.IsSpam(500, false, false))
                         return;
 
-                    Casino.LastSent = Sync.World.ServerTime;
+                    Casino.LastSent = Game.World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Casino::RLTSB", casinoIdx, rouletteIdx, (byte)betType, bet);
 
@@ -862,7 +868,7 @@ namespace BlaineRP.Client.Data
                         }
                     }
 
-                    if (CEF.Cursor.IsVisible)
+                    if (Cursor.IsVisible)
                     {
                         foreach (var x in HoverDatas)
                         {

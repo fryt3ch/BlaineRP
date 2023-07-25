@@ -1,12 +1,12 @@
 ﻿using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     public class Cursor
     {
         private static bool ShouldBlockEscMenu()
         {
-            return IsActive || Misc.IsAnyCefActive(true);
+            return IsActive || Utils.Misc.IsAnyCefActive(true);
         }
 
         public static bool IsActive { get; private set; }

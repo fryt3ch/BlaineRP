@@ -1,13 +1,13 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Input;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ActionBox
@@ -192,7 +192,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
@@ -212,7 +212,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
@@ -232,7 +232,7 @@ namespace BlaineRP.Client.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Misc.ReplaceNewLineHtml(text) });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text) });
 
             Cursor.Show(true, true);
         }

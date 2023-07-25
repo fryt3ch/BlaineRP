@@ -1,14 +1,15 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class GPS
@@ -53,7 +54,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
         private static AsyncTask RouteUpdateTask { get; set; }
 
-        private static Additional.ExtraBlip CurrentRouteBlip { get; set; }
+        private static ExtraBlip CurrentRouteBlip { get; set; }
 
         public GPS()
         {
@@ -128,7 +129,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                                     CurrentRouteBlip?.Destroy();
 
-                                    CurrentRouteBlip = Additional.ExtraBlips.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
+                                    CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
 
                                     CurrentRouteBlip.Blip.SetData("GPSRouteId", closestId);
 
@@ -145,7 +146,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                                 {
                                     CurrentRouteBlip?.Destroy();
 
-                                    CurrentRouteBlip = Additional.ExtraBlips.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
+                                    CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
 
                                     CurrentRouteBlip.Blip.SetData("GPSRouteId", routeId);
 

@@ -1,23 +1,24 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
+using BlaineRP.Client.Game.Data.Vehicles;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Management.Attachments.Enums;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Utils;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
+using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Interaction
@@ -238,7 +239,7 @@ namespace BlaineRP.Client.CEF
 
                 CloseMenu();
 
-                action.Invoke(Client.Interaction.CurrentEntity);
+                action.Invoke(Misc.Interaction.CurrentEntity);
             });
 
             Events.Add("Interaction::Close", (args) => CloseMenu());
@@ -247,7 +248,7 @@ namespace BlaineRP.Client.CEF
             OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(true, veh); });
             OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(null, veh); });
 
-            OutVehicleInteractionInfo.AddAction("push", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.PushVehicle.Toggle(veh); });
+            OutVehicleInteractionInfo.AddAction("push", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PushVehicle.Toggle(veh); });
 
             OutVehicleInteractionInfo.AddAction("trunk", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ShowContainer(veh); });
             OutVehicleInteractionInfo.AddAction("trunk", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleTrunkLock(false, veh); });
@@ -320,7 +321,7 @@ namespace BlaineRP.Client.CEF
             OutVehicleInteractionInfo.AddAction("other", "remove_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.TakePlate(veh); });
             OutVehicleInteractionInfo.AddAction("other", "put_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SetupPlate(veh); });
             OutVehicleInteractionInfo.AddAction("other", "fix", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.FixVehicle(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "junkyard", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Data.Locations.VehicleDestruction.VehicleDestruct(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "junkyard", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Client.Data.Locations.VehicleDestruction.VehicleDestruct(veh); });
 
             OutVehicleInteractionInfo.AddAction("vehdoc", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Events.CallRemote("Vehicles::ShowPass", veh); });
 
@@ -403,23 +404,23 @@ namespace BlaineRP.Client.CEF
 
         public static bool TryShowMenu()
         {
-            if (Client.Interaction.CurrentEntity == null || IsActive)
+            if (Misc.Interaction.CurrentEntity == null || IsActive)
                 return false;
 
-            var entity = Client.Interaction.CurrentEntity;
+            var entity = Misc.Interaction.CurrentEntity;
 
-            if (Misc.IsAnyCefActive())
+            if (Utils.Misc.IsAnyCefActive())
                 return false;
 
-            Client.Interaction.Enabled = false;
+            Misc.Interaction.Enabled = false;
 
-            Client.Interaction.CurrentEntity = entity;
+            Misc.Interaction.CurrentEntity = entity;
 
             if (entity is Vehicle vehicle)
             {
                 if (RAGE.Elements.Player.LocalPlayer.Vehicle == null)
                 {
-                    if (Data.Vehicles.GetByModel(vehicle.Model)?.Type == Data.Vehicles.Vehicle.Types.Boat)
+                    if (Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type == Types.Boat)
                     {
                         OutVehicleInteractionInfo.ReplaceExtraLabelTemp("other", 8, "trailer");
                     }
@@ -455,7 +456,7 @@ namespace BlaineRP.Client.CEF
                 {
                     if (obj.HasData("Furniture"))
                     {
-                        if (obj.GetData<Data.Furniture>("Furniture") is Data.Furniture fData)
+                        if (obj.GetData<Client.Data.Furniture>("Furniture") is Client.Data.Furniture fData)
                         {
                             fData.InteractionAction?.Invoke(obj);
                         }
@@ -471,7 +472,7 @@ namespace BlaineRP.Client.CEF
                 {
                     if (obj.GetSharedData<int>("IOG") == 1)
                     {
-                        var iog = Sync.World.ItemOnGround.GetItemOnGroundObject(obj);
+                        var iog = ItemOnGround.GetItemOnGroundObject(obj);
 
                         if (iog != null)
                         {
@@ -512,7 +513,7 @@ namespace BlaineRP.Client.CEF
                 }
             }
 
-            Client.Interaction.Enabled = true;
+            Misc.Interaction.Enabled = true;
 
             return false;
         }
@@ -592,9 +593,9 @@ namespace BlaineRP.Client.CEF
 
             CloseMenu();
 
-            Client.Interaction.Enabled = false;
+            Misc.Interaction.Enabled = false;
 
-            Client.Interaction.CurrentEntity = player;
+            Misc.Interaction.CurrentEntity = player;
 
             TryShowMenu();
         }
@@ -633,12 +634,12 @@ namespace BlaineRP.Client.CEF
 
             Cursor.Show(false, false);
 
-            Client.Interaction.Enabled = true;
+            Misc.Interaction.Enabled = true;
         }
 
         private static void CheckEntityDistance()
         {
-            if (Client.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, Client.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
+            if (Misc.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, Misc.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
             {
                 CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
 
@@ -710,7 +711,7 @@ namespace BlaineRP.Client.CEF
             if (pData == null)
                 return;
 
-            var currentHouse = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
+            var currentHouse = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("House::CurrentHouse");
 
             if (currentHouse == null)
             {
@@ -900,7 +901,7 @@ namespace BlaineRP.Client.CEF
                 return;
             }
 
-            await CEF.ActionBox.ShowSelect("RESURRECT_PLAYER_ITEM", "Реанимировать {0}", items.Select(x => ((decimal)x.Value, Data.Items.GetName(x.Key))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            await CEF.ActionBox.ShowSelect("RESURRECT_PLAYER_ITEM", "Реанимировать {0}", items.Select(x => ((decimal)x.Value, Client.Data.Items.GetName(x.Key))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
             {
                 if (rType == ActionBox.ReplyTypes.Cancel)
                 {

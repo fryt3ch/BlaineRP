@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.NPCs.Dialogues;
 
 namespace BlaineRP.Client
 {
@@ -8,10 +9,10 @@ namespace BlaineRP.Client
         {
             public static class NPC
             {
-                public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()
+                public static Dictionary<Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Dialogue.TimeTypes, Dictionary<int, string>>()
                 {
                     {
-                        Data.Dialogue.TimeTypes.Morning,
+                        Dialogue.TimeTypes.Morning,
 
                         new Dictionary<int, string>()
                         {
@@ -20,7 +21,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        Data.Dialogue.TimeTypes.Day,
+                        Dialogue.TimeTypes.Day,
 
                         new Dictionary<int, string>()
                         {
@@ -29,7 +30,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        Data.Dialogue.TimeTypes.Evening,
+                        Dialogue.TimeTypes.Evening,
 
                         new Dictionary<int, string>()
                         {
@@ -38,7 +39,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        Data.Dialogue.TimeTypes.Night,
+                        Dialogue.TimeTypes.Night,
 
                         new Dictionary<int, string>()
                         {

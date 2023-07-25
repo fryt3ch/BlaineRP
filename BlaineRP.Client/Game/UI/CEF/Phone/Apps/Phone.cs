@@ -1,20 +1,22 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Utils;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Phone
@@ -131,18 +133,18 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                                 pos.Z -= 1f;
 
-                                var cs1 = Player.LocalPlayer.GetData<Additional.ExtraColshape>("PoliceCallWaitCs");
+                                var cs1 = Player.LocalPlayer.GetData<ExtraColshape>("PoliceCallWaitCs");
 
                                 if (cs1 != null)
                                 {
-                                    (cs1.Data as Additional.ExtraColshape)?.Destroy();
+                                    (cs1.Data as ExtraColshape)?.Destroy();
 
                                     cs1.Destroy();
                                 }
 
-                                Additional.ExtraColshape cs2 = null;
+                                ExtraColshape cs2 = null;
 
-                                cs1 = new Additional.Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Misc.RedColor, BlaineRP.Client.Settings.App.Static.MainDimension)
+                                cs1 = new Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, BlaineRP.Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -153,7 +155,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                                     }
                                 };
 
-                                cs2 = new Additional.Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Colour(0, 0, 255, 25), BlaineRP.Client.Settings.App.Static.MainDimension)
+                                cs2 = new Cylinder(pos, BlaineRP.Client.Settings.App.Static.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Colour(0, 0, 255, 25), BlaineRP.Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = async (cancel) =>
                                     {
@@ -306,7 +308,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 if (number == null || number.Length == 0)
                     return;
 
-                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = World.Core.ServerTime;
 
                 Call(number);
             });
@@ -318,7 +320,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                 var ans = (bool)args[0];
 
-                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = World.Core.ServerTime;
 
                 Events.CallRemote("Phone::CA", ans);
             });
@@ -380,7 +382,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                             return;
 
                         callInfo.Player = player;
-                        callInfo.StartDate = Sync.World.ServerTime;
+                        callInfo.StartDate = World.Core.ServerTime;
 
                         ShowActiveCall(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), "");
 
@@ -433,7 +435,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                     {
                         callInfo.Player.VoiceVolume = 0f;
 
-                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, Sync.World.ServerTime.Subtract(callInfo.StartDate).GetBeautyString());
+                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, World.Core.ServerTime.Subtract(callInfo.StartDate).GetBeautyString());
 
                         if (cancelType == CancelTypes.ServerAuto)
                         {
@@ -491,15 +493,15 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             {
                 var reason = Utils.Convert.ToInt32(args[0]);
 
-                var cs = Player.LocalPlayer.GetData<Additional.ExtraColshape>("PoliceCallWaitCs");
+                var cs = Player.LocalPlayer.GetData<ExtraColshape>("PoliceCallWaitCs");
 
                 if (cs != null)
                 {
-                    (cs.Data as Additional.ExtraColshape)?.Destroy();
+                    (cs.Data as ExtraColshape)?.Destroy();
 
                     cs.Destroy();
 
-                    Additional.ExtraBlips.DestroyTrackerBlipByKey("PoliceCall");
+                    Wrappers.Blips.Core.DestroyTrackerBlipByKey("PoliceCall");
                 }
             });
         }
@@ -520,7 +522,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 return;
             }
 
-            CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+            CEF.Phone.Phone.LastSent = World.Core.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Phone::BLC", number, add))
             {

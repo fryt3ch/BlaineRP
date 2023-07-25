@@ -22,7 +22,7 @@ namespace BlaineRP.Server.Additional
                     {
                         Console.WriteLine("Server is shutting down...");
 
-                        await Server.OnServerShutdown();
+                        await Main.OnServerShutdown();
 
                         Environment.Exit(0);
                     });
@@ -56,13 +56,13 @@ namespace BlaineRP.Server.Additional
             #region Close / Open Access To Server
             { "closejoining", () =>
                 {
-                    Server.IsRestarting = true;
+                    Main.IsRestarting = true;
                 }
             },
 
             { "openjoining", () =>
                 {
-                    Server.IsRestarting = false;
+                    Main.IsRestarting = false;
                 }
             },
 

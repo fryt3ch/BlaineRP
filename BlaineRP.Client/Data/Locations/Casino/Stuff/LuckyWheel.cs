@@ -1,4 +1,5 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -89,7 +90,7 @@ namespace BlaineRP.Client.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        var startDate = Sync.World.ServerTime;
+                        var startDate = Core.ServerTime;
 
                         var basePos = BaseObj.GetCoords(false);
 
@@ -186,7 +187,7 @@ namespace BlaineRP.Client.Data
 
                             if (!timeout)
                             {
-                                if (Sync.World.ServerTime.Subtract(startDate).TotalMilliseconds > 22_000)
+                                if (Core.ServerTime.Subtract(startDate).TotalMilliseconds > 22_000)
                                     timeout = true;
                                 else
                                     await RAGE.Game.Invoker.WaitAsync(10);

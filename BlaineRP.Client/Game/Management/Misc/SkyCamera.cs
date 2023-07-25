@@ -1,10 +1,11 @@
-﻿using BlaineRP.Client.Utils;
+﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Utils;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Management.Misc
 {
     [Script(int.MaxValue)]
     public class SkyCamera
@@ -78,14 +79,14 @@ namespace BlaineRP.Client.Additional
 
                 RAGE.Game.Cam.DoScreenFadeOut(speed);
 
-                CEF.Browser.HideAll(true);
+                Browser.HideAll(true);
             }
             else
             {
                 if (IsFadedOut)
                     RAGE.Game.Cam.DoScreenFadeIn(speed);
 
-                CEF.Browser.HideAll(false);
+                Browser.HideAll(false);
             }
 
             ShouldBeFadedOut = state;

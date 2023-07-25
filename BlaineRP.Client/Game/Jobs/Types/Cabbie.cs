@@ -1,19 +1,18 @@
-﻿using BlaineRP.Client.Utils.Game;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Jobs.Enums;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using Players = BlaineRP.Client.Sync.Players;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Jobs
+namespace BlaineRP.Client.Game.Jobs.Types
 {
     public class Cabbie : Job
     {
@@ -29,7 +28,7 @@ namespace BlaineRP.Client.Data.Jobs
             }
         }
 
-        public Cabbie(int Id, Utils.Vector4 Position) : base(Id, Types.Cabbie)
+        public Cabbie(int Id, Utils.Vector4 Position) : base(Id, JobTypes.Cabbie)
         {
             Blip = new ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
         }
@@ -55,7 +54,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             await ActionBox.ShowSelect
             (
-                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Misc.GetStreetName(x.Position), System.Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
+                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.Game.Misc.GetStreetName(x.Position), System.Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
 
                 () =>
                 {
@@ -84,7 +83,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                     if (rType == ActionBox.ReplyTypes.OK)
                     {
-                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Cabbie.OrderInfo>>("AOL");
+                        var orders = pData.CurrentJob?.GetCurrentData<List<Cabbie.OrderInfo>>("AOL");
 
                         if (orders == null)
                             return;
@@ -98,7 +97,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                         if (res == byte.MaxValue)
                         {
-                            if (pData.CurrentJob is Data.Jobs.Cabbie cabbieJob)
+                            if (pData.CurrentJob is Cabbie cabbieJob)
                             {
                                 Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi5);
 

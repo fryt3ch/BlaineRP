@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Animations.Enums
+﻿namespace BlaineRP.Client.Game.Animations.Enums
 {
     public enum GeneralTypes
     {

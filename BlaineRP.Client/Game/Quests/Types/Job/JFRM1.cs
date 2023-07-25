@@ -1,4 +1,8 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 
@@ -23,7 +27,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (qData == null || qData.Length != 1)
                                 return;
 
-                            var job = pData.CurrentJob as Data.Jobs.Farmer;
+                            var job = pData.CurrentJob as Farmer;
 
                             if (job == null)
                                 return;
@@ -44,16 +48,16 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 if (fieldData.Type != Data.Locations.Farm.CropField.Types.Wheat)
                                     continue;
 
-                                var srcCs = fieldData.Colshape as Additional.Cuboid;
+                                var srcCs = fieldData.Colshape as Cuboid;
 
                                 if (srcCs == null)
                                     continue;
 
-                                var cs = new Additional.Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                                var cs = new Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                                 {
-                                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyVehicleDriver,
+                                    ApproveType = ApproveTypes.OnlyVehicleDriver,
 
-                                    ActionType = Additional.ExtraColshape.ActionTypes.VehicleSpeedLimit,
+                                    ActionType = ActionTypes.VehicleSpeedLimit,
 
                                     Data = Data.Locations.Farm.TRACTOR_MAX_SPEED_KM_H / 3.6f,
                                 };

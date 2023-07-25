@@ -1,4 +1,5 @@
-﻿using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
@@ -131,8 +132,8 @@ namespace BlaineRP.Client.Data
                         var checkPoints = new int[] { 180, 240, 300 };
                         var results = new byte[] { (byte)resultA, (byte)resultB, (byte)resultC };
 
-                        var startDate = Sync.World.ServerTime;
-                        var endDate = Sync.World.ServerTime.AddMilliseconds(5_500);
+                        var startDate = Core.ServerTime;
+                        var endDate = Core.ServerTime.AddMilliseconds(5_500);
 
                         for (int i = 1; i < 300 + 1; i++)
                         {
@@ -164,7 +165,7 @@ namespace BlaineRP.Client.Data
                                 }
                             }
 
-                            if (Sync.World.ServerTime <= endDate)
+                            if (Core.ServerTime <= endDate)
                             {
                                 await RAGE.Game.Invoker.WaitAsync(13);
 

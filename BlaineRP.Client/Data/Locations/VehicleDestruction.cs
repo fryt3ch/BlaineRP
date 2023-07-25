@@ -1,4 +1,9 @@
-﻿using BlaineRP.Client.EntitiesData;
+﻿using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
@@ -13,11 +18,11 @@ namespace BlaineRP.Client.Data
         {
             public VehicleDestruction(int id, Vector3 Position)
             {
-                var blip = new Additional.ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                var blip = new ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                    ApproveType = ApproveTypes.None,
 
                     OnEnter = (cancel) =>
                     {
@@ -26,11 +31,11 @@ namespace BlaineRP.Client.Data
                         if (Player.LocalPlayer.Vehicle != null)
                         {
                             if (Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
-                                CEF.Notification.ShowHint($"Чтобы продать транспорт, выйдите из него, находитесь рядом с ним и смотрите на него, далее нажмите {Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
+                                Notification.ShowHint($"Чтобы продать транспорт, выйдите из него, находитесь рядом с ним и смотрите на него, далее нажмите {Input.Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
                         }
                         else
                         {
-                            CEF.Notification.ShowHint($"Чтобы продать транспорт, смотрите на него, находясь рядом с ним, и нажмите {Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
+                            Notification.ShowHint($"Чтобы продать транспорт, смотрите на него, находясь рядом с ним, и нажмите {Input.Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт", true);
                         }
                     },
 
@@ -44,15 +49,15 @@ namespace BlaineRP.Client.Data
             {
                 Player.LocalPlayer.ResetData("VehicleDestruction::Id");
 
-                if (CEF.ActionBox.CurrentContextStr == "VehicleDestructConfirm")
-                    CEF.ActionBox.Close(true);
+                if (ActionBox.CurrentContextStr == "VehicleDestructConfirm")
+                    ActionBox.Close(true);
             }
 
-            public static async void VehicleDestruct(Vehicle veh)
+            public static async void VehicleDestruct(RAGE.Elements.Vehicle veh)
             {
                 if (!Player.LocalPlayer.HasData("VehicleDestruction::Id"))
                 {
-                    CEF.Notification.ShowError("Вы должны находиться на свалке и рядом с местом сдачи транспорта!");
+                    Notification.ShowError("Вы должны находиться на свалке и рядом с местом сдачи транспорта!");
 
                     return;
                 }
@@ -73,24 +78,24 @@ namespace BlaineRP.Client.Data
 
                 var price = Utils.Convert.ToDecimal(res);
 
-                await CEF.ActionBox.ShowText
+                await ActionBox.ShowText
                 (
                     "VehicleDestructConfirm", "Сдать транспорт на свалку", $"Вы действительно хотите сдать {vDataData.Name} #{vData.VID} на свалку?\n\nЗа этот транспорт Вы получите {Locale.Get("GEN_MONEY_0", price)} наличными\n\nЕсли у транспорта есть багажник, то все вещи, которые в нём находятся безвозвратно исчезнут\n\nПодтвердите это действие", null, null,
 
-                    CEF.ActionBox.DefaultBindAction,
+                    ActionBox.DefaultBindAction,
 
                     async (rType) =>
                     {
-                        if (rType != CEF.ActionBox.ReplyTypes.OK)
+                        if (rType != ActionBox.ReplyTypes.OK)
                         {
-                            CEF.ActionBox.Close(true);
+                            ActionBox.Close(true);
 
                             return;
                         }
 
                         var res = (bool)await Events.CallRemoteProc("Vehicles::VDC", veh, posId);
 
-                        CEF.ActionBox.Close(true);
+                        ActionBox.Close(true);
                     },
 
                     null

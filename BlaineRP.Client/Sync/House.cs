@@ -9,7 +9,16 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using Core = BlaineRP.Client.Game.Management.Doors.Core;
 using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client.Sync
@@ -138,8 +147,8 @@ namespace BlaineRP.Client.Sync
             }
         }
 
-        private static List<Additional.ExtraColshape> TempColshapes;
-        private static List<Additional.ExtraBlip> TempBlips;
+        private static List<ExtraColshape> TempColshapes;
+        private static List<ExtraBlip> TempBlips;
 
         public static Dictionary<int, LightsPack> Lights { get; private set; }
         public static Dictionary<int, MapObject> Doors { get; private set; }
@@ -156,8 +165,8 @@ namespace BlaineRP.Client.Sync
 
             Style.LoadAll();
 
-            TempColshapes = new List<Additional.ExtraColshape>();
-            TempBlips = new List<Additional.ExtraBlip>();
+            TempColshapes = new List<ExtraColshape>();
+            TempBlips = new List<ExtraBlip>();
 
             Lights = new Dictionary<int, LightsPack>();
             Doors = new Dictionary<int, MapObject>();
@@ -174,7 +183,7 @@ namespace BlaineRP.Client.Sync
 
                 task = new AsyncTask(async () =>
                 {
-                    while (Additional.SkyCamera.IsFadedOut)
+                    while (SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
                     if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
@@ -186,9 +195,9 @@ namespace BlaineRP.Client.Sync
 
                     var style = Data.Locations.Garage.Style.Get(garage.Type, garage.Variation);
 
-                    var gExitCs = new Additional.Cylinder(new Vector3(style.EnterPosition.X, style.EnterPosition.Y, style.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, Player.LocalPlayer.Dimension, null)
+                    var gExitCs = new Cylinder(new Vector3(style.EnterPosition.X, style.EnterPosition.Y, style.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, Player.LocalPlayer.Dimension, null)
                     {
-                        InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                        InteractionType = InteractionTypes.GarageExit,
                     };
 
                     TempColshapes.Add(gExitCs);
@@ -230,7 +239,7 @@ namespace BlaineRP.Client.Sync
 
                     var aRoot = Data.Locations.ApartmentsRoot.All[arId];
 
-                    while (Additional.SkyCamera.IsFadedOut)
+                    while (SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(25);
 
                     if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
@@ -285,7 +294,7 @@ namespace BlaineRP.Client.Sync
 
                 void onStopTask()
                 {
-                    Additional.SkyCamera.FadeScreen(false, 500, -1);
+                    SkyCamera.FadeScreen(false, 500, -1);
 
                     Main.DisableAllControls(false);
                 }
@@ -307,13 +316,13 @@ namespace BlaineRP.Client.Sync
 
                     var style = Style.Get(sType);
 
-                    while (Additional.SkyCamera.IsFadedOut && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
+                    while (SkyCamera.IsFadedOut && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         await RAGE.Game.Invoker.WaitAsync(25);
 
                     if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                         return;
 
-                    Additional.SkyCamera.FadeScreen(true, 0, -1);
+                    SkyCamera.FadeScreen(true, 0, -1);
 
                     Main.DisableAllControls(true);
 
@@ -400,7 +409,7 @@ namespace BlaineRP.Client.Sync
 
                         t.SetCoordsNoOffset(coords.X, coords.Y, coords.Z, false, false, false);
 
-                        Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
+                        Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
 
                         Doors.Add(i, t);
 
@@ -414,7 +423,7 @@ namespace BlaineRP.Client.Sync
                             if (LastSent.IsSpam(1000, false, true))
                                 return;
 
-                            LastSent = Sync.World.ServerTime;
+                            LastSent = Game.World.Core.ServerTime;
 
                             Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
                         }));
@@ -485,9 +494,9 @@ namespace BlaineRP.Client.Sync
                         }
                     }
 
-                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue);
+                    var exitCs = new Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue);
 
-                    exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
+                    exitCs.InteractionType = InteractionTypes.HouseExit;
 
                     TempColshapes.Add(exitCs);
 
@@ -497,28 +506,28 @@ namespace BlaineRP.Client.Sync
                         {
                             var gData = Data.Locations.Garage.Style.Get(grType, 0);
 
-                            var gExitCs = new Additional.Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue, null)
+                            var gExitCs = new Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue, null)
                             {
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                                InteractionType = InteractionTypes.GarageExit,
                             };
 
                             TempColshapes.Add(gExitCs);
                         }
 
-                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
+                        HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_House);
                     }
                     else if (house is Data.Locations.Apartments rApartments)
                     {
-                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
+                        HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_Apartments);
                     }
 
-                    TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
+                    TempBlips.Add(new ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
 
                     AsyncTask.Methods.CancelPendingTask(taskKey);
 
                     Main.DisableAllControls(false);
 
-                    Additional.SkyCamera.FadeScreen(false, 500, -1);
+                    SkyCamera.FadeScreen(false, 500, -1);
                 }, 0, false, 0);
 
                 AsyncTask.Methods.SetAsPending(task, taskKey);
@@ -538,7 +547,7 @@ namespace BlaineRP.Client.Sync
 
                 door.SetData("DoorState", state);
 
-                Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
+                Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
             });
 
             Events.Add("House::Light", (object[] args) =>
@@ -559,8 +568,8 @@ namespace BlaineRP.Client.Sync
                         RAGE.Game.Entity.SetEntityLights(x.Handle, !state);
                     }
 
-                    if (CEF.HouseMenu.IsActive)
-                        CEF.HouseMenu.SetLightState(lIdx, state);
+                    if (HouseMenu.IsActive)
+                        HouseMenu.SetLightState(lIdx, state);
                 }
                 else if (args[1] is string str)
                 {
@@ -575,8 +584,8 @@ namespace BlaineRP.Client.Sync
                             x.SetLightColour(rgb);
                         }
 
-                        if (CEF.HouseMenu.IsActive)
-                            CEF.HouseMenu.SetLightColour(lIdx, rgb);
+                        if (HouseMenu.IsActive)
+                            HouseMenu.SetLightColour(lIdx, rgb);
                     }
                 }
             });
@@ -593,8 +602,8 @@ namespace BlaineRP.Client.Sync
 
                     Furniture.Remove(fUid);
 
-                    if (CEF.HouseMenu.IsActive)
-                        CEF.HouseMenu.RemoveInstalledFurniture(fUid);
+                    if (HouseMenu.IsActive)
+                        HouseMenu.RemoveInstalledFurniture(fUid);
                 }
                 else
                 {
@@ -612,8 +621,8 @@ namespace BlaineRP.Client.Sync
 
                         CreateObject(fUid, fData, props);
 
-                        if (CEF.HouseMenu.IsActive)
-                            CEF.HouseMenu.AddInstalledFurniture(fUid, fData);
+                        if (HouseMenu.IsActive)
+                            HouseMenu.AddInstalledFurniture(fUid, fData);
                     }
                     else
                     {
@@ -627,10 +636,10 @@ namespace BlaineRP.Client.Sync
 
             Events.Add("House::Lock", (args) =>
             {
-                if (!CEF.HouseMenu.IsActive)
+                if (!HouseMenu.IsActive)
                     return;
 
-                CEF.HouseMenu.SetButtonState((bool)args[0] ? "entry" : "closet", (bool)args[1]);
+                HouseMenu.SetButtonState((bool)args[0] ? "entry" : "closet", (bool)args[1]);
             });
         }
 
@@ -644,7 +653,7 @@ namespace BlaineRP.Client.Sync
                     TempBlips.Remove(x);
             }
 
-            var blip = new Additional.ExtraBlip(162, obj.GetCoords(false), null, 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Furniture);
+            var blip = new ExtraBlip(162, obj.GetCoords(false), null, 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, ExtraBlip.Types.Furniture);
 
             blip.SetAsReachable(2.5f);
 
@@ -737,8 +746,8 @@ namespace BlaineRP.Client.Sync
 
             Furniture.Clear();
 
-            CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_House);
-            CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_Apartments);
+            HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Menu_House);
+            HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Menu_Apartments);
         }
 
         public static void UpdateAllLights()

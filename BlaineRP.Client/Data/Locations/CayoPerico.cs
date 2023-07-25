@@ -1,6 +1,13 @@
-﻿using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.World.Enums;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
+using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -10,17 +17,17 @@ namespace BlaineRP.Client.Data
         {
             public static bool IslandLoaded { get; set; }
 
-            public static Additional.ExtraColshape MainColshape { get; set; }
+            public static ExtraColshape MainColshape { get; set; }
 
             private static AsyncTask LoadTask { get; set; }
 
             public static void Initialize()
             {
-                MainColshape = new Additional.Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null)
+                MainColshape = new Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null)
                 {
                     Name = "CayoPerico_Loader",
 
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                    ApproveType = ApproveTypes.None,
 
                     OnEnter = (cancel) =>
                     {
@@ -45,7 +52,7 @@ namespace BlaineRP.Client.Data
 
                 ToggleCayoPericoIsland(false, false);
 
-                var mainBlip = new Additional.ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                var mainBlip = new ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             }
 
             public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)
@@ -55,7 +62,7 @@ namespace BlaineRP.Client.Data
                 SetToggleMinimapHeistIsland(state);
 
                 if (updateCustomWeather)
-                    Sync.World.SetSpecialWeather(state ? (Sync.World.WeatherTypes?)Sync.World.WeatherTypes.EXTRASUNNY : null);
+                    Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
 
                 LoadTask?.Cancel();
 

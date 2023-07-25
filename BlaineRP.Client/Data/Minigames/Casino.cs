@@ -7,11 +7,14 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Camera;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Sync;
-using Script = BlaineRP.Client.Animations.Script;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
+using Core = BlaineRP.Client.Input.Core;
 
 namespace BlaineRP.Client.Data.Minigames.Casino
 {
@@ -27,7 +30,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             Blackjack = 2,
         }
 
-        public static bool IsActive => CEF.Browser.IsActive(CEF.Browser.IntTypes.CasinoMinigames);
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.CasinoMinigames);
 
         public static Types CurrentType { get; private set; } = Types.None;
 
@@ -72,7 +75,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                     if (AsyncTask.Methods.IsTaskStillPending($"CASINO_SLOTMACHINE_{casinoId}_{machineId}", null))
                     {
-                        CEF.Notification.ShowErrorDefault();
+                        Notification.ShowErrorDefault();
 
                         return;
                     }
@@ -81,7 +84,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                     if (bet < Data.Locations.Casino.SlotMachine.MinBet || bet > Data.Locations.Casino.SlotMachine.MaxBet)
                     {
-                        CEF.Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MinBet), Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MaxBet)));
+                        Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MinBet), Locale.Get("CASINO_CHIPS_1", Data.Locations.Casino.SlotMachine.MaxBet)));
 
                         return;
                     }
@@ -89,7 +92,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     if (Data.Locations.Casino.LastSent.IsSpam(500, false, true))
                         return;
 
-                    Data.Locations.Casino.LastSent = Sync.World.ServerTime;
+                    Data.Locations.Casino.LastSent = Game.World.Core.ServerTime;
 
                     var res = ((string)await Events.CallRemoteProc("Casino::SLMB", casinoId, machineId, bet))?.Split('^');
 
@@ -147,7 +150,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                         RAGE.Game.Audio.StopSound(Data.Locations.Casino.SlotMachine.SoundId);
                     }
 
-                    CEF.Browser.Window.ExecuteJs("Casino.switchSound", state);
+                    Browser.Window.ExecuteJs("Casino.switchSound", state);
                 }
             });
 
@@ -185,7 +188,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                         if (bet < table.MinBet || bet > table.MaxBet)
                         {
-                            CEF.Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", table.MinBet), Locale.Get("CASINO_CHIPS_1", table.MaxBet)));
+                            Notification.ShowError(Locale.Get("CASINO_BET_E_0", Locale.Get("CASINO_CHIPS_1", table.MinBet), Locale.Get("CASINO_CHIPS_1", table.MaxBet)));
 
                             return;
                         }
@@ -194,7 +197,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                         if (curStateData == null || (curStateData[0] != 'I' && curStateData[0] != 'S'))
                         {
-                            CEF.Notification.ShowErrorDefault();
+                            Notification.ShowErrorDefault();
 
                             return;
                         }
@@ -202,7 +205,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                         if (Data.Locations.Casino.LastSent.IsSpam(500, false, true))
                             return;
 
-                        Data.Locations.Casino.LastSent = Sync.World.ServerTime;
+                        Data.Locations.Casino.LastSent = Game.World.Core.ServerTime;
 
                         var res = (bool)await Events.CallRemoteProc("Casino::BLJSB", casinoId, tableId, bet);
 
@@ -214,7 +217,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                         if (Data.Locations.Casino.LastSent.IsSpam(500, false, true))
                             return;
 
-                        Data.Locations.Casino.LastSent = Sync.World.ServerTime;
+                        Data.Locations.Casino.LastSent = Game.World.Core.ServerTime;
 
                         Events.CallRemote("Casino::BLJD", casinoId, tableId, btnIdx == 0 ? 1 : 0);
                     }
@@ -227,24 +230,24 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             if (IsActive)
                 return;
 
-            await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoMinigames, true, true);
+            await Browser.Render(Browser.IntTypes.CasinoMinigames, true, true);
 
             CurrentType = Types.Roulette;
 
-            CEF.Browser.Window.ExecuteJs("Casino.draw", (int)CurrentType, roulette.GetCurrestStateString() ?? "null", chipsBalance, roulette.MaxBet, CurrentBet < roulette.MinBet || CurrentBet > roulette.MaxBet ? CurrentBet = roulette.MinBet : CurrentBet, new object[] { });
+            Browser.Window.ExecuteJs("Casino.draw", (int)CurrentType, roulette.GetCurrestStateString() ?? "null", chipsBalance, roulette.MaxBet, CurrentBet < roulette.MinBet || CurrentBet > roulette.MaxBet ? CurrentBet = roulette.MinBet : CurrentBet, new object[] { });
 
-            CEF.Notification.SetOnTop(true);
+            Notification.SetOnTop(true);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
+                HUD.ShowHUD(false);
 
-            CEF.Chat.Show(false);
+            Chat.Show(false);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             Main.DisableAllControls(true);
 
-            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
+            Input.Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
             roulette.StartGame();
 
@@ -254,7 +257,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                     AddLastBet(x);
             }
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static async void ShowSlotMachine(Data.Locations.Casino casino, Data.Locations.Casino.SlotMachine slotMachine, decimal chipsBalance, decimal jackpot)
@@ -273,42 +276,42 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             Player.LocalPlayer.Position = seatPos;
             Player.LocalPlayer.SetHeading(machineHeading);
 
-            await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoMinigames, true, true);
+            await Browser.Render(Browser.IntTypes.CasinoMinigames, true, true);
 
             if (SoundOn)
                 slotMachine.PlayGreetingSound();
 
             Data.Locations.Casino.SlotMachine.CurrentMachine = slotMachine;
 
-            Additional.Camera.Enable(Additional.Camera.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 0, null, null, null);
+            Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 0, null, null, null);
 
-            Additional.Camera.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.5f);
-            Additional.Camera.PointAtPos(RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, 0f, 0.04f, 1.1f));
+            Game.Management.Camera.Core.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.5f);
+            Game.Management.Camera.Core.PointAtPos(RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, 0f, 0.04f, 1.1f));
 
-            Additional.Camera.Fov = 50;
+            Game.Management.Camera.Core.Fov = 50;
 
             Player.LocalPlayer.SetVisible(false, false);
 
             CurrentType = Types.SlotMachine;
 
-            CEF.Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, Data.Locations.Casino.SlotMachine.GetJackpotString(jackpot), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
+            Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, Data.Locations.Casino.SlotMachine.GetJackpotString(jackpot), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
 
-            CEF.Browser.Window.ExecuteJs("Casino.switchSound", SoundOn);
+            Browser.Window.ExecuteJs("Casino.switchSound", SoundOn);
 
-            CEF.Notification.SetOnTop(true);
+            Notification.SetOnTop(true);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
+                HUD.ShowHUD(false);
 
-            CEF.Chat.Show(false);
+            Chat.Show(false);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             Main.DisableAllControls(true);
 
-            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
+            Input.Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static async void ShowBlackjack(Data.Locations.Casino casino, Data.Locations.Casino.Blackjack blackJack, byte seatIdx, decimal chipsBalance)
@@ -338,43 +341,43 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                 if (actAnim != null)
                 {
-                    Script.Stop(Player.LocalPlayer);
+                    Game.Animations.Core.Stop(Player.LocalPlayer);
 
-                    Script.Play(Player.LocalPlayer, actAnim);
+                    Game.Animations.Core.Play(Player.LocalPlayer, actAnim);
                 }
             }
 
-            await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoMinigames, true, true);
+            await Browser.Render(Browser.IntTypes.CasinoMinigames, true, true);
 
             Player.LocalPlayer.SetVisible(false, false);
 
-            Additional.Camera.Enable(Additional.Camera.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 750, null, null, null);
+            Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 750, null, null, null);
 
-            Additional.Camera.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.75f);
+            Game.Management.Camera.Core.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.75f);
             //Additional.Camera.PointAtPos(blackJack.TableObject.GetOffsetFromInWorldCoords(-0.2246f, 0.21305f, 0.957f));
-            Additional.Camera.PointAtPos(blackJack.NPC.Ped.GetOffsetFromInWorldCoords(0.25f, 0.35f, -0.15f));
-            Additional.Camera.Fov = 70;
+            Game.Management.Camera.Core.PointAtPos(blackJack.NPC.Ped.GetOffsetFromInWorldCoords(0.25f, 0.35f, -0.15f));
+            Game.Management.Camera.Core.Fov = 70;
 
             blackJack.StartGame(seatIdx);
 
             CurrentType = Types.Blackjack;
 
-            CEF.Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, blackJack.GetCurrestStateString(), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
+            Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, blackJack.GetCurrestStateString(), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
 
-            CEF.Notification.SetOnTop(true);
+            Notification.SetOnTop(true);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
+                HUD.ShowHUD(false);
 
             //CEF.Chat.Show(false);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             Main.DisableMove(true);
 
-            Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
+            Input.Core.DisableAll(Input.Enums.BindTypes.MicrophoneOff, Input.Enums.BindTypes.MicrophoneOn, Input.Enums.BindTypes.Cursor);
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             var stateData = blackJack.CurrentStateData;
 
@@ -443,7 +446,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                 }
 
-                Additional.Camera.Disable(0);
+                Game.Management.Camera.Core.Disable(0);
 
                 Player.LocalPlayer.SetVisible(true, true);
 
@@ -483,7 +486,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
                 }
 
-                Additional.Camera.Disable(750);
+                Game.Management.Camera.Core.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, true);
 
@@ -505,22 +508,22 @@ namespace BlaineRP.Client.Data.Minigames.Casino
 
             CurrentType = Types.None;
 
-            CEF.Browser.Render(CEF.Browser.IntTypes.CasinoMinigames, false);
+            Browser.Render(Browser.IntTypes.CasinoMinigames, false);
 
             //CEF.Notification.ClearAll();
 
-            CEF.Notification.SetOnTop(false);
+            Notification.SetOnTop(false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(true);
+                HUD.ShowHUD(true);
 
-            CEF.Chat.Show(true);
+            Chat.Show(true);
 
-            Core.EnableAll();
+            Input.Core.EnableAll();
 
-            Core.Unbind(EscBindIdx);
+            Input.Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
         }
@@ -550,7 +553,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
                 }
             }
 
-            CEF.Browser.Window.ExecuteJs("Casino.addLastNum", new List<object> { colourNum, betType.ToString().Replace("_", "") });
+            Browser.Window.ExecuteJs("Casino.addLastNum", new List<object> { colourNum, betType.ToString().Replace("_", "") });
         }
 
         public static void UpdateStatus(string status)
@@ -558,7 +561,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("Casino.updateGameStatus", status);
+            Browser.Window.ExecuteJs("Casino.updateGameStatus", status);
         }
 
         public static void UpdateBalance(decimal balance)
@@ -566,7 +569,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("Casino.updateCurBal", balance);
+            Browser.Window.ExecuteJs("Casino.updateCurBal", balance);
         }
 
         public static void ShowBlackjackButton(int num, bool state)
@@ -574,7 +577,7 @@ namespace BlaineRP.Client.Data.Minigames.Casino
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("Casino.showBJButton", num, state);
+            Browser.Window.ExecuteJs("Casino.showBJButton", num, state);
         }
     }
 }

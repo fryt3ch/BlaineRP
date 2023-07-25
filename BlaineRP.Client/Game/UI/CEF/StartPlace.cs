@@ -1,11 +1,12 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
 using Newtonsoft.Json.Linq;
 using RAGE;
-using System;
-using System.Linq;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class StartPlace
@@ -50,7 +51,7 @@ namespace BlaineRP.Client.CEF
 
                 LastType = CurrentTypes.Contains(Types.Last) ? Types.Last : CurrentTypes.First();
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = Core.ServerTime;
 
                 await Events.CallRemoteProc("Auth::StartPlace", false, (byte)LastType);
             });
@@ -64,7 +65,7 @@ namespace BlaineRP.Client.CEF
 
                 if (!LastSent.IsSpam(500, false, false))
                 {
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Auth::StartPlace", false, (byte)type))
                     {
@@ -86,7 +87,7 @@ namespace BlaineRP.Client.CEF
 
                 if (!LastSent.IsSpam(1000, false, false))
                 {
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Auth::StartPlace", true, LastType))
                     {

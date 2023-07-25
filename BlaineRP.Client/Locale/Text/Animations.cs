@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Animations.Enums;
+using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client
@@ -26,10 +26,10 @@ namespace BlaineRP.Client
                 public static string TextToHandSmoke = "Нажмите ALT, чтобы взять в руку";
                 public static string CancelTextSmoke = "Нажмите {0}, чтобы перестать курить";
 
-                public static Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)> Anims = new Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)>
+                public static Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)> Anims = new Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)>
                 {
                     {
-                        CEF.Animations.AnimSectionTypes.Social,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Social,
 
                         (
                             "Социальные",
@@ -90,7 +90,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Dialogs,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Dialogs,
 
                         (
                             "Для диалогов",
@@ -121,7 +121,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Reactions,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Reactions,
 
                         (
                             "Реакции",
@@ -154,7 +154,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.SeatLie,
+                        Game.UI.CEF.Animations.AnimSectionTypes.SeatLie,
 
                         (
                             "Сидеть/лежать",
@@ -198,7 +198,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Sport,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Sport,
 
                         (
                             "Спортивные",
@@ -229,7 +229,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Indecent,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Indecent,
 
                         (
                             "Непристойные",
@@ -268,7 +268,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.StandPoses,
+                        Game.UI.CEF.Animations.AnimSectionTypes.StandPoses,
 
                         (
                             "Стойки",
@@ -324,7 +324,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Dances,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Dances,
 
                         (
                             "Танцы",
@@ -440,7 +440,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.Situative,
+                        Game.UI.CEF.Animations.AnimSectionTypes.Situative,
 
                         (
                             "Ситуативные",
@@ -465,7 +465,7 @@ namespace BlaineRP.Client
                     },
 
                     {
-                        CEF.Animations.AnimSectionTypes.WithWeapon,
+                        Game.UI.CEF.Animations.AnimSectionTypes.WithWeapon,
 
                         (
                             "Для оружия в руках",

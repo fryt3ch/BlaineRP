@@ -9,7 +9,7 @@ using BlaineRP.Client.Sync;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Weapons.Core;
 
-namespace BlaineRP.Client.Game.Local
+namespace BlaineRP.Client.Game.Misc
 {
     internal static class PlayerActions
     {

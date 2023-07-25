@@ -2,6 +2,9 @@
 using RAGE;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 
 namespace BlaineRP.Client.Data
 {
@@ -34,13 +37,13 @@ namespace BlaineRP.Client.Data
 
                 if (All.TryAdd(Id, this))
                 {
-                    var cs = new Additional.Cylinder(new Vector3(Position.Position.X, Position.Position.Y, Position.Position.Z - 1f), Range, 1.5f, false, Misc.RedColor, Dimension, null)
+                    var cs = new Cylinder(new Vector3(Position.Position.X, Position.Position.Y, Position.Position.Z - 1f), Range, 1.5f, false, Misc.RedColor, Dimension, null)
                     {
                         Data = Id,
 
-                        InteractionType = Additional.ExtraColshape.InteractionTypes.ElevatorInteract,
+                        InteractionType = InteractionTypes.ElevatorInteract,
 
-                        ActionType = Additional.ExtraColshape.ActionTypes.ElevatorInteract,
+                        ActionType = ActionTypes.ElevatorInteract,
                     };
                 }
             }

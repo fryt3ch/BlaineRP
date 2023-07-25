@@ -31,7 +31,7 @@ namespace BlaineRP.Server.Events.Players
         [ServerEvent(Event.IncomingConnection)]
         private static void OnIncomingConnection(string ip, string serial, string rgscName, ulong rgscId, GameTypes gameType, CancelEventArgs cancel)
         {
-            if (Server.IsRestarting)
+            if (Server.Main.IsRestarting)
                 cancel.Cancel = true;
         }
 

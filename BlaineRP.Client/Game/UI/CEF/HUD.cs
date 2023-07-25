@@ -1,18 +1,25 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Utils.Game;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.Jobs;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Quests;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
+using RAGE.Elements;
+using Core = BlaineRP.Client.Game.World.Core;
 using Players = BlaineRP.Client.Sync.Players;
+using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class HUD
@@ -79,11 +86,11 @@ namespace BlaineRP.Client.CEF
 
                 { Types.WeaponSkinsMenu, () => Players.TryShowWeaponSkinsMenu() },
 
-                { Types.Job_Menu, () => Data.Jobs.Job.ShowJobMenu() },
+                { Types.Job_Menu, () => Job.ShowJobMenu() },
 
-                { Types.Fraction_Menu, () => Data.Fractions.Fraction.ShowFractionMenu() },
+                { Types.Fraction_Menu, () => Fraction.ShowFractionMenu() },
 
-                { Types.Fraction_Police_TabletPC, () => Data.Fractions.Police.ShowPoliceTabletPc() },
+                { Types.Fraction_Police_TabletPC, () => Police.ShowPoliceTabletPc() },
             };
 
             public static List<Types> CurrentTypes { get; private set; } = new List<Types>();
@@ -98,7 +105,7 @@ namespace BlaineRP.Client.CEF
 
                     Types type = (Types)args[0];
 
-                    var kbAction = Core.HudMenuBinds.Where(x => x.Value == type).Select(x => Core.Get(x.Key).Action).FirstOrDefault();
+                    var kbAction = Input.Core.HudMenuBinds.Where(x => x.Value == type).Select(x => Input.Core.Get(x.Key).Action).FirstOrDefault();
 
                     if (kbAction != null)
                     {
@@ -147,13 +154,13 @@ namespace BlaineRP.Client.CEF
                     if ((types?.Count ?? 0) == 0)
                         return;
 
-                    TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
+                    TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
 
                     CEF.Browser.Switch(CEF.Browser.IntTypes.HUD_Menu, true);
 
                     Cursor.Show(true, true);
 
-                    Core.Get(Input.Enums.BindTypes.Menu).Disable();
+                    Input.Core.Get(Input.Enums.BindTypes.Menu).Disable();
 
                     CEF.Browser.Window.ExecuteJs("Hud.drawMenu", new object[] { types.Select(x => new object[] { x, Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(x.GetType(), x.ToString(), "MENU_I_NAME") ?? "null") }) });
 
@@ -173,7 +180,7 @@ namespace BlaineRP.Client.CEF
                         return;
 
                     foreach (var x in TempBinds.ToList())
-                        Core.Unbind(x);
+                        Input.Core.Unbind(x);
 
                     TempBinds.Clear();
 
@@ -181,7 +188,7 @@ namespace BlaineRP.Client.CEF
 
                     Cursor.Show(false, false);
 
-                    Core.Get(Input.Enums.BindTypes.Menu).Enable();
+                    Input.Core.Get(Input.Enums.BindTypes.Menu).Enable();
                 }
             }
         }
@@ -302,7 +309,7 @@ namespace BlaineRP.Client.CEF
 
         public static void UpdateTime()
         {
-            var time = Settings.User.Interface.UseServerTime ? Sync.World.ServerTime : Sync.World.LocalTime;
+            var time = Settings.User.Interface.UseServerTime ? Core.ServerTime : Core.LocalTime;
 
             Browser.Window.ExecuteJs("Hud.setTime", Settings.User.Interface.UseServerTime, time.ToString("HH:mm"), time.ToString("dd.MM.yyyy"));
         }
@@ -379,7 +386,7 @@ namespace BlaineRP.Client.CEF
         public static void SwitchInteractionText(bool state, string text = null, RAGE.Ui.VirtualKeys key = RAGE.Ui.VirtualKeys.E)
         {
             if (text != null)
-                Browser.Window.ExecuteJs("Hud.drawInteract", text, Core.GetKeyString(key));
+                Browser.Window.ExecuteJs("Hud.drawInteract", text, Input.Core.GetKeyString(key));
 
             Browser.Switch(Browser.IntTypes.HUD_Interact, state);
 
@@ -388,11 +395,11 @@ namespace BlaineRP.Client.CEF
                 //RAGE.Game.Audio.PlaySoundFrontend(-1, "Enter_Area", "DLC_Lowrider_Relay_Race_Sounds", true);
 
                 if (InteractionBind != -1)
-                    Core.Unbind(InteractionBind);
+                    Input.Core.Unbind(InteractionBind);
 
-                InteractionBind = Core.Bind(key, true, () =>
+                InteractionBind = Input.Core.Bind(key, true, () =>
                 {
-                    if (Core.Get(BindTypes.Interaction)?.IsDisabled == true)
+                    if (Input.Core.Get(BindTypes.Interaction)?.IsDisabled == true)
                         return;
 
                     InteractionAction?.Invoke();
@@ -402,7 +409,7 @@ namespace BlaineRP.Client.CEF
             {
                 if (InteractionBind != -1)
                 {
-                    Core.Unbind(InteractionBind);
+                    Input.Core.Unbind(InteractionBind);
 
                     InteractionBind = -1;
                 }
@@ -443,7 +450,7 @@ namespace BlaineRP.Client.CEF
         {
             var pos = Player.LocalPlayer.Position;
 
-            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Misc.GetStreetName(pos));
+            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Utils.Game.Misc.GetStreetName(pos));
             Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
         }
 
@@ -556,7 +563,7 @@ namespace BlaineRP.Client.CEF
                 Browser.Window.ExecuteJs("Hud.setFuel", Utils.Convert.ToInt32(data.FuelLevel));
                 Browser.Window.ExecuteJs("Hud.setMileage", Utils.Convert.ToInt32(data.Mileage) / 1000);
 
-                Player driver = Misc.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0), true);
+                Player driver = Utils.Game.Misc.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0), true);
 
                 bool isCruiseControlOn = driver != null ? data.ForcedSpeed >= 8.3f : false;
 

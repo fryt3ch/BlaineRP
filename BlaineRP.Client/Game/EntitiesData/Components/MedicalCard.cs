@@ -1,7 +1,9 @@
 ﻿using System;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Client.EntitiesData.Components
+namespace BlaineRP.Client.Game.EntitiesData.Components
 {
     public class MedicalCard
     {
@@ -21,7 +23,7 @@ namespace BlaineRP.Client.EntitiesData.Components
         public DateTime IssueDate { get; set; }
 
         [JsonProperty(PropertyName = "F")]
-        public Data.Fractions.Types IssueFraction { get; set; }
+        public FractionTypes IssueFraction { get; set; }
 
         [JsonProperty(PropertyName = "N")]
         public string DoctorName { get; set; }

@@ -1,21 +1,21 @@
-﻿using BlaineRP.Client.CEF.Phone.Apps;
-using BlaineRP.Client.CEF.Phone.Enums;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
-using Radio = BlaineRP.Client.CEF.Phone.Apps.Radio;
-using Vehicles = BlaineRP.Client.CEF.Phone.Apps.Vehicles;
+using Radio = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Radio;
+using Vehicles = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Vehicles;
 
-namespace BlaineRP.Client.CEF.Phone
+namespace BlaineRP.Client.Game.UI.CEF.Phone
 {
     [Script(int.MaxValue)]
     public class Phone
@@ -66,7 +66,7 @@ namespace BlaineRP.Client.CEF.Phone
 
                 var appType = appIdStr == null ? AppTypes.None : GetAppTypeByJsName(appIdStr.Replace("_app", ""));
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 ShowApp(pData, appType);
             });
@@ -83,7 +83,7 @@ namespace BlaineRP.Client.CEF.Phone
 
                 var appTab = args[0] is string str ? str.GetHashCode() : (int)args[0];
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if (CurrentApp == AppTypes.Phone)
                 {
@@ -428,7 +428,7 @@ namespace BlaineRP.Client.CEF.Phone
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 var actId = int.Parse(args[1].ToString());
                 var elem = args[2];
@@ -645,7 +645,7 @@ namespace BlaineRP.Client.CEF.Phone
                     if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var resObj = await Events.CallRemoteProc("Phone::AB", amount);
 
@@ -693,9 +693,9 @@ namespace BlaineRP.Client.CEF.Phone
                         var approveContext = $"BankSendToPlayer_{cid}_{amount}";
                         var approveTime = 5_000;
 
-                        if (Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                        if (Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                         {
-                            Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                            Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
                             if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, true)) ;
                             {
@@ -796,7 +796,7 @@ namespace BlaineRP.Client.CEF.Phone
                 }
                 else if (appType == AppTypes.Camera)
                 {
-                    if (Sync.Phone.CanUsePhoneAnim(true) && !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
+                    if (Misc.Phone.CanUsePhoneAnim(true) && !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
                     {
                         Apps.Camera.Show();
                     }
@@ -903,7 +903,7 @@ namespace BlaineRP.Client.CEF.Phone
                     return;
                 }
 
-                Sync.Phone.Toggle();
+                Misc.Phone.Toggle();
             });
         }
 
@@ -952,7 +952,7 @@ namespace BlaineRP.Client.CEF.Phone
 
         public static void UpdateTime()
         {
-            Browser.Window.ExecuteJs("Phone.setTime", Sync.World.ServerTime.ToString("HH:mm dd.MM.yyyy"));
+            Browser.Window.ExecuteJs("Phone.setTime", World.Core.ServerTime.ToString("HH:mm dd.MM.yyyy"));
         }
 
         public static void SetWallpaper(int num)

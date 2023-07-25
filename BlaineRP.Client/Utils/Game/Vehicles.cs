@@ -74,7 +74,7 @@ namespace BlaineRP.Client.Utils.Game
 
         public static string GetVehicleName(Vehicle veh, byte type = 0)
         {
-            var data = Data.Vehicles.GetByModel(veh.Model);
+            var data = Client.Game.Data.Vehicles.Core.GetByModel(veh.Model);
 
             if (type == 0)
             {

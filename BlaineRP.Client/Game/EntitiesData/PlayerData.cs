@@ -1,20 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Animations;
-using BlaineRP.Client.Animations.Enums;
-using BlaineRP.Client.CEF.Phone.Apps;
-using BlaineRP.Client.EntitiesData.Components;
-using BlaineRP.Client.EntitiesData.Enums;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Management.Attachments;
-using BlaineRP.Client.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Jobs;
+using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using BlaineRP.Client.Quests;
-using BlaineRP.Client.Sync;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Management.Attachments.Core;
+using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
-namespace BlaineRP.Client.EntitiesData
+namespace BlaineRP.Client.Game.EntitiesData
 {
     public class PlayerData
     {
@@ -33,7 +35,7 @@ namespace BlaineRP.Client.EntitiesData
 
         public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
-        public Data.Fractions.Types Fraction => (Data.Fractions.Types)Player.GetSharedData<int>("Fraction", 0);
+        public FractionTypes Fraction => (FractionTypes)Player.GetSharedData<int>("Fraction", 0);
 
         public int Satiety => Utils.Convert.ToByte(Player.GetSharedData<object>("Satiety", 0));
 
@@ -67,7 +69,7 @@ namespace BlaineRP.Client.EntitiesData
 
         public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
 
-        public Sync.Phone.PhoneStateTypes PhoneStateType => (Sync.Phone.PhoneStateTypes)Player.GetSharedData<int>("PST", 0);
+        public Misc.Phone.PhoneStateTypes PhoneStateType => (Misc.Phone.PhoneStateTypes)Player.GetSharedData<int>("PST", 0);
 
         public int AdminLevel => Player.GetSharedData<int>("AdminLevel", -1);
 
@@ -121,33 +123,33 @@ namespace BlaineRP.Client.EntitiesData
             set => Player.LocalPlayer.SetData("OwnedVehicles", value);
         }
 
-        public List<Data.Locations.Business> OwnedBusinesses
+        public List<Client.Data.Locations.Business> OwnedBusinesses
         {
-            get => Player.LocalPlayer.GetData<List<Data.Locations.Business>>("OwnedBusinesses");
+            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Business>>("OwnedBusinesses");
             set => Player.LocalPlayer.SetData("OwnedBusinesses", value);
         }
 
-        public List<Data.Locations.House> OwnedHouses
+        public List<Client.Data.Locations.House> OwnedHouses
         {
-            get => Player.LocalPlayer.GetData<List<Data.Locations.House>>("OwnedHouses");
+            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.House>>("OwnedHouses");
             set => Player.LocalPlayer.SetData("OwnedHouses", value);
         }
 
-        public List<Data.Locations.Apartments> OwnedApartments
+        public List<Client.Data.Locations.Apartments> OwnedApartments
         {
-            get => Player.LocalPlayer.GetData<List<Data.Locations.Apartments>>("OwnedApartments");
+            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Apartments>>("OwnedApartments");
             set => Player.LocalPlayer.SetData("OwnedApartments", value);
         }
 
-        public List<Data.Locations.Garage> OwnedGarages
+        public List<Client.Data.Locations.Garage> OwnedGarages
         {
-            get => Player.LocalPlayer.GetData<List<Data.Locations.Garage>>("OwnedGarages");
+            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Garage>>("OwnedGarages");
             set => Player.LocalPlayer.SetData("OwnedGarages", value);
         }
 
-        public Data.Locations.HouseBase SettledHouseBase
+        public Client.Data.Locations.HouseBase SettledHouseBase
         {
-            get => Player.LocalPlayer.GetData<Data.Locations.HouseBase>("SettledHouseBase");
+            get => Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("SettledHouseBase");
             set
             {
                 if (value == null) Player.LocalPlayer.ResetData("SettledHouseBase");
@@ -155,15 +157,15 @@ namespace BlaineRP.Client.EntitiesData
             }
         }
 
-        public Dictionary<uint, Data.Furniture> Furniture
+        public Dictionary<uint, Client.Data.Furniture> Furniture
         {
-            get => Player.LocalPlayer.GetData<Dictionary<uint, Data.Furniture>>("Furniture");
+            get => Player.LocalPlayer.GetData<Dictionary<uint, Client.Data.Furniture>>("Furniture");
             set => Player.LocalPlayer.SetData("Furniture", value);
         }
 
-        public Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkins
+        public Dictionary<Client.Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkins
         {
-            get => Player.LocalPlayer.GetData<Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>>("WeaponSkins");
+            get => Player.LocalPlayer.GetData<Dictionary<Client.Data.Items.WeaponSkin.ItemData.Types, string>>("WeaponSkins");
             set => Player.LocalPlayer.SetData("WeaponSkins", value);
         }
 
@@ -223,7 +225,7 @@ namespace BlaineRP.Client.EntitiesData
 
         public List<int> Decorations => Player.GetSharedData<JArray>("DCR", null)?.ToObject<List<int>>();
 
-        public Data.Customization.HairOverlay HairOverlay => Data.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
+        public Data.Customization.Customization.HairOverlay HairOverlay => Data.Customization.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
 
         public AttachmentObject WearedRing =>
             AttachedObjects.Where(x => x.Type >= AttachmentTypes.PedRingLeft3 && x.Type <= AttachmentTypes.PedRingRight3).FirstOrDefault();
@@ -264,9 +266,9 @@ namespace BlaineRP.Client.EntitiesData
             set => Player.SetData("PhoneNumber", value);
         }
 
-        public CEF.Phone.Apps.Phone.CallInfo ActiveCall
+        public Phone.CallInfo ActiveCall
         {
-            get => Player.GetData<CEF.Phone.Apps.Phone.CallInfo>("ActiveCall");
+            get => Player.GetData<Phone.CallInfo>("ActiveCall");
             set
             {
                 if (value == null) Player.ResetData("ActiveCall");
@@ -274,9 +276,9 @@ namespace BlaineRP.Client.EntitiesData
             }
         }
 
-        public Data.Jobs.Job CurrentJob
+        public Job CurrentJob
         {
-            get => Player.GetData<Data.Jobs.Job>("CJob");
+            get => Player.GetData<Job>("CJob");
             set
             {
                 if (value == null) Player.ResetData("CJob");
@@ -284,9 +286,9 @@ namespace BlaineRP.Client.EntitiesData
             }
         }
 
-        public Data.Fractions.Fraction CurrentFraction
+        public Fraction CurrentFraction
         {
-            get => Player.GetData<Data.Fractions.Fraction>("CFraction");
+            get => Player.GetData<Fraction>("CFraction");
             set
             {
                 if (value == null) Player.ResetData("CFraction");

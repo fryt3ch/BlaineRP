@@ -1,11 +1,10 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Death

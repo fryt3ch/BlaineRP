@@ -1,10 +1,10 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Browser

@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 
-namespace BlaineRP.Client.Management.IPLs
+namespace BlaineRP.Client.Game.Management.IPLs
 {
     [Script(int.MaxValue)]
     public class Core
@@ -50,7 +51,7 @@ namespace BlaineRP.Client.Management.IPLs
             //RAGE.Game.Streaming.RequestIpl("ch1_02_closed");
             //RAGE.Game.Streaming.RequestIpl("dt1_05_hc_remove");
 
-            World.AddDataHandler("PRISON_ALARMS", async (value, oldValue) =>
+            World.Core.AddDataHandler("PRISON_ALARMS", async (value, oldValue) =>
             {
                 var state = (bool?)value ?? false;
 

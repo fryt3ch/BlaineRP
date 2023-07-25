@@ -1,15 +1,17 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Bank
@@ -30,7 +32,7 @@ namespace BlaineRP.Client.CEF
 
         private static List<int> TempBinds { get; set; }
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public Bank()
         {
@@ -53,7 +55,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Bank::Savings::ToDebitSett", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), state))
                 {
@@ -83,7 +85,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if (aId == "transfer")
                 {
@@ -92,14 +94,14 @@ namespace BlaineRP.Client.CEF
                     var approveContext = $"BankSendToPlayer_{cid}_{amount}";
                     var approveTime = 5_000;
 
-                    if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                     {
                         if (LastSent.IsSpam(1_500, false, true))
                             return;
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
 
-                        CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                        CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
                         if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true)) ;
                         {
@@ -150,7 +152,7 @@ namespace BlaineRP.Client.CEF
                 {
                     Events.CallRemote("Bank::Tariff::Buy", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), (int)tarrif);
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
                 }
             });
 
@@ -197,12 +199,12 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Misc.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBank, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

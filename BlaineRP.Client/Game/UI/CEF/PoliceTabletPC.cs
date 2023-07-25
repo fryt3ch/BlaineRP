@@ -1,18 +1,23 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using Players = BlaineRP.Client.Sync.Players;
+using Core = BlaineRP.Client.Game.Wrappers.Blips.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PoliceTabletPC
@@ -41,7 +46,7 @@ namespace BlaineRP.Client.CEF
 
                 if (code == 3)
                 {
-                    var curCallInfo = pData.CurrentFraction?.GetCurrentData<Data.Fractions.Police.CallInfo>("PoliceCallData");
+                    var curCallInfo = pData.CurrentFraction?.GetCurrentData<Police.CallInfo>("PoliceCallData");
 
                     if (curCallInfo == null)
                     {
@@ -60,7 +65,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::CODEF", curCallInfo.Player.RemoteId, curCallInfo.Type);
                 }
@@ -69,7 +74,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::CODE", code);
 
@@ -192,7 +197,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 var resObj = await Events.CallRemoteProc("Police::DBS", searchType, searchStr);
 
@@ -208,13 +213,13 @@ namespace BlaineRP.Client.CEF
                     var sex = (bool)res["G"];
                     var losSantosAllowed = (bool)res["LA"];
                     var phoneNumber = Utils.Convert.ToDecimal(res["PN"]);
-                    var fractionData = res.ContainsKey("FT") ? Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.Convert.ToInt32(res["FT"])) : null;
+                    var fractionData = res.ContainsKey("FT") ? Fraction.Get((FractionTypes)Utils.Convert.ToInt32(res["FT"])) : null;
                     var fractionRank = res.ContainsKey("FR") ? Utils.Convert.ToByte(res["FT"]) : (byte)0;
 
-                    var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Utils.Convert.ToUInt32(res["H"])] : null;
-                    var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Utils.Convert.ToUInt32(res["A"])] : null;
+                    var houseData = res.ContainsKey("H") ? Client.Data.Locations.House.All[Utils.Convert.ToUInt32(res["H"])] : null;
+                    var apsData = res.ContainsKey("A") ? Client.Data.Locations.Apartments.All[Utils.Convert.ToUInt32(res["A"])] : null;
 
-                    var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>(Data.Vehicles.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
+                    var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>(Data.Vehicles.Core.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
 
                     CurrentFoundPlayerData = new Dictionary<string, object>()
                     {
@@ -247,8 +252,8 @@ namespace BlaineRP.Client.CEF
                         sex,
                         losSantosAllowed,
                         phoneNumber,
-                        houseData == null ? null : $"#{houseData.Id}, {Misc.GetStreetName(houseData.Position)}",
-                        apsData == null ? null : $"#{apsData.Id}, {Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
+                        houseData == null ? null : $"#{houseData.Id}, {Utils.Game.Misc.GetStreetName(houseData.Position)}",
+                        apsData == null ? null : $"#{apsData.Id}, {Client.Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
                         null, // organisation
                         fractionData == null ? null : $"{fractionData.Name} | {fractionData.GetRankName(fractionRank)}",
                         vehicles.Select(x => new object[] { x.Item1.Name, x.Item2 == null || x.Item2.Length == 0 ? null : x.Item2, x.Item3.HEXNoAlpha })
@@ -273,23 +278,23 @@ namespace BlaineRP.Client.CEF
 
                 if (actionId == 0) // show calls
                 {
-                    ShowCallsTab(pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.CallInfo>>("Calls"));
+                    ShowCallsTab(pData.CurrentFraction?.GetCurrentData<List<Police.CallInfo>>("Calls"));
                 }
                 else if (actionId == 1) // show fines
                 {
-                    ShowFinesTab(pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.FineInfo>>("Fines"));
+                    ShowFinesTab(pData.CurrentFraction?.GetCurrentData<List<Police.FineInfo>>("Fines"));
                 }
                 else if (actionId == 2) // show APBs
                 {
-                    ShowAPBsTab(pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.APBInfo>>("APBs"));
+                    ShowAPBsTab(pData.CurrentFraction?.GetCurrentData<List<Police.APBInfo>>("APBs"));
                 }
                 else if (actionId == 3) // show notifications
                 {
-                    ShowNotificationsTab(pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.NotificationInfo>>("Notifications"));
+                    ShowNotificationsTab(pData.CurrentFraction?.GetCurrentData<List<Police.NotificationInfo>>("Notifications"));
                 }
                 else if (actionId == 4) // show gps trackers
                 {
-                    ShowGPSTrackersTab(pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers"));
+                    ShowGPSTrackersTab(pData.CurrentFraction?.GetCurrentData<List<Police.GPSTrackerInfo>>("GPSTrackers"));
                 }
             });
 
@@ -318,7 +323,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var id = Utils.Convert.ToUInt32(args[1]);
 
-                    var apbData = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.APBInfo>>("APBs")?.Where(x => x.Id == id).FirstOrDefault();
+                    var apbData = pData.CurrentFraction?.GetCurrentData<List<Police.APBInfo>>("APBs")?.Where(x => x.Id == id).FirstOrDefault();
 
                     if (apbData == null)
                     {
@@ -328,7 +333,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var largeDetails = (string)await Events.CallRemoteProc("Police::APBGLD", id);
 
@@ -346,12 +351,12 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("PoliceTablet::ArrestButton", async (args) =>
             {
-                if (Player.LocalPlayer.GetData<Data.Fractions.Police.APBInfo>("PoliceTablet::APBViewId") is Data.Fractions.Police.APBInfo apbInfo)
+                if (Player.LocalPlayer.GetData<Police.APBInfo>("PoliceTablet::APBViewId") is Police.APBInfo apbInfo)
                 {
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::APBF", apbInfo.Id))
                     {
@@ -375,7 +380,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::APBA", name, details, largeDetails))
                     {
@@ -401,7 +406,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var callRid = Utils.Convert.ToUInt16(args[0]);
 
-                    var callInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.CallInfo>>("Calls")?.Where(x => x.Player.RemoteId == callRid).FirstOrDefault();
+                    var callInfo = pData.CurrentFraction?.GetCurrentData<List<Police.CallInfo>>("Calls")?.Where(x => x.Player.RemoteId == callRid).FirstOrDefault();
 
                     if (callInfo == null)
                     {
@@ -410,7 +415,7 @@ namespace BlaineRP.Client.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(callInfo.Position, Player.LocalPlayer.Dimension, true);
+                    Core.CreateGPS(callInfo.Position, Player.LocalPlayer.Dimension, true);
                 }
                 else if (CurrentTab == 5) // notific
                 {
@@ -420,7 +425,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var gpsTrackerId = Utils.Convert.ToUInt32(args[0]);
 
-                    var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
+                    var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 
                     if (gpsTrackerInfo == null)
                     {
@@ -432,7 +437,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Police::GPSTRL", gpsTrackerId);
 
@@ -457,7 +462,7 @@ namespace BlaineRP.Client.CEF
 
                 if (idx == 0) // house
                 {
-                    var houseData = CurrentFoundPlayerData.GetValueOrDefault("HouseData") as Data.Locations.House;
+                    var houseData = CurrentFoundPlayerData.GetValueOrDefault("HouseData") as Client.Data.Locations.House;
 
                     if (houseData == null)
                         return;
@@ -472,12 +477,12 @@ namespace BlaineRP.Client.CEF
                     {
                         var pos = houseData.Position;
 
-                        Additional.ExtraBlips.CreateGPS(pos, Player.LocalPlayer.Dimension, true);
+                        Core.CreateGPS(pos, Player.LocalPlayer.Dimension, true);
                     }
                 }
                 else if (idx == 1) // aps
                 {
-                    var apsData = CurrentFoundPlayerData.GetValueOrDefault("ApsData") as Data.Locations.Apartments;
+                    var apsData = CurrentFoundPlayerData.GetValueOrDefault("ApsData") as Client.Data.Locations.Apartments;
 
                     if (apsData == null)
                         return;
@@ -490,11 +495,11 @@ namespace BlaineRP.Client.CEF
                     }
                     else
                     {
-                        var aRoot = Data.Locations.ApartmentsRoot.All[apsData.RootId];
+                        var aRoot = Client.Data.Locations.ApartmentsRoot.All[apsData.RootId];
 
-                        var pos = Player.LocalPlayer.GetData<Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current") == aRoot ? apsData.Position : aRoot.PositionEnter;
+                        var pos = Player.LocalPlayer.GetData<Client.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current") == aRoot ? apsData.Position : aRoot.PositionEnter;
 
-                        Additional.ExtraBlips.CreateGPS(pos, Player.LocalPlayer.Dimension, true);
+                        Core.CreateGPS(pos, Player.LocalPlayer.Dimension, true);
                     }
                 }
                 else if (idx == 2) // org
@@ -514,7 +519,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var gpsTrackerId = Utils.Convert.ToUInt32(args[0]);
 
-                    var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
+                    var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 
                     if (gpsTrackerInfo == null)
                     {
@@ -526,7 +531,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::GPSTRD", gpsTrackerId))
                     {
@@ -591,7 +596,7 @@ namespace BlaineRP.Client.CEF
             }
         }
 
-        public static async System.Threading.Tasks.Task Show(Data.Fractions.Fraction fData, bool isOnDuty, byte myRank, uint fineCount, uint arrestCount)
+        public static async System.Threading.Tasks.Task Show(Fraction fData, bool isOnDuty, byte myRank, uint fineCount, uint arrestCount)
         {
             if (IsActive)
                 return;
@@ -605,14 +610,14 @@ namespace BlaineRP.Client.CEF
 
             CEF.Browser.Window.ExecuteJs("PoliceTablet.draw", fData.Name, new object[] { new object[] { $"{Player.LocalPlayer.Name}", $"{fData.GetRankName(myRank)} [{myRank}]", isOnDuty, fineCount, arrestCount } });
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             CEF.Cursor.Show(true, true);
 
             Events.CallRemote("Police::MRPCA", 0);
         }
 
-        public static void ShowCallsTab(List<Data.Fractions.Police.CallInfo> allCalls)
+        public static void ShowCallsTab(List<Police.CallInfo> allCalls)
         {
             if (!IsActive)
                 return;
@@ -628,9 +633,9 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 0, allCalls.Where(x => x.Player?.Exists == true).OrderBy(x => x.Time).Select(x => GetCallRowList(x, pPos)).ToList());
         }
 
-        public static List<object> GetCallRowList(Data.Fractions.Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.Get($"POLICETABLET_L_CT_{x.Type}"), $"{x.Player.Name}", Locale.Get("GEN_DIST_METERS_0", pPos.DistanceTo(x.Position).ToString("0.0")), x.Message.Length == 0 ? Locale.GetNullOtherwise($"POLICETABLET_L_CM_{x.Type}") ?? "" : x.Message };
+        public static List<object> GetCallRowList(Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.Get($"POLICETABLET_L_CT_{x.Type}"), $"{x.Player.Name}", Locale.Get("GEN_DIST_METERS_0", pPos.DistanceTo(x.Position).ToString("0.0")), x.Message.Length == 0 ? Locale.GetNullOtherwise($"POLICETABLET_L_CM_{x.Type}") ?? "" : x.Message };
 
-        public static void ShowFinesTab(List<Data.Fractions.Police.FineInfo> allFines)
+        public static void ShowFinesTab(List<Police.FineInfo> allFines)
         {
             if (!IsActive)
                 return;
@@ -646,9 +651,9 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 1, allFines.OrderByDescending(x => x.Time).Select(x => GetFineRowList(x, ref i)).ToList());
         }
 
-        public static List<object> GetFineRowList(Data.Fractions.Police.FineInfo x, ref int i) => new List<object> { i++, x.Time.ToString("HH:mm"), x.Amount, x.Member, x.Target, x.Reason };
+        public static List<object> GetFineRowList(Police.FineInfo x, ref int i) => new List<object> { i++, x.Time.ToString("HH:mm"), x.Amount, x.Member, x.Target, x.Reason };
 
-        public static void ShowAPBsTab(List<Data.Fractions.Police.APBInfo> allOrientations)
+        public static void ShowAPBsTab(List<Police.APBInfo> allOrientations)
         {
             if (!IsActive)
                 return;
@@ -662,9 +667,9 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 2, allOrientations.OrderBy(x => x.Time).Select(x => GetAPBRowList(x)).ToList());
         }
 
-        public static List<object> GetAPBRowList(Data.Fractions.Police.APBInfo x) => new List<object>() { x.Id, x.Time.ToString("dd.MM HH:mm"), x.TargetName, x.Member, x.Details };
+        public static List<object> GetAPBRowList(Police.APBInfo x) => new List<object>() { x.Id, x.Time.ToString("dd.MM HH:mm"), x.TargetName, x.Member, x.Details };
 
-        public static void ShowNotificationsTab(List<Data.Fractions.Police.NotificationInfo> allNotifications)
+        public static void ShowNotificationsTab(List<Police.NotificationInfo> allNotifications)
         {
             if (!IsActive)
                 return;
@@ -680,9 +685,9 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 3, allNotifications.OrderByDescending(x => x.Time).Select(x => GetNotificationRowList(x, pPos)).ToList());
         }
 
-        public static List<object> GetNotificationRowList(Data.Fractions.Police.NotificationInfo x, Vector3 pPos) => new List<object>() { x.Id, x.Time.ToString("HH:mm"), x.Text, x.Position == null ? "???" : x.Position.DistanceTo(pPos).ToString("0.0") };
+        public static List<object> GetNotificationRowList(Police.NotificationInfo x, Vector3 pPos) => new List<object>() { x.Id, x.Time.ToString("HH:mm"), x.Text, x.Position == null ? "???" : x.Position.DistanceTo(pPos).ToString("0.0") };
 
-        public static void ShowGPSTrackersTab(List<Data.Fractions.Police.GPSTrackerInfo> allGpsTrackers)
+        public static void ShowGPSTrackersTab(List<Police.GPSTrackerInfo> allGpsTrackers)
         {
             if (!IsActive)
                 return;
@@ -696,7 +701,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 4, allGpsTrackers.Select(x => GetGPSTrackerRowList(x)).ToList());
         }
 
-        public static List<object> GetGPSTrackerRowList(Data.Fractions.Police.GPSTrackerInfo x) => new List<object>() { x.Id, x.Id, x.VehicleStr, x.InstallerStr, };
+        public static List<object> GetGPSTrackerRowList(Police.GPSTrackerInfo x) => new List<object>() { x.Id, x.Id, x.VehicleStr, x.InstallerStr, };
 
         public static void Close()
         {
@@ -710,7 +715,7 @@ namespace BlaineRP.Client.CEF
             if (CurrentFoundPlayerData != null)
                 CurrentFoundPlayerData = null;
 
-            Core.Unbind(EscBindIdx);
+            Input.Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

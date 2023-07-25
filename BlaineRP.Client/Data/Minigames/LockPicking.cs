@@ -1,7 +1,9 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 
 namespace BlaineRP.Client.Data.Minigames
 {
@@ -31,7 +33,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                     if (itemIdx < 0)
                     {
-                        CEF.Notification.Show("Inventory::NoItem");
+                        Notification.Show("Inventory::NoItem");
 
                         Close();
 
@@ -46,11 +48,11 @@ namespace BlaineRP.Client.Data.Minigames
 
                         if (res == 255)
                         {
-                            CEF.Notification.ShowSuccess(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_0"));
+                            Notification.ShowSuccess(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_0"));
                         }
                         else
                         {
-                            CEF.Notification.ShowErrorDefault();
+                            Notification.ShowErrorDefault();
                         }
                     }
                     else
@@ -65,7 +67,7 @@ namespace BlaineRP.Client.Data.Minigames
 
                             if (lockpicksLeft <= 0)
                             {
-                                CEF.Notification.Show("Inventory::NoItem");
+                                Notification.Show("Inventory::NoItem");
 
                                 Close();
 
@@ -73,7 +75,7 @@ namespace BlaineRP.Client.Data.Minigames
                             }
                             else
                             {
-                                CEF.Notification.ShowError(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_1", lockpicksLeft));
+                                Notification.ShowError(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_1", lockpicksLeft));
 
                                 Update(_currentDurability, targetRotation, _currentMaxDeviation, RotationDefault);
                             }
@@ -92,11 +94,11 @@ namespace BlaineRP.Client.Data.Minigames
             if (CurrentContext != null)
                 return;
 
-            await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameLockPicking, true, true);
+            await Browser.Render(Browser.IntTypes.MinigameLockPicking, true, true);
 
-            CEF.HUD.ShowHUD(false);
+            HUD.ShowHUD(false);
 
-            CEF.Chat.Show(false);
+            Chat.Show(false);
 
             RAGE.Game.Graphics.TransitionToBlurred(0f);
 
@@ -107,9 +109,9 @@ namespace BlaineRP.Client.Data.Minigames
 
             Update(durability, targetRotation, maxDeviation, currentRotation);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
-            _escBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            _escBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -119,18 +121,18 @@ namespace BlaineRP.Client.Data.Minigames
 
             CurrentContext = null;
 
-            CEF.Browser.Render(CEF.Browser.IntTypes.MinigameLockPicking, false);
+            Browser.Render(Browser.IntTypes.MinigameLockPicking, false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(true);
+                HUD.ShowHUD(true);
 
-            CEF.Chat.Show(true);
+            Chat.Show(true);
 
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
-            Core.Unbind(_escBindIdx);
+            Input.Core.Unbind(_escBindIdx);
 
             _escBindIdx = -1;
         }
@@ -140,16 +142,16 @@ namespace BlaineRP.Client.Data.Minigames
             if (CurrentContext == null)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("MG.LP.draw", durability, targetRotation + 90, maxDeviation, currentRotation - 90);
+            Browser.Window.ExecuteJs("MG.LP.draw", durability, targetRotation + 90, maxDeviation, currentRotation - 90);
         }
 
         public static int GetInventoryLockpickItemIdx()
         {
             int idx = -1;
 
-            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            for (int i = 0; i < Inventory.ItemsParams.Length; i++)
             {
-                if (CEF.Inventory.ItemsParams[i]?.Id == "mis_lockpick")
+                if (Inventory.ItemsParams[i]?.Id == "mis_lockpick")
                 {
                     idx = i;
 
@@ -164,11 +166,11 @@ namespace BlaineRP.Client.Data.Minigames
         {
             decimal totalAmount = 0m;
 
-            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            for (int i = 0; i < Inventory.ItemsParams.Length; i++)
             {
-                if (CEF.Inventory.ItemsParams[i]?.Id == "mis_lockpick")
+                if (Inventory.ItemsParams[i]?.Id == "mis_lockpick")
                 {
-                    totalAmount += (int)((object[])CEF.Inventory.ItemsData[i][0])[3];
+                    totalAmount += (int)((object[])Inventory.ItemsData[i][0])[3];
                 }
             }
 

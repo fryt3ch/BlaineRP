@@ -1,16 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ATM
@@ -21,13 +23,13 @@ namespace BlaineRP.Client.CEF
 
         private static List<int> TempBinds { get; set; }
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public ATM()
         {
             TempBinds = new List<int>();
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             Events.Add("ATM::Action", (object[] args) =>
             {
@@ -52,7 +54,7 @@ namespace BlaineRP.Client.CEF
 
                 Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
             });
 
             Events.Add("ATM::Show", (object[] args) =>
@@ -70,7 +72,7 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (Misc.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             var data = PlayerData.GetData(Player.LocalPlayer);
@@ -80,7 +82,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Quests.Enums;
 
 namespace BlaineRP.Client.Quests

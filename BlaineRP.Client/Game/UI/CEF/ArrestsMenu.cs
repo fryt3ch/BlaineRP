@@ -1,14 +1,19 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input;
+using RAGE;
+using RAGE.Elements;
+using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ArrestsMenu
@@ -17,7 +22,7 @@ namespace BlaineRP.Client.CEF
 
         private static int EscBindIdx { get; set; } = -1;
 
-        private static Data.Fractions.Types FractionType { get; set; }
+        private static FractionTypes FractionType { get; set; }
         private static int MenuPosIdx { get; set; }
 
         private static DateTime LastSent;
@@ -41,7 +46,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = Core.ServerTime;
 
                 var res = ((string)await Events.CallRemoteProc("Police::ARGI", (int)FractionType, MenuPosIdx, id))?.Split('_');
 
@@ -89,7 +94,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, arrestId, null);
 
@@ -130,7 +135,7 @@ namespace BlaineRP.Client.CEF
                                 if (LastSent.IsSpam(500, false, true))
                                     return;
 
-                                LastSent = Sync.World.ServerTime;
+                                LastSent = Core.ServerTime;
 
                                 var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, arrestId, str);
 
@@ -159,7 +164,7 @@ namespace BlaineRP.Client.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, arrestId, 0, null) as bool?;
 
@@ -220,7 +225,7 @@ namespace BlaineRP.Client.CEF
                                 if (LastSent.IsSpam(1000, false, true))
                                     return;
 
-                                LastSent = Sync.World.ServerTime;
+                                LastSent = Core.ServerTime;
 
                                 var res = await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, arrestId, minsU, reasonStr);
 
@@ -252,7 +257,7 @@ namespace BlaineRP.Client.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(Data.Fractions.Types fType, int menuPosIdx, List<Data.Fractions.Police.ArrestInfo> arrests)
+        public static async System.Threading.Tasks.Task Show(FractionTypes fType, int menuPosIdx, List<Police.ArrestInfo> arrests)
         {
             if (IsActive)
                 return;
@@ -262,11 +267,11 @@ namespace BlaineRP.Client.CEF
             FractionType = fType;
             MenuPosIdx = menuPosIdx;
 
-            CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrests", fType != Data.Fractions.Types.PRISON_BB, arrests.Select(x => new object[] { x.Id, x.Time.ToString("dd.MM.yyyy HH:mm"), x.TargetName, x.MemberName }).ToList());
+            CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrests", fType != FractionTypes.PRISON_BB, arrests.Select(x => new object[] { x.Id, x.Time.ToString("dd.MM.yyyy HH:mm"), x.TargetName, x.MemberName }).ToList());
 
             CEF.Cursor.Show(true, true);
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -278,7 +283,7 @@ namespace BlaineRP.Client.CEF
 
             CurrentArrestId = null;
 
-            Core.Unbind(EscBindIdx);
+            Input.Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

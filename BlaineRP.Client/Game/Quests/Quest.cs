@@ -1,10 +1,12 @@
-﻿using BlaineRP.Client.CEF;
-using BlaineRP.Client.Utils.Game;
+﻿using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Quests.Enums;
 using Players = BlaineRP.Client.Sync.Players;
 
@@ -86,7 +88,7 @@ namespace BlaineRP.Client.Quests
         {
             var data = Data;
 
-            CEF.HUD.SetQuestParams(data.GiverName, data.Name, GoalWithProgress, data.ColourType);
+            HUD.SetQuestParams(data.GiverName, data.Name, GoalWithProgress, data.ColourType);
         }
 
         public void UpdateProgress(int newProgress)
@@ -143,12 +145,12 @@ namespace BlaineRP.Client.Quests
 
                 if (!Settings.User.Interface.HideQuest)
                 {
-                    CEF.HUD.EnableQuest(true);
+                    HUD.EnableQuest(true);
                 }
 
                 if (route)
                 {
-                    var mBlip = GetActualData<Additional.ExtraBlip>("E_BP_M");
+                    var mBlip = GetActualData<ExtraBlip>("E_BP_M");
 
                     if (mBlip != null)
                     {
@@ -167,7 +169,7 @@ namespace BlaineRP.Client.Quests
                 }
                 else
                 {
-                    CEF.HUD.EnableQuest(false);
+                    HUD.EnableQuest(false);
                 }
             }
         }
@@ -227,7 +229,7 @@ namespace BlaineRP.Client.Quests
                 }
                 else if (x.StartsWith("CS_"))
                 {
-                    (value as Additional.ExtraColshape)?.Destroy();
+                    (value as ExtraColshape)?.Destroy();
                 }
             }
 
@@ -244,13 +246,13 @@ namespace BlaineRP.Client.Quests
                 return;
 
             if (notify)
-                CEF.Notification.Show(Notification.Types.Quest, Data.Name, success ? Locale.Notifications.General.QuestFinishedText : Locale.Notifications.General.QuestCancelledText);
+                Notification.Show(Notification.Types.Quest, Data.Name, success ? Locale.Notifications.General.QuestFinishedText : Locale.Notifications.General.QuestCancelledText);
 
             pData.Quests.Remove(this);
 
             Destroy();
 
-            CEF.Menu.UpdateQuests(pData);
+            Menu.UpdateQuests(pData);
         }
 
         public void SetQuestAsStarted(bool notify)
@@ -265,9 +267,9 @@ namespace BlaineRP.Client.Quests
             Initialize();
 
             if (notify)
-                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, GoalWithProgress));
+                Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, GoalWithProgress));
 
-            CEF.Menu.UpdateQuests(pData);
+            Menu.UpdateQuests(pData);
         }
 
         public void SetQuestAsUpdated(byte step, int stepProgress, string data, bool notify)
@@ -286,9 +288,9 @@ namespace BlaineRP.Client.Quests
             UpdateProgress(stepProgress);
 
             if (notify)
-                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
+                Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
 
-            CEF.Menu.UpdateQuests(pData);
+            Menu.UpdateQuests(pData);
         }
 
         public void SetQuestAsUpdatedKeepOldData(byte step, int stepProgress, bool notify)
@@ -305,9 +307,9 @@ namespace BlaineRP.Client.Quests
             UpdateProgress(stepProgress);
 
             if (notify)
-                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
+                Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
 
-            CEF.Menu.UpdateQuests(pData);
+            Menu.UpdateQuests(pData);
         }
     }
 }

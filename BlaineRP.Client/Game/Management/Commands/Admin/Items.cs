@@ -1,8 +1,10 @@
-﻿using BlaineRP.Client.Extensions.System;
+﻿using System.Linq;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using RAGE.Elements;
-using System.Linq;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
@@ -12,23 +14,23 @@ namespace BlaineRP.Client.Management.Commands
             if (delay > 60)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("w_iog_cl", delay);
+            Commands.Core.CallRemote("w_iog_cl", delay);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("clearitems_cancel", true, "Отменить удаление выброшенных предметов", "cleariog_cancel", "ciog_cancel")]
         public static void ClearItemsCancel()
         {
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("w_iog_cl", -1);
+            Commands.Core.CallRemote("w_iog_cl", -1);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
 
@@ -38,12 +40,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_titem", Player.LocalPlayer.RemoteId, id, amount, variation);
+            Commands.Core.CallRemote("p_titem", Player.LocalPlayer.RemoteId, id, amount, variation);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("give_tempitem", true, "Выдать предмет игроку (временный)", "give_titem")]
@@ -52,12 +54,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_titem", pid, id, amount, variation);
+            Commands.Core.CallRemote("p_titem", pid, id, amount, variation);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("item", true, "Выдать себе предмет")]
@@ -66,12 +68,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_item", Player.LocalPlayer.RemoteId, id, amount, variation);
+            Commands.Core.CallRemote("p_item", Player.LocalPlayer.RemoteId, id, amount, variation);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("give_item", true, "Выдать предмет игроку")]
@@ -80,12 +82,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_item", pid, id, amount, variation);
+            Commands.Core.CallRemote("p_item", pid, id, amount, variation);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("iteminfo", true, "Запросить информацию о предмете", "iinfo", "itemi")]
@@ -94,7 +96,7 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            var type = Data.Items.GetType(id, true);
+            var type = Client.Data.Items.GetType(id, true);
 
             if (type == null)
             {
@@ -102,7 +104,7 @@ namespace BlaineRP.Client.Management.Commands
             }
             else
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, id, Data.Items.GetName(id), type.BaseType.Name, type.Name, string.Join(", ", type.GetInterfaces().Select(x => x.Name))), 10000);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, id, Client.Data.Items.GetName(id), type.BaseType.Name, type.Name, string.Join(", ", type.GetInterfaces().Select(x => x.Name))), 10000);
             }
         }
 
@@ -112,12 +114,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_titem", Player.LocalPlayer.RemoteId, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
+            Commands.Core.CallRemote("p_titem", Player.LocalPlayer.RemoteId, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
 
         [Command("give_tempweapon", true, "Выдать оружие игроку (временное)", "give_tweapon", "give_tgun", "give_tempgun")]
@@ -126,12 +128,12 @@ namespace BlaineRP.Client.Management.Commands
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
+            if (Commands.Core.LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_titem", pid, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
+            Commands.Core.CallRemote("p_titem", pid, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
-            LastSent = Sync.World.ServerTime;
+            Commands.Core.LastSent = World.Core.ServerTime;
         }
     }
 }

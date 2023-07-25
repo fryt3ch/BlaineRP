@@ -1,22 +1,22 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Jobs.Enums;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Quests;
 using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Sync;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Jobs
+namespace BlaineRP.Client.Game.Jobs.Types
 {
     public class BusDriver : Job
     {
         public List<(uint Reward, List<Vector3> Positions)> Routes { get; set; }
 
-        public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, Types.BusDriver)
+        public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, JobTypes.BusDriver)
         {
             var blip = new ExtraBlip(513, Position.Position, "Автовокзал", 1f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
@@ -90,7 +90,7 @@ namespace BlaineRP.Client.Data.Jobs
                         if (quest == null || quest.Step > 0)
                             return;
 
-                        var routes = (pData.CurrentJob as Data.Jobs.BusDriver)?.Routes;
+                        var routes = (pData.CurrentJob as BusDriver)?.Routes;
 
                         if (routes == null)
                             return;

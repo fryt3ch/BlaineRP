@@ -1,20 +1,21 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Utils;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Input;
+using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class BlipsMenu
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.BlipsMenu); }
 
-        private static Additional.ExtraBlip TempBlip { get; set; }
+        private static ExtraBlip TempBlip { get; set; }
 
         private static int LastEdited { get; set; }
 
@@ -27,7 +28,7 @@ namespace BlaineRP.Client.CEF
         public class LocalBlip
         {
             [JsonIgnore]
-            public Additional.ExtraBlip Blip { get; set; }
+            public ExtraBlip Blip { get; set; }
 
             public int Sprite { get; set; }
 
@@ -66,7 +67,7 @@ namespace BlaineRP.Client.CEF
 
                 if (state)
                 {
-                    Blip = new Additional.ExtraBlip((uint)Sprite, Position, Name, Scale, Colour, (int)System.Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
+                    Blip = new ExtraBlip((uint)Sprite, Position, Name, Scale, Colour, (int)System.Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
                 }
                 else
                 {
@@ -264,7 +265,7 @@ namespace BlaineRP.Client.CEF
 
                     if (TempBlip == null)
                     {
-                        TempBlip = new Additional.ExtraBlip(0, Player.LocalPlayer.Position, "", 0f, 0, 0, 0f, false, 0, 0f, uint.MaxValue);
+                        TempBlip = new ExtraBlip(0, Player.LocalPlayer.Position, "", 0f, 0, 0, 0f, false, 0, 0f, uint.MaxValue);
 
                         CurrentUsePos = true;
                     }
@@ -286,7 +287,7 @@ namespace BlaineRP.Client.CEF
 
                         CurrentShortRange = Settings.User.Other.LocalBlips[idx].ShortRange;
 
-                        TempBlip = new Additional.ExtraBlip(0, Settings.User.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                        TempBlip = new ExtraBlip(0, Settings.User.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
                     }
                 }
 
@@ -307,7 +308,7 @@ namespace BlaineRP.Client.CEF
                     CurrentAlpha = args[2] is int ? (float)(int)args[2] : (float)args[2];
                 }
 
-                var blip = new Additional.ExtraBlip((uint)CurrentSprite, TempBlip.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange, 0, 0f, uint.MaxValue);
+                var blip = new ExtraBlip((uint)CurrentSprite, TempBlip.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange, 0, 0f, uint.MaxValue);
 
                 TempBlip.Destroy();
 
@@ -339,11 +340,11 @@ namespace BlaineRP.Client.CEF
 
             if (WasCreating)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
+                TempBlip = new ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : Main.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
             }
             else if (LastEdited != -1)
             {
-                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.User.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                TempBlip = new ExtraBlip((uint)CurrentSprite, Settings.User.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)System.Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
             }
 
             CEF.Cursor.Show(true, true);

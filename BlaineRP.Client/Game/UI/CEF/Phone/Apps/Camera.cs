@@ -1,20 +1,19 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils.Game;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Utils.Game;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
-using Script = BlaineRP.Client.Game.Animations.Script;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Camera
@@ -90,7 +89,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             if (pData == null)
                 return;
 
-            Sync.Crouch.Off(false, Player.LocalPlayer);
+            Crouch.Off(false, Player.LocalPlayer);
 
             _photoStartCounter = 0;
 
@@ -113,7 +112,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             _renderTicks = 0;
 
-            _lastSwitched = Sync.World.ServerTime;
+            _lastSwitched = World.Core.ServerTime;
 
             Core.DisableAll(BindTypes.MicrophoneOn, BindTypes.MicrophoneOff);
 
@@ -125,7 +124,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             IsActive = true;
 
-            Sync.Phone.CreateLocalPhone();
+            Misc.Phone.CreateLocalPhone();
 
             RAGE.Game.Mobile.CellCamActivate(true, true);
 
@@ -177,7 +176,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             if (pData != null)
             {
-                Script.Set(Player.LocalPlayer, pData.Emotion);
+                Game.Animations.Core.Set(Player.LocalPlayer, pData.Emotion);
             }
 
             if (_currentAnimationDict.Length > 0)
@@ -185,7 +184,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             }
 
-            if (Sync.Phone.Toggled)
+            if (Misc.Phone.Toggled)
                 CEF.Phone.Phone.Show();
 
             IsActive = false;
@@ -197,7 +196,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             RAGE.Game.Pad.DisableControlAction(32, 44, true); // disable Q
 
-            Additional.ExtraColshape.InteractionColshapesDisabledThisFrame = true;
+            ExtraColshape.InteractionColshapesDisabledThisFrame = true;
 
             if (_renderTicks == uint.MaxValue)
                 _renderTicks = 0;
@@ -215,7 +214,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
             {
                 _photoStartCounter = 1;
 
-                _lastSwitched = Sync.World.ServerTime;
+                _lastSwitched = World.Core.ServerTime;
 
                 return;
             }
@@ -249,7 +248,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                 UpdateInstructionButtons();
 
-                _lastSwitched = Sync.World.ServerTime;
+                _lastSwitched = World.Core.ServerTime;
 
                 return;
             }
@@ -387,7 +386,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                     _currentCameraEmotion = (EmotionTypes)curCamEmotionNum;
 
-                    Script.Set(Player.LocalPlayer, _currentCameraEmotion);
+                    Game.Animations.Core.Set(Player.LocalPlayer, _currentCameraEmotion);
 
                     UpdateInstructionButtons();
 
@@ -444,7 +443,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
         public static void SavePicture(bool isCam, bool sound, bool notify)
         {
-            var curDateStr = Sync.World.ServerTime.ToString("dd_MM_yyyy_HH_mm_ss_ff");
+            var curDateStr = World.Core.ServerTime.ToString("dd_MM_yyyy_HH_mm_ss_ff");
 
             var fileName = isCam ? $"CAM_{curDateStr}.png" : $"{curDateStr}.png";
 

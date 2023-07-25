@@ -1,28 +1,26 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.Animations.Enums;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Local;
-using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Game.Animations.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.Data.Fractions
+namespace BlaineRP.Client.Game.Fractions.Types
 {
     public class EMS : Fraction, IUniformable
     {
@@ -30,9 +28,9 @@ namespace BlaineRP.Client.Data.Fractions
 
         public List<MapObject> TempObjects { get; set; }
 
-        public EMS(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, uint MetaFlags, string BedPositionsJs) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs), MetaFlags)
+        public EMS(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string bedPositionsJs) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
-            var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(LockerRoomPositionsStr);
+            var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
             for (int i = 0; i < lockerPoses.Length; i++)
             {
@@ -44,7 +42,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     ActionType = ActionTypes.FractionInteract,
 
-                    Data = $"{(int)Type}_{i}",
+                    Data = $"{(int)type}_{i}",
                 };
 
                 var lockerRoomText = new ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
@@ -55,7 +53,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             Utils.Vector4[] mainColshapes = null;
 
-            if (Type == Types.EMS_BLAINE)
+            if (type == FractionTypes.EMS_BLAINE)
             {
                 UniformNames = new string[]
                 {
@@ -71,7 +69,7 @@ namespace BlaineRP.Client.Data.Fractions
                     new Utils.Vector4(1830.509f, 3679.626f, 33.2749f, 45f),
                 };
             }
-            else if (Type == Types.EMS_LS)
+            else if (type == FractionTypes.EMS_LS)
             {
                 mainColshapes = new Utils.Vector4[]
                 {
@@ -79,7 +77,7 @@ namespace BlaineRP.Client.Data.Fractions
                 };
             }
 
-            Vector3[] bedPositions = RAGE.Util.Json.Deserialize<Vector3[]>(BedPositionsJs);
+            Vector3[] bedPositions = RAGE.Util.Json.Deserialize<Vector3[]>(bedPositionsJs);
 
             foreach (var x in mainColshapes)
             {
@@ -87,7 +85,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                 cs = new Circle(x.Position, x.RotationZ, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
-                    Name = $"EMS_{(int)Type}",
+                    Name = $"EMS_{(int)type}",
 
                     ApproveType = ApproveTypes.None,
 
@@ -140,7 +138,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                                 var bedIdx = i;
 
-                                bedObj.SetData("EmsBedId", $"{(int)Type}_{bedIdx}");
+                                bedObj.SetData("EmsBedId", $"{(int)type}_{bedIdx}");
 
                                 bedObj.SetData("Interactive", true);
 

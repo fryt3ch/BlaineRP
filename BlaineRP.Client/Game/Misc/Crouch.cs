@@ -1,18 +1,13 @@
-﻿using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
+﻿using System;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.Animations.Enums;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
 using Core = BlaineRP.Client.Game.World.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Misc
 {
     public class Crouch
     {

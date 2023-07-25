@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Local;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -12,11 +13,11 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Animations
 {
     [Script(int.MaxValue)]
-    public partial class Script
+    public partial class Core
     {
         public static DateTime LastSent;
 
-        public Script()
+        public Core()
         {
             Events.Add("Players::PlayFastAnim", async (args) =>
             {
@@ -27,7 +28,7 @@ namespace BlaineRP.Client.Game.Animations
 
                 var type = (FastTypes)(int)args[1];
 
-                var data = Collections.Script.FastAnimsList.GetValueOrDefault(type);
+                var data = Core.FastAnimsList.GetValueOrDefault(type);
 
                 if (data == null)
                     return;
@@ -97,7 +98,7 @@ namespace BlaineRP.Client.Game.Animations
             }
             else
             {
-                Invoker.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, Collections.Script.EmotionsList[emotion], 0);
+                Invoker.InvokeViaJs(RAGE.Game.Natives.SetFacialIdleAnimOverride, player.Handle, Core.EmotionsList[emotion], 0);
             }
         }
 
@@ -114,9 +115,9 @@ namespace BlaineRP.Client.Game.Animations
             }
             else
             {
-                await Streaming.RequestClipSet(Collections.Script.WalkstylesList[walkstyle]);
+                await Streaming.RequestClipSet(Core.WalkstylesList[walkstyle]);
 
-                player.SetMovementClipset(Collections.Script.WalkstylesList[walkstyle], Sync.Crouch.ClipSetSwitchTime);
+                player.SetMovementClipset(Core.WalkstylesList[walkstyle], Crouch.ClipSetSwitchTime);
             }
         }
 
@@ -125,7 +126,7 @@ namespace BlaineRP.Client.Game.Animations
             if (player == null)
                 return;
 
-            var anim = Collections.Script.GeneralAnimsList.GetValueOrDefault(type);
+            var anim = Core.GeneralAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;
@@ -138,7 +139,7 @@ namespace BlaineRP.Client.Game.Animations
             if (player == null)
                 return;
 
-            var anim = Collections.Script.OtherAnimsList.GetValueOrDefault(type);
+            var anim = Core.OtherAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;
@@ -155,7 +156,7 @@ namespace BlaineRP.Client.Game.Animations
             {
                 AsyncTask.Methods.CancelPendingTask("LPFATT");
 
-                Sync.Phone.DestroyLocalPhone();
+                Phone.DestroyLocalPhone();
             }
 
             if (anim == null)
@@ -203,7 +204,7 @@ namespace BlaineRP.Client.Game.Animations
 
             Events.CallRemote("Players::PFA", (int)fastType);
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
         }
     }
 }

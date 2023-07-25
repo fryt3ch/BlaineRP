@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Management.Attachments;
-using BlaineRP.Client.Management.Attachments.Enums;
-using BlaineRP.Client.Management.Radio.Enums;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Management.Radio.Enums;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Management.Attachments.Core;
+using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
-namespace BlaineRP.Client.EntitiesData
+namespace BlaineRP.Client.Game.EntitiesData
 {
     public class VehicleData
     {
@@ -17,7 +16,7 @@ namespace BlaineRP.Client.EntitiesData
         {
             Vehicle = vehicle;
 
-            Data = Client.Data.Vehicles.GetByModel(vehicle.Model);
+            Data = Game.Data.Vehicles.Core.GetByModel(vehicle.Model);
         }
 
         public Vehicle Vehicle { get; set; }

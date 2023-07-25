@@ -1,98 +1,22 @@
-﻿using BlaineRP.Client.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Utils;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Data.Fractions
+namespace BlaineRP.Client.Game.Fractions
 {
-    public enum Types
-    {
-        None = 0,
-
-        COP_BLAINE = 1,
-        COP_LS = 2,
-
-        FIB_LS = 5,
-
-        MEDIA_LS = 10,
-
-        EMS_BLAINE = 20,
-        EMS_LS = 21,
-
-        GOV_LS = 30,
-
-        GANG_MARA = 40,
-        GANG_FAMS = 41,
-        GANG_BALS = 42,
-        GANG_VAGS = 43,
-
-        MAFIA_RUSSIA = 60,
-        MAFIA_ITALY = 61,
-        MAFIA_JAPAN = 62,
-
-        ARMY_FZ = 80,
-
-        PRISON_BB = 90,
-    }
-
-    [Flags]
-    public enum MetaFlagTypes
-    {
-        None = 0,
-
-        IsGov = 1 << 0,
-        MembersHaveDocs = 1 << 1,
-    }
-
-    public class MemberData
-    {
-        public bool IsOnline { get; set; }
-
-        public byte SubStatus { get; set; }
-
-        public string Name { get; set; }
-
-        public byte Rank { get; set; }
-
-        public DateTime LastSeenDate { get; set; }
-    }
-
-    public class NewsData
-    {
-        [JsonProperty(PropertyName = "A")]
-        public Dictionary<int, string> All { get; set; }
-
-        [JsonProperty(PropertyName = "P")]
-        public int PinnedId { get; set; }
-    }
-
-    public class VehicleData
-    {
-        public string Numberplate { get; set; }
-
-        public byte MinRank { get; set; }
-    }
-
-    public interface IUniformable
-    {
-        public string[] UniformNames { get; set; }
-    }
-
     public abstract class Fraction
     {
         public static string NoFractionStr = "Отсутствует";
@@ -147,9 +71,9 @@ namespace BlaineRP.Client.Data.Fractions
 
         public static Dictionary<uint, VehicleData> AllVehicles { get; set; }
 
-        public static Dictionary<Types, Fraction> All { get; private set; } = new Dictionary<Types, Fraction>();
+        public static Dictionary<FractionTypes, Fraction> All { get; private set; } = new Dictionary<FractionTypes, Fraction>();
 
-        public static Fraction Get(Types type) => All.GetValueOrDefault(type);
+        public static Fraction Get(FractionTypes type) => All.GetValueOrDefault(type);
 
         public byte MaxRank { get; private set; }
 
@@ -163,7 +87,7 @@ namespace BlaineRP.Client.Data.Fractions
         public ExtraLabel[] StorageTextInfos { get; set; }
         public ExtraLabel[] CreationWorkbenchTextInfos { get; set; }
 
-        public Types Type { get; set; }
+        public FractionTypes Type { get; set; }
 
         public string Name { get; set; }
 
@@ -173,22 +97,22 @@ namespace BlaineRP.Client.Data.Fractions
 
         public MetaFlagTypes MetaFlags { get; set; }
 
-        public Fraction(Types Type, string Name, uint StorageContainerId, string ContainerPositionsStr, string CreationWorkbenchPositionsStr, byte MaxRank, Dictionary<string, uint> CreationWorkbenchPrices, uint MetaFlags)
+        public Fraction(FractionTypes type, string name, uint storageContainerId, string containerPositionsStr, string creationWorkbenchPositionsStr, byte maxRank, Dictionary<string, uint> creationWorkbenchPrices, uint metaFlags)
         {
-            this.Type = Type;
+            Type = type;
 
-            this.Name = Name;
+            Name = name;
 
-            this.StorageContainerId = StorageContainerId;
+            StorageContainerId = storageContainerId;
 
-            this.MaxRank = MaxRank;
+            MaxRank = maxRank;
 
-            this.CreationWorkbenchPrices = CreationWorkbenchPrices;
+            CreationWorkbenchPrices = creationWorkbenchPrices;
 
-            this.MetaFlags = (MetaFlagTypes)MetaFlags;
+            MetaFlags = (MetaFlagTypes)metaFlags;
 
-            var contPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ContainerPositionsStr);
-            var wbPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(CreationWorkbenchPositionsStr);
+            var contPoses = RAGE.Util.Json.Deserialize<Vector4[]>(containerPositionsStr);
+            var wbPoses = RAGE.Util.Json.Deserialize<Vector4[]>(creationWorkbenchPositionsStr);
 
             var contTextInfos = new List<ExtraLabel>();
             var wbTextInfos = new List<ExtraLabel>();
@@ -197,13 +121,13 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var contPos = contPoses[i];
 
-                var containerCs = new Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var containerCs = new Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = InteractionTypes.ContainerInteract,
 
                     ActionType = ActionTypes.ContainerInteract,
 
-                    Data = StorageContainerId,
+                    Data = storageContainerId,
                 };
 
                 var containerTextLabel = new ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
@@ -225,13 +149,13 @@ namespace BlaineRP.Client.Data.Fractions
             {
                 var wbPos = wbPoses[i];
 
-                var creationWorkbenchCs = new Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var creationWorkbenchCs = new Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     InteractionType = InteractionTypes.FractionCreationWorkbenchInteract,
 
                     ActionType = ActionTypes.FractionInteract,
 
-                    Data = $"{(int)Type}_{i}",
+                    Data = $"{(int)type}_{i}",
                 };
 
                 var creationWorkbenchTextLabel = new ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
@@ -249,14 +173,14 @@ namespace BlaineRP.Client.Data.Fractions
 
             CreationWorkbenchTextInfos = wbTextInfos.ToArray();
 
-            All.Add(Type, this);
+            All.Add(type, this);
 
-            for (int i = 0; i < MaxRank + 1; i++)
-                Core.AddDataHandler($"FRAC::RN_{(int)Type}_{i}", OnRankNameChanged);
+            for (int i = 0; i < maxRank + 1; i++)
+                Core.AddDataHandler($"FRAC::RN_{(int)type}_{i}", OnRankNameChanged);
 
-            Core.AddDataHandler($"FRAC::SL_{(int)Type}", OnStorageLockedChanged);
-            Core.AddDataHandler($"FRAC::CWL_{(int)Type}", OnCreationWorkbenchLockedChanged);
-            Core.AddDataHandler($"FRAC::M_{(int)Type}", OnMaterialsChanged);
+            Core.AddDataHandler($"FRAC::SL_{(int)type}", OnStorageLockedChanged);
+            Core.AddDataHandler($"FRAC::CWL_{(int)type}", OnCreationWorkbenchLockedChanged);
+            Core.AddDataHandler($"FRAC::M_{(int)type}", OnMaterialsChanged);
         }
 
         private static void OnMaterialsChanged(string key, object value, object oldValue)
@@ -268,7 +192,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             var kData = key.Split('_');
 
-            var fType = (Types)int.Parse(kData[1]);
+            var fType = (FractionTypes)int.Parse(kData[1]);
 
             if (pData.Fraction != fType)
                 return;
@@ -291,7 +215,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             var kData = key.Split('_');
 
-            var fType = (Types)int.Parse(kData[1]);
+            var fType = (FractionTypes)int.Parse(kData[1]);
 
             var fData = Get(fType);
 
@@ -334,7 +258,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             var kData = key.Split('_');
 
-            var fType = (Types)int.Parse(kData[1]);
+            var fType = (FractionTypes)int.Parse(kData[1]);
 
             var fData = Get(fType);
 
@@ -377,7 +301,7 @@ namespace BlaineRP.Client.Data.Fractions
 
             var kData = key.Split('_');
 
-            var fType = (Types)int.Parse(kData[1]);
+            var fType = (FractionTypes)int.Parse(kData[1]);
 
             if (pData.Fraction != fType)
                 return;
@@ -437,8 +361,8 @@ namespace BlaineRP.Client.Data.Fractions
 
             Menu.SetFraction(Type);
 
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fraction_invite", (entity) => { var player = entity as Player; if (player == null) return; PlayerInvite(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("documents", "fraction_docs", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocs(player); });
+            Interaction.CharacterInteractionInfo.AddAction("char_job", "fraction_invite", (entity) => { var player = entity as Player; if (player == null) return; PlayerInvite(player); });
+            Interaction.CharacterInteractionInfo.AddAction("documents", "fraction_docs", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocs(player); });
         }
 
         public virtual void OnEndMembership()
@@ -452,11 +376,11 @@ namespace BlaineRP.Client.Data.Fractions
 
             HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Fraction_Menu);
 
-            Menu.SetFraction(Data.Fractions.Types.None);
+            Menu.SetFraction(FractionTypes.None);
 
             FractionMenu.Close();
 
-            Game.UI.CEF.Interaction.CloseMenu();
+            Interaction.CloseMenu();
 
             if (MaterialWorkbench.CurrentType == MaterialWorkbench.Types.Fraction)
                 MaterialWorkbench.Close();
@@ -498,7 +422,7 @@ namespace BlaineRP.Client.Data.Fractions
             if (tData == null)
                 return;
 
-            if (tData.Fraction != Types.None)
+            if (tData.Fraction != FractionTypes.None)
             {
                 if (tData.Fraction == Type)
                 {
@@ -549,9 +473,9 @@ namespace BlaineRP.Client.Data.Fractions
                 }
                 else
                 {
-                    var fraction = (Data.Fractions.Types)(int)args[0];
+                    var fraction = (FractionTypes)(int)args[0];
 
-                    var fData = Data.Fractions.Fraction.Get(fraction);
+                    var fData = Fraction.Get(fraction);
 
                     var lastFraction = pData.CurrentFraction;
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Quests.Enums;
 using RAGE;
 
@@ -18,7 +19,7 @@ namespace BlaineRP.Client.Quests.Types.Main
                     {
                         StartAction = (pData, quest) =>
                         {
-                            var mBlip = new Additional.ExtraBlip(304, new Vector3(0f, 0f, 0f), "asdas", 1f, 5, 255, 0, false, 0, 0, Settings.App.Static.MainDimension);
+                            var mBlip = new ExtraBlip(304, new Vector3(0f, 0f, 0f), "asdas", 1f, 5, 255, 0, false, 0, 0, Settings.App.Static.MainDimension);
 
                             quest.SetActualData("E_BP_M", mBlip);
                         },

@@ -1,9 +1,10 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
-using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
 using RAGE;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Settings
@@ -26,7 +27,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 {
                     if (CEF.Phone.Phone.CurrentAppTab == "wallpaper".GetHashCode())
                     {
-                        CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                        CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                         Client.Settings.User.Other.PhoneWallpaperNum = wpNum;
 

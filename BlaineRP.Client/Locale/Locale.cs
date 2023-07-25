@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.EntitiesData.Enums;
 using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client
@@ -60,13 +59,6 @@ namespace BlaineRP.Client
 
             public static class Blip
             {
-                public static Dictionary<Additional.ExtraBlip.Types, string> TypesNames = new Dictionary<Additional.ExtraBlip.Types, string>()
-                {
-                    { Additional.ExtraBlip.Types.GPS, "GPS-отметка" },
-                    { Additional.ExtraBlip.Types.Furniture, "Мебель" },
-                    { Additional.ExtraBlip.Types.AutoPilot, "Цель автопилота" },
-                };
-
                 public static string ApartmentsOwnedBlip = "{0}, кв. {1}";
                 public static string GarageOwnedBlip = "{0}, #{1}";
 
@@ -74,69 +66,6 @@ namespace BlaineRP.Client
 
                 public static string JobTaxiTargetPlayer = "Заказчик такси";
             }
-
-            #region Players
-            public static class Players
-            {
-                public static Dictionary<SkillTypes, string> SkillNames = new Dictionary<SkillTypes, string>()
-                {
-                    { SkillTypes.Shooting, "Стрельба" },
-                    { SkillTypes.Fishing, "Рыболовство" },
-                    { SkillTypes.Cooking, "Кулинария" },
-                    { SkillTypes.Strength, "Сила" },
-                };
-
-                public static Dictionary<SkillTypes, string> SkillNamesGenitive = new Dictionary<SkillTypes, string>()
-                {
-                    { SkillTypes.Shooting, "стрельбы" },
-                    { SkillTypes.Fishing, "рыболовства" },
-                    { SkillTypes.Cooking, "кулинарии" },
-                    { SkillTypes.Strength, "силы" },
-                };
-
-                public static Dictionary<LicenseTypes, string> LicenseNames = new Dictionary<LicenseTypes, string>()
-                {
-                    { LicenseTypes.B, "B (легковой транспорт)" },
-                    { LicenseTypes.C, "C (грузовой транспорт)" },
-                    { LicenseTypes.D, "D (маршрутный транспорт)" },
-                    { LicenseTypes.A, "D (мотоциклы)" },
-                    { LicenseTypes.M, "M (мопеды)" },
-                    { LicenseTypes.Sea, "Sea (водный транспорт)" },
-                    { LicenseTypes.Fly, "Fly (воздушный транспорт)" },
-                };
-
-                public static Dictionary<AchievementTypes, (string Title, string Desc)> AchievementTexts = new Dictionary<AchievementTypes, (string, string)>()
-                {
-                    { AchievementTypes.SR1, ("В яблочко!", "Получите навык стрельбы 80 в тире") },
-                    { AchievementTypes.SR2, ("Концентрация", "Продержите точность 100% в тире при навыке стрельбы 100") }
-                };
-            }
-            #endregion
-        }
-        #endregion
-
-        #region Other
-        public static class HudMenu
-        {
-            public static Dictionary<CEF.HUD.Menu.Types, string> Names = new Dictionary<CEF.HUD.Menu.Types, string>()
-            {
-                { CEF.HUD.Menu.Types.Menu, "Меню" },
-                { CEF.HUD.Menu.Types.Documents, "Документы" },
-                { CEF.HUD.Menu.Types.Menu_House, "Меню дома" },
-                { CEF.HUD.Menu.Types.Menu_Apartments, "Меню квартиры" },
-                { CEF.HUD.Menu.Types.Job_Menu, "Меню работы" },
-                { CEF.HUD.Menu.Types.Fraction_Menu, "Меню фракции" },
-
-                { CEF.HUD.Menu.Types.Inventory, "Инвентарь" },
-                { CEF.HUD.Menu.Types.Phone, "Телефон" },
-                { CEF.HUD.Menu.Types.Animations, "Меню анимаций" },
-
-                { CEF.HUD.Menu.Types.BlipsMenu, "Меню меток" },
-
-                { CEF.HUD.Menu.Types.WeaponSkinsMenu, "Раскраски оружия" },
-
-                { CEF.HUD.Menu.Types.Fraction_Police_TabletPC, "Служебный планшет" },
-            };
         }
         #endregion
     }

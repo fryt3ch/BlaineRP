@@ -1,14 +1,14 @@
 ﻿using System.Linq;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Management.Attachments.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.AntiCheat
+namespace BlaineRP.Client.Game.Management.AntiCheat
 {
     [Script(int.MaxValue)]
     public partial class Core
@@ -133,11 +133,11 @@ namespace BlaineRP.Client.Management.AntiCheat
                 {
                     if (fade)
                     {
-                        Additional.SkyCamera.FadeScreen(true, 500, -1);
+                        SkyCamera.FadeScreen(true, 500, -1);
 
                         await RAGE.Game.Invoker.WaitAsync(1000);
 
-                        Additional.SkyCamera.FadeScreen(false, 1500, -1);
+                        SkyCamera.FadeScreen(false, 1500, -1);
                     }
 
                     if (withVehicle && veh != null)
@@ -161,7 +161,7 @@ namespace BlaineRP.Client.Management.AntiCheat
 
                             AsyncTask.Methods.Run(() =>
                             {
-                                Management.Attachments.Core.ReattachObjects(veh);
+                                Attachments.Core.ReattachObjects(veh);
                             }, 500);
 
                             if (onGround)
@@ -307,15 +307,15 @@ namespace BlaineRP.Client.Management.AntiCheat
                 {
                     var value = (int)args[0];
 
-                    Management.Weapons.Core.OnDamage -= Management.Weapons.Core.ArmourCheck;
+                    Weapons.Core.OnDamage -= Weapons.Core.ArmourCheck;
 
                     LastAllowedArm = value;
                     Player.LocalPlayer.SetArmour(value);
 
                     await RAGE.Game.Invoker.WaitAsync(100);
 
-                    Management.Weapons.Core.OnDamage -= Management.Weapons.Core.ArmourCheck;
-                    Management.Weapons.Core.OnDamage += Management.Weapons.Core.ArmourCheck;
+                    Weapons.Core.OnDamage -= Weapons.Core.ArmourCheck;
+                    Weapons.Core.OnDamage += Weapons.Core.ArmourCheck;
 
                     if (!AsyncTask.Methods.IsTaskStillPending(ArmourTaskKey, task))
                         return;
@@ -383,7 +383,7 @@ namespace BlaineRP.Client.Management.AntiCheat
 
                     if (args.Length > 1)
                     {
-                        var curGunData = Management.Weapons.Core.WeaponList.Where(x => x.Hash == LastAllowedWeapon).FirstOrDefault();
+                        var curGunData = Weapons.Core.WeaponList.Where(x => x.Hash == LastAllowedWeapon).FirstOrDefault();
 
                         if (curGunData != null)
                         {
@@ -402,20 +402,20 @@ namespace BlaineRP.Client.Management.AntiCheat
 
                     Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
 
-                    if (Management.Weapons.Core.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
+                    if (Weapons.Core.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
                     {
-                        CEF.HUD.SetAmmo(LastAllowedAmmo);
+                        HUD.SetAmmo(LastAllowedAmmo);
 
-                        CEF.HUD.SwitchAmmo(true);
+                        HUD.SwitchAmmo(true);
 
-                        Main.Update -= Management.Weapons.Core.UpdateWeapon;
-                        Main.Update += Management.Weapons.Core.UpdateWeapon;
+                        Main.Update -= Weapons.Core.UpdateWeapon;
+                        Main.Update += Weapons.Core.UpdateWeapon;
                     }
                     else
                     {
-                        CEF.HUD.SwitchAmmo(false);
+                        HUD.SwitchAmmo(false);
 
-                        Main.Update -= Management.Weapons.Core.UpdateWeapon;
+                        Main.Update -= Weapons.Core.UpdateWeapon;
                     }
 
                     await RAGE.Game.Invoker.WaitAsync(2000);
@@ -442,7 +442,7 @@ namespace BlaineRP.Client.Management.AntiCheat
             LastAllowedHP = player.GetRealHealth();
             LastAllowedArm = player.GetArmour();
             LastAllowedAlpha = 255;
-            LastAllowedWeapon = Management.Weapons.Core.UnarmedHash;
+            LastAllowedWeapon = Weapons.Core.UnarmedHash;
             LastAllowedAmmo = 0;
 
             LastAllowedInvincible = false;

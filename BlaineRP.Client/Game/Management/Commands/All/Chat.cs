@@ -1,7 +1,8 @@
 ﻿using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.Management.Commands
+namespace BlaineRP.Client.Game.Management.Commands
 {
     partial class Core
     {
@@ -10,7 +11,7 @@ namespace BlaineRP.Client.Management.Commands
         {
             if (value > 30 || value < 1)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Commands.Chat.Header, Locale.Notifications.Commands.Chat.WrongValue);
+                Notification.Show(Notification.Types.Error, Locale.Notifications.Commands.Chat.Header, Locale.Notifications.Commands.Chat.WrongValue);
 
                 return;
             }
@@ -23,7 +24,7 @@ namespace BlaineRP.Client.Management.Commands
         {
             if (value > 276 || value < 0)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.Commands.Chat.Header, Locale.Notifications.Commands.Chat.WrongValue);
+                Notification.Show(Notification.Types.Error, Locale.Notifications.Commands.Chat.Header, Locale.Notifications.Commands.Chat.WrongValue);
 
                 return;
             }
@@ -46,7 +47,7 @@ namespace BlaineRP.Client.Management.Commands
             if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
-            CallRemote("p_mutef", pid, mins, reason);
+            Commands.Core.CallRemote("p_mutef", pid, mins, reason);
         }
 
         [Command("unmutef", false, "Скрыть/показать чат")]
@@ -55,7 +56,7 @@ namespace BlaineRP.Client.Management.Commands
             if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
-            CallRemote("p_unmutef", pid, reason);
+            Commands.Core.CallRemote("p_unmutef", pid, reason);
         }
     }
 }

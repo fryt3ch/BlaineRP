@@ -1,22 +1,22 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Menu
@@ -169,7 +169,7 @@ namespace BlaineRP.Client.CEF
 
                         Events.CallRemote("Players::SetIsInvalid", (bool)args[1]);
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                         break;
 
                     case "sett-aimType":
@@ -353,7 +353,7 @@ namespace BlaineRP.Client.CEF
 
             //Browser.Window.ExecuteJs("switchEsc", !Settings.User.Interface.HideHints);
 
-            LastSwitched = Sync.World.ServerTime;
+            LastSwitched = World.Core.ServerTime;
 
             Cursor.Show(true, true);
         }
@@ -410,10 +410,10 @@ namespace BlaineRP.Client.CEF
         public static string GetGiftName(GiftTypes type, string gid, int amount)
         {
             if (type == GiftTypes.Item)
-                return Data.Items.GetName(gid) + (amount > 1 ? $" x{amount}" : "");
+                return Client.Data.Items.GetName(gid) + (amount > 1 ? $" x{amount}" : "");
 
             if (type == GiftTypes.Vehicle)
-                return Data.Vehicles.GetById(gid)?.Name ?? "null";
+                return Data.Vehicles.Core.GetById(gid)?.Name ?? "null";
 
             if (type == GiftTypes.Money)
                 return $"${amount}";
@@ -434,7 +434,7 @@ namespace BlaineRP.Client.CEF
 
         public static void SetCID(uint value) => Browser.Window.ExecuteJs("Menu.setCID", value);
 
-        public static void SetFraction(Data.Fractions.Types type) => Browser.Window.ExecuteJs("Menu.setFraction", Data.Fractions.Fraction.Get(type)?.Name ?? Data.Fractions.Fraction.NoFractionStr);
+        public static void SetFraction(FractionTypes type) => Browser.Window.ExecuteJs("Menu.setFraction", Fraction.Get(type)?.Name ?? Fraction.NoFractionStr);
 
         public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? "null");
 
@@ -485,13 +485,13 @@ namespace BlaineRP.Client.CEF
 
             properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, x.Data.Class.ToString(), x.Data.GovPrice }));
 
-            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", PropertyTypes.Business.ToString(), x.Name, Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", PropertyTypes.Business.ToString(), x.Name, Utils.Game.Misc.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
 
-            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.Game.Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
-            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Client.Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
 
-            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Client.Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }
@@ -546,13 +546,13 @@ namespace BlaineRP.Client.CEF
             if (ReportSendAntiSpam.IsSpam(2500, false, true))
                 return;
 
-            ReportSendAntiSpam = Sync.World.ServerTime;
+            ReportSendAntiSpam = World.Core.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Report::Send", text))
             {
                 UpdatePlayerReportInput("");
 
-                AddMessageToChatHistory(Player.LocalPlayer, Sync.World.ServerTime, text);
+                AddMessageToChatHistory(Player.LocalPlayer, World.Core.ServerTime, text);
             }
         }
     }

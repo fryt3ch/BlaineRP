@@ -1,13 +1,13 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
+﻿using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Sync;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Contacts
@@ -53,7 +53,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                     }
                 }
 
-                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                 if (!(bool)await Events.CallRemoteProc("Phone::CC", number, name))
                     return;

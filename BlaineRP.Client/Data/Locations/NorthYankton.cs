@@ -2,6 +2,10 @@
 using RAGE;
 using RAGE.Elements;
 using System.Linq;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 
 namespace BlaineRP.Client.Data
 {
@@ -51,9 +55,9 @@ namespace BlaineRP.Client.Data
                     RAGE.Game.Streaming.RemoveIpl(iplList[i]);
                 }
 
-                var demorganCs = new Additional.Circle(new Vector3(3217.697f, -4834.826f, 111.8152f), 4500f, false, Misc.RedColor, 2, null)
+                var demorganCs = new Circle(new Vector3(3217.697f, -4834.826f, 111.8152f), 4500f, false, Misc.RedColor, 2, null)
                 {
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                    ApproveType = ApproveTypes.None,
 
                     OnEnter = (cancel) =>
                     {
@@ -69,13 +73,13 @@ namespace BlaineRP.Client.Data
 
                         RAGE.Game.Interior.RefreshInterior(intid);
 
-                        var demorganCs1 = new Additional.Cylinder(new Vector3(5332.779f, -5121.378f, 70.60863f), 350f, 100f, false, Misc.RedColor, 2, null)
+                        var demorganCs1 = new Cylinder(new Vector3(5332.779f, -5121.378f, 70.60863f), 350f, 100f, false, Misc.RedColor, 2, null)
                         {
-                            ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                            ApproveType = ApproveTypes.None,
 
                             OnExit = (cancel) =>
                             {
-                                var demorganData = Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.NRPPrison).FirstOrDefault();
+                                var demorganData = Punishment.All.Where(x => x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
 
                                 if (demorganData != null)
                                 {
@@ -94,7 +98,7 @@ namespace BlaineRP.Client.Data
                             RAGE.Game.Streaming.RemoveIpl(iplList[i]);
                         }
 
-                        var demorganCs1 = Player.LocalPlayer.GetData<Additional.ExtraColshape>("NorthYankton::DemorganTempCs");
+                        var demorganCs1 = Player.LocalPlayer.GetData<ExtraColshape>("NorthYankton::DemorganTempCs");
 
                         if (demorganCs1 != null)
                         {

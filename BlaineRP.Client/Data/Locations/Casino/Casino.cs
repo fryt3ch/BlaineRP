@@ -5,10 +5,16 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Animations;
-using BlaineRP.Client.Animations.Enums;
 using BlaineRP.Client.Sync;
-using Script = BlaineRP.Client.Animations.Script;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.NPCs;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using Core = BlaineRP.Client.Game.Animations.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -41,16 +47,16 @@ namespace BlaineRP.Client.Data
             public SlotMachine[] SlotMachines { get; set; }
             public Blackjack[] Blackjacks { get; set; }
 
-            public Additional.ExtraColshape MainColshape { get; set; }
+            public ExtraColshape MainColshape { get; set; }
 
-            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Utils.Convert.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
+            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Utils.Convert.ToByte(Game.World.Core.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
 
             public Roulette GetRouletteById(int id) => id < 0 || id >= Roulettes.Length ? null : Roulettes[id];
             public LuckyWheel GetLuckyWheelById(int id) => id < 0 || id >= LuckyWheels.Length ? null : LuckyWheels[id];
             public SlotMachine GetSlotMachineById(int id) => id < 0 || id >= SlotMachines.Length ? null : SlotMachines[id];
             public Blackjack GetBlackjackById(int id) => id < 0 || id >= Blackjacks.Length ? null : Blackjacks[id];
 
-            public Vehicle Vehicle { get; set; }
+            public RAGE.Elements.Vehicle Vehicle { get; set; }
 
             public ushort BuyChipPrice { get; set; }
             public ushort SellChipPrice { get; set; }
@@ -67,7 +73,7 @@ namespace BlaineRP.Client.Data
 
                 if (Id == 0)
                 {
-                    MainColshape = new Additional.Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                    MainColshape = new Circle(new Vector3(963.4196f, 47.85423f, 74.31705f), 80f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
 
                     };
@@ -134,7 +140,7 @@ namespace BlaineRP.Client.Data
                         new SlotMachine(Id, 29, SlotMachine.ModelTypes.vw_prop_casino_slot_07a, 982.2607f, 46.56145f, 73.47611f, 291.9941f),
                     };
 
-                    var cashier = new Data.NPC($"Casino@Cashier_{Id}_0", "Эмили", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.App.Static.MainDimension)
+                    var cashier = new NPC($"Casino@Cashier_{Id}_0", "Эмили", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_CASINO_CASHIER",
 
@@ -149,7 +155,7 @@ namespace BlaineRP.Client.Data
                                             if (ped == null)
                                                 return;
 
-                                            Script.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
+                                            Core.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
                                         });
 
                     //new Additional.RadioEmitter("Casino_0", new Vector3(956.087f, 40.37049f, 79.03804f), 25f, uint.MaxValue, Additional.RadioEmitter.EmitterTypes.se_vw_dlc_casino_main_rm_shop_radio, Sync.Radio.StationTypes.NSPFM);
@@ -157,9 +163,9 @@ namespace BlaineRP.Client.Data
                     //new Additional.RadioEmitter("Casino_1", new Vector3(959.2058f, 29.13904f, 79.03769f), 25f, uint.MaxValue, Additional.RadioEmitter.EmitterTypes.DLC_IE_Steal_Pool_Party_Lake_Vine_Radio_Emitter, Sync.Radio.StationTypes.NSPFM);
                 }
 
-                Sync.World.AddDataHandler($"CASINO_{Id}_WST", OnWallScreenTypeChanged);
+                Game.World.Core.AddDataHandler($"CASINO_{Id}_WST", OnWallScreenTypeChanged);
 
-                MainColshape.ApproveType = Additional.ExtraColshape.ApproveTypes.None;
+                MainColshape.ApproveType = ApproveTypes.None;
 
                 MainColshape.OnEnter = (cancel) =>
                 {
@@ -177,7 +183,7 @@ namespace BlaineRP.Client.Data
                         }
                         Vehicle.StreamInCustomActionsAdd((entity) =>
                         {
-                            var veh = entity as Vehicle;
+                            var veh = entity as RAGE.Elements.Vehicle;
 
                             if (veh?.Exists != true)
                                 return;
@@ -207,7 +213,7 @@ namespace BlaineRP.Client.Data
                         });
                         Vehicle.StreamOutCustomActionsAdd((entity) =>
                         {
-                            var veh = entity as Vehicle;
+                            var veh = entity as RAGE.Elements.Vehicle;
 
                             if (veh == null)
                                 return;
@@ -256,24 +262,24 @@ namespace BlaineRP.Client.Data
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract,
+                                InteractionType = InteractionTypes.CasinoRouletteInteract,
 
-                                ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
+                                ActionType = ActionTypes.CasinoInteract,
 
                                 Data = $"{Id}_{i}",
 
                                 Name = csName,
                             };
 
-                            x.TextLabel = new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2f), "", new RGBA(255, 255, 255, 255), 5f, 90, false, x.TableObject.Dimension)
+                            x.TextLabel = new ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2f), "", new RGBA(255, 255, 255, 255), 5f, 90, false, x.TableObject.Dimension)
                             {
                                 LOS = false,
                                 Font = 4,
                             };
 
-                            x.TextLabel.SetData("Info", new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Рулетка #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
+                            x.TextLabel.SetData("Info", new ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Рулетка #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
 
                             Roulette.OnCurrentStateDataUpdated(Id, i, x.CurrentStateData, true);
 
@@ -294,24 +300,24 @@ namespace BlaineRP.Client.Data
 
                             var coords = x.TableObject.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract,
+                                InteractionType = InteractionTypes.CasinoBlackjackInteract,
 
-                                ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
+                                ActionType = ActionTypes.CasinoInteract,
 
                                 Data = $"{Id}_{i}",
 
                                 Name = csName,
                             };
 
-                            x.TextLabel = new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2f), "", new RGBA(255, 255, 255, 255), 5f, 90, false, x.TableObject.Dimension)
+                            x.TextLabel = new ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2f), "", new RGBA(255, 255, 255, 255), 5f, 90, false, x.TableObject.Dimension)
                             {
                                 LOS = false,
                                 Font = 4,
                             };
 
-                            x.TextLabel.SetData("Info", new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Блэкджек #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
+                            x.TextLabel.SetData("Info", new ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Блэкджек #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
 
                             Blackjack.OnCurrentStateDataUpdated(Id, i, x.CurrentStateData, true);
                         }
@@ -330,11 +336,11 @@ namespace BlaineRP.Client.Data
 
                             var coords = x.BaseObj.GetCoords(false);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 2f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
-                                ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
+                                ActionType = ActionTypes.CasinoInteract,
 
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoLuckyWheelInteract,
+                                InteractionType = InteractionTypes.CasinoLuckyWheelInteract,
 
                                 Data = $"{Id}_{i}",
 
@@ -356,11 +362,11 @@ namespace BlaineRP.Client.Data
 
                             var coords = x.MachineObj.GetOffsetFromInWorldCoords(0f, -1.15f, 0f);
 
-                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                            var cs = new Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                             {
-                                ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
+                                ActionType = ActionTypes.CasinoInteract,
 
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoSlotMachineInteract,
+                                InteractionType = InteractionTypes.CasinoSlotMachineInteract,
 
                                 Data = $"{Id}_{i}",
 
@@ -391,7 +397,7 @@ namespace BlaineRP.Client.Data
 
                     UpdateCasinoWalls(WallScreenTypes.None);
 
-                    Additional.ExtraColshape.GetAllByName($"CASINO_G_{Id}").ForEach(x => x.Destroy());
+                    ExtraColshape.GetAllByName($"CASINO_G_{Id}").ForEach(x => x.Destroy());
 
                     for (int i = 0; i < Roulettes.Length; i++)
                     {
@@ -403,7 +409,7 @@ namespace BlaineRP.Client.Data
                         {
                             x.TextLabel.GetData<AsyncTask>("StateTask")?.Cancel();
 
-                            x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
+                            x.TextLabel.GetData<ExtraLabel>("Info")?.Destroy();
 
                             x.TextLabel.Destroy();
 
@@ -451,7 +457,7 @@ namespace BlaineRP.Client.Data
                         {
                             x.TextLabel.GetData<AsyncTask>("StateTask")?.Cancel();
 
-                            x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
+                            x.TextLabel.GetData<ExtraLabel>("Info")?.Destroy();
 
                             x.TextLabel.Destroy();
 
@@ -670,11 +676,11 @@ namespace BlaineRP.Client.Data
 
                         if (animType == 1)
                         {
-                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                         else if (animType == 2)
                         {
-                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                     }
                     else if (type == 1) // chip add
@@ -699,7 +705,7 @@ namespace BlaineRP.Client.Data
 
                         if (player?.Exists == true)
                         {
-                            Script.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                            Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
 
                         if (Casino.Blackjack.CurrentTable == table && Casino.Blackjack.CurrentSeatIdx == seatIdx)
@@ -770,7 +776,7 @@ namespace BlaineRP.Client.Data
                     luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                 });
 
-                var casinoSlotMachineIdle0Anim = Script.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
+                var casinoSlotMachineIdle0Anim = Core.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
 
                 if (casinoSlotMachineIdle0Anim != null)
                 {

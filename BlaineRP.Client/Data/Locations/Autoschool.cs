@@ -2,8 +2,13 @@
 using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
-using BlaineRP.Client.EntitiesData.Enums;
 using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.NPCs;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 
 namespace BlaineRP.Client.Data
 {
@@ -33,18 +38,18 @@ namespace BlaineRP.Client.Data
 
                 var id = Id;
 
-                var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract,
+                    InteractionType = InteractionTypes.DrivingSchoolInteract,
 
-                    ActionType = Additional.ExtraColshape.ActionTypes.DrivingSchoolInteract,
+                    ActionType = ActionTypes.DrivingSchoolInteract,
 
                     Data = id,
                 };
 
                 var marker = new Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension);
 
-                var blip = new Additional.ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                var blip = new ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 if (id == 1)
                 {

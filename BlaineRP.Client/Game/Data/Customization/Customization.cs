@@ -1,16 +1,14 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.EntitiesData;
 using Newtonsoft.Json;
 using RAGE.Elements;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Sync;
 
-namespace BlaineRP.Client.Data
+namespace BlaineRP.Client.Game.Data.Customization
 {
     public class Customization
     {
-        #region Classes
         public class TattooData
         {
             public enum ZoneTypes
@@ -67,22 +65,22 @@ namespace BlaineRP.Client.Data
 
             public string Name { get; set; }
 
-            public TattooData(string CollectionString, string Name, string HashMaleString, string HashFemaleString, ZoneTypes ZoneType)
+            public TattooData(string collectionString, string name, string hashMaleString, string hashFemaleString, ZoneTypes zoneType)
             {
-                this.Name = RAGE.Game.Ui.GetLabelText(Name);
+                Name = RAGE.Game.Ui.GetLabelText(name);
 
-                if (this.Name == "NULL")
-                    this.Name = Name;
+                if (Name == "NULL")
+                    Name = name;
 
-                this.ZoneType = ZoneType;
+                ZoneType = zoneType;
 
-                this.CollectionHash = RAGE.Util.Joaat.Hash(CollectionString);
+                CollectionHash = RAGE.Util.Joaat.Hash(collectionString);
 
-                if (HashMaleString != null)
-                    this.HashMale = RAGE.Util.Joaat.Hash(HashMaleString);
+                if (hashMaleString != null)
+                    HashMale = RAGE.Util.Joaat.Hash(hashMaleString);
 
-                if (HashFemaleString != null)
-                    this.HashFemale = RAGE.Util.Joaat.Hash(HashFemaleString);
+                if (hashFemaleString != null)
+                    HashFemale = RAGE.Util.Joaat.Hash(hashFemaleString);
             }
 
             public bool TryApply(Player player)
@@ -147,24 +145,24 @@ namespace BlaineRP.Client.Data
 
             public void SetFather(byte value)
             {
-                this.ShapeSecond = value;
-                this.SkinSecond = value;
+                ShapeSecond = value;
+                SkinSecond = value;
             }
 
             public void SetMother(byte value)
             {
-                this.ShapeFirst = value;
-                this.SkinFirst = value;
+                ShapeFirst = value;
+                SkinFirst = value;
             }
 
-            public byte GetFather() => this.ShapeSecond;
-            public byte GetMother() => this.ShapeFirst;
+            public byte GetFather() => ShapeSecond;
+            public byte GetMother() => ShapeFirst;
 
             public HeadBlend()
             {
-                this.ShapeThird = 0;
-                this.SkinThird = 0;
-                this.ThirdMix = 0f;
+                ShapeThird = 0;
+                SkinThird = 0;
+                ThirdMix = 0f;
             }
         }
 
@@ -242,7 +240,6 @@ namespace BlaineRP.Client.Data
                 }
             }
         }
-        #endregion
 
         private static Dictionary<int, int> MaleHairs = new Dictionary<int, int>()
         {

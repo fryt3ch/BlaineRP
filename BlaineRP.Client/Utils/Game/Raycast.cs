@@ -2,6 +2,7 @@
 using RAGE;
 using RAGE.Elements;
 using System;
+using BlaineRP.Client.Game.Management.Camera;
 
 namespace BlaineRP.Client.Utils.Game
 {
@@ -85,7 +86,7 @@ namespace BlaineRP.Client.Utils.Game
             {
                 for (var j = 1; j < c; j++)
                 {
-                    var endPos = Additional.Camera.GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
+                    var endPos = Core.GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
 
                     endPos.Z += offsetZ;
 

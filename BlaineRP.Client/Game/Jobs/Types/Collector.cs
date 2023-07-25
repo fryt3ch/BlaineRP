@@ -1,16 +1,16 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Jobs.Enums;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Quests;
 using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Sync;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Jobs
+namespace BlaineRP.Client.Game.Jobs.Types
 {
     public class Collector : Job
     {
@@ -20,7 +20,7 @@ namespace BlaineRP.Client.Data.Jobs
 
             public uint Reward { get; set; }
 
-            public Data.Locations.Business TargetBusiness { get; set; }
+            public Client.Data.Locations.Business TargetBusiness { get; set; }
 
             public OrderInfo()
             {
@@ -32,7 +32,7 @@ namespace BlaineRP.Client.Data.Jobs
 
         public Vector3 Position { get; set; }
 
-        public Collector(int Id, Utils.Vector4 Position, int BankId) : base(Id, Types.Collector)
+        public Collector(int Id, Utils.Vector4 Position, int BankId) : base(Id, JobTypes.Collector)
         {
             this.Position = Position.Position;
 
@@ -49,7 +49,7 @@ namespace BlaineRP.Client.Data.Jobs
 
                 var id = uint.Parse(t[0]);
 
-                var business = Data.Locations.Business.All[int.Parse(t[1])];
+                var business = Client.Data.Locations.Business.All[int.Parse(t[1])];
 
                 return new OrderInfo() { Id = id, TargetBusiness = business, Reward = uint.Parse(t[2]) };
             }).OrderByDescending(x => x.Reward).ToList();
@@ -113,7 +113,7 @@ namespace BlaineRP.Client.Data.Jobs
                         if (quest == null)
                             return;
 
-                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Collector.OrderInfo>>("AOL");
+                        var orders = pData.CurrentJob?.GetCurrentData<List<Collector.OrderInfo>>("AOL");
 
                         if (orders == null)
                             return;

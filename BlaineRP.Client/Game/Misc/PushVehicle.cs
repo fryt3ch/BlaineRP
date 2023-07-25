@@ -1,15 +1,12 @@
-﻿using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Misc
 {
     [Script(int.MaxValue)]
     public class PushVehicle
@@ -43,7 +40,7 @@ namespace BlaineRP.Client.Sync
 
         public static void Toggle(Vehicle vehicle = null)
         {
-            if (LastSwitchTime.IsSpam(2000, false, false) || Misc.IsAnyCefActive() || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
+            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.Misc.IsAnyCefActive() || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
                 return;
 
             if (!Toggled)

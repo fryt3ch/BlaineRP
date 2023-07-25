@@ -1,14 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.EntitiesData.Enums;
-using BlaineRP.Client.Input;
+using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.EntitiesData.Components
+namespace BlaineRP.Client.Game.EntitiesData.Components
 {
     [Script(int.MaxValue)]
     public class Offers
@@ -62,7 +66,7 @@ namespace BlaineRP.Client.EntitiesData.Components
                 var type = (OfferTypes)(int)args[1];
                 var text = (string)args[2];
 
-                if (Misc.IsAnyCefActive(false))
+                if (Utils.Misc.IsAnyCefActive(false))
                 {
                     CurrentTarget = player;
 
@@ -84,11 +88,11 @@ namespace BlaineRP.Client.EntitiesData.Components
                 {
                     if (!ctsIsNull)
                     {
-                        CEF.Notification.ClearAll();
+                        Notification.ClearAll();
 
                         if (_tempBinds != null)
                         {
-                            _tempBinds.ForEach(x => Core.Unbind(x));
+                            _tempBinds.ForEach(x => Input.Core.Unbind(x));
 
                             _tempBinds.Clear();
                             _tempBinds = null;
@@ -124,16 +128,16 @@ namespace BlaineRP.Client.EntitiesData.Components
 
             text = string.Format(text, name);
 
-            CEF.Notification.ShowOffer(text);
+            Notification.ShowOffer(text);
 
             _tempBinds = new List<int>()
             {
-                Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
                 {
                     Reply(ReplyTypes.Accept);
                 }),
 
-                Core.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
                 {
                     Reply(ReplyTypes.Deny);
                 }),
@@ -144,7 +148,7 @@ namespace BlaineRP.Client.EntitiesData.Components
         {
             if (CurrentTarget != null)
             {
-                CEF.Notification.ShowError(Locale.Notifications.Offers.PlayerHasOffer);
+                Notification.ShowError(Locale.Notifications.Offers.PlayerHasOffer);
 
                 return;
             }
@@ -155,10 +159,10 @@ namespace BlaineRP.Client.EntitiesData.Components
             if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
-            if (Misc.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
+            if (Utils.Misc.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
                 return;
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = Core.ServerTime;
 
             var res = await Events.CallRemoteProc("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data ?? string.Empty));
 
@@ -169,13 +173,13 @@ namespace BlaineRP.Client.EntitiesData.Components
             {
                 if (resI == 0)
                 {
-                    CEF.Notification.ShowErrorDefault();
+                    Notification.ShowErrorDefault();
                 }
                 else if (resI == 255)
                 {
                     CurrentTarget = player;
 
-                    CEF.Notification.Show("Offer::Sent");
+                    Notification.Show("Offer::Sent");
                 }
             }
         }
@@ -192,7 +196,7 @@ namespace BlaineRP.Client.EntitiesData.Components
                 Events.CallRemote("Offers::Reply", (int)rType);
 
                 if (!isNotManual)
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = Core.ServerTime;
 
                 if (rType != ReplyTypes.Accept)
                     Main.Update -= OfferTick;

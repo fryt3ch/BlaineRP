@@ -1,19 +1,20 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
+﻿using System;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Taxi
@@ -28,8 +29,8 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             public uint DriverNumber { get; set; }
 
-            public Additional.ExtraColshape ExitColshape1 { get; set; }
-            public Additional.ExtraColshape ExitColshape2 { get; set; }
+            public ExtraColshape ExitColshape1 { get; set; }
+            public ExtraColshape ExitColshape2 { get; set; }
         }
 
         public Taxi()
@@ -47,7 +48,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                         Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi3);
 
-                        Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
+                        Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                     }
                 }
                 else if (args.Length == 2)
@@ -77,7 +78,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                             Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
 
-                            Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
+                            Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                         }
                         else
                         {
@@ -88,7 +89,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                             Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, Core.Get(BindTypes.SendCoordsToDriver).GetKeyString()));
 
-                            Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
+                            Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                         }
                     }
                 }
@@ -113,7 +114,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 {
                     if (id == 0)
                     {
-                        CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                        CEF.Phone.Phone.LastSent = World.Core.ServerTime;
 
                         var res = (bool)await Events.CallRemoteProc("Taxi::NO");
 
@@ -121,15 +122,15 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                         {
                             var pos = Player.LocalPlayer.Position;
 
-                            Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Misc.GetStreetName(pos)));
+                            Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Utils.Game.Misc.GetStreetName(pos)));
 
                             pos.Z -= 1f;
 
                             CurrentOrderInfo = new ClientOrderInfo()
                             {
-                                Date = Sync.World.ServerTime,
+                                Date = World.Core.ServerTime,
 
-                                ExitColshape1 = new Additional.Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Client.Settings.App.Static.MainDimension)
+                                ExitColshape1 = new Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -140,7 +141,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                                     }
                                 },
 
-                                ExitColshape2 = new Additional.Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Client.Settings.App.Static.MainDimension)
+                                ExitColshape2 = new Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Client.Settings.App.Static.MainDimension)
                                 {
                                     OnExit = (cancel) =>
                                     {
@@ -167,7 +168,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                     {
                         if (id == 0)
                         {
-                            CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                            CEF.Phone.Phone.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Taxi::CO");
                         }
@@ -210,7 +211,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
             if (CurrentOrderInfo == null)
             {
-                Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Misc.GetStreetName(Player.LocalPlayer.Position) });
+                Browser.Window.ExecuteJs("Phone.drawCabApp", 0, new object[] { pData.CID.ToString(), Utils.Game.Misc.GetStreetName(Player.LocalPlayer.Position) });
             }
             else
             {

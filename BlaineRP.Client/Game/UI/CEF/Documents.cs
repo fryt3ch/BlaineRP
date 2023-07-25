@@ -1,18 +1,19 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Fractions.Types;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Documents
@@ -74,21 +75,21 @@ namespace BlaineRP.Client.CEF
                     var surname = (string)args[2];
 
                     var diagnose = (MedicalCard.DiagnoseTypes)(int)args[3];
-                    var issueFraction = (Data.Fractions.Types)(int)args[4];
+                    var issueFraction = (FractionTypes)(int)args[4];
                     var docName = (string)args[5];
                     var issueDate = RAGE.Util.Json.Deserialize<DateTime>((string)args[6]);
 
-                    ShowMedicalCard(name, surname, diagnose, Data.Fractions.Fraction.Get(issueFraction), docName, issueDate);
+                    ShowMedicalCard(name, surname, diagnose, Fraction.Get(issueFraction), docName, issueDate);
                 }
                 else if (type == 4)
                 {
                     var name = (string)args[1];
                     var surname = (string)args[2];
 
-                    var fType = (Data.Fractions.Types)(int)args[3];
+                    var fType = (FractionTypes)(int)args[3];
                     var fRank = Utils.Convert.ToByte(args[4]);
 
-                    var fData = Data.Fractions.Fraction.Get(fType);
+                    var fData = Fraction.Get(fType);
 
                     if (fData == null)
                         return;
@@ -126,11 +127,11 @@ namespace BlaineRP.Client.CEF
             var pas = GetPasportData(name, surname, pData.Sex, CEF.Menu.BirthDate, null, pData.CID, CEF.Menu.CreationDate, false, false);
             var lic = GetLicensesData(name, surname, pData.Licenses);
 
-            var med = medCard == null ? null : GetMedicalCardData(name, surname, medCard.Diagnose, Data.Fractions.Fraction.Get(medCard.IssueFraction), medCard.DoctorName, medCard.IssueDate);
+            var med = medCard == null ? null : GetMedicalCardData(name, surname, medCard.Diagnose, Fraction.Get(medCard.IssueFraction), medCard.DoctorName, medCard.IssueDate);
 
             var res = GetResumeData(name, surname, null);
 
-            var fractionData = pData.CurrentFraction is Data.Fractions.Fraction fData && fData.MetaFlags.HasFlag(Data.Fractions.MetaFlagTypes.MembersHaveDocs) ? GetFractionDocsData(name, surname, fData, Data.Fractions.Fraction.AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0) : null;
+            var fractionData = pData.CurrentFraction is Fraction fData && fData.MetaFlags.HasFlag(MetaFlagTypes.MembersHaveDocs) ? GetFractionDocsData(name, surname, fData, Fraction.AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0) : null;
 
             CEF.Browser.Window.ExecuteJs("Docs.show", true, 0, new object[] { pas, lic, med, fractionData, res, null });
         }
@@ -155,7 +156,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 1, new object[] { null, GetLicensesData(name, surname, licenses) });
         }
 
-        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue)
+        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Fraction issueFraction, string docName, DateTime dateOfIssue)
         {
             if (IsActive)
                 return;
@@ -165,7 +166,7 @@ namespace BlaineRP.Client.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 2, new object[] { null, null, GetMedicalCardData(name, surname, diagnose, issueFraction, docName, dateOfIssue) });
         }
 
-        public static async System.Threading.Tasks.Task ShowFractionDocs(string name, string surname, Data.Fractions.Fraction fData, byte fRank)
+        public static async System.Threading.Tasks.Task ShowFractionDocs(string name, string surname, Fraction fData, byte fRank)
         {
             if (IsActive)
                 return;
@@ -223,11 +224,11 @@ namespace BlaineRP.Client.CEF
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.Get("DOCS_VEHPASS_NOPLATE"), dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Fraction issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get(MedicalCard.GetDiagnoseNameKey(diagnose)), issueFraction.Name, docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, MedicalCard.DiagnoseTypes diagnose, Fraction issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, Locale.Get(MedicalCard.GetDiagnoseNameKey(diagnose)), issueFraction.Name, docName, dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetFractionDocsData(string name, string surname, Data.Fractions.Fraction fData, byte rank) => new object[]
+        public static object[] GetFractionDocsData(string name, string surname, Fraction fData, byte rank) => new object[]
         {
-            fData is Data.Fractions.Police || fData is Data.Fractions.FIB ? "cop" : fData is Data.Fractions.EMS ? "med" : fData is Data.Fractions.Army ? "army" : "press",
+            fData is Police || fData is FIB ? "cop" : fData is EMS ? "med" : fData is Army ? "army" : "press",
 
             fData.Name,
 

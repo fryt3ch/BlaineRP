@@ -1,15 +1,17 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using RAGE;
+using RAGE.Elements;
+using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class SMS
@@ -74,11 +76,11 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                     return;
                 }
 
-                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                 var coords = new Vector3(x, y, 0f);
 
-                Additional.ExtraBlips.CreateGPS(coords, Player.LocalPlayer.Dimension, true);
+                Wrappers.Blips.Core.CreateGPS(coords, Player.LocalPlayer.Dimension, true);
             });
 
             Events.Add("Phone::SmsSend", async (args) =>
@@ -96,7 +98,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                 if (args.Length > 2 && (bool)args[2])
                 {
-                    CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                    CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                     AttachPos = !AttachPos;
 
@@ -132,7 +134,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 if (!text.IsTextLengthValid(Client.Settings.App.Static.PHONE_SMS_MIN_LENGTH, Client.Settings.App.Static.PHONE_SMS_MAX_LENGTH, true))
                     return;
 
-                CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                 var smsStrData = (string)await Events.CallRemoteProc("Phone::SSMS", number, text, AttachPos);
 
@@ -182,14 +184,14 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                 var approveContext = $"PhoneSmsDelete_{number}";
                 var approveTime = 5_000;
 
-                if (Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                if (Notification.HasApproveTimedOut(approveContext, Core.ServerTime, approveTime))
                 {
                     if (CEF.Phone.Phone.LastSent.IsSpam(1_500, false, true))
                         return;
 
-                    CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                    CEF.Phone.Phone.LastSent = Core.ServerTime;
 
-                    Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                    Notification.SetCurrentApproveContext(approveContext, Core.ServerTime);
 
                     Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.General.SmsDeleteConfirmText, approveTime);
                 }
@@ -212,7 +214,7 @@ namespace BlaineRP.Client.CEF.Phone.Apps
                     if (numsToDel.Count == 0)
                         return;
 
-                    CEF.Phone.Phone.LastSent = Sync.World.ServerTime;
+                    CEF.Phone.Phone.LastSent = Core.ServerTime;
 
                     if (!(bool)await Events.CallRemoteProc("Phone::DSMS", numsToDel.Keys.ToArray()))
                         return;

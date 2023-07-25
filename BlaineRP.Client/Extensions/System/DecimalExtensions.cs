@@ -1,4 +1,6 @@
-﻿namespace BlaineRP.Client.Extensions.System
+﻿using BlaineRP.Client.Game.UI.CEF;
+
+namespace BlaineRP.Client.Extensions.System
 {
     internal static class DecimalExtensions
     {
@@ -9,7 +11,7 @@
                 converted = default;
 
                 if (notify)
-                    CEF.Notification.ShowError(string.Format(Locale.Notifications.General.LessThanMinValue, min));
+                    Notification.ShowError(string.Format(Locale.Notifications.General.LessThanMinValue, min));
 
                 return false;
             }
@@ -18,7 +20,7 @@
                 converted = converted = default;
 
                 if (notify)
-                    CEF.Notification.ShowError(string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));
+                    Notification.ShowError(string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));
 
                 return false;
             }

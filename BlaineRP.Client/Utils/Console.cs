@@ -1,4 +1,5 @@
 ﻿using System;
+using BlaineRP.Client.Game.World;
 
 namespace BlaineRP.Client.Utils
 {
@@ -16,10 +17,10 @@ namespace BlaineRP.Client.Utils
 
         public static void OutputLimited(object obj, bool line = true, int ms = 2000)
         {
-            if (Sync.World.ServerTime.Subtract(_lastLimitedConsoleMsgTime).TotalMilliseconds < ms)
+            if (Core.ServerTime.Subtract(_lastLimitedConsoleMsgTime).TotalMilliseconds < ms)
                 return;
 
-            _lastLimitedConsoleMsgTime = Sync.World.ServerTime;
+            _lastLimitedConsoleMsgTime = Core.ServerTime;
 
             if (line)
                 RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Info, obj.ToString());

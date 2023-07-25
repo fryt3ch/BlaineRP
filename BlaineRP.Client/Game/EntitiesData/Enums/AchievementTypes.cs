@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.EntitiesData.Enums
+﻿namespace BlaineRP.Client.Game.EntitiesData.Enums
 {
     public enum AchievementTypes
     {

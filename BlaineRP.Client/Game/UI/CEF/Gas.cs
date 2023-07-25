@@ -1,17 +1,20 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Data.Vehicles;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
+using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Gas
@@ -24,7 +27,7 @@ namespace BlaineRP.Client.CEF
 
         private static Vehicle TargetVehicle { get; set; }
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         private static int EscBindIdx = -1;
 
@@ -49,7 +52,7 @@ namespace BlaineRP.Client.CEF
 
                 if (!LastSent.IsSpam(500, false, true))
                 {
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{GetGasBuyIdByFuelType(vData.Data.FuelType)}&{TargetVehicle.RemoteId}&{amount}&{(BuyByFraction ? 1 : 0)}", useCash))
                     {
@@ -66,7 +69,7 @@ namespace BlaineRP.Client.CEF
             });
         }
 
-        public static string GetGasBuyIdByFuelType(Data.Vehicles.Vehicle.FuelTypes fType) => fType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
+        public static string GetGasBuyIdByFuelType(FuelTypes fType) => fType == FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
 
         public static async void RequestShow(Vehicle vehicle, bool showGasAnyway = false)
         {
@@ -92,10 +95,10 @@ namespace BlaineRP.Client.CEF
                 return;
             }
 
-            if (vDataData.FuelType == Data.Vehicles.Vehicle.FuelTypes.None)
+            if (vDataData.FuelType == FuelTypes.None)
                 return;
 
-            var vehIsPetrol = vDataData.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol;
+            var vehIsPetrol = vDataData.FuelType == FuelTypes.Petrol;
 
             var maxFuel = (int)System.Math.Floor(vDataData.Tank - vData.FuelLevel);
 
@@ -117,9 +120,9 @@ namespace BlaineRP.Client.CEF
                     if (CEF.Inventory.ItemsParams[i] == null)
                         continue;
 
-                    if (Data.Items.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(Data.Items.VehicleJerrycan))
+                    if (Client.Data.Items.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(Client.Data.Items.VehicleJerrycan))
                     {
-                        if ((Data.Items.GetData(CEF.Inventory.ItemsParams[i].Id, typeof(Data.Items.VehicleJerrycan)) as Data.Items.VehicleJerrycan.ItemData)?.IsPetrol == vehIsPetrol)
+                        if ((Client.Data.Items.GetData(CEF.Inventory.ItemsParams[i].Id, typeof(Client.Data.Items.VehicleJerrycan)) as Client.Data.Items.VehicleJerrycan.ItemData)?.IsPetrol == vehIsPetrol)
                         {
                             var name = ((string)(((object[])CEF.Inventory.ItemsData[i][0])[1]));
 
@@ -254,7 +257,7 @@ namespace BlaineRP.Client.CEF
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             var res = await Events.CallRemoteProc("GasStation::Enter", vehicle, gasStationId);
 
@@ -283,7 +286,7 @@ namespace BlaineRP.Client.CEF
                 CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("SHOP_GAS_FRACTION_INFO"));
             }
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {
@@ -294,7 +297,7 @@ namespace BlaineRP.Client.CEF
 
             var prices = CEF.Shop.GetPrices(Shop.Types.GasStation);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, prices[GetGasBuyIdByFuelType(vData.Data.FuelType)] * margin } });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == FuelTypes.Petrol, new object[] { maxFuel, prices[GetGasBuyIdByFuelType(vData.Data.FuelType)] * margin } });
 
             CEF.Cursor.Show(true, true);
 

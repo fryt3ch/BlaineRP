@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Management.Radio.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.Radio
+namespace BlaineRP.Client.Game.Management.Radio
 {
     [Script(int.MaxValue)]
     public class Core
@@ -48,22 +50,22 @@ namespace BlaineRP.Client.Management.Radio
             { RadioStationTypes.BRP_4, "RADIO_995_BRPCR0_RADIO" }, // 50
         };
 
-        private static Dictionary<RadioStationTypes, CEF.Audio.TrackTypes> CustomStationTracks { get; set; } = new Dictionary<RadioStationTypes, CEF.Audio.TrackTypes>()
+        private static Dictionary<RadioStationTypes, Audio.TrackTypes> CustomStationTracks { get; set; } = new Dictionary<RadioStationTypes, Audio.TrackTypes>()
         {
-            { RadioStationTypes.MP_BRP, CEF.Audio.TrackTypes.None },
+            { RadioStationTypes.MP_BRP, Audio.TrackTypes.None },
 
-            { RadioStationTypes.BRP_0, CEF.Audio.TrackTypes.RadioEuropaPlus },
-            { RadioStationTypes.BRP_1, CEF.Audio.TrackTypes.RadioRecord },
-            { RadioStationTypes.BRP_2, CEF.Audio.TrackTypes.RadioRetroFM },
-            { RadioStationTypes.BRP_3, CEF.Audio.TrackTypes.RadioClassicFM },
-            { RadioStationTypes.BRP_4, CEF.Audio.TrackTypes.RadioSynthwave },
+            { RadioStationTypes.BRP_0, Audio.TrackTypes.RadioEuropaPlus },
+            { RadioStationTypes.BRP_1, Audio.TrackTypes.RadioRecord },
+            { RadioStationTypes.BRP_2, Audio.TrackTypes.RadioRetroFM },
+            { RadioStationTypes.BRP_3, Audio.TrackTypes.RadioClassicFM },
+            { RadioStationTypes.BRP_4, Audio.TrackTypes.RadioSynthwave },
         };
 
         public static RadioStationTypes CurrentStationType { get; private set; }
 
         public static bool IsMobilePhoneRadioEnabled { get; private set; }
 
-        public static CEF.Audio.Data LocalPlayerStreamRadioAudioData => CEF.Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
+        public static Audio.Data LocalPlayerStreamRadioAudioData => Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
 
         public Core()
         {
@@ -104,7 +106,7 @@ namespace BlaineRP.Client.Management.Radio
                         {
                             if (sType != actualStation && !Sync.Vehicles.LastRadioSent.IsSpam(1000, false, false))
                             {
-                                Sync.Vehicles.LastRadioSent = Sync.World.ServerTime;
+                                Sync.Vehicles.LastRadioSent = World.Core.ServerTime;
 
                                 RAGE.Events.CallRemote("Vehicles::SetRadio", (byte)CurrentStationType);
                             }
@@ -123,7 +125,7 @@ namespace BlaineRP.Client.Management.Radio
 
                 }
 
-                CEF.Phone.Apps.Radio.UpdateRadioStation(CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : CurrentStationType);
+                UI.CEF.Phone.Apps.Radio.UpdateRadioStation(CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : CurrentStationType);
             }, 1_000, true, 0);
 
             updateTask.Run();
@@ -156,7 +158,7 @@ namespace BlaineRP.Client.Management.Radio
 
                     if (audioData == null)
                     {
-                        audioData = new CEF.Audio.Data("PLAYER_LOCAL_RADIO", 1f);
+                        audioData = new Audio.Data("PLAYER_LOCAL_RADIO", 1f);
                     }
 
                     if (audioData.CurrentTrackType != trackType)
@@ -248,7 +250,7 @@ namespace BlaineRP.Client.Management.Radio
         {
             if (Player.LocalPlayer.Vehicle is Vehicle veh && veh.GetIsEngineRunning())
             {
-                CEF.Phone.Apps.Radio.UpdateRadioStationState(false);
+                UI.CEF.Phone.Apps.Radio.UpdateRadioStationState(false);
 
                 ToggleMobilePhoneRadio(false);
 
@@ -273,14 +275,14 @@ namespace BlaineRP.Client.Management.Radio
 
             veh.SetVehRadioStation(radioId);
 
-            var audioData = CEF.Audio.AllAudios.Where(x => x.Entity == veh && x.Id.StartsWith("ENT_VR")).FirstOrDefault();
+            var audioData = Audio.AllAudios.Where(x => x.Entity == veh && x.Id.StartsWith("ENT_VR")).FirstOrDefault();
 
             if (IsRadioStationCustom(sType))
             {
                 var trackType = CustomStationTracks.GetValueOrDefault(sType);
 
                 if (audioData == null)
-                    audioData = new CEF.Audio.Data($"ENT_VR_{veh.Handle}", veh, 7.5f, 1f);
+                    audioData = new Audio.Data($"ENT_VR_{veh.Handle}", veh, 7.5f, 1f);
 
                 if (audioData.CurrentTrackType != trackType)
                 {

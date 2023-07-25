@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Components;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Management.Microphone
+namespace BlaineRP.Client.Game.Management.Microphone
 {
     [Script(int.MaxValue)]
     public class Core
@@ -98,7 +100,7 @@ namespace BlaineRP.Client.Management.Microphone
 
             Stop();
 
-            LastReloaded = Sync.World.ServerTime;
+            LastReloaded = World.Core.ServerTime;
             Utils.Misc.ReloadVoiceChat();
 
             _listeners.Clear();
@@ -122,7 +124,7 @@ namespace BlaineRP.Client.Management.Microphone
                     AddTalker(player);
             }
 
-            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Players.Microphone.Reloaded);
+            Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Players.Microphone.Reloaded);
         }
 
         public static void Start()
@@ -144,7 +146,7 @@ namespace BlaineRP.Client.Management.Microphone
                 return;
             }
 
-            LastSwitched = Sync.World.ServerTime;
+            LastSwitched = World.Core.ServerTime;
 
             Events.CallRemote("Microphone::Switch", true);
         }
@@ -160,7 +162,7 @@ namespace BlaineRP.Client.Management.Microphone
 
             Events.CallRemote("Microphone::Switch", false);
 
-            LastSwitched = Sync.World.ServerTime;
+            LastSwitched = World.Core.ServerTime;
         }
         
         public static void StartUpdateListeners()
@@ -248,7 +250,7 @@ namespace BlaineRP.Client.Management.Microphone
 
             Events.CallRemote("mal", player);
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             return true;
         }
@@ -265,7 +267,7 @@ namespace BlaineRP.Client.Management.Microphone
 
             Events.CallRemote("mrl", player);
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             return true;
         }

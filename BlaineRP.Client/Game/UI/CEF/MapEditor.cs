@@ -1,15 +1,16 @@
-﻿using BlaineRP.Client.Additional;
+﻿using System;
+using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Input;
 using Core = BlaineRP.Client.Game.Management.Weapons.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class MapEditor
@@ -18,7 +19,7 @@ namespace BlaineRP.Client.CEF
 
         private static GameEntity Entity { get; set; }
 
-        private static Additional.ExtraColshape Colshape { get; set; }
+        private static ExtraColshape Colshape { get; set; }
 
         private static List<int> TempBinds { get; set; }
 
@@ -134,10 +135,10 @@ namespace BlaineRP.Client.CEF
             }
             else
             {
-                Colshape = gEntity as Additional.ExtraColshape;
+                Colshape = gEntity as ExtraColshape;
 
                 LastPos = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z);
-                LastRot = new Vector3(0f, 0f, (Colshape as Additional.Polygon)?.Heading ?? 0f);
+                LastRot = new Vector3(0f, 0f, (Colshape as Polygon)?.Heading ?? 0f);
 
                 Main.Render += CurrentRenderAction.Invoke;
             }
@@ -235,7 +236,7 @@ namespace BlaineRP.Client.CEF
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
@@ -243,7 +244,7 @@ namespace BlaineRP.Client.CEF
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = Sync.World.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
@@ -332,7 +333,7 @@ namespace BlaineRP.Client.CEF
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
@@ -340,7 +341,7 @@ namespace BlaineRP.Client.CEF
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = Sync.World.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
@@ -414,7 +415,7 @@ namespace BlaineRP.Client.CEF
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
@@ -422,7 +423,7 @@ namespace BlaineRP.Client.CEF
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = Sync.World.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
@@ -493,7 +494,7 @@ namespace BlaineRP.Client.CEF
                 return;
             }
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
@@ -501,7 +502,7 @@ namespace BlaineRP.Client.CEF
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, 0, LastRot.Z, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = Sync.World.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             Colshape.SetPosition(new Vector3(LastPos.X, LastPos.Y, LastPos.Z));

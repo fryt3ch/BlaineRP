@@ -1,6 +1,12 @@
-﻿using BlaineRP.Client.CEF.Phone.Apps;
-using RAGE;
+﻿using RAGE;
+
 using System.Collections.Generic;
+using BlaineRP.Client.Game.NPCs;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 
 namespace BlaineRP.Client.Data
 {
@@ -14,7 +20,7 @@ namespace BlaineRP.Client.Data
 
             public List<NPC> Workers { get; set; }
 
-            public Additional.ExtraBlip Blip { get; set; }
+            public ExtraBlip Blip { get; set; }
 
             public Bank(int Id, Utils.Vector4[] NPCs)
             {
@@ -42,7 +48,7 @@ namespace BlaineRP.Client.Data
 
                 var pos = posBlip / NPCs.Length;
 
-                Blip = new Additional.ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                Blip = new ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 GPS.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
             }
@@ -54,9 +60,9 @@ namespace BlaineRP.Client.Data
 
             public int Id { get; set; }
 
-            public Additional.ExtraColshape Colshape { get; set; }
+            public ExtraColshape Colshape { get; set; }
 
-            public Additional.ExtraBlip Blip { get; set; }
+            public ExtraBlip Blip { get; set; }
 
             public ATM(int Id, Utils.Vector4 PositionParams)
             {
@@ -64,17 +70,17 @@ namespace BlaineRP.Client.Data
 
                 All.Add(Id, this);
 
-                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
+                Colshape = new Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                 {
                     Data = this,
 
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.ATM,
-                    ActionType = Additional.ExtraColshape.ActionTypes.ATM,
+                    InteractionType = InteractionTypes.ATM,
+                    ActionType = ActionTypes.ATM,
 
                     Name = $"atm_{Id}",
                 };
 
-                Blip = new Additional.ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                Blip = new ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 GPS.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
             }

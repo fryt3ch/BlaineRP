@@ -1,38 +1,34 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Local;
+using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Game.Wrappers;
 using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
 using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
-using Core = BlaineRP.Client.Input.Core;
-using Interaction = BlaineRP.Client.Game.Local.Interaction;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
+using Interaction = BlaineRP.Client.Game.Misc.Interaction;
 using Players = BlaineRP.Client.Utils.Game.Players;
 
-namespace BlaineRP.Client.Data.Fractions
+namespace BlaineRP.Client.Game.Fractions.Types
 {
     public class Police : Fraction, IUniformable
     {
-        public Police(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, uint MetaFlags, string ArrestCellsPositionsJs, string ArrestMenuPositionsStr) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs), MetaFlags)
+        public Police(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string arrestCellsPositionsJs, string arrestMenuPositionsStr) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
-            var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(LockerRoomPositionsStr);
+            var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
             for (int i = 0; i < lockerPoses.Length; i++)
             {
@@ -44,7 +40,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     ActionType = ActionTypes.FractionInteract,
 
-                    Data = $"{(int)Type}_{i}",
+                    Data = $"{(int)type}_{i}",
                 };
 
                 var lockerRoomText = new ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
@@ -53,7 +49,7 @@ namespace BlaineRP.Client.Data.Fractions
                 };
             }
 
-            var arrestMenuPoses = RAGE.Util.Json.Deserialize<Vector3[]>(ArrestMenuPositionsStr);
+            var arrestMenuPoses = RAGE.Util.Json.Deserialize<Vector3[]>(arrestMenuPositionsStr);
 
             for (int i = 0; i < arrestMenuPoses.Length; i++)
             {
@@ -67,7 +63,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     ActionType = ActionTypes.FractionInteract,
 
-                    Data = $"{(int)Type}_{i}",
+                    Data = $"{(int)type}_{i}",
                 };
 
                 var arrestMenuText = new ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Управление задержанными\nв СИЗО", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
@@ -76,7 +72,7 @@ namespace BlaineRP.Client.Data.Fractions
                 };
             }
 
-            if (Type == Types.COP_BLAINE)
+            if (type == FractionTypes.COP_BLAINE)
             {
                 UniformNames = new string[]
                 {
@@ -86,7 +82,7 @@ namespace BlaineRP.Client.Data.Fractions
                 };
             }
 
-            this.ArrestCellsPositions = RAGE.Util.Json.Deserialize<Vector3[]>(ArrestCellsPositionsJs);
+            this.ArrestCellsPositions = RAGE.Util.Json.Deserialize<Vector3[]>(arrestCellsPositionsJs);
         }
 
         public static Dictionary<string, uint[]> NumberplatePrices { get; set; }
@@ -176,13 +172,13 @@ namespace BlaineRP.Client.Data.Fractions
 
             var arrestCs = new List<ExtraColshape>();
 
-            if (Type == Types.COP_BLAINE)
+            if (Type == FractionTypes.COP_BLAINE)
             {
-                arrestCs.Add(new Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_BLAINE });
+                arrestCs.Add(new Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = FractionTypes.COP_BLAINE });
             }
-            else if (Type == Types.COP_LS)
+            else if (Type == FractionTypes.COP_LS)
             {
-                arrestCs.Add(new Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = Types.COP_LS });
+                arrestCs.Add(new Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null) { Data = FractionTypes.COP_LS });
             }
 
             foreach (var x in arrestCs)
@@ -193,7 +189,7 @@ namespace BlaineRP.Client.Data.Fractions
                 {
                     //Utils.ConsoleOutput("CAN ARREST");
 
-                    if (x.Data is Data.Fractions.Types fType)
+                    if (x.Data is FractionTypes fType)
                         Player.LocalPlayer.SetData("PoliceArrestFType", fType);
                 };
 
@@ -414,9 +410,9 @@ namespace BlaineRP.Client.Data.Fractions
                 return;
             }
 
-            var arrestFType = Player.LocalPlayer.GetData<Data.Fractions.Types>("PoliceArrestFType");
+            var arrestFType = Player.LocalPlayer.GetData<FractionTypes>("PoliceArrestFType");
 
-            var fData = Data.Fractions.Fraction.Get(arrestFType);
+            var fData = Fraction.Get(arrestFType);
 
             if (fData == null)
             {
@@ -428,7 +424,7 @@ namespace BlaineRP.Client.Data.Fractions
             if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.Cuffed))
                 return;
 
-            await Documents.ShowPoliceBlank(true, $"{fData.Name}", $"{player.Name}", $"{Player.LocalPlayer.Name}", Game.World.Core.ServerTime.ToString("dd.MM.yyyy HH:mm"), new string[] { "", "", "", Locale.Get(fData is Data.Fractions.Prison ? "POLICE_ARREST_TIME_L_1" : "POLICE_ARREST_TIME_L_0") }, async (args) =>
+            await Documents.ShowPoliceBlank(true, $"{fData.Name}", $"{player.Name}", $"{Player.LocalPlayer.Name}", Game.World.Core.ServerTime.ToString("dd.MM.yyyy HH:mm"), new string[] { "", "", "", Locale.Get(fData is Prison ? "POLICE_ARREST_TIME_L_1" : "POLICE_ARREST_TIME_L_0") }, async (args) =>
             {
                 var rType = (int)args[0];
 
@@ -438,9 +434,9 @@ namespace BlaineRP.Client.Data.Fractions
                     var timeStr = ((string)args[2])?.Trim();
                     var reason2Str = ((string)args[3])?.Trim();
 
-                    arrestFType = Player.LocalPlayer.GetData<Data.Fractions.Types>("PoliceArrestFType");
+                    arrestFType = Player.LocalPlayer.GetData<FractionTypes>("PoliceArrestFType");
 
-                    fData = Data.Fractions.Fraction.Get(arrestFType);
+                    fData = Fraction.Get(arrestFType);
 
                     if (player?.Exists != true || player.Position.DistanceTo(Player.LocalPlayer.Position) > 5f || !tData.IsCuffed || fData == null)
                     {
@@ -826,7 +822,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     async void showSelectItemToConfiscate()
                     {
-                        await ActionBox.ShowSelect("PolicePlayerSearchItems", Locale.Get("POLICE_PSEARCH_L_2", player.GetName(true, false, true)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), ActionBox.DefaultBindAction, async (rType, itemUid) =>
+                        await ActionBox.ShowSelect("PolicePlayerSearchItems", Locale.Get("POLICE_PSEARCH_L_2", player.GetName(true, false, true)), items.Select(x => { var iType = Client.Data.Items.GetType(x.Item2, true); return (x.Item1, Client.Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), ActionBox.DefaultBindAction, async (rType, itemUid) =>
                         {
                             if (rType != ActionBox.ReplyTypes.OK)
                             {
@@ -948,7 +944,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     async void showSelectItemToConfiscate()
                     {
-                        await ActionBox.ShowSelect("PoliceVehicleSearchItems", Locale.Get("POLICE_VSEARCH_L_1", Utils.Game.Vehicles.GetVehicleName(vehicle, 1)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), ActionBox.DefaultBindAction, async (rType, itemUid) =>
+                        await ActionBox.ShowSelect("PoliceVehicleSearchItems", Locale.Get("POLICE_VSEARCH_L_1", Utils.Game.Vehicles.GetVehicleName(vehicle, 1)), items.Select(x => { var iType = Client.Data.Items.GetType(x.Item2, true); return (x.Item1, Client.Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), ActionBox.DefaultBindAction, async (rType, itemUid) =>
                         {
                             if (rType != ActionBox.ReplyTypes.OK)
                             {
@@ -1449,7 +1445,7 @@ namespace BlaineRP.Client.Data.Fractions
 
                     if (PoliceTabletPC.CurrentTab == 4 || PoliceTabletPC.LastTab == 4 || PoliceTabletPC.LastTab == 41)
                     {
-                        if (Player.LocalPlayer.GetData<Data.Fractions.Police.APBInfo>("PoliceTablet::APBViewId")?.Id == uid)
+                        if (Player.LocalPlayer.GetData<Police.APBInfo>("PoliceTablet::APBViewId")?.Id == uid)
                         {
                             PoliceTabletPC.TabBack();
                         }

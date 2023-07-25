@@ -1,9 +1,12 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 
 namespace BlaineRP.Client.Data.Minigames
 {
@@ -36,7 +39,7 @@ namespace BlaineRP.Client.Data.Minigames
 
         public static void StartCowMilk()
         {
-            Core.Get(BindTypes.Crouch).Disable();
+            Input.Core.Get(BindTypes.Crouch).Disable();
 
             Main.Update -= RenderCowMilk;
             Main.Update += RenderCowMilk;
@@ -59,7 +62,7 @@ namespace BlaineRP.Client.Data.Minigames
 
             Player.LocalPlayer.ResetData("FARMAT::TEMPBUCKET0");
 
-            Core.Get(BindTypes.Crouch).Enable();
+            Input.Core.Get(BindTypes.Crouch).Enable();
 
             Main.Update -= RenderCowMilk;
 
@@ -88,16 +91,16 @@ namespace BlaineRP.Client.Data.Minigames
             Main.Update -= RenderOrangeTreeCollect;
             Main.Update += RenderOrangeTreeCollect;
 
-            await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, true, true);
+            await Browser.Render(Browser.IntTypes.MinigameOrangePicking, true, true);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
+                HUD.ShowHUD(false);
 
-            CEF.Chat.Show(false);
+            Chat.Show(false);
 
-            CEF.Browser.Window.ExecuteJs("MG.OP.draw", orangesAmount);
+            Browser.Window.ExecuteJs("MG.OP.draw", orangesAmount);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             RAGE.Game.Graphics.TransitionToBlurred(0f);
 
@@ -105,10 +108,10 @@ namespace BlaineRP.Client.Data.Minigames
             {
                 var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
-                Core.Unbind(bind);
+                Input.Core.Unbind(bind);
             }
 
-            Player.LocalPlayer.SetData("MG::TempData::OrangePicking::EscBind", Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopOrangeTreeCollect(true)));
+            Player.LocalPlayer.SetData("MG::TempData::OrangePicking::EscBind", Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopOrangeTreeCollect(true)));
         }
 
         public static void StopOrangeTreeCollect(bool callRemote)
@@ -118,19 +121,19 @@ namespace BlaineRP.Client.Data.Minigames
             RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
             if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(true);
+                HUD.ShowHUD(true);
 
-            CEF.Chat.Show(true);
+            Chat.Show(true);
 
-            CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, false, false);
+            Browser.Render(Browser.IntTypes.MinigameOrangePicking, false, false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
             if (Player.LocalPlayer.HasData("MG::TempData::OrangePicking::EscBind"))
             {
                 var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
-                Core.Unbind(bind);
+                Input.Core.Unbind(bind);
 
                 Player.LocalPlayer.ResetData("MG::TempData::OrangePicking::EscBind");
             }

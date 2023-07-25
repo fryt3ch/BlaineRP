@@ -7,9 +7,12 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Animations;
 using BlaineRP.Client.Sync;
-using Script = BlaineRP.Client.Animations.Script;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.NPCs;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -257,7 +260,7 @@ namespace BlaineRP.Client.Data
 
                 public NPC NPC { get; set; }
 
-                public Additional.ExtraLabel TextLabel { get; set; }
+                public ExtraLabel TextLabel { get; set; }
 
                 public uint MinBet { get; set; }
 
@@ -382,7 +385,7 @@ namespace BlaineRP.Client.Data
                         ped.SetComponentVariation(11, 1, 0, 0);
                     }
 
-                    Script.Play(ped, new Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Game.Animations.Core.Play(ped, new Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
                 }
 
                 public string GetCurrestStateString()
@@ -523,7 +526,7 @@ namespace BlaineRP.Client.Data
                             {
                                 var task = new AsyncTask(() =>
                                 {
-                                    updateFunc($"Ваш ход! ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()})");
+                                    updateFunc($"Ваш ход! ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Core.ServerTime).GetBeautyString()})");
                                 }, 1_000, true, 0);
 
                                 task.Run();
@@ -550,7 +553,7 @@ namespace BlaineRP.Client.Data
 
                                 var task = new AsyncTask(() =>
                                 {
-                                    updateFunc($"Ход игрока #{seatIdx + 1} ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()})");
+                                    updateFunc($"Ход игрока #{seatIdx + 1} ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Core.ServerTime).GetBeautyString()})");
                                 }, 1_000, true, 0);
 
                                 task.Run();
@@ -634,7 +637,7 @@ namespace BlaineRP.Client.Data
 
                             var task = new AsyncTask(() =>
                             {
-                                updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
+                                updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Core.ServerTime).GetBeautyString()}");
                             }, 1_000, true, 0);
 
                             task.Run();
@@ -689,7 +692,7 @@ namespace BlaineRP.Client.Data
 
                         TextLabel.Color = color;
 
-                        var tl = TextLabel.GetData<Additional.ExtraLabel>("Info");
+                        var tl = TextLabel.GetData<ExtraLabel>("Info");
 
                         if (tl != null)
                         {
@@ -718,7 +721,7 @@ namespace BlaineRP.Client.Data
 
                         TextLabel.Color = color;
 
-                        var tl = TextLabel.GetData<Additional.ExtraLabel>("Info");
+                        var tl = TextLabel.GetData<ExtraLabel>("Info");
 
                         if (tl != null)
                         {

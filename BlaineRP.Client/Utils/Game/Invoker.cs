@@ -1,5 +1,6 @@
 ﻿using RAGE;
 using System.Linq;
+using BlaineRP.Client.Game.Management;
 
 namespace BlaineRP.Client.Utils.Game
 {
@@ -7,18 +8,18 @@ namespace BlaineRP.Client.Utils.Game
     {
         public static async System.Threading.Tasks.Task<float> InvokeFloatViaJs(ulong hash, params object[] args)
         {
-            Additional.Storage.LastData = null;
-            Additional.Storage.GotData = false;
+            RageStorage.LastData = null;
+            RageStorage.GotData = false;
 
             if (args.Length > 0)
                 Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify(mp.game.invokeFloat('{string.Format("0x{0:X}", hash)}', {string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))})));");
             else
                 Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify(mp.game.invokeFloat('{string.Format("0x{0:X}", hash)}')));");
 
-            while (!Additional.Storage.GotData)
+            while (!RageStorage.GotData)
                 await RAGE.Game.Invoker.WaitAsync(25);
 
-            return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<float>(Additional.Storage.LastData) : 0f;
+            return RageStorage.LastData != null ? RAGE.Util.Json.Deserialize<float>(RageStorage.LastData) : 0f;
         }
 
         public static async System.Threading.Tasks.Task<float> InvokeFloatViaJs(RAGE.Game.Natives hash, params object[] args) => await InvokeFloatViaJs((ulong)hash, args);
@@ -47,15 +48,15 @@ namespace BlaineRP.Client.Utils.Game
         /// <param name="code">Код</param>
         public static async System.Threading.Tasks.Task<T> JsEval<T>(string code)
         {
-            Additional.Storage.LastData = null;
-            Additional.Storage.GotData = false;
+            RageStorage.LastData = null;
+            RageStorage.GotData = false;
 
             Events.CallLocal("RAGE::Eval", code + "mp.events.callLocal(\"Storage::Temp\", JSON.stringify(returnValue));");
 
-            while (!Additional.Storage.GotData)
+            while (!RageStorage.GotData)
                 await RAGE.Game.Invoker.WaitAsync(25);
 
-            return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<T>(Additional.Storage.LastData) : default;
+            return RageStorage.LastData != null ? RAGE.Util.Json.Deserialize<T>(RageStorage.LastData) : default;
         }
 
         /// <summary>Метод для исполнения кода в JS версии RAGE</summary>
@@ -70,15 +71,15 @@ namespace BlaineRP.Client.Utils.Game
         /// <param name="args">Аргументы</param>
         public static async System.Threading.Tasks.Task<T> JsEval<T>(string function, params object[] args)
         {
-            Additional.Storage.LastData = null;
-            Additional.Storage.GotData = false;
+            RageStorage.LastData = null;
+            RageStorage.GotData = false;
 
             Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify({function}({string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))})));");
 
-            while (!Additional.Storage.GotData)
+            while (!RageStorage.GotData)
                 await RAGE.Game.Invoker.WaitAsync(25);
 
-            return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<T>(Additional.Storage.LastData) : default;
+            return RageStorage.LastData != null ? RAGE.Util.Json.Deserialize<T>(RageStorage.LastData) : default;
         }
     }
 }

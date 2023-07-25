@@ -1,6 +1,7 @@
 ﻿using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using System.Linq;
+using BlaineRP.Client.Game.Management.Weapons;
 
 namespace BlaineRP.Client.Extensions.RAGE.Elements
 {
@@ -27,7 +28,7 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
         {
             var weapon = player.GetSelectedWeapon();
 
-            return weapon != Sync.WeaponSystem.UnarmedHash && weapon != Sync.WeaponSystem.MobileHash;
+            return weapon != Core.UnarmedHash && weapon != Core.MobileHash;
         }
 
         public static void GetNameSurname(this Player player, out string name, out string surname)

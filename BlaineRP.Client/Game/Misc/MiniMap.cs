@@ -1,7 +1,7 @@
 ﻿using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.Game.Local
+namespace BlaineRP.Client.Game.Misc
 {
     [Script(int.MaxValue)]
     public class MiniMap

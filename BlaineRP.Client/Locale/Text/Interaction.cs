@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
 
 namespace BlaineRP.Client
 {
@@ -6,50 +8,50 @@ namespace BlaineRP.Client
     {
         public static class Interaction
         {
-            public static Dictionary<Additional.ExtraColshape.InteractionTypes, string> Names = new Dictionary<Additional.ExtraColshape.InteractionTypes, string>()
+            public static Dictionary<InteractionTypes, string> Names = new Dictionary<InteractionTypes, string>()
             {
-                { Additional.ExtraColshape.InteractionTypes.HouseEnter, "для взаимодействия" },
-                { Additional.ExtraColshape.InteractionTypes.HouseExit, "чтобы выйти" },
-                { Additional.ExtraColshape.InteractionTypes.GarageExit, "чтобы выйти" },
+                { InteractionTypes.HouseEnter, "для взаимодействия" },
+                { InteractionTypes.HouseExit, "чтобы выйти" },
+                { InteractionTypes.GarageExit, "чтобы выйти" },
 
-                { Additional.ExtraColshape.InteractionTypes.Locker, "чтобы посмотреть шкаф" },
-                { Additional.ExtraColshape.InteractionTypes.Wardrobe, "чтобы посмотреть гардероб" },
-                { Additional.ExtraColshape.InteractionTypes.Fridge, "чтобы посмотреть холодильник" },
+                { InteractionTypes.Locker, "чтобы посмотреть шкаф" },
+                { InteractionTypes.Wardrobe, "чтобы посмотреть гардероб" },
+                { InteractionTypes.Fridge, "чтобы посмотреть холодильник" },
 
-                { Additional.ExtraColshape.InteractionTypes.BusinessInfo, "для просмотра информации" },
-                { Additional.ExtraColshape.InteractionTypes.BusinessEnter, "для взаимодействия" },
+                { InteractionTypes.BusinessInfo, "для просмотра информации" },
+                { InteractionTypes.BusinessEnter, "для взаимодействия" },
 
-                { Additional.ExtraColshape.InteractionTypes.Interact, "для взаимодействия" },
+                { InteractionTypes.Interact, "для взаимодействия" },
 
-                { Additional.ExtraColshape.InteractionTypes.NpcDialogue, "чтобы поговорить" },
+                { InteractionTypes.NpcDialogue, "чтобы поговорить" },
 
-                { Additional.ExtraColshape.InteractionTypes.ATM, "чтобы воспользоваться банкоматом" },
+                { InteractionTypes.ATM, "чтобы воспользоваться банкоматом" },
 
-                { Additional.ExtraColshape.InteractionTypes.TuningEnter, "чтобы перейти к тюнингу" },
+                { InteractionTypes.TuningEnter, "чтобы перейти к тюнингу" },
 
-                { Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter, "чтобы войти в тир [${0}]" },
+                { InteractionTypes.ShootingRangeEnter, "чтобы войти в тир [${0}]" },
 
-                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter, "чтобы войти" },
-                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit, "чтобы выйти на улицу" },
-                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
-                { Additional.ExtraColshape.InteractionTypes.ElevatorInteract, "чтобы воспользоваться лифтом" },
+                { InteractionTypes.ApartmentsRootEnter, "чтобы войти" },
+                { InteractionTypes.ApartmentsRootExit, "чтобы выйти на улицу" },
+                { InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
+                { InteractionTypes.ElevatorInteract, "чтобы воспользоваться лифтом" },
 
-                { Additional.ExtraColshape.InteractionTypes.GarageRootEnter, "для взаимодействия" },
+                { InteractionTypes.GarageRootEnter, "для взаимодействия" },
 
-                { Additional.ExtraColshape.InteractionTypes.ContainerInteract, "для взаимодействия" },
-                { Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract, "для взаимодействия" },
-                { Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract, "чтобы переодеться" },
+                { InteractionTypes.ContainerInteract, "для взаимодействия" },
+                { InteractionTypes.FractionCreationWorkbenchInteract, "для взаимодействия" },
+                { InteractionTypes.FractionLockerRoomInteract, "чтобы переодеться" },
 
-                { Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract, "чтобы выбрать категорию и пройти тест" },
+                { InteractionTypes.DrivingSchoolInteract, "чтобы выбрать категорию и пройти тест" },
 
-                { Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract, "чтобы посмотреть список предложений" },
+                { InteractionTypes.EstateAgencyInteract, "чтобы посмотреть список предложений" },
 
-                { Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract, "чтобы встать за стол" },
-                { Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract, "чтобы сесть за стол" },
-                { Additional.ExtraColshape.InteractionTypes.CasinoLuckyWheelInteract, "чтобы прокрутить колесо удачи" },
-                { Additional.ExtraColshape.InteractionTypes.CasinoSlotMachineInteract, "чтобы сесть за автомат" },
+                { InteractionTypes.CasinoRouletteInteract, "чтобы встать за стол" },
+                { InteractionTypes.CasinoBlackjackInteract, "чтобы сесть за стол" },
+                { InteractionTypes.CasinoLuckyWheelInteract, "чтобы прокрутить колесо удачи" },
+                { InteractionTypes.CasinoSlotMachineInteract, "чтобы сесть за автомат" },
 
-                { Additional.ExtraColshape.InteractionTypes.MarketStallInteract, "чтобы начать торговать" },
+                { InteractionTypes.MarketStallInteract, "чтобы начать торговать" },
             };
         }
     }

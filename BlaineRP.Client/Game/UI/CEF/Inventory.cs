@@ -1,22 +1,21 @@
-﻿using BlaineRP.Client.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Management.Weapons.Enums;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Utils;
+using RAGE;
+using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Inventory
@@ -108,8 +107,8 @@ namespace BlaineRP.Client.CEF
         public static DateTime LastSent;
 
         public static ItemParams[] ItemsParams { get; set; }
-        private static Data.Craft.ItemPrototype[] WorkbenchCraftParams { get; set; }
-        private static Data.Craft.ItemPrototype[] WorkbenchToolsParams { get; set; }
+        private static BlaineRP.Client.Data.Craft.ItemPrototype[] WorkbenchCraftParams { get; set; }
+        private static BlaineRP.Client.Data.Craft.ItemPrototype[] WorkbenchToolsParams { get; set; }
 
         private static object[][] WeaponsData { get; set; }
         private static object[] ArmourData { get; set; }
@@ -160,10 +159,10 @@ namespace BlaineRP.Client.CEF
         #region Fillers
         private static object[] FillWeapon(string id, int ammo, bool inUse, string tag, string wcStr)
         {
-            var iType = Data.Items.GetType(id);
-            var imgId = Data.Items.GetImageId(id, iType);
+            var iType = BlaineRP.Client.Data.Items.GetType(id);
+            var imgId = BlaineRP.Client.Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
+            var name = BlaineRP.Client.Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             var tooltips = new List<object>();
 
@@ -189,99 +188,99 @@ namespace BlaineRP.Client.CEF
 
         private static object[] FillArmour(string type, int strength)
         {
-            var iType = Data.Items.GetType(type);
-            var imgId = Data.Items.GetImageId(type, iType);
+            var iType = Client.Data.Items.GetType(type);
+            var imgId = Client.Data.Items.GetImageId(type, iType);
 
-            return new object[] { imgId, Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
+            return new object[] { imgId, Client.Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
         }
 
         private static object[] FillCraftResultItem(string id, int amount, float weight, string tag, bool isReady)
         {
-            var iType = Data.Items.GetType(id);
-            var imgId = Data.Items.GetImageId(id, iType);
+            var iType = Client.Data.Items.GetType(id);
+            var imgId = Client.Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
+            var name = Client.Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             if (!isReady)
                 return new object[] { imgId, name, null, amount, weight };
 
-            return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false), amount, weight };
+            return new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, true, false, true, true, false), amount, weight };
         }
 
         private static object[] FillCraftToolsItem(string id, int amount, float weight, string tag)
         {
-            var iType = Data.Items.GetType(id);
-            var imgId = Data.Items.GetImageId(id, iType);
+            var iType = Client.Data.Items.GetType(id);
+            var imgId = Client.Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
+            var name = Client.Data.Items.GetNameWithTag(id, iType, tag, out _);
 
-            return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+            return new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
         }
 
         private static object[] FillCraftItem(string id, int amount, float weight, string tag)
         {
-            var iType = Data.Items.GetType(id);
-            var imgId = Data.Items.GetImageId(id, iType);
+            var iType = Client.Data.Items.GetType(id);
+            var imgId = Client.Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
+            var name = Client.Data.Items.GetNameWithTag(id, iType, tag, out _);
 
-            if (iType == typeof(Data.Items.WorkbenchTool))
-                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+            if (iType == typeof(Client.Data.Items.WorkbenchTool))
+                return new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
             else
-                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, true), amount, weight };
+                return new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, true, false, true, true, false, true), amount, weight };
         }
 
         private static object[] FillItem(string id, int amount, float weight, string tag, bool inUse, bool inBag, bool inContainer, bool inTrade)
         {
-            var iType = Data.Items.GetType(id);
-            var imgId = Data.Items.GetImageId(id, iType);
+            var iType = Client.Data.Items.GetType(id);
+            var imgId = Client.Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
+            var name = Client.Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             if (inUse)
                 name = name.Insert(0, InUseItemPrefix);
 
             if (inContainer)
-                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
+                return new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
             else if (inBag)
-                return new object[] { new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight }, new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight } };
+                return new object[] { new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight }, new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight } };
             else if (inTrade)
                 return new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftOutOfTrade }, amount, weight };
 
-            var item1 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
-            var item2 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight };
-            var item3 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, false, false), amount, weight };
+            var item1 = new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
+            var item2 = new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight };
+            var item3 = new object[] { imgId, name, Client.Data.Items.GetActions(iType, id, amount, inBag, inUse, false, false), amount, weight };
             var item4 = new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftTrade }, amount, weight };
 
             return new object[] { item1, item2, item3, item4 };
         }
         private static object[] FillClothes(string type)
         {
-            var iType = Data.Items.GetType(type);
-            var imgId = Data.Items.GetImageId(type, iType);
+            var iType = Client.Data.Items.GetType(type);
+            var imgId = Client.Data.Items.GetImageId(type, iType);
 
             var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
 
-            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType) && Data.Items.GetData(type, iType) is Data.Items.Clothes.ItemData.IToggleable data && data.ExtraData != null)
+            if (typeof(Client.Data.Items.Clothes.IToggleable).IsAssignableFrom(iType) && Client.Data.Items.GetData(type, iType) is Client.Data.Items.Clothes.ItemData.IToggleable data && data.ExtraData != null)
             {
                 actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
             }
 
-            return new object[] { imgId, Data.Items.GetName(type), actions.ToArray() };
+            return new object[] { imgId, Client.Data.Items.GetName(type), actions.ToArray() };
         }
         private static object[] FillAccessories(string type)
         {
-            var iType = Data.Items.GetType(type);
-            var imgId = Data.Items.GetImageId(type, iType);
+            var iType = Client.Data.Items.GetType(type);
+            var imgId = Client.Data.Items.GetImageId(type, iType);
 
             var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
 
-            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
+            if (typeof(Client.Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
             {
                 actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
             }
 
-            return new object[] { imgId, Data.Items.GetName(type), actions.ToArray() };
+            return new object[] { imgId, Client.Data.Items.GetName(type), actions.ToArray() };
         }
         #endregion
 
@@ -304,8 +303,8 @@ namespace BlaineRP.Client.CEF
             UpdateBag = false;
             UpdateBagCrate = false;
 
-            LastShowed = Sync.World.ServerTime;
-            LastSent = Sync.World.ServerTime;
+            LastShowed = World.Core.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             CurrentType = Types.None;
             CurrentContainerType = ContainerTypes.None;
@@ -414,7 +413,7 @@ namespace BlaineRP.Client.CEF
                 {
                     var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
 
-                    var receipt = Data.Craft.Receipt.GetByIngredients(notNullItems);
+                    var receipt = Client.Data.Craft.Receipt.GetByIngredients(notNullItems);
 
                     if (receipt == null)
                     {
@@ -432,13 +431,13 @@ namespace BlaineRP.Client.CEF
 
                     Events.CallRemote("Workbench::Craft", receipt.Index);
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
                 }
                 else
                 {
                     Events.CallRemote("Workbench::Craft", -1);
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
                 }
             });
 
@@ -651,14 +650,14 @@ namespace BlaineRP.Client.CEF
 
                     foreach (var x in pData.OwnedApartments)
                     {
-                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
+                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Client.Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
                         propIds.Add((PropertyTypes.Apartments, x.Id));
                     }
 
                     foreach (var x in pData.OwnedGarages)
                     {
-                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
+                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Client.Data.Locations.GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
                         propIds.Add((PropertyTypes.Garage, x.Id));
                     }
@@ -701,7 +700,7 @@ namespace BlaineRP.Client.CEF
                         ItemSlotsToUpdateWorkbench.Clear();
                     }
 
-                    var currentDate = Sync.World.ServerTime;
+                    var currentDate = World.Core.ServerTime;
 
                     var benchData = ((string)args[1]).Split('^');
 
@@ -725,7 +724,7 @@ namespace BlaineRP.Client.CEF
                     }
 
                     WorkbenchCraftData = new object[benchItems.Length][];
-                    WorkbenchCraftParams = new Data.Craft.ItemPrototype[benchItems.Length];
+                    WorkbenchCraftParams = new Client.Data.Craft.ItemPrototype[benchItems.Length];
 
                     for (int i = 0; i < WorkbenchCraftData.Length; i++)
                     {
@@ -735,12 +734,12 @@ namespace BlaineRP.Client.CEF
 
                             WorkbenchCraftData[i] = FillCraftItem(benchItems[i][0], amount, float.Parse(benchItems[i][2]), benchItems[i][3]);
 
-                            WorkbenchCraftParams[i] = new Data.Craft.ItemPrototype(benchItems[i][0], amount);
+                            WorkbenchCraftParams[i] = new Client.Data.Craft.ItemPrototype(benchItems[i][0], amount);
                         }
                     }
 
                     WorkbenchToolsData = new object[benchTools.Length][];
-                    WorkbenchToolsParams = new Craft.ItemPrototype[WorkbenchToolsData.Length];
+                    WorkbenchToolsParams = new Client.Data.Craft.ItemPrototype[WorkbenchToolsData.Length];
 
                     for (int i = 0; i < WorkbenchToolsData.Length; i++)
                     {
@@ -749,7 +748,7 @@ namespace BlaineRP.Client.CEF
                             if (!WorkbenchCraftParams.Where(x => x != null && x.Id == benchTools[i][0]).Any())
                                 WorkbenchToolsData[i] = FillCraftToolsItem(benchTools[i][0], 1, 0f, null);
 
-                            WorkbenchToolsParams[i] = new Craft.ItemPrototype(benchTools[i][0], 1);
+                            WorkbenchToolsParams[i] = new Client.Data.Craft.ItemPrototype(benchTools[i][0], 1);
                         }
                     }
 
@@ -1103,7 +1102,7 @@ namespace BlaineRP.Client.CEF
 
                             if (pType == PropertyTypes.Vehicle)
                             {
-                                var vData = Data.Vehicles.GetById((string)curArgs[5]);
+                                var vData = Game.Data.Vehicles.Core.GetById((string)curArgs[5]);
 
                                 text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
                             }
@@ -1113,19 +1112,19 @@ namespace BlaineRP.Client.CEF
                             }
                             else if (pType == PropertyTypes.Apartments)
                             {
-                                var aps = Data.Locations.Apartments.All[propId];
+                                var aps = Client.Data.Locations.Apartments.All[propId];
 
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Client.Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
                             else if (pType == PropertyTypes.Garage)
                             {
-                                var garage = Data.Locations.Garage.All[propId];
+                                var garage = Client.Data.Locations.Garage.All[propId];
 
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Client.Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
                             else if (pType == PropertyTypes.Business)
                             {
-                                var biz = Data.Locations.Business.All[(int)propId];
+                                var biz = Client.Data.Locations.Business.All[(int)propId];
 
                                 text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
                             }
@@ -1175,7 +1174,7 @@ namespace BlaineRP.Client.CEF
 
                             if (pType == PropertyTypes.Vehicle)
                             {
-                                var vData = Data.Vehicles.GetById((string)curArgs[5]);
+                                var vData = Data.Vehicles.Core.GetById((string)curArgs[5]);
 
                                 text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
                             }
@@ -1185,19 +1184,19 @@ namespace BlaineRP.Client.CEF
                             }
                             else if (pType == PropertyTypes.Apartments)
                             {
-                                var aps = Data.Locations.Apartments.All[propId];
+                                var aps = Client.Data.Locations.Apartments.All[propId];
 
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Client.Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
                             else if (pType == PropertyTypes.Garage)
                             {
-                                var garage = Data.Locations.Garage.All[propId];
+                                var garage = Client.Data.Locations.Garage.All[propId];
 
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Client.Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
                             else if (pType == PropertyTypes.Business)
                             {
-                                var biz = Data.Locations.Business.All[(int)propId];
+                                var biz = Client.Data.Locations.Business.All[(int)propId];
 
                                 text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
                             }
@@ -1267,7 +1266,7 @@ namespace BlaineRP.Client.CEF
                             var amount = int.Parse(data[1]);
 
                             WorkbenchCraftData[slot] = FillCraftItem(data[0], amount, float.Parse(data[2]), data[3]);
-                            WorkbenchCraftParams[slot] = new Craft.ItemPrototype(data[0], amount);
+                            WorkbenchCraftParams[slot] = new Client.Data.Craft.ItemPrototype(data[0], amount);
                         }
 
                         for (int i = 0; i < WorkbenchToolsParams.Length; i++)
@@ -1372,7 +1371,7 @@ namespace BlaineRP.Client.CEF
 
                     if (!LastSent.IsSpam(100, false, false))
                     {
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
 
                         var res = (bool)await Events.CallRemoteProc("Trade::UpdateMoney", newAmount);
 
@@ -1428,7 +1427,7 @@ namespace BlaineRP.Client.CEF
                     {
                         Events.CallRemote("Trade::Confirm", state);
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
                 }
                 // Accept
@@ -1438,7 +1437,7 @@ namespace BlaineRP.Client.CEF
                     {
                         Events.CallRemote("Trade::Accept");
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
                 }
                 else
@@ -1512,15 +1511,15 @@ namespace BlaineRP.Client.CEF
             if (IsActive)
                 return;
 
-            if (LastShowed.IsSpam(1000, false, false) || Misc.IsAnyCefActive())
+            if (LastShowed.IsSpam(1000, false, false) || Utils.Misc.IsAnyCefActive())
                 return;
 
             if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading) || Game.Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) || Game.Management.Weapons.Core.LastArmourLoss.IsSpam(250, false, false))
                 return;
 
-            CurrentEntity = Client.Interaction.CurrentEntity;
+            CurrentEntity = Misc.Interaction.CurrentEntity;
 
-            LastShowed = Sync.World.ServerTime;
+            LastShowed = World.Core.ServerTime;
 
             if (type == Types.Inventory)
             {
@@ -1546,8 +1545,8 @@ namespace BlaineRP.Client.CEF
             Main.Update -= OnTickCheck;
             Main.Update += OnTickCheck;
 
-            Sync.World.EnabledItemsOnGround = false;
-            Client.Interaction.EnabledVisual = false;
+            World.Core.EnabledItemsOnGround = false;
+            Misc.Interaction.EnabledVisual = false;
 
             if (CurrentType == Types.Inventory)
             {
@@ -1667,8 +1666,8 @@ namespace BlaineRP.Client.CEF
 
             Main.Update -= OnTickCheck;
 
-            Sync.World.EnabledItemsOnGround = true;
-            Client.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
+            World.Core.EnabledItemsOnGround = true;
+            Misc.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
 
             Main.DisableAllControls(false);
 
@@ -1690,7 +1689,7 @@ namespace BlaineRP.Client.CEF
             CurrentSlotTo = null;
             CurrentAction = null;
 
-            LastShowed = Sync.World.ServerTime;
+            LastShowed = World.Core.ServerTime;
         }
         #endregion
 
@@ -1703,7 +1702,7 @@ namespace BlaineRP.Client.CEF
             if (action < 5)
                 return;
 
-            if (Misc.IsAnyCefActive() || Game.Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) || PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting))
+            if (Utils.Misc.IsAnyCefActive() || Game.Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) || PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting))
                 return;
 
             Action(action, slotStr, slot, args);
@@ -1782,7 +1781,7 @@ namespace BlaineRP.Client.CEF
                                 Events.CallRemote("Workbench::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
                         }
 
-                        LastSent = Sync.World.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
 
                     return;
@@ -1957,7 +1956,7 @@ namespace BlaineRP.Client.CEF
                 {
                     if (CurrentType == Types.Workbench)
                     {
-                        if (CurrentSlotTo.Value.Item1 == "result" || (CurrentSlotTo.Value.Item1 == "tool" && (slotStr == "pockets" || slotStr == "result" || (slotStr == "craft" && !(Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Data.Items.WorkbenchTool.ItemData)))))
+                        if (CurrentSlotTo.Value.Item1 == "result" || (CurrentSlotTo.Value.Item1 == "tool" && (slotStr == "pockets" || slotStr == "result" || (slotStr == "craft" && !(Client.Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Client.Data.Items.WorkbenchTool.ItemData)))))
                         {
                             CurrentAction = null;
                             CurrentSlotFrom = null;
@@ -2162,7 +2161,7 @@ namespace BlaineRP.Client.CEF
                         {
                             if (WorkbenchCraftParams != null && WorkbenchCraftParams[slot] != null)
                             {
-                                if (Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Data.Items.WorkbenchTool.ItemData)
+                                if (Client.Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Client.Data.Items.WorkbenchTool.ItemData)
                                 {
                                     if (WorkbenchToolsParams != null)
                                     {
@@ -2207,7 +2206,7 @@ namespace BlaineRP.Client.CEF
                     if (iParams == null)
                         return;
 
-                    var type = Data.Items.GetType(iParams.Id, false);
+                    var type = Client.Data.Items.GetType(iParams.Id, false);
 
                     if (type == null)
                         return;
@@ -2223,7 +2222,7 @@ namespace BlaineRP.Client.CEF
 
                     if (!iParams.InUse)
                     {
-                        var vAction = Data.Items.GetActionToValidate(type);
+                        var vAction = Client.Data.Items.GetActionToValidate(type);
 
                         if (vAction != null)
                         {
@@ -2239,7 +2238,7 @@ namespace BlaineRP.Client.CEF
 
                         if (isPreActionNeeded)
                         {
-                            var preAction = Data.Items.GetActionToPreAction(type);
+                            var preAction = Client.Data.Items.GetActionToPreAction(type);
 
                             if (preAction != null)
                             {
@@ -2292,7 +2291,7 @@ namespace BlaineRP.Client.CEF
 
                 Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id, string.Join('&', eData));
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
             }
         }
 
@@ -2359,7 +2358,7 @@ namespace BlaineRP.Client.CEF
             }
             else if (CurrentType == Types.Workbench)
             {
-                if (toStr == "result" || (toStr == "tool" && (fromStr == "pockets" || fromStr == "result" || (fromStr == "craft" && !(Data.Items.GetData(WorkbenchCraftParams[fromSlot].Id, null) is Data.Items.WorkbenchTool.ItemData)))))
+                if (toStr == "result" || (toStr == "tool" && (fromStr == "pockets" || fromStr == "result" || (fromStr == "craft" && !(Client.Data.Items.GetData(WorkbenchCraftParams[fromSlot].Id, null) is Client.Data.Items.WorkbenchTool.ItemData)))))
                     return;
 
                 if (toStr == "pockets" && fromStr == "pockets")
@@ -2377,7 +2376,7 @@ namespace BlaineRP.Client.CEF
 
             //Utils.ConsoleOutput($"{Groups[toStr]}, {toSlot}, {Groups[fromStr]}, {fromSlot}, {amount}");
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
         }
 
         public static void UpdateBinds()
@@ -2537,18 +2536,18 @@ namespace BlaineRP.Client.CEF
 
             var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
 
-            var receipt = Data.Craft.Receipt.GetByIngredients(notNullItems);
+            var receipt = Client.Data.Craft.Receipt.GetByIngredients(notNullItems);
 
             if (receipt != null)
             {
-                var itemData = Data.Items.GetData(receipt.CraftResultData.ResultItem.Id, null);
+                var itemData = Client.Data.Items.GetData(receipt.CraftResultData.ResultItem.Id, null);
 
                 if (itemData == null)
                     return;
 
                 int realAmount = 1;
 
-                if (itemData is Data.Items.Item.ItemData.IStackable itemDataStackable)
+                if (itemData is Client.Data.Items.Item.ItemData.IStackable itemDataStackable)
                 {
                     realAmount = receipt.GetExpectedAmountByIngredients(notNullItems);
 
@@ -2626,7 +2625,7 @@ namespace BlaineRP.Client.CEF
                 if (CurrentType != Types.Workbench)
                     return true;
 
-                var currentDate = Sync.World.ServerTime;
+                var currentDate = World.Core.ServerTime;
 
                 var timeLeft = endDate.Subtract(currentDate).Add(timeOffset);
 
@@ -2701,7 +2700,7 @@ namespace BlaineRP.Client.CEF
             int eIdx = -1, idx = -1;
             var minAmount = int.MaxValue;
 
-            var iData = itemId.Length == 0 ? null : Data.Items.GetData(itemId, null) as Data.Items.Item.ItemData.IStackable;
+            var iData = itemId.Length == 0 ? null : Client.Data.Items.GetData(itemId, null) as Client.Data.Items.Item.ItemData.IStackable;
 
             for (int i = 0; i < arr.Length; i++)
             {

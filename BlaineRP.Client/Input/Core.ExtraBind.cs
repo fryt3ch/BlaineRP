@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Input.Enums;
 
 namespace BlaineRP.Client.Input
@@ -108,13 +110,13 @@ namespace BlaineRP.Client.Input
 
                 if (changeable)
                 {
-                    this.Keys = Additional.Storage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{type}");
+                    this.Keys = RageStorage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{type}");
 
                     if (this.Keys == null)
                     {
                         this.Keys = _defaultBinds[type];
 
-                        Additional.Storage.SetData($"KeyBinds::{type}", this.Keys);
+                        RageStorage.SetData($"KeyBinds::{type}", this.Keys);
                     }
                 }
                 else if (familiar == BindTypes.None)
@@ -193,16 +195,16 @@ namespace BlaineRP.Client.Input
 
                 if (Changeable)
                 {
-                    Additional.Storage.SetData($"KeyBinds::{Type}", keys);
+                    RageStorage.SetData($"KeyBinds::{Type}", keys);
 
                     if (_helpBinds.ContainsKey(Type))
                     {
-                        CEF.Browser.Window.ExecuteJs("Hud.changeHelpKey", _helpBinds[Type], GetKeyString());
+                        Browser.Window.ExecuteJs("Hud.changeHelpKey", _helpBinds[Type], GetKeyString());
                     }
 
                     if (HudMenuBinds.ContainsKey(Type))
                     {
-                        CEF.HUD.Menu.UpdateCurrentTypes(Keys.Length == 0, HudMenuBinds[Type]);
+                        HUD.Menu.UpdateCurrentTypes(Keys.Length == 0, HudMenuBinds[Type]);
                     }
                 }
 

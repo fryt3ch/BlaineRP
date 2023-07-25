@@ -1,6 +1,11 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
@@ -51,7 +56,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (minIdx < 0)
                                 return;
 
-                            var blip = new Additional.ExtraBlip(162, pos, "Экзаменационный транспорт", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                            var blip = new ExtraBlip(162, pos, "Экзаменационный транспорт", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             quest.SetActualData("E_BP_M", blip);
                         },
@@ -93,13 +98,13 @@ namespace BlaineRP.Client.Quests.Types.Job
                             var destPos = new Vector3(routeData[posIdx].X, routeData[posIdx].Y, routeData[posIdx].Z - 1f);
                             var nextPos = posIdx < routeData.Length - 1 ? new Vector3(routeData[posIdx + 1].X, routeData[posIdx + 1].Y, routeData[posIdx + 1].Z - 1f) : null;
 
-                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                            var colshape = new Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
-                                ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+                                ApproveType = ApproveTypes.OnlyServerVehicleDriver,
 
                                 OnEnter = async (cancel) =>
                                 {
-                                    if (quest.GetActualData<Additional.ExtraColshape>("CS_0") is Additional.ExtraColshape cs)
+                                    if (quest.GetActualData<ExtraColshape>("CS_0") is ExtraColshape cs)
                                         cs.IsVisible = false;
 
                                     if (quest.GetActualData<Checkpoint>("E_MKR_0") is Checkpoint checkpoint)
@@ -107,7 +112,7 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
+                                        Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -117,7 +122,7 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                                 OnExit = (cancel) =>
                                 {
-                                    if (quest.GetActualData<Additional.ExtraColshape>("CS_0") is Additional.ExtraColshape cs)
+                                    if (quest.GetActualData<ExtraColshape>("CS_0") is ExtraColshape cs)
                                         cs.IsVisible = true;
 
                                     if (quest.GetActualData<Checkpoint>("E_MKR_0") is Checkpoint checkpoint)
@@ -125,7 +130,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                            var blip = new ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
@@ -148,7 +153,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 if (faultCode > 0)
                                 {
                                     if (await quest.CallProgressUpdateProc(faultCode) == byte.MaxValue)
-                                        CEF.Notification.Show($"DriveS::PEF{faultCode}");
+                                        Notification.Show($"DriveS::PEF{faultCode}");
                                 }
                             }, 250, true, 0);
 
@@ -184,26 +189,26 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                             var veh = RAGE.Elements.Entities.Vehicles.GetAtRemote(ushort.Parse(qData[0]));
 
-                            var colshape = new Additional.Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                            var colshape = new Cylinder(destPos, 2.5f, 5f, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                             {
-                                ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+                                ApproveType = ApproveTypes.OnlyServerVehicleDriver,
 
                                 OnEnter = (cancel) =>
                                 {
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
+                                        Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
 
-                                    if (quest.GetActualData<Additional.ExtraColshape>("CS_0") is Additional.ExtraColshape cs)
+                                    if (quest.GetActualData<ExtraColshape>("CS_0") is ExtraColshape cs)
                                         cs.IsVisible = false;
 
                                     if (quest.GetActualData<Marker>("E_MKR_0") is Marker checkpoint)
                                         checkpoint.Visible = false;
 
-                                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Для того, чтобы закончить экзамен заглушите двигатель транспорта!");
+                                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Для того, чтобы закончить экзамен заглушите двигатель транспорта!");
 
                                     AsyncTask engineTask = null;
 
@@ -227,7 +232,7 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                                 OnExit = (cancel) =>
                                 {
-                                    if (quest.GetActualData<Additional.ExtraColshape>("CS_0") is Additional.ExtraColshape cs)
+                                    if (quest.GetActualData<ExtraColshape>("CS_0") is ExtraColshape cs)
                                         cs.IsVisible = true;
 
                                     if (quest.GetActualData<Marker>("E_MKR_0") is Marker checkpoint)
@@ -242,7 +247,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
+                            var blip = new ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
 
                             blip.SetRoute(true);
 
@@ -258,7 +263,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 if (faultCode > 0)
                                 {
                                     if (await quest.CallProgressUpdateProc(faultCode) == byte.MaxValue)
-                                        CEF.Notification.Show($"DriveS::PEF{faultCode}");
+                                        Notification.Show($"DriveS::PEF{faultCode}");
                                 }
                             }, 250, true, 0);
 
@@ -296,7 +301,7 @@ namespace BlaineRP.Client.Quests.Types.Job
             if (Player.LocalPlayer.Vehicle != veh || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                 return 2;
 
-            if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car && vData.EngineOn && veh.GetSpeed() > 1f && !pData.BeltOn)
+            if (vData.Data.Type == Game.Data.Vehicles.Types.Car && vData.EngineOn && veh.GetSpeed() > 1f && !pData.BeltOn)
                 return 3;
 
             if (veh.GetEngineHealth() <= 1f)

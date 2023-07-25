@@ -1,5 +1,4 @@
-﻿using BlaineRP.Client.Additional;
-using BlaineRP.Client.Game.UI.CEF;
+﻿using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -29,19 +28,19 @@ namespace BlaineRP.Client.Game.Wrappers.Blips
 
                 var entity = (Entity)args[3] as GameEntity;
 
-                Additional.ExtraBlip blip = null;
+                ExtraBlip blip = null;
 
                 string key = null;
 
                 if (type == 0) // taxi
                 {
-                    blip = new Additional.ExtraBlip(198, new Vector3(x, y, 0), "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, uint.MaxValue);
+                    blip = new ExtraBlip(198, new Vector3(x, y, 0), "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, uint.MaxValue);
 
                     key = "Taxi";
                 }
                 else if (type == 1) // police call
                 {
-                    blip = new Additional.ExtraBlip(198, new Vector3(x, y, 0), "Сотрудник полиции", 1f, 29, 255, 0f, false, 0, 0f, uint.MaxValue);
+                    blip = new ExtraBlip(198, new Vector3(x, y, 0), "Сотрудник полиции", 1f, 29, 255, 0f, false, 0, 0f, uint.MaxValue);
 
                     key = "PoliceCall";
                 }
@@ -49,10 +48,10 @@ namespace BlaineRP.Client.Game.Wrappers.Blips
                 if (key == null || blip == null)
                     return;
 
-                Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
+                Player.LocalPlayer.GetData<ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
                 Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
 
-                var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
+                var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<ExtraBlip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
 
                 Player.LocalPlayer.SetData($"TrackerBlip::Task::{key}", task);
                 Player.LocalPlayer.SetData($"TrackerBlip::{key}", blip);
@@ -63,7 +62,7 @@ namespace BlaineRP.Client.Game.Wrappers.Blips
 
         public static void DestroyTrackerBlipByKey(string key)
         {
-            Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
+            Player.LocalPlayer.GetData<ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
             Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
 
             Player.LocalPlayer.ResetData($"TrackerBlip::{key}");

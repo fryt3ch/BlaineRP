@@ -5,9 +5,17 @@ using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
-using BlaineRP.Client.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Input;
 using BlaineRP.Client.Input.Enums;
+using Audio = BlaineRP.Client.Utils.Game.Audio;
+using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 using Players = BlaineRP.Client.Sync.Players;
 
 namespace BlaineRP.Client
@@ -95,9 +103,9 @@ namespace BlaineRP.Client
 
             Events.OnPlayerReady += () =>
             {
-                Sync.World.LoadServerDataColshape();
+                Game.World.Core.LoadServerDataColshape();
 
-                var settingsProfile = Settings.App.Profile.LoadProfile(Sync.World.GetSharedData<JObject>("Settings"));
+                var settingsProfile = Settings.App.Profile.LoadProfile(Game.World.Core.GetSharedData<JObject>("Settings"));
 
                 Settings.App.Profile.SetCurrentProfile(settingsProfile);
 
@@ -168,7 +176,7 @@ namespace BlaineRP.Client
 
                 DisableAllControls(true);
 
-                Sync.World.Preload();
+                Game.World.Core.Preload();
 
                 #region SCRIPTS_TO_REPLACE
 
@@ -183,7 +191,7 @@ namespace BlaineRP.Client
 
                 Events.OnPlayerSpawn += (cancel) =>
                 {
-                    Additional.SkyCamera.WrongFadeCheck();
+                    SkyCamera.WrongFadeCheck();
 
                     Player.LocalPlayer.SetInfiniteAmmoClip(true);
 
@@ -192,13 +200,13 @@ namespace BlaineRP.Client
 
                     RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0); // SetPedCanLosePropsOnDamage
 
-                    Sync.AttachSystem.ReattachObjects(Player.LocalPlayer);
+                    Core.ReattachObjects(Player.LocalPlayer);
 
                     Player.LocalPlayer.SetFlashLightEnabled(true);
 
-                    Additional.ExtraColshape.UpdateStreamed();
+                    ExtraColshape.UpdateStreamed();
 
-                    Additional.ExtraBlip.RefreshAllBlips();
+                    ExtraBlip.RefreshAllBlips();
 
                     Sync.House.UpdateAllLights();
                 };
@@ -218,9 +226,9 @@ namespace BlaineRP.Client
                     if (Player.LocalPlayer.Position.DistanceTo(pos) > 25f)
                         return;
 
-                    var curTime = Sync.World.ServerTime;
+                    var curTime = Game.World.Core.ServerTime;
 
-                    var text = new Additional.ExtraLabel(pos, Locale.Get("PLAYER_QUIT_TEXT", curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+                    var text = new ExtraLabel(pos, Locale.Get("PLAYER_QUIT_TEXT", curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
 
                     pos.Z -= 1f;
 
@@ -239,7 +247,7 @@ namespace BlaineRP.Client
                     if (gEntity == null || !await Streaming.WaitIsLoaded(gEntity))
                         return;
 
-                    await Sync.AttachSystem.OnEntityStreamIn(entity);
+                    await Core.OnEntityStreamIn(entity);
 
                     if (entity is Vehicle veh)
                     {
@@ -255,10 +263,10 @@ namespace BlaineRP.Client
                     }
                     else if (entity is MapObject obj)
                     {
-                        await Sync.World.OnMapObjectStreamIn(obj);
+                        await Game.World.Core.OnMapObjectStreamIn(obj);
                     }
 
-                    CEF.Audio.OnEntityStreamIn(gEntity);
+                    Game.UI.CEF.Audio.OnEntityStreamIn(gEntity);
 
                     var customActions = entity.StreamInCustomActionsGet();
 
@@ -273,7 +281,7 @@ namespace BlaineRP.Client
 
                 Events.OnEntityStreamOut += async (entity) =>
                 {
-                    await Sync.AttachSystem.OnEntityStreamOut(entity);
+                    await Core.OnEntityStreamOut(entity);
 
                     if (entity is Vehicle veh)
                     {
@@ -289,12 +297,12 @@ namespace BlaineRP.Client
                     }
                     else if (entity is MapObject obj)
                     {
-                        await Sync.World.OnMapObjectStreamOut(obj);
+                        await Game.World.Core.OnMapObjectStreamOut(obj);
                     }
 
                     if (entity is GameEntity gEntity)
                     {
-                        CEF.Audio.OnEntityStreamOut(gEntity);
+                        Game.UI.CEF.Audio.OnEntityStreamOut(gEntity);
                     }
 
                     var customActions = entity.StreamOutCustomActionsGet();
@@ -335,7 +343,7 @@ namespace BlaineRP.Client
 
                 (new Utils.AsyncTask(() =>
                 {
-                    var time = ExtraGameDate ?? Sync.World.ServerTime;
+                    var time = ExtraGameDate ?? Game.World.Core.ServerTime;
 
                     RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
                     RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);
@@ -370,7 +378,7 @@ namespace BlaineRP.Client
                         return;
 
                     if (pData.AdminLevel > -1 && Settings.User.Other.AutoTeleportMarker)
-                        Data.Commands.TeleportMarker();
+                        Game.Management.Commands.Core.TeleportMarker();
                 };
 
                 WaypointDeleted += () =>
@@ -415,11 +423,11 @@ namespace BlaineRP.Client
             Player.LocalPlayer.SetArmour(0);
             Player.LocalPlayer.RemoveAllWeapons(true);
 
-            Additional.AntiCheat.Enable();
+            Game.Management.AntiCheat.Core.Enable();
 
-            Core.LoadMain();
+            Input.Core.LoadMain();
 
-            CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, Core.Get(BindTypes.Cursor).GetKeyString()), false);
+            Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, Input.Core.Get(BindTypes.Cursor).GetKeyString()), false);
         }
 
         public static void DisableAllControls(bool state)

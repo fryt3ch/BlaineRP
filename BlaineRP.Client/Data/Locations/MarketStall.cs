@@ -1,5 +1,4 @@
-﻿using BlaineRP.Client.CEF;
-using BlaineRP.Client.Extensions.System;
+﻿using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
@@ -7,6 +6,12 @@ using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -18,7 +23,7 @@ namespace BlaineRP.Client.Data
 
             public int Id { get; set; }
 
-            public ushort CurrentRenterRID => Utils.Convert.ToUInt16(Sync.World.GetSharedData<object>($"MARKETSTALL_{Id}_R", ushort.MaxValue));
+            public ushort CurrentRenterRID => Utils.Convert.ToUInt16(Core.GetSharedData<object>($"MARKETSTALL_{Id}_R", ushort.MaxValue));
 
             public Vector4 Position { get; set; }
 
@@ -28,25 +33,25 @@ namespace BlaineRP.Client.Data
 
                 this.Position = Position;
 
-                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var cs = new Sphere(new Vector3(Position.X, Position.Y, Position.Z), 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyByFoot,
+                    ApproveType = ApproveTypes.OnlyByFoot,
 
-                    ActionType = Additional.ExtraColshape.ActionTypes.MarketStallInteract,
+                    ActionType = ActionTypes.MarketStallInteract,
 
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.MarketStallInteract,
+                    InteractionType = InteractionTypes.MarketStallInteract,
 
                     Data = this,
                 };
 
-                Sync.World.AddDataHandler($"MARKETSTALL_{Id}_R", OnRenterRIDChanged);
+                Core.AddDataHandler($"MARKETSTALL_{Id}_R", OnRenterRIDChanged);
             }
 
-            public static MarketStall GetCurrentRentedMarketStall(out Additional.ExtraColshape colshape)
+            public static MarketStall GetCurrentRentedMarketStall(out ExtraColshape colshape)
             {
                 var rid = Player.LocalPlayer.RemoteId;
 
-                colshape = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.CurrentRenterRID == rid).FirstOrDefault();
+                colshape = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.CurrentRenterRID == rid).FirstOrDefault();
 
                 return (MarketStall)colshape?.Data;
             }
@@ -57,7 +62,7 @@ namespace BlaineRP.Client.Data
 
                 var stallIdx = int.Parse(d[1]);
 
-                var cs = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == stallIdx).FirstOrDefault();
+                var cs = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == stallIdx).FirstOrDefault();
 
                 if (cs == null)
                     return;
@@ -73,25 +78,25 @@ namespace BlaineRP.Client.Data
 
                     var pos = new Vector3(cs.Position.X, cs.Position.Y, cs.Position.Z);
 
-                    Additional.ExtraColshape subCs = null;
-                    Additional.ExtraColshape mainCs = null;
+                    ExtraColshape subCs = null;
+                    ExtraColshape mainCs = null;
 
-                    subCs = new Additional.Sphere(pos, 20f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                    subCs = new Sphere(pos, 20f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
-                        ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                        ApproveType = ApproveTypes.None,
 
                         OnExit = (cancel) =>
                         {
                             if (subCs?.Exists != true)
                                 return;
 
-                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_0", 10));
+                            Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_0", 10));
                         },
                     };
 
-                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                    mainCs = new Sphere(pos, 30f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
-                        ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                        ApproveType = ApproveTypes.None,
 
                         OnExit = async (cancel) =>
                         {
@@ -99,7 +104,7 @@ namespace BlaineRP.Client.Data
                                 return;
 
                             if ((bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id))
-                                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_1"));
+                                Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_1"));
                         },
 
                         Data = subCs,
@@ -113,11 +118,11 @@ namespace BlaineRP.Client.Data
 
                     SellHistory = null;
 
-                    var distColshape = Additional.ExtraColshape.GetByName("MARKETSTALL_RENT_DIST_CS");
+                    var distColshape = ExtraColshape.GetByName("MARKETSTALL_RENT_DIST_CS");
 
                     if (distColshape != null)
                     {
-                        var subColshape = distColshape.Data as Additional.ExtraColshape;
+                        var subColshape = distColshape.Data as ExtraColshape;
 
                         subColshape?.Destroy();
 
@@ -136,9 +141,9 @@ namespace BlaineRP.Client.Data
                 if (!isNear)
                     return;
 
-                if (CEF.ActionBox.CurrentContextStr == $"MarketStallStartRent_{stallIdx}")
+                if (ActionBox.CurrentContextStr == $"MarketStallStartRent_{stallIdx}")
                 {
-                    CEF.ActionBox.Close(true);
+                    ActionBox.Close(true);
                 }
             }
 
@@ -153,10 +158,10 @@ namespace BlaineRP.Client.Data
 
                 if (currentRenterRid == Player.LocalPlayer.RemoteId)
                 {
-                    if (Additional.ExtraColshape.LastSent.IsSpam(500, false, true))
+                    if (ExtraColshape.LastSent.IsSpam(500, false, true))
                         return;
 
-                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                    ExtraColshape.LastSent = Core.ServerTime;
 
                     var res = ((string)await Events.CallRemoteProc("MarketStall::GMD", marketStall.Id))?.Split('_');
 
@@ -178,49 +183,49 @@ namespace BlaineRP.Client.Data
 
                         options.Add((255, Locale.Get("MARKETSTALL_MG_CLOSE")));
 
-                        await CEF.ActionBox.ShowSelect
+                        await ActionBox.ShowSelect
                         (
                             "MarketStallStartManage_0", Locale.Get("MARKETSTALL_MG_HEADER"), options.ToArray(), null, null,
 
-                            CEF.ActionBox.DefaultBindAction,
+                            ActionBox.DefaultBindAction,
 
-                            async (CEF.ActionBox.ReplyTypes rType, decimal opt) =>
+                            async (ActionBox.ReplyTypes rType, decimal opt) =>
                             {
                                 if (rType == ActionBox.ReplyTypes.Cancel)
                                 {
-                                    CEF.ActionBox.Close(true);
+                                    ActionBox.Close(true);
 
                                     return;
                                 }
 
                                 if (opt == 1)
                                 {
-                                    if (Additional.ExtraColshape.LastSent.IsSpam(500, false, true))
+                                    if (ExtraColshape.LastSent.IsSpam(500, false, true))
                                         return;
 
-                                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                                    ExtraColshape.LastSent = Core.ServerTime;
 
                                     var res = Utils.Convert.ToByte(await Events.CallRemoteProc("MarketStall::Lock", marketStall.Id, !isStallLocked));
 
                                     if (res == 255)
                                         return;
 
-                                    CEF.ActionBox.Close(false);
+                                    ActionBox.Close(false);
 
                                     showManageMenu(!isStallLocked);
 
                                     if (res == 1)
                                     {
-                                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCKED" : "MARKETSTALL_MG_LOCKED"));
+                                        Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCKED" : "MARKETSTALL_MG_LOCKED"));
                                     }
                                 }
                                 else if (opt == 2)
                                 {
                                     var items = new List<object>();
 
-                                    for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+                                    for (int i = 0; i < Inventory.ItemsParams.Length; i++)
                                     {
-                                        var x = CEF.Inventory.ItemsParams[i];
+                                        var x = Inventory.ItemsParams[i];
 
                                         if (x == null)
                                             continue;
@@ -228,22 +233,22 @@ namespace BlaineRP.Client.Data
                                         if (x.InUse)
                                             continue;
 
-                                        var y = (object[])CEF.Inventory.ItemsData[i][0];
+                                        var y = (object[])Inventory.ItemsData[i][0];
 
                                         items.Add(new object[] { new object[] { i, y[0] }, (string)y[1], 0, y[3], y[4], null, null, });
                                     }
 
                                     if (items.Count == 0)
                                     {
-                                        CEF.Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_SELL"));
+                                        Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_SELL"));
 
                                         return;
                                     }
 
-                                    if (Additional.ExtraColshape.LastSent.IsSpam(500, false, true))
+                                    if (ExtraColshape.LastSent.IsSpam(500, false, true))
                                         return;
 
-                                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                                    ExtraColshape.LastSent = Core.ServerTime;
 
                                     var res = ((await Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id)) as JArray)?.ToObject<List<string>>();
 
@@ -266,9 +271,9 @@ namespace BlaineRP.Client.Data
                                         ((object[])t)[6] = new object[] { price, amount };
                                     }
 
-                                    CEF.ActionBox.Close(false);
+                                    ActionBox.Close(false);
 
-                                    CEF.PlayerMarket.Show($"MARKETSTALL@SELLER_{marketStall.Id}", new object[] { items, });
+                                    PlayerMarket.Show($"MARKETSTALL@SELLER_{marketStall.Id}", new object[] { items, });
                                 }
                                 else if (opt == 3)
                                 {
@@ -276,7 +281,7 @@ namespace BlaineRP.Client.Data
 
                                     if (sellHist == null || sellHist.Count == 0)
                                     {
-                                        CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
+                                        Notification.ShowError(Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
 
                                         return;
                                     }
@@ -296,29 +301,29 @@ namespace BlaineRP.Client.Data
 
                                     strings.Add("\n\n" + Locale.Get("MARKETSTALL_SH_1", Locale.Get("GEN_MONEY_0", totalEarned)));
 
-                                    CEF.ActionBox.Close(false);
+                                    ActionBox.Close(false);
 
-                                    CEF.Note.ShowRead($"MARKETSTALL@SELLER_SELLHIST_{marketStall.Id}", string.Join("\n\n", strings), CEF.Note.DefaultBindAction, null);
+                                    Note.ShowRead($"MARKETSTALL@SELLER_SELLHIST_{marketStall.Id}", string.Join("\n\n", strings), Note.DefaultBindAction, null);
                                 }
                                 else if (opt == 255)
                                 {
-                                    if (Additional.ExtraColshape.LastSent.IsSpam(500, false, true))
+                                    if (ExtraColshape.LastSent.IsSpam(500, false, true))
                                         return;
 
-                                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                                    ExtraColshape.LastSent = Core.ServerTime;
 
                                     var res = (bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id);
 
                                     if (res)
                                     {
-                                        CEF.ActionBox.Close(true);
+                                        ActionBox.Close(true);
 
                                         return;
                                     }
                                 }
                                 else if (opt == 77)
                                 {
-                                    CEF.ActionBox.Close(false);
+                                    ActionBox.Close(false);
 
                                     ShowGoods(marketStall);
                                 }
@@ -332,28 +337,28 @@ namespace BlaineRP.Client.Data
                 {
                     var rentPrice = await GetRentPrice();
 
-                    await CEF.ActionBox.ShowMoney
+                    await ActionBox.ShowMoney
                     (
                         $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Locale.Get("GEN_MONEY_0", rentPrice)),
 
-                        CEF.ActionBox.DefaultBindAction,
+                        ActionBox.DefaultBindAction,
 
-                        async (CEF.ActionBox.ReplyTypes rType) =>
+                        async (ActionBox.ReplyTypes rType) =>
                         {
                             var useCash = rType == ActionBox.ReplyTypes.OK;
 
                             if (useCash || rType == ActionBox.ReplyTypes.Cancel)
                             {
-                                if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, true))
+                                if (ExtraColshape.LastSent.IsSpam(1000, false, true))
                                     return;
 
-                                Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                                ExtraColshape.LastSent = Core.ServerTime;
 
                                 var res = (bool)await Events.CallRemoteProc("MarketStall::Rent", marketStall.Id, useCash);
 
                                 if (res)
                                 {
-                                    CEF.ActionBox.Close(true);
+                                    ActionBox.Close(true);
 
                                     var pos = Player.LocalPlayer.GetCoords(false);
 
@@ -368,7 +373,7 @@ namespace BlaineRP.Client.Data
                             }
                             else
                             {
-                                CEF.ActionBox.Close(true);
+                                ActionBox.Close(true);
                             }
                         },
 
@@ -377,10 +382,10 @@ namespace BlaineRP.Client.Data
                 }
                 else
                 {
-                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, true))
+                    if (ExtraColshape.LastSent.IsSpam(1000, false, true))
                         return;
 
-                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+                    ExtraColshape.LastSent = Core.ServerTime;
 
                     ShowGoods(marketStall);
                 }
@@ -397,7 +402,7 @@ namespace BlaineRP.Client.Data
 
                 if (resList == null || resList.Count == 0)
                 {
-                    CEF.Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_BUY"));
+                    Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_BUY"));
 
                     return;
                 }
@@ -427,12 +432,12 @@ namespace BlaineRP.Client.Data
 
                 var sellerName = Players.GetPlayerName(seller, true, false, true);
 
-                CEF.PlayerMarket.Show($"MARKETSTALL@BUYER_{marketStall.Id}", new object[] { items, sellerName });
+                PlayerMarket.Show($"MARKETSTALL@BUYER_{marketStall.Id}", new object[] { items, sellerName });
             }
 
             public static async System.Threading.Tasks.Task<uint> GetRentPrice()
             {
-                var res = await Sync.World.GetRetrievableData<object>("MARKETSTALL_RP", 0);
+                var res = await Core.GetRetrievableData<object>("MARKETSTALL_RP", 0);
 
                 return Utils.Convert.ToUInt32(res);
             }
@@ -443,23 +448,23 @@ namespace BlaineRP.Client.Data
                 {
                     var id = Utils.Convert.ToInt32(args[0]);
 
-                    var cs = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
+                    var cs = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
 
                     if (cs == null)
                         return;
 
-                    if (CEF.PlayerMarket.CurrentContext == null)
+                    if (PlayerMarket.CurrentContext == null)
                         return;
 
-                    if (CEF.PlayerMarket.CurrentContext == $"MARKETSTALL@SELLER_{id}")
+                    if (PlayerMarket.CurrentContext == $"MARKETSTALL@SELLER_{id}")
                     {
 
                     }
-                    else if (CEF.PlayerMarket.CurrentContext == $"MARKETSTALL@BUYER_{id}")
+                    else if (PlayerMarket.CurrentContext == $"MARKETSTALL@BUYER_{id}")
                     {
-                        CEF.PlayerMarket.Close();
+                        PlayerMarket.Close();
 
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("MARKETSTALL_B_SERROR_6"));
+                        Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("MARKETSTALL_B_SERROR_6"));
                     }
                 });
 

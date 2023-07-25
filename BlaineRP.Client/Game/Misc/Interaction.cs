@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.Local
+namespace BlaineRP.Client.Game.Misc
 {
     class Interaction
     {
@@ -83,7 +81,7 @@ namespace BlaineRP.Client.Game.Local
 
                     if (entity.HasData("Furniture"))
                     {
-                        var furnData = entity.GetData<Data.Furniture>("Furniture");
+                        var furnData = entity.GetData<Client.Data.Furniture>("Furniture");
 
                         if (furnData != null)
                         {

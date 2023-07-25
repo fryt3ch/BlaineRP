@@ -1,9 +1,19 @@
-﻿using BlaineRP.Client.CEF.Phone.Apps;
-using BlaineRP.Client.Utils;
+﻿using BlaineRP.Client.Utils;
+
 using RAGE;
 using RAGE.Elements;
+
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.NPCs;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Data
 {
@@ -58,15 +68,15 @@ namespace BlaineRP.Client.Data
 
             public int SubId { get; set; }
 
-            public string OwnerName => Sync.World.GetSharedData<string>($"Business::{Id}::OName");
+            public string OwnerName => Core.GetSharedData<string>($"Business::{Id}::OName");
 
-            public Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Business::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Business::{Id}::OBlip"); Player.LocalPlayer.SetData($"Business::{Id}::OBlip", value); } }
+            public ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"Business::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Business::{Id}::OBlip"); Player.LocalPlayer.SetData($"Business::{Id}::OBlip", value); } }
 
-            public Additional.ExtraBlip Blip { get; set; }
+            public ExtraBlip Blip { get; set; }
 
-            public Additional.ExtraLabel InfoText { get; set; }
+            public ExtraLabel InfoText { get; set; }
 
-            public Additional.ExtraColshape InfoColshape { get; set; }
+            public ExtraColshape InfoColshape { get; set; }
 
             public NPC Seller { get; set; }
 
@@ -92,15 +102,15 @@ namespace BlaineRP.Client.Data
 
                 if (PositionInfo != null)
                 {
-                    InfoColshape = new Additional.Cylinder(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
+                    InfoColshape = new Cylinder(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.App.Static.MainDimension, null)
                     {
-                        ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo,
-                        InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo,
+                        ActionType = ActionTypes.BusinessInfo,
+                        InteractionType = InteractionTypes.BusinessInfo,
 
                         Data = this,
                     };
 
-                    InfoText = new Additional.ExtraLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
+                    InfoText = new ExtraLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
                 }
 
                 All.Add(Id, this);
@@ -122,7 +132,7 @@ namespace BlaineRP.Client.Data
 
                     oBlip?.Destroy();
 
-                    OwnerBlip = new Additional.ExtraBlip(207, InfoColshape.Position, Name, 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
+                    OwnerBlip = new ExtraBlip(207, InfoColshape.Position, Name, 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
                 }
                 else
                 {
@@ -144,7 +154,7 @@ namespace BlaineRP.Client.Data
         {
             public ClothesShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_shop_low", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -163,7 +173,7 @@ namespace BlaineRP.Client.Data
         {
             public ClothesShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_shop_mid", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -182,7 +192,7 @@ namespace BlaineRP.Client.Data
         {
             public ClothesShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_m_shop_high", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -206,7 +216,7 @@ namespace BlaineRP.Client.Data
 
             public BagShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BagShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -232,7 +242,7 @@ namespace BlaineRP.Client.Data
 
             public MaskShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -254,7 +264,7 @@ namespace BlaineRP.Client.Data
         {
             public JewelleryShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "csb_anita", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -273,7 +283,7 @@ namespace BlaineRP.Client.Data
         {
             public TattooShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"tatseller_{Id}", "", NPC.Types.Talkable, "u_m_y_tattoo_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -290,7 +300,7 @@ namespace BlaineRP.Client.Data
         {
             public BarberShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_clubbar_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -307,7 +317,7 @@ namespace BlaineRP.Client.Data
         {
             public Market(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "mp_m_shopkeep_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -326,15 +336,15 @@ namespace BlaineRP.Client.Data
         {
             public GasStation(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(361, PositionGas.Position, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(361, PositionGas.Position, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                var cs = new Additional.Cylinder(new Vector3(PositionGas.X, PositionGas.Y, PositionGas.Z - 1f), PositionGas.RotationZ, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                var cs = new Cylinder(new Vector3(PositionGas.X, PositionGas.Y, PositionGas.Z - 1f), PositionGas.RotationZ, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                 {
                     Data = this.Id,
 
-                    ActionType = Additional.ExtraColshape.ActionTypes.GasStation,
+                    ActionType = ActionTypes.GasStation,
 
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                    ApproveType = ApproveTypes.None,
                 };
 
                 //this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.App.Static.MainDimension, "seller_clothes_greeting_0");
@@ -349,7 +359,7 @@ namespace BlaineRP.Client.Data
         {
             public CarShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_mrk", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -366,7 +376,7 @@ namespace BlaineRP.Client.Data
         {
             public CarShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_agatha", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -383,7 +393,7 @@ namespace BlaineRP.Client.Data
         {
             public CarShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "csb_anita", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -400,7 +410,7 @@ namespace BlaineRP.Client.Data
         {
             public MotoShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "u_m_y_sbike", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -417,7 +427,7 @@ namespace BlaineRP.Client.Data
         {
             public BoatShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_djsolrobt", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -434,7 +444,7 @@ namespace BlaineRP.Client.Data
         {
             public AeroShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_jewelass", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -449,20 +459,20 @@ namespace BlaineRP.Client.Data
 
         public class TuningShop : Business
         {
-            public Additional.ExtraColshape EnteranceColshape { get; set; }
+            public ExtraColshape EnteranceColshape { get; set; }
 
             public TuningShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 var tPos = new Vector3(PositionInteract.Position.X, PositionInteract.Position.Y, PositionInteract.Position.Z - 0.5f);
 
-                this.EnteranceColshape = new Additional.Cylinder(tPos, 2.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                this.EnteranceColshape = new Cylinder(tPos, 2.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
                 {
-                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+                    ApproveType = ApproveTypes.OnlyServerVehicleDriver,
 
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.TuningEnter,
-                    ActionType = Additional.ExtraColshape.ActionTypes.TuningEnter,
+                    InteractionType = InteractionTypes.TuningEnter,
+                    ActionType = ActionTypes.TuningEnter,
 
                     Data = this,
                 };
@@ -475,11 +485,11 @@ namespace BlaineRP.Client.Data
 
         public class WeaponShop : Business
         {
-            public static uint ShootingRangePrice => Convert.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price", 0));
+            public static uint ShootingRangePrice => Convert.ToUInt32(Core.GetSharedData<object>("SRange::Price", 0));
 
             public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_m_y_ammucity_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
@@ -492,15 +502,15 @@ namespace BlaineRP.Client.Data
 
                 var tPos = new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z - 1f);
 
-                var shootingRangeEnterCs = new Additional.Cylinder(tPos, 1.5f, 2f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                var shootingRangeEnterCs = new Cylinder(tPos, 1.5f, 2f, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
                     Data = this,
 
-                    ActionType = Additional.ExtraColshape.ActionTypes.ShootingRangeEnter,
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter,
+                    ActionType = ActionTypes.ShootingRangeEnter,
+                    InteractionType = InteractionTypes.ShootingRangeEnter,
                 };
 
-                var shootingRangeText = new Additional.ExtraLabel(new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), Locale.Get("SHOP_WEAPON_SRANGE_L"), new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.App.Static.MainDimension);
+                var shootingRangeText = new ExtraLabel(new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), Locale.Get("SHOP_WEAPON_SRANGE_L"), new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.App.Static.MainDimension);
 
                 GPS.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
@@ -510,7 +520,7 @@ namespace BlaineRP.Client.Data
         {
             public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                this.Blip = new ExtraBlip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                 this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_natalia", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {

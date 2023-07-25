@@ -1,16 +1,17 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class AutoschoolTest
@@ -25,7 +26,7 @@ namespace BlaineRP.Client.CEF
 
         private static DateTime LastSent;
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         private static Dictionary<LicenseTypes, (int TestId, int MaxQuestions)> JsLibsData = new Dictionary<LicenseTypes, (int, int)>()
         {
@@ -48,7 +49,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 var data = JsLibsData[CurrentLicenseType];
 
@@ -78,7 +79,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.AutoschoolTest, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

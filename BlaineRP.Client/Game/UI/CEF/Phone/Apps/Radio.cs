@@ -1,16 +1,15 @@
-﻿using BlaineRP.Client.CEF.Phone.Enums;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.Management.Radio;
+using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.Management.Radio;
-using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Sync;
 
-namespace BlaineRP.Client.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Radio
@@ -63,12 +62,12 @@ namespace BlaineRP.Client.CEF.Phone.Apps
 
                     if (sType == RadioStationTypes.WCTR)
                     {
-                        if (Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                        if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
                             sType = allStations[newStationIdx + deltaIdx];
                     }
                     else if (sType == RadioStationTypes.BCTR)
                     {
-                        if (Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                        if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
                             sType = allStations[newStationIdx + deltaIdx];
                     }
 

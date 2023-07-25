@@ -2,6 +2,8 @@
 using RAGE;
 using System;
 using System.Text.RegularExpressions;
+using BlaineRP.Client.Game.UI.CEF;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 
 namespace BlaineRP.Client.Utils
 {
@@ -19,14 +21,14 @@ namespace BlaineRP.Client.Utils
 
         public static Random Random { get; } = new Random();
 
-        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !CEF.Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
+        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
         public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
 
         public static float GetFpsCoef() => Settings.App.Static.BaseFps / (Main.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : Main.CurrentFps);
 
         public static decimal GetGovSellPrice(decimal price) => System.Math.Floor(price / 2m);
 
-        public static bool IsAnyCefActive(bool checkChatInput = true) => checkChatInput && CEF.Chat.InputVisible || CEF.Browser.IsAnyCEFActive;
+        public static bool IsAnyCefActive(bool checkChatInput = true) => checkChatInput && Chat.InputVisible || Browser.IsAnyCEFActive;
         public static bool IsLoginValid(string str) => LoginPattern.IsMatch(str);
 
         public static bool IsMailValid(string str) => MailPattern.IsMatch(str);

@@ -1,11 +1,13 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
-using System.Collections.Generic;
-using BlaineRP.Client.Input;
+using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PlayerMarket
@@ -66,7 +68,7 @@ namespace BlaineRP.Client.CEF
                     if (CEF.Shop.LastSent.IsSpam(1500, false, true))
                         return;
 
-                    CEF.Shop.LastSent = Sync.World.ServerTime;
+                    CEF.Shop.LastSent = Core.ServerTime;
 
                     var res = Utils.Convert.ToByte(await Events.CallRemoteProc("MarketStall::SI", stallIdx, RAGE.Util.Json.Serialize(items)));
 
@@ -103,7 +105,7 @@ namespace BlaineRP.Client.CEF
                     if (CEF.Shop.LastSent.IsSpam(1000, false, true))
                         return;
 
-                    CEF.Shop.LastSent = Sync.World.ServerTime;
+                    CEF.Shop.LastSent = Core.ServerTime;
 
                     var uid = Utils.Convert.ToUInt32(args[0]);
 
@@ -132,7 +134,7 @@ namespace BlaineRP.Client.CEF
                     if (CEF.Shop.LastSent.IsSpam(250, false, true))
                         return;
 
-                    CEF.Shop.LastSent = Sync.World.ServerTime;
+                    CEF.Shop.LastSent = Core.ServerTime;
 
                     var stallIdx = int.Parse(d[1]);
 
@@ -168,13 +170,13 @@ namespace BlaineRP.Client.CEF
                 Main.Render -= RenderMarketStallSeller;
                 Main.Render += RenderMarketStallSeller;
 
-                EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+                EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
             }
             else if (d[0] == "MARKETSTALL@BUYER")
             {
                 CEF.Browser.Window.ExecuteJs("Retail.draw", "market", new object[] { addData[0] }, addData[1], false);
 
-                EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+                EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
             }
 
             CEF.Cursor.Show(true, true);
@@ -185,7 +187,7 @@ namespace BlaineRP.Client.CEF
             if (!IsActive)
                 return;
 
-            Core.Unbind(EscBindIdx);
+            Input.Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 

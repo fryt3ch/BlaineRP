@@ -1,4 +1,6 @@
-﻿namespace BlaineRP.Client.Extensions.System
+﻿using BlaineRP.Client.Game.UI.CEF;
+
+namespace BlaineRP.Client.Extensions.System
 {
     internal static class StringExtensions
     {
@@ -6,14 +8,14 @@
         {
             if (text == null || text.Length < minLength)
             {
-                CEF.Notification.ShowError(string.Format(Locale.Notifications.General.MinimalCharactersCount, minLength));
+                Notification.ShowError(string.Format(Locale.Notifications.General.MinimalCharactersCount, minLength));
 
                 return false;
             }
 
             if (text.Length > maxLength)
             {
-                CEF.Notification.ShowError(string.Format(Locale.Notifications.General.MaximalCharactersCount, maxLength));
+                Notification.ShowError(string.Format(Locale.Notifications.General.MaximalCharactersCount, maxLength));
 
                 return false;
             }

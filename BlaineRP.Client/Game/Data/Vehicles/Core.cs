@@ -4,15 +4,15 @@ using System.Linq;
 namespace BlaineRP.Client.Game.Data.Vehicles
 {
     [Script(int.MaxValue)]
-    public class Vehicles
+    public class Core
     {
-        private static readonly Dictionary<string, Vehicle> _all = new Dictionary<string, Vehicle>();
+        public static readonly Dictionary<string, Vehicle> All = new Dictionary<string, Vehicle>();
 
-        public static Vehicle GetById(string id) => id == null ? null : _all.GetValueOrDefault(id);
+        public static Vehicle GetById(string id) => id == null ? null : All.GetValueOrDefault(id);
 
-        public static Vehicle GetByModel(uint model) => _all.Where(x => x.Value.Model == model).Select(x => x.Value).FirstOrDefault();
+        public static Vehicle GetByModel(uint model) => All.Where(x => x.Value.Model == model).Select(x => x.Value).FirstOrDefault();
 
-        public Vehicles()
+        public Core()
         {
             #region TO_REPLACE
 

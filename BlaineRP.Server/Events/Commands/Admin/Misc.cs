@@ -45,7 +45,7 @@
         [Command("s_payday", 1)]
         private static void DoPayday(PlayerData pData, params string[] args)
         {
-            Server.DoPayDay(false);
+            Main.DoPayDay(false);
         }
 
         [Command("s_paydayX", 1)]
@@ -64,7 +64,7 @@
             else if (x > 10)
                 x = 10;
 
-            Server.PayDayX = x;
+            Main.PayDayX = x;
         }
     }
 }

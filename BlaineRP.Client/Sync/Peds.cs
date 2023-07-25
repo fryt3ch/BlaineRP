@@ -1,8 +1,10 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
+
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.NPCs;
 
 namespace BlaineRP.Client.Sync
 {
@@ -51,7 +53,7 @@ namespace BlaineRP.Client.Sync
         {
             if (ped.IsLocal)
             {
-                await Data.NPC.OnPedStreamIn(ped);
+                await NPC.OnPedStreamIn(ped);
 
                 return;
             }
@@ -75,7 +77,7 @@ namespace BlaineRP.Client.Sync
         {
             if (ped.IsLocal)
             {
-                await Data.NPC.OnPedStreamOut(ped);
+                await NPC.OnPedStreamOut(ped);
 
                 return;
             }
@@ -86,32 +88,6 @@ namespace BlaineRP.Client.Sync
                 return;
 
             data.Reset();
-        }
-
-        public class PedData
-        {
-            public Ped Ped { get; set; }
-
-            public bool IsInvincible => Ped.GetSharedData<bool>("GM", false);
-
-            public bool IsInvisible => Ped.GetSharedData<bool>("INV", false);
-
-            public PedData(Ped Ped)
-            {
-                this.Ped = Ped;
-            }
-
-            public void Reset()
-            {
-                if (Ped == null)
-                    return;
-
-                Ped.ClearTasksImmediately();
-
-                Ped.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
-
-                Ped.ResetData();
-            }
         }
 
         public Peds()

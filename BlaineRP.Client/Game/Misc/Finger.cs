@@ -1,13 +1,11 @@
-﻿using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Utils;
+﻿using System;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Misc
 {
     [Script(int.MaxValue)]
     public class Finger

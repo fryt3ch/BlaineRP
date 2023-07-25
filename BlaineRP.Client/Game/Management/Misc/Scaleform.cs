@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Management.Misc
 {
     public class Scaleform
     {

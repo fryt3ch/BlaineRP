@@ -1,17 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class GarageMenu
@@ -20,11 +21,11 @@ namespace BlaineRP.Client.CEF
 
         private static DateTime LastSent;
 
-        private static Data.Locations.GarageRoot CurrentGarageRoot { get; set; }
+        private static Client.Data.Locations.GarageRoot CurrentGarageRoot { get; set; }
 
         private static List<int> TempBinds { get; set; }
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public GarageMenu()
         {
@@ -48,7 +49,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if (aId == "enter")
                 {
@@ -69,11 +70,11 @@ namespace BlaineRP.Client.CEF
                     var approveContext = "GarageMenuSellGov}";
                     var approveTime = 5_000;
 
-                    if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                     {
-                        CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                        CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Misc.GetGovSellPrice(garage.Price))), approveTime);
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(garage.Price))), approveTime);
                     }
                     else
                     {
@@ -99,12 +100,12 @@ namespace BlaineRP.Client.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(Data.Locations.GarageRoot gRoot)
+        public static async System.Threading.Tasks.Task Show(Client.Data.Locations.GarageRoot gRoot)
         {
             if (IsActive)
                 return;
 
-            if (Misc.IsAnyCefActive(true))
+            if (Utils.Misc.IsAnyCefActive(true))
                 return;
 
             var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -123,7 +124,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuGarage, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

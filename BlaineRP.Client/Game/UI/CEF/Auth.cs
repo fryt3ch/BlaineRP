@@ -1,13 +1,16 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
-using BlaineRP.Client.Game.Management;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Auth
@@ -102,9 +105,9 @@ namespace BlaineRP.Client.CEF
 
                         data[i] = cData;
 
-                        var fractionType = (Data.Fractions.Types)Utils.Convert.ToDecimal(cData[5]);
+                        var fractionType = (FractionTypes)Utils.Convert.ToDecimal(cData[5]);
 
-                        cData[5] = Data.Fractions.Fraction.Get(fractionType)?.Name ?? Data.Fractions.Fraction.NoFractionStr;
+                        cData[5] = Fraction.Get(fractionType)?.Name ?? Fraction.NoFractionStr;
                         cData[6] = TimeSpan.FromMinutes(Utils.Convert.ToDouble(cData[6])).TotalHours.ToString("0.0");
 
                         if (cData[10] != null)
@@ -144,7 +147,7 @@ namespace BlaineRP.Client.CEF
                 if (LastTime.IsSpam(500, false, true))
                     return;
 
-                LastTime = Sync.World.ServerTime;
+                LastTime = Core.ServerTime;
 
                 var login = (string)args[0];
                 var mail = ((string)args[1]).ToLower();
@@ -158,14 +161,14 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-                if (!Misc.IsLoginValid(login))
+                if (!Utils.Misc.IsLoginValid(login))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidLogin);
 
                     return;
                 }
 
-                if (!Misc.IsMailValid(mail))
+                if (!Utils.Misc.IsMailValid(mail))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidMail);
 
@@ -179,7 +182,7 @@ namespace BlaineRP.Client.CEF
                     return;
                 }
 
-                if (!Misc.IsPasswordValid(pass1))
+                if (!Utils.Misc.IsPasswordValid(pass1))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidPassword);
 
@@ -207,7 +210,7 @@ namespace BlaineRP.Client.CEF
                 if (login.Length < 1 || pass.Length < 1)
                     return;
 
-                LastTime = Sync.World.ServerTime;
+                LastTime = Core.ServerTime;
 
                 RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass, pass == RageStorage.GetData<string>("Auth::Token"));
             });
@@ -219,7 +222,7 @@ namespace BlaineRP.Client.CEF
 
                 var charNum = (int)args[0] - 1;
 
-                LastTime = Sync.World.ServerTime;
+                LastTime = Core.ServerTime;
 
                 var res = (int)await RAGE.Events.CallRemoteProc("Auth::OnCharacterChooseAttempt", (byte)charNum);
 

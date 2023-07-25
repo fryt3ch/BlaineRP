@@ -1,14 +1,13 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Extensions.System;
-using RAGE;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.World;
+using RAGE;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class MaterialWorkbench
@@ -54,7 +53,7 @@ namespace BlaineRP.Client.CEF
                     if (TempData == null)
                         return;
 
-                    Shop.LastSent = Sync.World.ServerTime;
+                    Shop.LastSent = World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Fraction::CWBC", TempData[0], TempData[1], itemId, amount);
                 }
@@ -72,7 +71,7 @@ namespace BlaineRP.Client.CEF
 
             CurrentType = type;
 
-            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Data.Items.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; }) }, materialsAmount, false);
+            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Client.Data.Items.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Client.Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; }) }, materialsAmount, false);
 
             CEF.Cursor.Show(true, true);
 

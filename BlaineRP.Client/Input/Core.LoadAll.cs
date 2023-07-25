@@ -1,10 +1,15 @@
-﻿using BlaineRP.Client.Animations;
-using BlaineRP.Client.Animations.Enums;
-using BlaineRP.Client.CEF;
+﻿using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
+using Camera = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Camera;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
+using Interaction = BlaineRP.Client.Game.Misc.Interaction;
 
 namespace BlaineRP.Client.Input
 {
@@ -18,7 +23,7 @@ namespace BlaineRP.Client.Input
                 {
                     if (Misc.CanShowCEF(true, true))
                     {
-                        CEF.Chat.ShowInput(true);
+                        Chat.ShowInput(true);
                     }
                 },
                 true,
@@ -29,7 +34,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.HUD.Menu.Switch(true, null);
+                        HUD.Menu.Switch(true, null);
                 },
                 true,
                 true) { Description = "Меню" });
@@ -49,14 +54,14 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(false, true))
-                        Sync.Microphone.Start();
+                        Game.Management.Microphone.Core.Start();
                 },
                 true,
                 true) { Description = "Голосовой чат" });
 
             // Use Micro Stop
             Add(new ExtraBind(BindTypes.MicrophoneOff,
-                () => { Sync.Microphone.Stop(); },
+                () => { Game.Management.Microphone.Core.Stop(); },
                 false,
                 false,
                 BindTypes.MicrophoneOn));
@@ -66,7 +71,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Interaction.TryShowMenu();
+                        Game.UI.CEF.Interaction.TryShowMenu();
                 },
                 true,
                 true) { Description = "Меню взаимодействия" });
@@ -75,14 +80,14 @@ namespace BlaineRP.Client.Input
             Add(new ExtraBind(BindTypes.Phone,
                 () =>
                 {
-                    if (!Sync.Phone.Toggled)
+                    if (!Phone.Toggled)
                     {
                         if (Misc.CanShowCEF(true, true))
-                            Sync.Phone.Toggle();
+                            Phone.Toggle();
                     }
                     else
                     {
-                        Sync.Phone.Toggle();
+                        Phone.Toggle();
                     }
                 },
                 true,
@@ -93,14 +98,14 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        Sync.Finger.Start();
+                        Finger.Start();
                 },
                 true,
                 true) { Description = "Показать пальцем" });
 
             // Finger Point Stop
             Add(new ExtraBind(BindTypes.FingerPointStop,
-                () => { Sync.Finger.Stop(); },
+                () => { Finger.Stop(); },
                 false,
                 false,
                 BindTypes.FingerPointStart));
@@ -110,7 +115,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        Sync.Crouch.Toggle();
+                        Crouch.Toggle();
                 },
                 true,
                 true) { Description = "Присесть" });
@@ -120,7 +125,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        Sync.Crawl.Toggle();
+                        Crawl.Toggle();
                 },
                 true,
                 true) { Description = "Ползти" });
@@ -242,7 +247,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(false, true))
-                        Sync.Microphone.Reload();
+                        Game.Management.Microphone.Core.Reload();
                 },
                 true,
                 true) { Description = "Перезапустить голосовой чат" });
@@ -252,7 +257,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.Show(CEF.Inventory.Types.Inventory);
+                        Inventory.Show(Inventory.Types.Inventory);
                 },
                 true,
                 true) { Description = "Инвентарь" });
@@ -263,10 +268,10 @@ namespace BlaineRP.Client.Input
                 {
                     if (Misc.CanShowCEF(true, true))
                     {
-                        if (Sync.World.ClosestItemOnGround == null)
+                        if (Game.World.Core.ClosestItemOnGround == null)
                             return;
 
-                        Sync.World.ClosestItemOnGround.TakeItem();
+                        Game.World.Core.ClosestItemOnGround.TakeItem();
                     }
                 },
                 true,
@@ -277,7 +282,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        Sync.WeaponSystem.ReloadWeapon();
+                        Game.Management.Weapons.Core.ReloadWeapon();
                 },
                 true,
                 true) { Description = "Перезарядить оружие" });
@@ -287,7 +292,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        Script.PlayFastSync(FastTypes.Whistle);
+                        Game.Animations.Core.PlayFastSync(FastTypes.Whistle);
                 },
                 true,
                 true) { Description = "Свистеть" });
@@ -306,7 +311,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Animations.Open();
+                        Animations.Open();
                 },
                 true,
                 true) { Description = "Анимации" });
@@ -315,7 +320,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Animations.Cancel();
+                        Animations.Cancel();
                 },
                 true,
                 true) { Description = "Отмена анимации" });
@@ -324,7 +329,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Menu.Show(CEF.Menu.SectionTypes.Help);
+                        Menu.Show(Menu.SectionTypes.Help);
                 },
                 true,
                 true) { Description = "Помощь" });
@@ -363,7 +368,7 @@ namespace BlaineRP.Client.Input
                 false) { Description = "Фонарик (вкл/выкл)" }); // deprecated
 
             Add(new ExtraBind(BindTypes.TakeScreenshot,
-                () => { CEF.Phone.Apps.Camera.SavePicture(false, false, true); },
+                () => { Camera.SavePicture(false, false, true); },
                 true,
                 true) { Description = "Сделать скриншот" });
 
@@ -412,7 +417,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "weapon", 0);
+                        Inventory.BindedAction(5, "weapon", 0);
                 },
                 true,
                 true,
@@ -423,7 +428,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "weapon", 1);
+                        Inventory.BindedAction(5, "weapon", 1);
                 },
                 true,
                 true,
@@ -434,7 +439,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "weapon", 2);
+                        Inventory.BindedAction(5, "weapon", 2);
                 },
                 true,
                 true,
@@ -445,7 +450,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 0);
+                        Inventory.BindedAction(5, "pockets", 0);
                 },
                 true,
                 true,
@@ -456,7 +461,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 1);
+                        Inventory.BindedAction(5, "pockets", 1);
                 },
                 true,
                 true,
@@ -467,7 +472,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 2);
+                        Inventory.BindedAction(5, "pockets", 2);
                 },
                 true,
                 true,
@@ -478,7 +483,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 3);
+                        Inventory.BindedAction(5, "pockets", 3);
                 },
                 true,
                 true,
@@ -489,7 +494,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 4);
+                        Inventory.BindedAction(5, "pockets", 4);
                 },
                 true,
                 true,
@@ -500,7 +505,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 5);
+                        Inventory.BindedAction(5, "pockets", 5);
                 },
                 true,
                 true,
@@ -511,7 +516,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 6);
+                        Inventory.BindedAction(5, "pockets", 6);
                 },
                 true,
                 true,
@@ -522,7 +527,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 7);
+                        Inventory.BindedAction(5, "pockets", 7);
                 },
                 true,
                 true,
@@ -533,7 +538,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 8);
+                        Inventory.BindedAction(5, "pockets", 8);
                 },
                 true,
                 true,
@@ -544,7 +549,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 9);
+                        Inventory.BindedAction(5, "pockets", 9);
                 },
                 true,
                 true,
@@ -555,7 +560,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 10);
+                        Inventory.BindedAction(5, "pockets", 10);
                 },
                 true,
                 true,
@@ -566,7 +571,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 11);
+                        Inventory.BindedAction(5, "pockets", 11);
                 },
                 true,
                 true,
@@ -577,7 +582,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 12);
+                        Inventory.BindedAction(5, "pockets", 12);
                 },
                 true,
                 true,
@@ -588,7 +593,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 13);
+                        Inventory.BindedAction(5, "pockets", 13);
                 },
                 true,
                 true,
@@ -599,7 +604,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 14);
+                        Inventory.BindedAction(5, "pockets", 14);
                 },
                 true,
                 true,
@@ -610,7 +615,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 15);
+                        Inventory.BindedAction(5, "pockets", 15);
                 },
                 true,
                 true,
@@ -621,7 +626,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 16);
+                        Inventory.BindedAction(5, "pockets", 16);
                 },
                 true,
                 true,
@@ -632,7 +637,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 17);
+                        Inventory.BindedAction(5, "pockets", 17);
                 },
                 true,
                 true,
@@ -643,7 +648,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 18);
+                        Inventory.BindedAction(5, "pockets", 18);
                 },
                 true,
                 true,
@@ -654,7 +659,7 @@ namespace BlaineRP.Client.Input
                 () =>
                 {
                     if (Misc.CanShowCEF(true, true))
-                        CEF.Inventory.BindedAction(5, "pockets", 19);
+                        Inventory.BindedAction(5, "pockets", 19);
                 },
                 true,
                 true,

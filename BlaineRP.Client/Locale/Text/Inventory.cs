@@ -23,14 +23,6 @@ namespace BlaineRP.Client
 
                     public static string SetupPlaceableItem = "Поставить на землю";
 
-                    public static Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string> WeaponComponentsTakeOffStrings = new Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string>()
-                    {
-                        { Sync.WeaponSystem.Weapon.ComponentTypes.Suppressor, "Снять глушитель" },
-                        { Sync.WeaponSystem.Weapon.ComponentTypes.Grip, "Снять рукоятку" },
-                        { Sync.WeaponSystem.Weapon.ComponentTypes.Scope, "Снять прицел" },
-                        { Sync.WeaponSystem.Weapon.ComponentTypes.Flashlight, "Снять фонарик" },
-                    };
-
                     public static string Drop = "Выбросить";
 
                     public static string Reset = "Переключить";
@@ -58,25 +50,25 @@ namespace BlaineRP.Client
 
             public static class Containers
             {
-                public static Dictionary<CEF.Inventory.ContainerTypes, string> Names = new Dictionary<CEF.Inventory.ContainerTypes, string>()
+                public static Dictionary<Game.UI.CEF.Inventory.ContainerTypes, string> Names = new Dictionary<Game.UI.CEF.Inventory.ContainerTypes, string>()
                 {
-                    { CEF.Inventory.ContainerTypes.None, "null" },
-                    { CEF.Inventory.ContainerTypes.Trunk, "Багажник" },
-                    { CEF.Inventory.ContainerTypes.Locker, "Шкаф" },
-                    { CEF.Inventory.ContainerTypes.Storage, "Склад" },
-                    { CEF.Inventory.ContainerTypes.Crate, "Ящик" },
-                    { CEF.Inventory.ContainerTypes.Fridge, "Холодильник" },
-                    { CEF.Inventory.ContainerTypes.Wardrobe, "Гардероб" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.None, "null" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Trunk, "Багажник" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Locker, "Шкаф" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Storage, "Склад" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Crate, "Ящик" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Fridge, "Холодильник" },
+                    { Game.UI.CEF.Inventory.ContainerTypes.Wardrobe, "Гардероб" },
                 };
 
-                public static Dictionary<CEF.Inventory.WorkbenchTypes, (string Name, string CraftBtnText)> WorkbenchNames = new Dictionary<CEF.Inventory.WorkbenchTypes, (string, string)>()
+                public static Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string Name, string CraftBtnText)> WorkbenchNames = new Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string, string)>()
                 {
-                    { CEF.Inventory.WorkbenchTypes.None, ("null", "null") },
+                    { Game.UI.CEF.Inventory.WorkbenchTypes.None, ("null", "null") },
 
-                    { CEF.Inventory.WorkbenchTypes.CraftTable, ("Верстак", "Создать") },
-                    { CEF.Inventory.WorkbenchTypes.Grill, ("Гриль", "Приготовить") },
-                    { CEF.Inventory.WorkbenchTypes.GasStove, ("Газовая плита", "Приготовить") },
-                    { CEF.Inventory.WorkbenchTypes.KitchenSet, ("Кухонный гарнитур", "Приготовить") },
+                    { Game.UI.CEF.Inventory.WorkbenchTypes.CraftTable, ("Верстак", "Создать") },
+                    { Game.UI.CEF.Inventory.WorkbenchTypes.Grill, ("Гриль", "Приготовить") },
+                    { Game.UI.CEF.Inventory.WorkbenchTypes.GasStove, ("Газовая плита", "Приготовить") },
+                    { Game.UI.CEF.Inventory.WorkbenchTypes.KitchenSet, ("Кухонный гарнитур", "Приготовить") },
                 };
             }
         }

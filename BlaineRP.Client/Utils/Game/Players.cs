@@ -1,5 +1,7 @@
-﻿using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Utils.Game
@@ -39,7 +41,7 @@ namespace BlaineRP.Client.Utils.Game
 
             if (fractionToo)
             {
-                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != Data.Fractions.Types.None;
+                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != FractionTypes.None;
             }
             else
             {

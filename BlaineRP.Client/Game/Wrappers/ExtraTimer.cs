@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Game.World;
 
-namespace BlaineRP.Client.Additional
+namespace BlaineRP.Client.Game.Wrappers
 {
     public class ExtraTimer
     {
@@ -24,7 +25,7 @@ namespace BlaineRP.Client.Additional
 
                 await RAGE.Game.Invoker.WaitAsync(0);
 
-                var curTime = Sync.World.ServerTime;
+                var curTime = Core.ServerTime;
 
                 if (lastTime == curTime)
                 {

@@ -1,13 +1,14 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Audio
@@ -141,7 +142,7 @@ namespace BlaineRP.Client.CEF
                 if (StartTime == DateTime.MinValue)
                     return float.MinValue;
 
-                return (float)Sync.World.ServerTime.Subtract(StartTime).TotalSeconds;
+                return (float)Core.ServerTime.Subtract(StartTime).TotalSeconds;
             }
         }
 
@@ -247,7 +248,7 @@ namespace BlaineRP.Client.CEF
             {
                 var userVolume = Settings.User.Audio.SoundVolume / 100f;
 
-                if (!Misc.IsGameWindowFocused && Settings.User.Native.Audio_MuteAudioOnFocusLoss)
+                if (!Utils.Misc.IsGameWindowFocused && Settings.User.Native.Audio_MuteAudioOnFocusLoss)
                     userVolume = 0f;
 
                 for (int i = 0; i < AllAudios.Count; i++)
@@ -381,7 +382,7 @@ namespace BlaineRP.Client.CEF
 
             var audioData = new Data("AUTH_AUDIO_PL", 0.5f);
 
-            audioData.Play(authAudios[Misc.Random.Next(0, authAudios.Count)], audioData.BaseVolume, false, 0);
+            audioData.Play(authAudios[Utils.Misc.Random.Next(0, authAudios.Count)], audioData.BaseVolume, false, 0);
         }
 
         public static void StopAuthPlaylist()

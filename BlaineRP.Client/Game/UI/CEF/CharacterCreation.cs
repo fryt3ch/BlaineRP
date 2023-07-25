@@ -1,14 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Data.Customization;
+using BlaineRP.Client.Game.Management.Camera;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Input;
+using Core = BlaineRP.Client.Game.Management.Camera.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class CharacterCreation
@@ -17,16 +21,16 @@ namespace BlaineRP.Client.CEF
 
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.CharacterCreation); }
 
-        private static Additional.Camera.StateTypes[] AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots, Additional.Camera.StateTypes.WholePed };
+        private static Core.StateTypes[] AllowedCameraStates = new Core.StateTypes[] { Core.StateTypes.Head, Core.StateTypes.Body, Core.StateTypes.Legs, Core.StateTypes.Foots, Core.StateTypes.WholePed };
 
         private static string[] _maleNames => "Dario,Deante,Alton,Estevan,Kody,Louis,Joey,Braiden,Kennedy,Sabastian,Tony,Briar,Osvaldo,Corbin,Winston,Shamar,Allan,Layton,Jaleel,Rogelio,Bronson,Tracy,Jaylan,Derek,Corey,Domenic,Jevon,Nathen,Kane,Floyd,Drake,Kristofer,Auston,Ramon,Gordon,Patrick,Ethen,Tyriq,Dashaun,Reginald,Mikael,Tristin,Reilly,Jase,Christopher,Braeden,Cain,Ronaldo,Norman,Bradly,Conor,Kole,Ryan,Mustafa,Martin,Tyson,Jalil,Lloyd,Treyvon,Jordon,David,Morgan,Rowan,Lincoln,Abdullah,Jonathan,Dejon,Mohammad,Trever,Cecil,Alvaro,Deonte,Mauricio,Leslie,Daquan,Tommy,Garrison,Khalil,Eli,Leonard,Brycen,Ladarius,Bailey,Armando,Cannon,Korey,Geoffrey,Mikel,Kasey,Enrique,Darryl,Tyrese,Esteban,Jonathon,Zackary,Kavon,Desmond,Rodney,Desean,Marquis,Spencer,Malachi,Rocco,Brooks,Gerard,Clarence,Miguelangel,Dequan,Micah,Jabari,Andres,Tahj,Rahul,Jayson,Lamar,Caleb,Isidro,Lucas,Ismael,Marcos,Alden,Maxim,Albert,Billy,Bryant,Jan,Draven,Gannon,Korbin,Donald,Stefan,Syed,Aiden,Troy,Grant,Aman,Rashad,Alek,Deion,Trinity,Edgardo,Rickey,Angelo,Rafael,Javon,William,Roman,Coy,Arturo,Guillermo".Split(',');
         private static string[] _femaleNames => "Makaela,Adriana,Aniya,Maryann,Nayeli,Alex,Janiya,Camila,Paulina,Zaria,Samira,Audrey,Yasmin,Pilar,Veronica,Tristin,Iris,Angie,Laken,Leyla,Maia,Shay,Tatyana,Jaliyah,Shelbi,Corrine,Alanis,Miracle,Aiyana,Tayler,Susannah,Eliza,Helen,Devyn,Nicolette,Kassidy,Griselda,Janessa,Joy,Cayla,Rubi,Hillary,Chassidy,Liza,Lyndsey,Dajah,Savana,Danielle,Lilliana,Imari,Emerald,Tiffani,Tyra,Kaylyn,Jasmyne,Bobbi,Ann,Infant,Robin,Nathalie,Gwendolyn,Allie,Hazel,Jailyn,Darby,Anabel,Justine,Gina,Susanna,Carina,Katlyn,Chaya,Haven,Mindy,Lily,Jennifer,Lilian,Macie,Klarissa,Gia,Whitney,Izabella,Tionna,Kayley,Camille,Misty,Karlee,Brooklyn,Kyndall,Kelsi,Charity,Keri,Susana,Karla,Jewel,Kristal,Karissa,Kiana,Gloria,Danica,Francesca,Elaina,Jayden,Jacinda,Nicolle,Cathy,Jessika,Jada,Lucinda,Tyasia,Daria,Meg,Desire,Halley,Beth,Jazmyn,Ayesha,Kristy,Flor,Nyla,Fatima,Kalie,Sandra,Evelin,Georgina,Alaina,Notnamed,Terri,Sasha,Carrie,Melanie,Keyara,Galilea,Lucero,Silvia,Yesica,Sadie,Shyanne,Breanne,Sheyla,Shreya,Rhonda,Colette,Leila,Katharine,Jala,Cynthia,Jesse,Nikole,Linnea".Split(',');
         private static string[] _surnames => "Zimmer,Cable,Edwards,Neumann,Royer,Beers,Marr,Daigle,Turner,Baldwin,Poore,Roldan,Hadley,Benton,Wetzel,Good,Walsh,Carlson,Low,Mcghee,Corcoran,Dozier,Krueger,Jaeger,Reyes,Stroud,Ricks,Gallegos,Bartels,Ridgeway,Gill,Estep,Graham,Burks,Nance,Norris,Patten,Holmes,Locke,Mancuso,Huerta,Cordell,Schiller,Oh,Snyder,Staples,Morgan,Hand,Newberry,Gallant,Turpin,Bermudez,Mallory,Garber,Robles,Spears,Corbin,Maxwell,Mott,Mulligan,Lowry,Whitworth,Fulmer,Heredia,Vang,Dixon,Alonzo,Muse,Watts,Hennessy,Savage,Borden,Sam,Loy,Mojica,Singletary,Noble,Wolff,Evers,Guillen,Muir,Mason,Correa,Emerson,Reedy,Braswell,Zhao,Hinds,Shipp,Ruffin,Land,Jacobson,Stamper,Solorzano,Ly,Garza,Canada,Colburn,High,Light,Woodruff,Jacoby,Schwab,Kenny,Lindsey,Ngo,Cramer,Chin,Cepeda,Ochoa,Mears,Victor,Ferguson,Kirk,Felder,Quigley,Price,Browne,Atkinson,Mancini,Robertson,Alley,Israel,Polanco,Lane,Heinrich,Chow,Herr,Morris,Llamas,Woods,Ceja,Davenport,Ware,Ryder,Swain,Sepulveda,Hastings,Flowers,Fair,Decker,Winslow,Jewell,Ortega,Lauer,Root,Spaulding,Ragland,Embry,Bateman".Split(',');
 
-        private static Data.Customization.HeadBlend _headBlend;
-        private static Dictionary<int, Data.Customization.HeadOverlay> _headOverlays;
+        private static Data.Customization.Customization.HeadBlend _headBlend;
+        private static Dictionary<int, Data.Customization.Customization.HeadOverlay> _headOverlays;
         private static float[] _faceFeatures;
-        private static Data.Customization.HairStyle _hairStyle;
+        private static Data.Customization.Customization.HairStyle _hairStyle;
         private static byte _eyeColor;
 
         private static bool _sex;
@@ -82,14 +86,14 @@ namespace BlaineRP.Client.CEF
                 var surname = (string)args[1];
                 var age = (string)args[2];
 
-                if (!Misc.IsNameValid(name))
+                if (!Utils.Misc.IsNameValid(name))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongName);
 
                     return;
                 }
 
-                if (!Misc.IsNameValid(surname))
+                if (!Utils.Misc.IsNameValid(surname))
                 {
                     CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongSurname);
 
@@ -108,14 +112,14 @@ namespace BlaineRP.Client.CEF
                 var approveContext = $"CharacterCreation_{name}_{surname}_{age}";
                 var approveTime = 5_000;
 
-                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                 {
                     if (LastSent.IsSpam(1_500, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
-                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                    CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
                     CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToCreate, approveTime);
                 }
@@ -134,14 +138,14 @@ namespace BlaineRP.Client.CEF
                 var approveContext = "CharacterCreationEXIT";
                 var approveTime = 5_000;
 
-                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                 {
                     if (LastSent.IsSpam(1_000, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
-                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                    CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
                     CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToExit, approveTime);
                 }
@@ -166,7 +170,7 @@ namespace BlaineRP.Client.CEF
                     return;
 
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 var res = (int)await Events.CallRemoteProc("CharacterCreation::SetSex", _sex);
 
@@ -183,10 +187,10 @@ namespace BlaineRP.Client.CEF
 
                     Events.CallRemote("CharacterCreation::SetSex", _sex);
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     SetDefaultCustomization();
-                    Data.Clothes.UndressAll();
+                    Clothes.UndressAll();
 
                     _clothes[0] = null;
                     _clothes[1] = null;
@@ -200,7 +204,7 @@ namespace BlaineRP.Client.CEF
                 if (!IsActive)
                     return;
 
-                var r = Misc.Random;
+                var r = Utils.Misc.Random;
 
                 Browser.Window.ExecuteJs("ChCreate.nameSet", _sex ? _maleNames[r.Next(0, _maleNames.Length - 1)] : _femaleNames[r.Next(0, _maleNames.Length - 1)], _surnames[r.Next(0, _surnames.Length - 1)]);
             });
@@ -304,7 +308,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("CharacterCreation::Update::Hair", (object[] args) =>
             {
                 int id = (int)args[0];
-                int value = Data.Customization.GetHair(_sex, id);
+                int value = Data.Customization.Customization.GetHair(_sex, id);
 
                 if (_hairStyle.Id == id)
                     return;
@@ -314,7 +318,7 @@ namespace BlaineRP.Client.CEF
                 _hairStyle.Id = id;
 
                 if (IsActive)
-                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.GetDefaultHairOverlayId(_sex, (int)args[0]));
+                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.Customization.GetDefaultHairOverlayId(_sex, (int)args[0]));
             });
 
             Events.Add("CharacterCreation::Update::HairOverlay", (object[] args) =>
@@ -326,7 +330,7 @@ namespace BlaineRP.Client.CEF
 
                 _hairStyle.Overlay = value;
 
-                var overlay = Data.Customization.GetHairOverlay(_sex, value);
+                var overlay = Data.Customization.Customization.GetHairOverlay(_sex, value);
 
                 Player.LocalPlayer.ClearFacialDecorations();
 
@@ -351,7 +355,7 @@ namespace BlaineRP.Client.CEF
 
                 _hairStyle.Color2 = value;
 
-                if (Data.Customization.GetHairOverlay(_sex, _hairStyle.Overlay) is Data.Customization.HairOverlay overlay)
+                if (Data.Customization.Customization.GetHairOverlay(_sex, _hairStyle.Overlay) is Data.Customization.Customization.HairOverlay overlay)
                 {
                     Player.LocalPlayer.ClearFacialDecorations();
 
@@ -386,31 +390,31 @@ namespace BlaineRP.Client.CEF
                 {
                     if (type == 1)
                     {
-                        Data.Clothes.Unwear(typeof(Data.Items.Under));
-                        Data.Clothes.Unwear(typeof(Data.Items.Top));
+                        Clothes.Unwear(typeof(Client.Data.Items.Under));
+                        Clothes.Unwear(typeof(Client.Data.Items.Top));
                     }
 
                     var clothes = _defaultClothes[_sex][type][value];
 
                     _clothes[type] = clothes;
 
-                    Data.Clothes.Wear(clothes, 0);
+                    Clothes.Wear(clothes, 0);
                 }
                 else
                 {
                     _clothes[type] = null;
 
                     if (type == 0)
-                        Data.Clothes.Unwear(typeof(Data.Items.Hat));
+                        Clothes.Unwear(typeof(Client.Data.Items.Hat));
                     else if (type == 1)
                     {
-                        Data.Clothes.Unwear(typeof(Data.Items.Under));
-                        Data.Clothes.Unwear(typeof(Data.Items.Top));
+                        Clothes.Unwear(typeof(Client.Data.Items.Under));
+                        Clothes.Unwear(typeof(Client.Data.Items.Top));
                     }
                     else if (type == 2)
-                        Data.Clothes.Unwear(typeof(Data.Items.Pants));
+                        Clothes.Unwear(typeof(Client.Data.Items.Pants));
                     else
-                        Data.Clothes.Unwear(typeof(Data.Items.Shoes));
+                        Clothes.Unwear(typeof(Client.Data.Items.Shoes));
                 }
             });
             #endregion
@@ -439,7 +443,7 @@ namespace BlaineRP.Client.CEF
         public static async System.Threading.Tasks.Task Close()
         {
             foreach (var bind in _tempBinds)
-                Core.Unbind(bind);
+                Input.Core.Unbind(bind);
 
             _tempBinds = null;
 
@@ -460,7 +464,7 @@ namespace BlaineRP.Client.CEF
 
             Main.Render -= ClearTasksRender;
 
-            Additional.Camera.Disable();
+            Core.Disable();
 
             Player.LocalPlayer.ResetData("TempClothes::Under");
             Player.LocalPlayer.ResetData("TempClothes::Hat");
@@ -472,7 +476,7 @@ namespace BlaineRP.Client.CEF
         {
             _currentCameraStateNum = 0;
 
-            LastSent = Sync.World.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             _tempBinds = new List<int>();
 
@@ -486,17 +490,17 @@ namespace BlaineRP.Client.CEF
 
             _sex = true;
 
-            _headBlend = new Data.Customization.HeadBlend();
-            _hairStyle = new Data.Customization.HairStyle();
-            _headOverlays = new Dictionary<int, Data.Customization.HeadOverlay>();
+            _headBlend = new Data.Customization.Customization.HeadBlend();
+            _hairStyle = new Data.Customization.Customization.HairStyle();
+            _headOverlays = new Dictionary<int, Data.Customization.Customization.HeadOverlay>();
 
             for (int i = 0; i < 13; i++)
-                _headOverlays.Add(i, new Data.Customization.HeadOverlay());
+                _headOverlays.Add(i, new Data.Customization.Customization.HeadOverlay());
 
             _faceFeatures = new float[20];
 
             SetDefaultCustomization();
-            Data.Clothes.UndressAll();
+            Clothes.UndressAll();
 
             _cursorTask = null;
 
@@ -509,9 +513,9 @@ namespace BlaineRP.Client.CEF
 
             await Show();
 
-            Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+            Core.Enable(Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            _tempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
                 if (_cursorTask != null)
                     return;
@@ -522,7 +526,7 @@ namespace BlaineRP.Client.CEF
                 _cursorTask.Run();
             }));
 
-            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            _tempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
                 if (_cursorTask == null)
                     return;
@@ -532,7 +536,7 @@ namespace BlaineRP.Client.CEF
                 _cursorTask = null;
             }));
 
-            _tempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            _tempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
                 ChangeView(++_currentCameraStateNum);
             }));
@@ -545,7 +549,7 @@ namespace BlaineRP.Client.CEF
 
             Player.LocalPlayer.SetHeading(_defaultHeading);
 
-            Additional.Camera.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+            Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
 
             _currentCameraStateNum = camStateNum;
         }
@@ -575,11 +579,11 @@ namespace BlaineRP.Client.CEF
 
             if (RAGE.Game.Pad.GetDisabledControlNormal(0, 241) == 1f)
             {
-                Additional.Camera.Fov -= 1;
+                Core.Fov -= 1;
             }
             else if (RAGE.Game.Pad.GetDisabledControlNormal(0, 242) == 1f)
             {
-                Additional.Camera.Fov += 1;
+                Core.Fov += 1;
             }
 
             if (newHeading > 360f)

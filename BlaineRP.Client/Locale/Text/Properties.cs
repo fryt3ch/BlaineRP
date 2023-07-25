@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Data;
+using BlaineRP.Client.Game.Data.Vehicles;
 
 namespace BlaineRP.Client
 {
@@ -6,14 +8,14 @@ namespace BlaineRP.Client
     {
         public static class Property
         {
-            public static Dictionary<Data.Vehicles.Vehicle.Types, string> VehicleTypesNames = new Dictionary<Data.Vehicles.Vehicle.Types, string>()
+            public static Dictionary<Types, string> VehicleTypesNames = new Dictionary<Types, string>()
             {
-                { Data.Vehicles.Vehicle.Types.Car, "Автомобиль" },
-                { Data.Vehicles.Vehicle.Types.Boat, "Лодка" },
-                { Data.Vehicles.Vehicle.Types.Motorcycle, "Мотоцикл" },
-                { Data.Vehicles.Vehicle.Types.Cycle, "Велосипед" },
-                { Data.Vehicles.Vehicle.Types.Helicopter, "Вертолет" },
-                { Data.Vehicles.Vehicle.Types.Plane, "Самолет" },
+                { Types.Car, "Автомобиль" },
+                { Types.Boat, "Лодка" },
+                { Types.Motorcycle, "Мотоцикл" },
+                { Types.Cycle, "Велосипед" },
+                { Types.Helicopter, "Вертолет" },
+                { Types.Plane, "Самолет" },
             };
 
             public static string VehicleTradeInfoStr = "{0} | {1} #{2}";
@@ -23,9 +25,9 @@ namespace BlaineRP.Client
             public static string GarageTradeInfoStr = "{0}, #{1}";
             public static string BusinessTradeInfoStr = "{0} #{1}";
 
-            public static Dictionary<Data.Jobs.Types, string> JobNames = new Dictionary<Data.Jobs.Types, string>()
+            public static Dictionary<Game.Jobs.Enums.JobTypes, string> JobNames = new Dictionary<Game.Jobs.Enums.JobTypes, string>()
             {
-                { Data.Jobs.Types.Trucker, "Доставка грузов" },
+                { Game.Jobs.Enums.JobTypes.Trucker, "Доставка грузов" },
             };
 
             public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
@@ -62,19 +64,19 @@ namespace BlaineRP.Client
                 { Data.Locations.Business.Types.Farm, "Ферма" },
             };
 
-            public static Dictionary<CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<CEF.Shop.FurnitureSubTypes, string>()
+            public static Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string>()
             {
-                { CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
-                { CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
-                { CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
-                { CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
-                { CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
-                { CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
-                { CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
-                { CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
-                { CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
-                { CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
-                { CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
+                { Game.UI.CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
             };
 
             public static string NoOwner = "Государство";

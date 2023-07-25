@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Fractions.Enums;
 
-namespace BlaineRP.Client.Data.Fractions
+namespace BlaineRP.Client.Game.Fractions.Types
 {
     public class Mafia : Fraction
     {
-        public Mafia(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string CreationWorkbenchPricesJs, uint MetaFlags) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs), MetaFlags)
+        public Mafia(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
 
         }

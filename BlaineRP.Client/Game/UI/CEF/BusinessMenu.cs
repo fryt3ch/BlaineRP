@@ -1,16 +1,18 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Ui;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class BusinessMenu
@@ -24,7 +26,7 @@ namespace BlaineRP.Client.CEF
         private const decimal MAX_MARGIN = 150m;
         private const decimal MAX_MARGIN_FARM = 100m;
 
-        private static Additional.ExtraColshape CloseColshape { get; set; }
+        private static ExtraColshape CloseColshape { get; set; }
 
         public BusinessMenu()
         {
@@ -34,7 +36,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuBiz::Collect", async (args) =>
             {
-                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+                var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
@@ -49,7 +51,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 var newAmountObj = await Events.CallRemoteProc("Business::TCash", biz.Id, amount);
 
@@ -66,7 +68,7 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuBiz::SellToGov", async (args) =>
             {
-                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+                var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
@@ -74,16 +76,16 @@ namespace BlaineRP.Client.CEF
                 var approveContext = "MenuBizSellToGov";
                 var approveTime = 5_000;
 
-                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
                 {
                     if (LastSent.IsSpam(1_500, false, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
-                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+                    CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Misc.GetGovSellPrice(biz.Price))), approveTime);
+                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(biz.Price))), approveTime);
                 }
                 else
                 {
@@ -100,20 +102,20 @@ namespace BlaineRP.Client.CEF
 
             Events.Add("MenuBiz::ExtraCharge", async (args) =>
             {
-                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+                var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
 
                 var margin = decimal.Parse(args[0].ToString());
 
-                if (!margin.IsNumberValid(0, biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN, out margin, true))
+                if (!margin.IsNumberValid(0, biz.Type == Client.Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN, out margin, true))
                     return;
 
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Business::SSMA", biz.Id, (ushort)margin))
                 {
@@ -125,7 +127,7 @@ namespace BlaineRP.Client.CEF
             {
                 var state = (bool)args[0];
 
-                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+                var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
@@ -133,7 +135,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                LastSent = Sync.World.ServerTime;
+                LastSent = World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Business::SSIS", biz.Id, state))
                 {
@@ -151,7 +153,7 @@ namespace BlaineRP.Client.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+                var biz = Player.LocalPlayer.GetData<Client.Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
@@ -172,7 +174,7 @@ namespace BlaineRP.Client.CEF
                     if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                         return;
 
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Business::NDO", biz.Id, amount);
 
@@ -188,7 +190,7 @@ namespace BlaineRP.Client.CEF
                 }
                 else if (id == "cancel")
                 {
-                    LastSent = Sync.World.ServerTime;
+                    LastSent = World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Business::CAO", biz.Id);
 
@@ -207,7 +209,7 @@ namespace BlaineRP.Client.CEF
             Events.Add("MenuBiz::Close", (args) => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task Show(Data.Locations.Business biz)
+        public static async System.Threading.Tasks.Task Show(Client.Data.Locations.Business biz)
         {
             if (IsActive)
                 return;
@@ -226,7 +228,7 @@ namespace BlaineRP.Client.CEF
 
             var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, System.Math.Round(biz.Tax * 100, 0).ToString(), Utils.Convert.ToUInt64(res["C"]), Utils.Convert.ToUInt64(res["B"]), Utils.Convert.ToUInt32(res["M"]), materialsBuyPrice, Utils.Convert.ToUInt32(res["MS"]) };
 
-            var manage = new List<object>() { new object[] { System.Math.Round((Utils.Convert.ToDecimal(res["MA"]) - 1m) * 100, 0), biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], System.Math.Round(Utils.Convert.ToDecimal(res["IT"]) * 100, 0), };
+            var manage = new List<object>() { new object[] { System.Math.Round((Utils.Convert.ToDecimal(res["MA"]) - 1m) * 100, 0), biz.Type == Client.Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Client.Data.Locations.Business.Types.Farm, (bool)res["IS"], System.Math.Round(Utils.Convert.ToDecimal(res["IT"]) * 100, 0), };
 
             var delState = ((string)res["DS"]).Split('_');
 
@@ -241,7 +243,7 @@ namespace BlaineRP.Client.CEF
                 manage.AddRange(new object[] { false, materialsBuyPrice, deliveryPrice });
             }
 
-            var currentDate = Sync.World.ServerTime;
+            var currentDate = World.Core.ServerTime;
 
             var dates = new List<object>();
 
@@ -252,7 +254,7 @@ namespace BlaineRP.Client.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBusiness, true, true);
 
-            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Misc.RedColor, uint.MaxValue, null)
+            CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
                 {

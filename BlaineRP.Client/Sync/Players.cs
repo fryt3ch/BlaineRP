@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Additional;
-using BlaineRP.Client.Animations;
-using BlaineRP.Client.Animations.Enums;
-using BlaineRP.Client.CEF;
-using BlaineRP.Client.CEF.Phone.Apps;
-using BlaineRP.Client.CEF.Phone.Enums;
 using BlaineRP.Client.Data;
-using BlaineRP.Client.Data.Fractions;
 using BlaineRP.Client.Data.Minigames;
 using BlaineRP.Client.Data.Minigames.Casino;
-using BlaineRP.Client.EntitiesData;
-using BlaineRP.Client.EntitiesData.Components;
-using BlaineRP.Client.EntitiesData.Enums;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Data.Customization;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Fractions;
+using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Wrappers;
+using BlaineRP.Client.Game.Wrappers.Colshapes;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Language;
 using BlaineRP.Client.Quests;
@@ -25,24 +27,30 @@ using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Settings.App;
 using BlaineRP.Client.Settings.User;
 using BlaineRP.Client.Utils;
+
 using Newtonsoft.Json.Linq;
+
 using RAGE;
 using RAGE.Elements;
 using RAGE.Game;
 using RAGE.Ui;
 using RAGE.Util;
-using Bank = BlaineRP.Client.CEF.Bank;
-using Chat = BlaineRP.Client.CEF.Chat;
+
+using Bank = BlaineRP.Client.Game.UI.CEF.Bank;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 using Convert = BlaineRP.Client.Utils.Convert;
-using Discord = BlaineRP.Client.Additional.Discord;
+using Core = BlaineRP.Client.Game.Management.Attachments.Core;
+using Discord = BlaineRP.Client.Game.Management.Misc.Discord;
+using Interaction = BlaineRP.Client.Game.Misc.Interaction;
 using Math = System.Math;
 using Misc = BlaineRP.Client.Utils.Game.Misc;
-using NPC = BlaineRP.Client.Data.NPC;
+using NPC = BlaineRP.Client.Game.NPCs.NPC;
 using Player = RAGE.Elements.Player;
-using Scaleform = BlaineRP.Client.Additional.Scaleform;
+using Scaleform = BlaineRP.Client.Game.Management.Misc.Scaleform;
 using Streaming = BlaineRP.Client.Utils.Game.Streaming;
 using Task = System.Threading.Tasks.Task;
-using VehicleData = BlaineRP.Client.EntitiesData.VehicleData;
+using Vehicle = BlaineRP.Client.Game.Data.Vehicles.Vehicle;
+using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
 namespace BlaineRP.Client.Sync
 {
@@ -135,19 +143,19 @@ namespace BlaineRP.Client.Sync
             InvokeHandler("WCD", data, data.WeaponComponents);
 
             if (data.VoiceRange > 0f)
-                Microphone.AddTalker(player);
+                Game.Management.Microphone.Core.AddTalker(player);
 
             if (data.CrouchOn)
                 Crouch.On(true, player);
 
             var phoneStateType = data.PhoneStateType;
 
-            if (phoneStateType != Phone.PhoneStateTypes.Off)
-                Phone.SetState(player, phoneStateType);
+            if (phoneStateType != Game.Misc.Phone.PhoneStateTypes.Off)
+                Game.Misc.Phone.SetState(player, phoneStateType);
 
-            if (data.GeneralAnim != GeneralTypes.None)
+            if (data.GeneralAnim != Game.Animations.Enums.GeneralTypes.None)
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim);
-            else if (data.OtherAnim != OtherTypes.None)
+            else if (data.OtherAnim != Game.Animations.Enums.OtherTypes.None)
                 InvokeHandler("Anim::Other", data, (int)data.OtherAnim);
         }
 
@@ -176,9 +184,9 @@ namespace BlaineRP.Client.Sync
                         if (pData == null)
                             continue;
 
-                        if (pData.ActualAnimation is Animation anim)
+                        if (pData.ActualAnimation is Game.Animations.Animation anim)
                             if (!pData.Player.IsPlayingAnim(anim.Dict, anim.Name, 3))
-                                Animations.Script.Play(pData.Player, anim);
+                                Game.Animations.Core.Play(pData.Player, anim);
 
                         if (players[i].GetData<Action>("AttachMethod") is Action act)
                             act.Invoke();
@@ -195,7 +203,7 @@ namespace BlaineRP.Client.Sync
                     if (CharacterLoaded)
                         return;
 
-                    while (!World.Preloaded)
+                    while (!Game.World.Core.Preloaded)
                     {
                         await Invoker.WaitAsync();
                     }
@@ -221,7 +229,7 @@ namespace BlaineRP.Client.Sync
 
                     var data = new PlayerData(Player.LocalPlayer);
 
-                    data.FastAnim = FastTypes.None;
+                    data.FastAnim = Game.Animations.Enums.FastTypes.None;
 
                     var sData = (JObject)args[0];
 
@@ -268,10 +276,10 @@ namespace BlaineRP.Client.Sync
                               .Select(x =>
                                {
                                    var data = x.Split('_');
-                                   return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1]));
+                                   return (Convert.ToUInt32(data[0]), Game.Data.Vehicles.Core.GetById(data[1]));
                                })
                               .ToList()
-                        : new List<(uint VID, Data.Vehicles.Vehicle Data)>();
+                        : new List<(uint VID, Vehicle Data)>();
 
                     data.OwnedBusinesses = sData.TryGetValue("Businesses", out var value5)
                         ? Json.Deserialize<List<int>>((string)value5).Select(x => Locations.Business.All[x]).ToList()
@@ -350,7 +358,7 @@ namespace BlaineRP.Client.Sync
                         foreach (var x in vehs)
                         {
                             Vehicles.RentedVehicle.All.Add(new Vehicles.RentedVehicle(ushort.Parse(x[0]),
-                                Data.Vehicles.GetById(x[1])));
+                                Game.Data.Vehicles.Core.GetById(x[1])));
                         }
 
                         RentedVehiclesCheckTask = new AsyncTask(Vehicles.RentedVehicle.Check, 1000, true);
@@ -377,7 +385,7 @@ namespace BlaineRP.Client.Sync
 
                     Menu.SetOrganisation((string)sData["Org"]);
 
-                    Menu.SetFraction(Data.Fractions.Types.None);
+                    Menu.SetFraction(FractionTypes.None);
 
                     foreach (var x in data.Skills)
                     {
@@ -438,11 +446,11 @@ namespace BlaineRP.Client.Sync
                         HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.WeaponSkinsMenu);
 
                     Initialization.Load();
-                    Core.LoadAll();
+                    Input.Core.LoadAll();
 
-                    CEF.Phone.Phone.Preload();
+                    Game.UI.CEF.Phone.Phone.Preload();
 
-                    await CEF.Animations.Load();
+                    await Animations.Load();
 
                     await Events.CallRemoteProc("Players::CRI",
                         data.IsInvalid,
@@ -463,7 +471,7 @@ namespace BlaineRP.Client.Sync
                     var timeUpdateTask = new AsyncTask(() =>
                         {
                             HUD.UpdateTime();
-                            CEF.Phone.Phone.UpdateTime();
+                            Game.UI.CEF.Phone.Phone.UpdateTime();
                         },
                         1_000,
                         true);
@@ -473,7 +481,7 @@ namespace BlaineRP.Client.Sync
                     HUD.ShowHUD(!Interface.HideHUD);
 
                     Interaction.Enabled = true;
-                    World.EnabledItemsOnGround = true;
+                    Game.World.Core.EnabledItemsOnGround = true;
 
                     Chat.Show(true);
 
@@ -512,7 +520,7 @@ namespace BlaineRP.Client.Sync
                         x.Initialize();
                     }
 
-                    AttachSystem.ReattachObjects(Player.LocalPlayer);
+                    Core.ReattachObjects(Player.LocalPlayer);
                 });
 
             Events.Add("Player::Knocked",
@@ -697,7 +705,7 @@ namespace BlaineRP.Client.Sync
                     {
                         var vTypeId = (string)args[1];
 
-                        var vTypeData = Data.Vehicles.GetById(vTypeId);
+                        var vTypeData = Game.Data.Vehicles.Core.GetById(vTypeId);
 
                         rentedVehs.Add(new Vehicles.RentedVehicle(rId, vTypeData));
 
@@ -725,8 +733,8 @@ namespace BlaineRP.Client.Sync
                         }
                     }
 
-                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
-                        CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
+                    if (Game.UI.CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
+                        Game.UI.CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
                 });
 
             Events.Add("Player::Waypoint::Set",
@@ -868,13 +876,11 @@ namespace BlaineRP.Client.Sync
 
                     UpdateAchievement(data, aType, value, maxValue);
 
-                    var aData = Locale.General.Players.AchievementTexts.ContainsKey(aType)
-                        ? Locale.General.Players.AchievementTexts[aType]
-                        : ("null", "null");
+                    var achievementName = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(aType.GetType(), aType.ToString(), "NAME_0") ?? "null");
 
                     if (value >= maxValue)
                         Notification.Show(Notification.Types.Achievement,
-                            aData.Item1,
+                            achievementName,
                             Locale.Notifications.General.AchievementUnlockedText,
                             5000);
                 });
@@ -890,7 +896,7 @@ namespace BlaineRP.Client.Sync
                     var sType = (SkillTypes)(int)args[0];
                     var value = (int)args[1];
 
-                    var oldValue = data.Skills[sType];
+                    var oldValue = data.Skills.GetValueOrDefault(sType, 0);
 
                     data.Skills[sType] = value;
 
@@ -904,7 +910,7 @@ namespace BlaineRP.Client.Sync
                             value >= oldValue
                                 ? Locale.Notifications.General.SkillUp
                                 : Locale.Notifications.General.SkillDown,
-                            Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null",
+                            Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(sType.GetType(), sType.ToString(), "NAME_1") ?? "null").ToLower(),
                             Math.Abs(value - oldValue),
                             value,
                             Static.PlayerMaxSkills[sType]));
@@ -1081,7 +1087,7 @@ namespace BlaineRP.Client.Sync
 
                         if (add)
                         {
-                            var t = (vid, Data.Vehicles.GetById((string)args[3]));
+                            var t = (vid, Game.Data.Vehicles.Core.GetById((string)args[3]));
 
                             if (!data.OwnedVehicles.Contains(t))
                                 data.OwnedVehicles.Add(t);
@@ -1096,8 +1102,8 @@ namespace BlaineRP.Client.Sync
                             data.OwnedVehicles.RemoveAt(idx);
                         }
 
-                        if (CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
-                            CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
+                        if (Game.UI.CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
+                            Game.UI.CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
                     }
                     else if (pType == PropertyTypes.House)
                     {
@@ -1257,11 +1263,11 @@ namespace BlaineRP.Client.Sync
 
                         Main.DisableAllControls(true);
 
-                        WeaponSystem.DisabledFiring = true;
+                        Game.Management.Weapons.Core.DisabledFiring = true;
                     }
                     else
                     {
-                        WeaponSystem.DisabledFiring = false;
+                        Game.Management.Weapons.Core.DisabledFiring = false;
 
                         Player.LocalPlayer.FreezePosition(false);
 
@@ -1308,7 +1314,7 @@ namespace BlaineRP.Client.Sync
 
                     ATM.UpdateMoney(bank);
                     Bank.UpdateMoney(bank);
-                    CEF.Phone.Apps.Bank.UpdateBalance(bank);
+                    Game.UI.CEF.Phone.Apps.Bank.UpdateBalance(bank);
 
                     var oldBank = oldValue == null ? bank : Convert.ToUInt64(oldValue);
 
@@ -1382,7 +1388,7 @@ namespace BlaineRP.Client.Sync
                     var player = pData.Player;
 
                     if (value is string strData)
-                        WeaponSystem.UpdateWeaponComponents(player, strData);
+                        Game.Management.Weapons.Core.UpdateWeaponComponents(player, strData);
                 });
 
             Events.Add("Players::WCD::U",
@@ -1394,7 +1400,7 @@ namespace BlaineRP.Client.Sync
                         return;
 
                     if (player.GetSharedData<string>("WCD") is string strData)
-                        WeaponSystem.UpdateWeaponComponents(player, strData);
+                        Game.Management.Weapons.Core.UpdateWeaponComponents(player, strData);
                 });
 
             AddDataHandler("Mood",
@@ -1482,16 +1488,16 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var emotion = (EmotionTypes)((int?)value ?? -1);
+                    var emotion = (Game.Animations.Enums.EmotionTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
                         Other.CurrentEmotion = emotion;
 
-                        CEF.Animations.ToggleAnim("e-" + emotion, true);
+                        Animations.ToggleAnim("e-" + emotion, true);
                     }
 
-                    Animations.Script.Set(player, emotion);
+                    Game.Animations.Core.Set(player, emotion);
                 });
 
             AddDataHandler("Walkstyle",
@@ -1499,17 +1505,17 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var wStyle = (WalkstyleTypes)((int?)value ?? -1);
+                    var wStyle = (Game.Animations.Enums.WalkstyleTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
                         Other.CurrentWalkstyle = wStyle;
 
-                        CEF.Animations.ToggleAnim("w-" + wStyle, true);
+                        Animations.ToggleAnim("w-" + wStyle, true);
                     }
 
                     if (!pData.CrouchOn)
-                        Animations.Script.Set(player, wStyle);
+                        Game.Animations.Core.Set(player, wStyle);
                 });
 
             AddDataHandler("Anim::Other",
@@ -1517,39 +1523,39 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var anim = (OtherTypes)((int?)value ?? -1);
+                    var anim = (Game.Animations.Enums.OtherTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
-                        if (anim == OtherTypes.None)
+                        if (anim == Game.Animations.Enums.OtherTypes.None)
                         {
                             if (oldValue is int oldAnim)
-                                CEF.Animations.ToggleAnim("a-" + (OtherTypes)oldAnim, false);
+                                Animations.ToggleAnim("a-" + (Game.Animations.Enums.OtherTypes)oldAnim, false);
 
-                            Main.Render -= CEF.Animations.Render;
+                            Main.Render -= Animations.Render;
 
-                            var cancelAnimKb = Core.Get(BindTypes.CancelAnimation);
+                            var cancelAnimKb = Input.Core.Get(BindTypes.CancelAnimation);
 
                             if (!cancelAnimKb.IsDisabled)
-                                Core.Get(BindTypes.CancelAnimation).Disable();
+                                Input.Core.Get(BindTypes.CancelAnimation).Disable();
                         }
                         else
                         {
-                            CEF.Animations.ToggleAnim("a-" + anim, true);
+                            Animations.ToggleAnim("a-" + anim, true);
                         }
                     }
 
-                    if (anim == OtherTypes.None)
+                    if (anim == Game.Animations.Enums.OtherTypes.None)
                     {
-                        Animations.Script.Stop(player);
+                        Game.Animations.Core.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        var animData = Animations.Script.OtherAnimsList[anim];
+                        var animData = Game.Animations.Core.OtherAnimsList[anim];
 
-                        Animations.Script.Play(player, animData);
+                        Game.Animations.Core.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1560,19 +1566,19 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var anim = (GeneralTypes)((int?)value ?? -1);
+                    var anim = (Game.Animations.Enums.GeneralTypes)((int?)value ?? -1);
 
-                    if (anim == GeneralTypes.None)
+                    if (anim == Game.Animations.Enums.GeneralTypes.None)
                     {
-                        Animations.Script.Stop(player);
+                        Game.Animations.Core.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        var animData = Animations.Script.GeneralAnimsList[anim];
+                        var animData = Game.Animations.Core.GeneralAnimsList[anim];
 
-                        Animations.Script.Play(player, animData);
+                        Game.Animations.Core.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1631,9 +1637,9 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var state = (Phone.PhoneStateTypes)((int?)value ?? 0);
+                    var state = (Game.Misc.Phone.PhoneStateTypes)((int?)value ?? 0);
 
-                    Phone.SetState(player, state);
+                    Game.Misc.Phone.SetState(player, state);
                 });
 
             AddDataHandler("Crawl::On",
@@ -1736,25 +1742,25 @@ namespace BlaineRP.Client.Sync
 
                             HUD.SwitchMicroIcon(true);
 
-                            Main.Update -= Microphone.OnTick;
-                            Main.Update += Microphone.OnTick;
+                            Main.Update -= Game.Management.Microphone.Core.OnTick;
+                            Main.Update += Game.Management.Microphone.Core.OnTick;
 
-                            Microphone.StartUpdateListeners();
+                            Game.Management.Microphone.Core.StartUpdateListeners();
 
-                            Microphone.SetTalkingAnim(Player.LocalPlayer, true);
+                            Game.Management.Microphone.Core.SetTalkingAnim(Player.LocalPlayer, true);
                         }
                         // Voice On / Muted
                         else if (vRange <= 0f)
                         {
-                            Microphone.StopUpdateListeners();
+                            Game.Management.Microphone.Core.StopUpdateListeners();
 
                             Voice.Muted = true;
 
                             HUD.SwitchMicroIcon(false);
 
-                            Microphone.SetTalkingAnim(Player.LocalPlayer, false);
+                            Game.Management.Microphone.Core.SetTalkingAnim(Player.LocalPlayer, false);
 
-                            Main.Update -= Microphone.OnTick;
+                            Main.Update -= Game.Management.Microphone.Core.OnTick;
 
                             if (vRange < 0f)
                                 HUD.SwitchMicroIcon(null);
@@ -1763,9 +1769,9 @@ namespace BlaineRP.Client.Sync
                     else
                     {
                         if (vRange > 0f)
-                            Microphone.AddTalker(player);
+                            Game.Management.Microphone.Core.AddTalker(player);
                         else
-                            Microphone.RemoveTalker(player);
+                            Game.Management.Microphone.Core.RemoveTalker(player);
                     }
                 });
 
@@ -1791,7 +1797,7 @@ namespace BlaineRP.Client.Sync
                             {
                                 var veh = Player.LocalPlayer.Vehicle;
 
-                                EntitiesData.VehicleData vData = null;
+                                VehicleData vData = null;
 
                                 do
                                 {
@@ -1898,11 +1904,10 @@ namespace BlaineRP.Client.Sync
             }
             else
             {
-                var aData = Locale.General.Players.AchievementTexts.TryGetValue(aType, out var text)
-                    ? text
-                    : ("null", "null");
+                var achievementName = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(aType.GetType(), aType.ToString(), "NAME_0") ?? "null");
+                var achievementDesc = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(aType.GetType(), aType.ToString(), "DESC_0") ?? "null");
 
-                Menu.AddAchievement(aType, value, maxValue, aData.Item1, aData.Item2);
+                Menu.AddAchievement(aType, value, maxValue, achievementName, achievementDesc);
             }
         }
 
@@ -1970,13 +1975,13 @@ namespace BlaineRP.Client.Sync
             ActionBox.Close();
 
             if (pData != null)
-                Phone.CallChangeState(pData, Phone.PhoneStateTypes.Off);
+                Game.Misc.Phone.CallChangeState(pData, Game.Misc.Phone.PhoneStateTypes.Off);
 
             HUD.Menu.Switch(false);
             Inventory.Close();
-            CEF.Interaction.CloseMenu();
+            Game.UI.CEF.Interaction.CloseMenu();
             Menu.Close();
-            CEF.Animations.Close();
+            Animations.Close();
             Shop.Close(true);
             Gas.Close(true);
 
@@ -2017,7 +2022,7 @@ namespace BlaineRP.Client.Sync
             var flyBindIdx = Player.LocalPlayer.GetData<int>("ADMIN::BINDS::FLY");
 
             if (flyBindIdx >= 0)
-                Core.Unbind(flyBindIdx);
+                Input.Core.Unbind(flyBindIdx);
 
             if (aLvl <= 0)
             {
@@ -2025,7 +2030,7 @@ namespace BlaineRP.Client.Sync
             else
             {
                 Player.LocalPlayer.SetData("ADMIN::BINDS::FLY",
-                    Core.Bind(VirtualKeys.F5, true, () => Commands.Fly()));
+                    Input.Core.Bind(VirtualKeys.F5, true, () => Game.Management.Commands.Core.Fly()));
             }
         }
 

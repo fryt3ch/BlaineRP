@@ -1,28 +1,22 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Data;
+using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.NPCs.Dialogues;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
-using Players = BlaineRP.Client.Sync.Players;
-using BlaineRP.Client.Data.NPCs.Dialogues;
-using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Local;
-using BlaineRP.Client.Game.Management.Camera;
-using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Data.NPCs
+namespace BlaineRP.Client.Game.NPCs
 {
     [Script(int.MaxValue)]
     public class NPC
