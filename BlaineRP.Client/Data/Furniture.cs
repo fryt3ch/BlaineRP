@@ -3,6 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Data
 {
@@ -93,7 +94,7 @@ namespace BlaineRP.Client.Data
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
                     {
-                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                        Inventory.Show(Inventory.Types.Container, contId);
                     }
                 }
             },
@@ -105,7 +106,7 @@ namespace BlaineRP.Client.Data
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
                     {
-                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                        Inventory.Show(Inventory.Types.Container, contId);
                     }
                 }
             },
@@ -117,7 +118,7 @@ namespace BlaineRP.Client.Data
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
                     {
-                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                        Inventory.Show(Inventory.Types.Container, contId);
                     }
                 }
             },
@@ -129,7 +130,7 @@ namespace BlaineRP.Client.Data
                 {
                     if (obj.GetData<uint?>("UID") is uint uid)
                     {
-                        CEF.Inventory.Show(CEF.Inventory.Types.Workbench, 1, uid);
+                        Inventory.Show(Inventory.Types.Workbench, 1, uid);
                     }
                 }
             },
