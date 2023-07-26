@@ -46,7 +46,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 0,
                 0f,
                 Settings.App.Static.MainDimension,
-                ExtraBlip.Types.Default);
+                ExtraBlip.Types.Default
+            );
 
             new ExtraBlip(436, new Vector3(-371.8f, 6121.9f, 20f), "Пожарная станция", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension, ExtraBlip.Types.Default);
             new ExtraBlip(436, new Vector3(1697f, 3586f, 20f), "Пожарная станция", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension, ExtraBlip.Types.Default);
@@ -67,7 +68,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(60,
                 new Vector3(441.9979f, -983.1353f, 0f),
                 Fraction.Get(FractionTypes.COP_LS)?.Name ?? FractionTypes.COP_LS.ToString(),
@@ -78,7 +80,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(498,
                 new Vector3(113.6995f, -753.6832f, 0f),
@@ -90,7 +93,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(768, new Vector3(1800f, 2607.3f, 0f), "Федеральная тюрьма", 1f, 29, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
             new ExtraBlip(758, new Vector3(-2277.5f, 3365f, 0f), "Военная база", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
@@ -107,7 +111,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(61,
                 new Vector3(-253.3461f, 6333.604f, 0f),
@@ -119,7 +124,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(61,
                 new Vector3(304.3673f, -586.6595f, 0f),
                 Fraction.Get(FractionTypes.EMS_LS)?.Name ?? FractionTypes.EMS_LS.ToString(),
@@ -130,7 +136,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(61, new Vector3(1826f, 3693f, 0f), "Филиал больницы Округа Блэйн в Сэнди-Шорс", 1f, 1, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
@@ -144,7 +151,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(419, new Vector3(1701.585f, 3782.184f, 0f), "Администрация Округа Блэйн", 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
             new ExtraBlip(305, new Vector3(-317.9069f, 6154.085f, 0f), "Церковь", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
@@ -161,7 +169,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(362,
                 new Vector3(-141f, -1601f, 0f),
                 Fraction.Get(FractionTypes.GANG_FAMS)?.Name ?? FractionTypes.GANG_FAMS.ToString(),
@@ -172,7 +181,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(362,
                 new Vector3(-27f, -1403f, 0f),
                 Fraction.Get(FractionTypes.GANG_MARA)?.Name ?? FractionTypes.GANG_MARA.ToString(),
@@ -183,7 +193,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(362,
                 new Vector3(311.8519f, -2042.281f, 0f),
                 Fraction.Get(FractionTypes.GANG_VAGS)?.Name ?? FractionTypes.GANG_VAGS.ToString(),
@@ -194,7 +205,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(685,
                 new Vector3(413.8777f, -1491.162f, 0f),
@@ -206,7 +218,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(685,
                 new Vector3(-1536f, 112.5f, 0f),
                 Fraction.Get(FractionTypes.MAFIA_JAPAN)?.Name ?? FractionTypes.MAFIA_JAPAN.ToString(),
@@ -217,7 +230,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
             new ExtraBlip(685,
                 new Vector3(-117f, 996f, 0f),
                 Fraction.Get(FractionTypes.MAFIA_RUSSIA)?.Name ?? FractionTypes.MAFIA_RUSSIA.ToString(),
@@ -228,7 +242,8 @@ namespace BlaineRP.Client.Game.Misc.General
                 true,
                 0,
                 0f,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             new ExtraBlip(680, new Vector3(927.9176f, 44.61714f, 0f), "The Diamond Casino & Resort", 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 

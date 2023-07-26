@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Data.Vehicles;
 using BlaineRP.Client.Game.Jobs;
@@ -37,48 +36,20 @@ namespace BlaineRP.Client
                 { BusinessTypes.ClothesShop1, "Магазин спортивной одежды" },
                 { BusinessTypes.ClothesShop2, "Магазин премиальной одежды" },
                 { BusinessTypes.ClothesShop3, "Магазин брендовой одежды" },
-
                 { BusinessTypes.JewelleryShop, "Ювелирный салон" },
-
                 { BusinessTypes.Market, "Магазин 24/7" },
-
                 { BusinessTypes.GasStation, "АЗС" },
-
                 { BusinessTypes.CarShop1, "Автосалон бюджетного сегмента" },
-
                 { BusinessTypes.BoatShop, "Лодочный салон" },
-
                 { BusinessTypes.AeroShop, "Салон воздушного транспорта" },
-
                 { BusinessTypes.TuningShop, "Тюнинг" },
-
                 { BusinessTypes.WeaponShop, "Оружейный магазин" },
-
                 { BusinessTypes.BarberShop, "Салон красоты" },
-
                 { BusinessTypes.TattooShop, "Тату-салон" },
-
                 { BusinessTypes.BagShop, "Торговец сумок и рюкзаков" },
                 { BusinessTypes.MaskShop, "Торговец масок" },
-
                 { BusinessTypes.FurnitureShop, "Мебельный магазин" },
-
                 { BusinessTypes.Farm, "Ферма" },
-            };
-
-            public static Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string>()
-            {
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
-                { Game.UI.CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
             };
 
             public static string NoOwner = "Государство";
@@ -97,6 +68,22 @@ namespace BlaineRP.Client
 
             public static string ApartmentsRootExitTextLabel = "Выход на улицу";
             public static string HouseExitTextLabel = "Выход";
+
+            public static Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } =
+                new Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string>()
+                {
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
+                    { Game.UI.CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
+                };
         }
 
         public static class Shop
@@ -118,7 +105,6 @@ namespace BlaineRP.Client
                 { "lipstick_8", "Стёртая глянцевая" },
                 { "lipstick_9", "Размазанная" },
                 { "lipstick_10", "Гейша" },
-
                 { "blush_0", "Нет" },
                 { "blush_1", "Полностью" },
                 { "blush_2", "По углам" },
@@ -127,7 +113,6 @@ namespace BlaineRP.Client
                 { "blush_5", "От глаз" },
                 { "blush_6", "Сердечки" },
                 { "blush_7", "Восьмидесятые" },
-
                 { "makeup_0", "Нет" },
                 { "makeup_1", "Дымчатый чёрный" },
                 { "makeup_2", "Бронзовый" },

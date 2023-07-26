@@ -14,7 +14,18 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
-            Browser.Window.ExecuteJs("Phone.drawBSimApp", new object[] { new object[] { number, balance, costMinCall, costCharSms } });
+            Browser.Window.ExecuteJs("Phone.drawBSimApp",
+                new object[]
+                {
+                    new object[]
+                    {
+                        number,
+                        balance,
+                        costMinCall,
+                        costCharSms,
+                    },
+                }
+            );
         }
     }
 }

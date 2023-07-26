@@ -6,26 +6,28 @@ namespace BlaineRP.Client.Game.UI.CEF
     [Script(int.MaxValue)]
     public class NPC
     {
-        public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.NPC); }
-
         public NPC()
         {
-            Events.Add("NPC::Dialogue::Reply", (object[] args) =>
-            {
-                int num = (int)args[0];
+            Events.Add("NPC::Dialogue::Reply",
+                (object[] args) =>
+                {
+                    var num = (int)args[0];
 
-                Reply(num);
-            });
+                    Reply(num);
+                }
+            );
         }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.NPC);
 
         public static void Show()
         {
             if (IsActive)
                 return;
 
-            CEF.Browser.Switch(Browser.IntTypes.NPC, true);
+            Browser.Switch(Browser.IntTypes.NPC, true);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
         }
 
         public static void Close()
@@ -33,9 +35,9 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Switch(Browser.IntTypes.NPC, false);
+            Browser.Switch(Browser.IntTypes.NPC, false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
         }
 
         /// <summary>Метод для отрисовки диалога</summary>
@@ -47,15 +49,15 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Utils.Misc.ReplaceNewLineHtml(text), buttons);
+            Browser.Window.ExecuteJs("NPC.fill", npcName, Utils.Misc.ReplaceNewLineHtml(text), buttons);
         }
 
         public static void Reply(int buttonId)
         {
-            if (Game.NPCs.NPC.CurrentNPC == null)
+            if (NPCs.NPC.CurrentNPC == null)
                 return;
 
-            Game.NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
+            NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
         }
     }
 }

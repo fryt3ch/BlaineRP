@@ -4,17 +4,21 @@ namespace BlaineRP.Client.Game.UI.CEF
 {
     public class Cursor
     {
+        public static bool IsActive { get; private set; }
+
+        /// <summary>Отображается ли курсор на экране?</summary>
+        public static bool IsVisible
+        {
+            get => RAGE.Ui.Cursor.Visible;
+            set => RAGE.Ui.Cursor.Visible = value;
+        }
+
+        private static AsyncTask StopBlockingEscTask { get; set; }
+
         private static bool ShouldBlockEscMenu()
         {
             return IsActive || Utils.Misc.IsAnyCefActive(true);
         }
-
-        public static bool IsActive { get; private set; }
-
-        /// <summary>Отображается ли курсор на экране?</summary>
-        public static bool IsVisible { get => RAGE.Ui.Cursor.Visible; set => RAGE.Ui.Cursor.Visible = value; }
-
-        private static AsyncTask StopBlockingEscTask { get; set; }
 
         /// <summary>Отобразить/спрятать курсор</summary>
         /// <param name="freezeInput">Заблокировать игроку возможность двигаться</param>
@@ -36,7 +40,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (!ShouldBlockEscMenu())
                     SwitchEscMenuAccess(true);
 
-                CEF.Browser.Window.ExecuteCachedJs("blurFocusedDomElement();");
+                Browser.Window.ExecuteCachedJs("blurFocusedDomElement();");
             }
         }
 
@@ -67,11 +71,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (StopBlockingEscTask == null)
                 {
                     StopBlockingEscTask = new AsyncTask(() =>
-                    {
-                        Main.Render -= OnTickCursor;
+                        {
+                            Main.Render -= OnTickCursor;
 
-                        StopBlockingEscTask = null;
-                    }, 500, false, 0);
+                            StopBlockingEscTask = null;
+                        },
+                        500,
+                        false,
+                        0
+                    );
 
                     StopBlockingEscTask.Run();
                 }

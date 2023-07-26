@@ -12,9 +12,9 @@ namespace BlaineRP.Client.Utils.Game
 
             Vehicle vehicle = null;
 
-            for (int i = 0; i < Entities.Vehicles.Streamed.Count; i++)
+            for (var i = 0; i < Entities.Vehicles.Streamed.Count; i++)
             {
-                var veh = Entities.Vehicles.Streamed[i];
+                Vehicle veh = Entities.Vehicles.Streamed[i];
 
                 if (veh == null)
                     continue;
@@ -39,9 +39,9 @@ namespace BlaineRP.Client.Utils.Game
 
             seatId--;
 
-            for (int i = 0; i < Entities.Vehicles.Streamed.Count; i++)
+            for (var i = 0; i < Entities.Vehicles.Streamed.Count; i++)
             {
-                var veh = Entities.Vehicles.Streamed[i];
+                Vehicle veh = Entities.Vehicles.Streamed[i];
 
                 if (veh == null)
                     continue;
@@ -74,7 +74,7 @@ namespace BlaineRP.Client.Utils.Game
 
         public static string GetVehicleName(Vehicle veh, byte type = 0)
         {
-            var data = Client.Game.Data.Vehicles.Core.GetByModel(veh.Model);
+            Client.Game.Data.Vehicles.Vehicle data = Client.Game.Data.Vehicles.Core.GetByModel(veh.Model);
 
             if (type == 0)
             {
@@ -82,7 +82,7 @@ namespace BlaineRP.Client.Utils.Game
             }
             else if (type == 1)
             {
-                var np = veh.GetNumberplateText();
+                string np = veh.GetNumberplateText();
 
                 return $"{data?.Name ?? string.Empty} [{(np == null || np.Length == 0 ? Locale.Get("VEHICLE_NP_NONE") : np)}]";
             }
@@ -92,13 +92,13 @@ namespace BlaineRP.Client.Utils.Game
 
         public static bool PlayerInFrontOfVehicle(Vehicle vehicle, float radius = 2f)
         {
-            var leftFront = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_lf"));
-            var rightFront = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_rf"));
+            Vector3 leftFront = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_lf"));
+            Vector3 rightFront = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_rf"));
 
-            var leftBack = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_lr"));
-            var rightBack = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_rr"));
+            Vector3 leftBack = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_lr"));
+            Vector3 rightBack = vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName("suspension_rr"));
 
-            var playerPos = Player.LocalPlayer.Position;
+            Vector3 playerPos = Player.LocalPlayer.Position;
 
             if (Vector3.Distance(playerPos, leftFront) <= radius || Vector3.Distance(playerPos, rightFront) <= radius)
                 return true;

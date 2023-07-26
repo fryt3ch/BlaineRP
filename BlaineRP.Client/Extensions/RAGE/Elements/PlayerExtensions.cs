@@ -1,14 +1,21 @@
-﻿using BlaineRP.Client.Utils.Game;
-using RAGE.Elements;
-using System.Linq;
+﻿using System.Linq;
 using BlaineRP.Client.Game.Management.Weapons;
+using BlaineRP.Client.Utils.Game;
+using RAGE.Elements;
 
 namespace BlaineRP.Client.Extensions.RAGE.Elements
 {
     public static class PlayerExtensions
     {
-        public static bool IsFamilliar(this Player player, bool fractionToo = true) => Players.IsPlayerFamiliar(player, fractionToo);
-        public static string GetName(this Player player, bool familiarOnly = true, bool donNotMask = true, bool includeId = false) => Players.GetPlayerName(player, familiarOnly, donNotMask, includeId);
+        public static bool IsFamilliar(this Player player, bool fractionToo = true)
+        {
+            return Players.IsPlayerFamiliar(player, fractionToo);
+        }
+
+        public static string GetName(this Player player, bool familiarOnly = true, bool donNotMask = true, bool includeId = false)
+        {
+            return Players.GetPlayerName(player, familiarOnly, donNotMask, includeId);
+        }
 
         /// <summary>Устанавливает настоящий уровень здоровья игроку</summary>
         /// <remarks>Метод прибавляет 100 к передаваемому значению</remarks>
@@ -26,7 +33,7 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
         /// <param name="player"></param>
         public static bool HasWeapon(this Player player)
         {
-            var weapon = player.GetSelectedWeapon();
+            uint weapon = player.GetSelectedWeapon();
 
             return weapon != Core.UnarmedHash && weapon != Core.MobileHash;
         }
@@ -41,7 +48,7 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
                 return;
             }
 
-            var nameArray = player.Name.Split(' ').ToArray();
+            string[] nameArray = player.Name.Split(' ').ToArray();
 
             if (nameArray.Length >= 2)
             {
@@ -61,11 +68,14 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
         /// <returns>Значение от 0 до int.MaxValue - 100</returns>
         public static int GetRealHealth(this Player player)
         {
-            var hp = player.GetHealth() - 100;
+            int hp = player.GetHealth() - 100;
 
             return hp < 0 ? 0 : hp;
         }
 
-        public static bool GetSex(this Player player) => player.Model == 0x705E61F2;
+        public static bool GetSex(this Player player)
+        {
+            return player.Model == 0x705E61F2;
+        }
     }
 }

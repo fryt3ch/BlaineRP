@@ -24,7 +24,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var arrests = pData.CurrentFraction?.GetCurrentData<List<ArrestInfo>>("Arrests");
+                        List<ArrestInfo> arrests = pData.CurrentFraction?.GetCurrentData<List<ArrestInfo>>("Arrests");
 
                         if (arrests == null)
                             return;
@@ -33,7 +33,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (args.Length == 1)
                         {
-                            var data = arrests.Where(x => x.Id == id).FirstOrDefault();
+                            ArrestInfo data = arrests.Where(x => x.Id == id).FirstOrDefault();
 
                             if (data == null)
                                 return;
@@ -63,7 +63,8 @@ namespace BlaineRP.Client.Game.Fractions
                             if (ArrestsMenu.IsActive)
                                 Browser.Window.ExecuteJs("MenuArrest.addArrest", id, data.Time.ToString("dd.MM.yyyy HH:mm"), data.TargetName, data.MemberName);
                         }
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("FPolice::FINEC",
                     (args) =>
@@ -73,7 +74,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var fines = pData.CurrentFraction?.GetCurrentData<List<FineInfo>>("Fines");
+                        List<FineInfo> fines = pData.CurrentFraction?.GetCurrentData<List<FineInfo>>("Fines");
 
                         if (fines == null)
                             return;
@@ -82,7 +83,7 @@ namespace BlaineRP.Client.Game.Fractions
                         var target = (string)args[1];
                         var amount = Utils.Convert.ToUInt32(args[2]);
                         var reason = (string)args[3];
-                        var time = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[4])).DateTime;
+                        DateTime time = DateTimeOffset.FromUnixTimeSeconds(Utils.Convert.ToInt64(args[4])).DateTime;
 
                         var fine = new FineInfo()
                         {
@@ -97,9 +98,9 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (PoliceTabletPC.CurrentTab == 3 || PoliceTabletPC.LastTab == 3)
                         {
-                            var i = fines.Count - 1;
+                            int i = fines.Count - 1;
 
-                            var arg = PoliceTabletPC.GetFineRowList(fine, ref i);
+                            List<object> arg = PoliceTabletPC.GetFineRowList(fine, ref i);
 
                             arg.Insert(0, 1);
 
@@ -107,7 +108,8 @@ namespace BlaineRP.Client.Game.Fractions
                         }
 
                         // todo
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("FPolice::CC",
                     (args) =>
@@ -117,7 +119,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var calls = pData.CurrentFraction?.GetCurrentData<List<CallInfo>>("Calls");
+                        List<CallInfo> calls = pData.CurrentFraction?.GetCurrentData<List<CallInfo>>("Calls");
 
                         if (calls == null)
                             return;
@@ -126,7 +128,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (args.Length < 4)
                         {
-                            var call = calls.Where(x => x.Player.RemoteId == rid).FirstOrDefault();
+                            CallInfo call = calls.Where(x => x.Player.RemoteId == rid).FirstOrDefault();
 
                             if (call == null)
                                 return;
@@ -153,7 +155,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                             if (PoliceTabletPC.CurrentTab == 2 || PoliceTabletPC.LastTab == 2)
                             {
-                                var arg = PoliceTabletPC.GetCallRowList(call, Player.LocalPlayer.Position);
+                                List<object> arg = PoliceTabletPC.GetCallRowList(call, Player.LocalPlayer.Position);
 
                                 arg.Insert(0, 0);
 
@@ -162,7 +164,8 @@ namespace BlaineRP.Client.Game.Fractions
 
                             // todo
                         }
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("FPolice::APBC",
                     (args) =>
@@ -172,7 +175,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var apbs = pData.CurrentFraction?.GetCurrentData<List<APBInfo>>("APBs");
+                        List<APBInfo> apbs = pData.CurrentFraction?.GetCurrentData<List<APBInfo>>("APBs");
 
                         if (apbs == null)
                             return;
@@ -181,7 +184,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (args.Length < 4)
                         {
-                            var apb = apbs.Where(x => x.Id == uid).FirstOrDefault();
+                            APBInfo apb = apbs.Where(x => x.Id == uid).FirstOrDefault();
 
                             if (apb == null)
                                 return;
@@ -213,7 +216,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                             if (PoliceTabletPC.CurrentTab == 4 || PoliceTabletPC.LastTab == 4 || PoliceTabletPC.LastTab == 41)
                             {
-                                var arg = PoliceTabletPC.GetAPBRowList(apb);
+                                List<object> arg = PoliceTabletPC.GetAPBRowList(apb);
 
                                 arg.Insert(0, 2);
 
@@ -222,7 +225,8 @@ namespace BlaineRP.Client.Game.Fractions
 
                             // todo
                         }
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("FPolice::GPSTC",
                     (args) =>
@@ -232,7 +236,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var trackers = pData.CurrentFraction?.GetCurrentData<List<GPSTrackerInfo>>("GPSTrackers");
+                        List<GPSTrackerInfo> trackers = pData.CurrentFraction?.GetCurrentData<List<GPSTrackerInfo>>("GPSTrackers");
 
                         if (trackers == null)
                             return;
@@ -241,7 +245,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (args.Length < 3)
                         {
-                            var gpsTracker = trackers.Where(x => x.Id == uid).FirstOrDefault();
+                            GPSTrackerInfo gpsTracker = trackers.Where(x => x.Id == uid).FirstOrDefault();
 
                             if (gpsTracker == null)
                                 return;
@@ -255,13 +259,18 @@ namespace BlaineRP.Client.Game.Fractions
                         }
                         else
                         {
-                            var gpsTracker = new GPSTrackerInfo() { Id = uid, InstallerStr = (string)args[1], VehicleStr = (string)args[2], };
+                            var gpsTracker = new GPSTrackerInfo()
+                            {
+                                Id = uid,
+                                InstallerStr = (string)args[1],
+                                VehicleStr = (string)args[2],
+                            };
 
                             trackers.Add(gpsTracker);
 
                             if (PoliceTabletPC.CurrentTab == 6 || PoliceTabletPC.LastTab == 6)
                             {
-                                var arg = PoliceTabletPC.GetGPSTrackerRowList(gpsTracker);
+                                List<object> arg = PoliceTabletPC.GetGPSTrackerRowList(gpsTracker);
 
                                 arg.Insert(0, 4);
 
@@ -270,7 +279,8 @@ namespace BlaineRP.Client.Game.Fractions
 
                             // todo
                         }
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("FPolice::NOTIFC",
                     (args) =>
@@ -280,7 +290,7 @@ namespace BlaineRP.Client.Game.Fractions
                         if (pData == null)
                             return;
 
-                        var notifics = pData.CurrentFraction?.GetCurrentData<List<NotificationInfo>>("Notifications");
+                        List<NotificationInfo> notifics = pData.CurrentFraction?.GetCurrentData<List<NotificationInfo>>("Notifications");
 
                         if (notifics == null)
                             return;
@@ -289,7 +299,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                         if (args.Length < 3)
                         {
-                            var notific = notifics.Where(x => x.Id == uid).FirstOrDefault();
+                            NotificationInfo notific = notifics.Where(x => x.Id == uid).FirstOrDefault();
 
                             if (notific == null)
                                 return;
@@ -305,14 +315,17 @@ namespace BlaineRP.Client.Game.Fractions
                         {
                             var notific = new NotificationInfo()
                             {
-                                Id = uid, Time = World.Core.ServerTime, Text = (string)args[1], Position = (Vector3)args[2],
+                                Id = uid,
+                                Time = World.Core.ServerTime,
+                                Text = (string)args[1],
+                                Position = (Vector3)args[2],
                             };
 
                             notifics.Add(notific);
 
                             if (PoliceTabletPC.CurrentTab == 5 || PoliceTabletPC.LastTab == 5)
                             {
-                                var arg = PoliceTabletPC.GetNotificationRowList(notific, Player.LocalPlayer.Position);
+                                List<object> arg = PoliceTabletPC.GetNotificationRowList(notific, Player.LocalPlayer.Position);
 
                                 arg.Insert(0, 3);
 
@@ -321,7 +334,8 @@ namespace BlaineRP.Client.Game.Fractions
 
                             // todo
                         }
-                    });
+                    }
+                );
             }
         }
     }

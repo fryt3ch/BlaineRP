@@ -6,6 +6,10 @@ namespace BlaineRP.Client.Game.Fractions
     {
         public class APBInfo
         {
+            public APBInfo()
+            {
+            }
+
             public uint Id { get; set; }
 
             public string TargetName { get; set; }
@@ -15,10 +19,6 @@ namespace BlaineRP.Client.Game.Fractions
             public string Member { get; set; }
 
             public DateTime Time { get; set; }
-
-            public APBInfo()
-            {
-            }
         }
     }
 }

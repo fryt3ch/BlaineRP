@@ -7,57 +7,61 @@ using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Input.Core;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Numberplates
     {
-        public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
-
         private static DateTime LastSent;
+
+        public Numberplates()
+        {
+            Events.Add("Numberplates::Buy",
+                async (args) =>
+                {
+                    var byCash = (bool)args[0];
+                    var num = (int)args[1];
+                    var signsAmount = (int)args[2];
+
+                    var npcData = NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
+
+                    if (npcData == null)
+                        return;
+
+                    if (!LastSent.IsSpam(1000, false, true))
+                    {
+                        LastSent = World.Core.ServerTime;
+
+                        var res = (string)await npcData.CallRemoteProc("cop_np_buy", $"np_{num}", signsAmount, byCash ? 1 : 0);
+
+                        if (res != null)
+                            SetText(res);
+                    }
+                }
+            );
+        }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.VehicleMisc);
 
         private static int EscBindIdx { get; set; } = -1;
 
         private static ExtraColshape CloseColshape { get; set; }
 
-        public Numberplates()
-        {
-            Events.Add("Numberplates::Buy", async (args) =>
-            {
-                var byCash = (bool)args[0];
-                var num = (int)args[1];
-                var signsAmount = (int)args[2];
-
-                var npcData = Game.NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
-
-                if (npcData == null)
-                    return;
-
-                if (!LastSent.IsSpam(1000, false, true))
-                {
-                    LastSent = Game.World.Core.ServerTime;
-
-                    var res = (string)await npcData.CallRemoteProc("cop_np_buy", $"np_{num}", signsAmount, byCash ? 1 : 0);
-
-                    if (res != null)
-                    {
-                        SetText(res);
-                    }
-                }
-            });
-        }
-
         public static async System.Threading.Tasks.Task Show(decimal margin, string npcId)
         {
-            await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
+            await Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Police.NumberplatePrices.Select(x => x.Value.Select(y => System.Math.Floor(y * margin))) });
+            Browser.Window.ExecuteJs("CarMaint.drawPlates",
+                new object[]
+                {
+                    Police.NumberplatePrices.Select(x => x.Value.Select(y => Math.Floor(y * margin))),
+                }
+            );
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
-            EscBindIdx = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             Player.LocalPlayer.SetData("NumberplatesBuy::NpcId", npcId);
 
@@ -67,7 +71,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (CloseColshape?.Exists == true)
                         Close();
-                }
+                },
             };
         }
 
@@ -76,7 +80,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.setPlate", text);
+            Browser.Window.ExecuteJs("CarMaint.setPlate", text);
         }
 
         public static void Close()
@@ -84,7 +88,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            Core.Unbind(EscBindIdx);
+            Input.Core.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
 
@@ -94,9 +98,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CloseColshape = null;
 
-            CEF.Browser.Render(Browser.IntTypes.VehicleMisc, false);
+            Browser.Render(Browser.IntTypes.VehicleMisc, false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
         }
     }
 }

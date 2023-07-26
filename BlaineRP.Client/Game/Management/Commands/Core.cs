@@ -15,14 +15,31 @@ namespace BlaineRP.Client.Game.Management.Commands
     {
         private static DateTime LastSent;
 
+        public Core()
+        {
+            foreach (MethodInfo method in typeof(Core).GetMethods().Where(x => x.IsStatic))
+            {
+                CommandAttribute attr = method.GetCustomAttribute<CommandAttribute>();
+
+                if (attr == null)
+                    continue;
+
+                All.Add(new CommandInstance(method, attr));
+            }
+        }
+
         private static List<CommandInstance> All { get; set; } = new List<CommandInstance>();
 
         private static bool LastArgDeserializedSucces { get; set; }
 
         private static JsonSerializerSettings SerializeSettingsExecute { get; set; } = new JsonSerializerSettings()
         {
-            Error = (sender, args) => { LastArgDeserializedSucces = false; args.ErrorContext.Handled = true; },
-            MissingMemberHandling = MissingMemberHandling.Error
+            Error = (sender, args) =>
+            {
+                LastArgDeserializedSucces = false;
+                args.ErrorContext.Handled = true;
+            },
+            MissingMemberHandling = MissingMemberHandling.Error,
         };
 
         /// <summary>Метод для выполнения команды</summary>
@@ -32,7 +49,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         {
             cmdName = cmdName.ToLower();
 
-            var inst = All.Where(x => x.Attribute.Name == cmdName || x.Attribute.Aliases.Contains(cmdName)).FirstOrDefault();
+            CommandInstance inst = All.Where(x => x.Attribute.Name == cmdName || x.Attribute.Aliases.Contains(cmdName)).FirstOrDefault();
 
             if (inst == null || inst.Attribute.AdminOnly && (PlayerData.GetData(Player.LocalPlayer)?.AdminLevel ?? -1) < 0)
             {
@@ -45,7 +62,7 @@ namespace BlaineRP.Client.Game.Management.Commands
 
             var newArgs = new object[inst.Parameters.Length];
 
-            for (int i = 0; i < inst.Parameters.Length; i++)
+            for (var i = 0; i < inst.Parameters.Length; i++)
             {
                 if (i < args.Length)
                 {
@@ -56,13 +73,11 @@ namespace BlaineRP.Client.Game.Management.Commands
                     else
                     {
                         if (inst.Parameters[i].ParameterType == typeof(float) || inst.Parameters[i].ParameterType == typeof(float?))
-                        {
                             args[i] = args[i].Replace("f", "");
-                        }
 
                         LastArgDeserializedSucces = true;
 
-                        var newArg = JsonConvert.DeserializeObject(args[i], inst.Parameters[i].ParameterType, SerializeSettingsExecute);
+                        object newArg = JsonConvert.DeserializeObject(args[i], inst.Parameters[i].ParameterType, SerializeSettingsExecute);
 
                         if (LastArgDeserializedSucces)
                         {
@@ -77,7 +92,9 @@ namespace BlaineRP.Client.Game.Management.Commands
                     }
                 }
                 else if (inst.Parameters[i].HasDefaultValue)
+                {
                     newArgs[i] = inst.Parameters[i].DefaultValue;
+                }
                 else
                 {
                     correct = false;
@@ -88,27 +105,24 @@ namespace BlaineRP.Client.Game.Management.Commands
 
             if (!correct)
             {
-                Notification.Show(Notification.Types.Error, Locale.Notifications.Commands.Header, string.Format(Locale.Notifications.Commands.WrongUsing, $"/{inst.Attribute.Name} {string.Join(", ", inst.Parameters.Select(x => x.HasDefaultValue ? x.Name.ToUpper() + "?" : x.Name.ToUpper()))}"));
+                Notification.Show(Notification.Types.Error,
+                    Locale.Notifications.Commands.Header,
+                    string.Format(Locale.Notifications.Commands.WrongUsing,
+                        $"/{inst.Attribute.Name} {string.Join(", ", inst.Parameters.Select(x => x.HasDefaultValue ? x.Name.ToUpper() + "?" : x.Name.ToUpper()))}"
+                    )
+                );
 
                 return;
             }
             else
+            {
                 inst.MethodInfo.Invoke(null, newArgs.Length > 0 ? newArgs : null);
+            }
         }
 
-        public static void CallRemote(string cmdId, params object[] args) => Events.CallRemote("Cmd::Exec", cmdId, string.Join('&', args));
-
-        public Core()
+        public static void CallRemote(string cmdId, params object[] args)
         {
-            foreach (var method in typeof(Core).GetMethods().Where(x => x.IsStatic))
-            {
-                var attr = method.GetCustomAttribute<CommandAttribute>();
-
-                if (attr == null)
-                    continue;
-
-                All.Add(new CommandInstance(method, attr));
-            }
+            Events.CallRemote("Cmd::Exec", cmdId, string.Join('&', args));
         }
     }
 }

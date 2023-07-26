@@ -7,20 +7,15 @@ using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
-using Core = BlaineRP.Client.Game.World.Core;
+using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.EntitiesData.Components
 {
     public class Punishment
     {
-        public static List<Punishment> All { get; set; } = new List<Punishment>();
-
-        private static AsyncTask CheckTask { get; set; }
-
         public enum Types
         {
             /// <summary>Блокировка</summary>
@@ -48,6 +43,14 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             OrganisationMute = 7,
         }
 
+        public Punishment()
+        {
+        }
+
+        public static List<Punishment> All { get; set; } = new List<Punishment>();
+
+        private static AsyncTask CheckTask { get; set; }
+
         public uint Id { get; set; }
 
         public Types Type { get; set; }
@@ -60,7 +63,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
         public void ShowErrorNotification()
         {
-            var timeLeft = EndDate.Subtract(Core.ServerTime);
+            TimeSpan timeLeft = EndDate.Subtract(World.Core.ServerTime);
 
             if (Type == Types.Mute)
             {
@@ -68,7 +71,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             }
             else if (Type == Types.NRPPrison)
             {
-                var strData = AdditionalData?.Split('_');
+                string[] strData = AdditionalData?.Split('_');
 
                 if (strData == null)
                     return;
@@ -79,7 +82,9 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             }
             else if (Type == Types.Warn)
             {
-                Notification.ShowError($"Вы не можете сделать это сейчас!\nУ Вас есть активное предупреждение, до его снятия осталось {timeLeft}\n\nВы можете досрочно снять предупреждение, для этого перейдите в Меню - Магазин");
+                Notification.ShowError(
+                    $"Вы не можете сделать это сейчас!\nУ Вас есть активное предупреждение, до его снятия осталось {timeLeft}\n\nВы можете досрочно снять предупреждение, для этого перейдите в Меню - Магазин"
+                );
             }
             else if (Type == Types.FractionMute)
             {
@@ -91,7 +96,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             }
             else if (Type == Types.Arrest)
             {
-                var strData = AdditionalData?.Split('_');
+                string[] strData = AdditionalData?.Split('_');
 
                 if (strData == null)
                     return;
@@ -102,7 +107,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             }
             else if (Type == Types.FederalPrison)
             {
-                var strData = AdditionalData?.Split('_');
+                string[] strData = AdditionalData?.Split('_');
 
                 if (strData == null)
                     return;
@@ -118,51 +123,52 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             CheckTask?.Cancel();
 
             CheckTask = new AsyncTask(() =>
-            {
-                var curTime = Core.ServerTime;
-
-                foreach (var x in All)
                 {
-                    if (x.Type != Types.NRPPrison && x.Type != Types.FederalPrison && x.Type != Types.Arrest)
+                    DateTime curTime = World.Core.ServerTime;
+
+                    foreach (Punishment x in All)
                     {
-                        var timeLeft = x.EndDate.Subtract(curTime);
-
-                        var secs = timeLeft.TotalSeconds;
-
-                        if (secs < 0)
+                        if (x.Type != Types.NRPPrison && x.Type != Types.FederalPrison && x.Type != Types.Arrest)
                         {
-                            Events.CallRemote("Player::UnpunishMe", x.Id);
+                            TimeSpan timeLeft = x.EndDate.Subtract(curTime);
+
+                            double secs = timeLeft.TotalSeconds;
+
+                            if (secs < 0)
+                            {
+                                Events.CallRemote("Player::UnpunishMe", x.Id);
+                            }
+                            else
+                            {
+                            }
                         }
                         else
                         {
+                            string[] dataS = x.AdditionalData?.Split('_');
 
-                        }
-                    }
-                    else
-                    {
-                        var dataS = x.AdditionalData?.Split('_');
-
-                        if (dataS != null)
-                        {
-                            var time = long.Parse(dataS[0]) + 1;
-
-                            dataS[0] = time.ToString();
-
-                            x.AdditionalData = string.Join('_', dataS);
-                        }
-
-                        if (x.Type == Types.Arrest)
-                        {
-                            var cs = ExtraColshape.All.Where(x => x.Name == "CopArrestCell").ToList();
-
-                            if (!cs.Where(x => x.IsInside == true).Any())
+                            if (dataS != null)
                             {
-                                Events.CallRemote("Player::COPAR::TPME");
+                                long time = long.Parse(dataS[0]) + 1;
+
+                                dataS[0] = time.ToString();
+
+                                x.AdditionalData = string.Join('_', dataS);
+                            }
+
+                            if (x.Type == Types.Arrest)
+                            {
+                                var cs = ExtraColshape.All.Where(x => x.Name == "CopArrestCell").ToList();
+
+                                if (!cs.Where(x => x.IsInside == true).Any())
+                                    Events.CallRemote("Player::COPAR::TPME");
                             }
                         }
                     }
-                }
-            }, 1000, true, 0);
+                },
+                1000,
+                true,
+                0
+            );
 
             CheckTask.Run();
         }
@@ -194,13 +200,12 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
                 Main.Render -= ArrestRender;
                 Main.Render += ArrestRender;
 
-                var dataS = data.AdditionalData.Split('_');
+                string[] dataS = data.AdditionalData.Split('_');
 
-                var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(dataS[1])) as Police;
+                var fData = Fraction.Get((FractionTypes)int.Parse(dataS[1])) as Police;
 
                 if (fData != null)
-                {
-                    foreach (var x in fData.ArrestCellsPositions)
+                    foreach (Vector3 x in fData.ArrestCellsPositions)
                     {
                         ExtraColshape cs = null;
 
@@ -209,7 +214,6 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
                             Name = "CopArrestCell",
                         };
                     }
-                }
             }
             else if (data.Type == Types.FederalPrison)
             {
@@ -243,12 +247,12 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
         private static void NonRpJailRender()
         {
-            var jailData = All.Where(x => x.Type == Types.NRPPrison).FirstOrDefault();
+            Punishment jailData = All.Where(x => x.Type == Types.NRPPrison).FirstOrDefault();
 
             if (jailData == null)
                 return;
 
-            var strData = jailData.AdditionalData?.Split('_');
+            string[] strData = jailData.AdditionalData?.Split('_');
 
             if (strData == null)
                 return;
@@ -257,17 +261,28 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_NRPP"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()),
+                0.5f,
+                0.055f,
+                255,
+                255,
+                255,
+                255,
+                0.5f,
+                RAGE.Game.Font.ChaletComprimeCologne,
+                true,
+                true
+            );
         }
 
         private static void ArrestRender()
         {
-            var jailData = All.Where(x => x.Type == Types.Arrest).FirstOrDefault();
+            Punishment jailData = All.Where(x => x.Type == Types.Arrest).FirstOrDefault();
 
             if (jailData == null)
                 return;
 
-            var strData = jailData.AdditionalData?.Split('_');
+            string[] strData = jailData.AdditionalData?.Split('_');
 
             if (strData == null)
                 return;
@@ -276,17 +291,28 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP1"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()),
+                0.5f,
+                0.055f,
+                255,
+                255,
+                255,
+                255,
+                0.5f,
+                RAGE.Game.Font.ChaletComprimeCologne,
+                true,
+                true
+            );
         }
 
         private static void FederalPrisonRender()
         {
-            var jailData = All.Where(x => x.Type == Types.FederalPrison).FirstOrDefault();
+            Punishment jailData = All.Where(x => x.Type == Types.FederalPrison).FirstOrDefault();
 
             if (jailData == null)
                 return;
 
-            var strData = jailData.AdditionalData?.Split('_');
+            string[] strData = jailData.AdditionalData?.Split('_');
 
             if (strData == null)
                 return;
@@ -295,12 +321,18 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             Graphics.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP2"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
-        }
-
-        public Punishment()
-        {
-
+            Graphics.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()),
+                0.5f,
+                0.055f,
+                255,
+                255,
+                255,
+                255,
+                0.5f,
+                RAGE.Game.Font.ChaletComprimeCologne,
+                true,
+                true
+            );
         }
     }
 
@@ -313,142 +345,182 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             Events.Add("Player::FMuteShow", (args) => Punishment.All.Where(x => x.Type == Punishment.Types.FractionMute).FirstOrDefault()?.ShowErrorNotification());
 
-            Events.Add("Player::Punish", (args) =>
-            {
-                var id = Utils.Convert.ToUInt32(args[0]);
-
-                var type = (Punishment.Types)(int)args[1];
-
-                var admin = RAGE.Elements.Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
-
-                var endDateL = Utils.Convert.ToInt64(args[3]);
-
-                var reason = (string)args[4];
-
-                var addData = args.Length > 5 ? (string)args[5] : null;
-
-                string getAdminStr() => $"{admin.Name} #{admin.GetSharedData<object>("CID", 0)}";
-
-                if (endDateL >= 0)
+            Events.Add("Player::Punish",
+                (args) =>
                 {
-                    var endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
+                    var id = Utils.Convert.ToUInt32(args[0]);
 
-                    var mData = Punishment.All.Where(x => x.Id == id).FirstOrDefault();
+                    var type = (Punishment.Types)(int)args[1];
 
-                    if (mData != null)
+                    Player admin = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
+
+                    var endDateL = Utils.Convert.ToInt64(args[3]);
+
+                    var reason = (string)args[4];
+
+                    string addData = args.Length > 5 ? (string)args[5] : null;
+
+                    string getAdminStr() => $"{admin.Name} #{admin.GetSharedData<object>("CID", 0)}";
+
+                    if (endDateL >= 0)
                     {
-                        var endDateDiff = endDate.Subtract(mData.EndDate);
+                        DateTime endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
 
-                        if (type == Punishment.Types.Arrest)
+                        Punishment mData = Punishment.All.Where(x => x.Id == id).FirstOrDefault();
+
+                        if (mData != null)
                         {
-                            if (endDateDiff >= TimeSpan.Zero)
-                            {
-                                var timeStr = endDateDiff.GetBeautyString();
+                            TimeSpan endDateDiff = endDate.Subtract(mData.EndDate);
 
-                                Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_U0_RPP1") : Locale.Get("PUNISHMENT_U1_RPP1", getAdminStr(), timeStr, reason));
+                            if (type == Punishment.Types.Arrest)
+                            {
+                                if (endDateDiff >= TimeSpan.Zero)
+                                {
+                                    string timeStr = endDateDiff.GetBeautyString();
+
+                                    Notification.Show(Notification.Types.Jail2,
+                                        Locale.Get("PUNISHMENT_L_RPP1"),
+                                        admin == null ? Locale.Get("PUNISHMENT_U0_RPP1") : Locale.Get("PUNISHMENT_U1_RPP1", getAdminStr(), timeStr, reason)
+                                    );
+                                }
+                                else
+                                {
+                                    string timeStr = endDateDiff.Negate().GetBeautyString();
+
+                                    Notification.Show(Notification.Types.Jail2,
+                                        Locale.Get("PUNISHMENT_L_RPP1"),
+                                        admin == null ? Locale.Get("PUNISHMENT_D0_RPP1") : Locale.Get("PUNISHMENT_D1_RPP1", getAdminStr(), timeStr, reason)
+                                    );
+                                }
                             }
-                            else
-                            {
-                                var timeStr = endDateDiff.Negate().GetBeautyString();
 
-                                Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_D0_RPP1") : Locale.Get("PUNISHMENT_D1_RPP1", getAdminStr(), timeStr, reason));
+                            mData.EndDate = endDate;
+
+                            return;
+                        }
+                        else
+                        {
+                            mData = new Punishment()
+                            {
+                                Type = type,
+                                EndDate = endDate,
+                                Id = id,
+                                AdditionalData = addData,
+                            };
+
+                            Punishment.AddPunishment(mData);
+
+                            string timeStr = endDate.Subtract(World.Core.ServerTime).GetBeautyString();
+
+                            if (type == Punishment.Types.Mute)
+                            {
+                                Notification.Show(Notification.Types.Mute,
+                                    Locale.Get("PUNISHMENT_L_MUTE"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_MUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_MUTE", getAdminStr(), timeStr, reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.NRPPrison)
+                            {
+                                string[] strData = mData.AdditionalData?.Split('_');
+
+                                if (strData == null)
+                                    return;
+
+                                timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
+                                Notification.Show(Notification.Types.Jail1,
+                                    Locale.Get("PUNISHMENT_L_NRPP"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_NRPP", timeStr, reason) : Locale.Get("PUNISHMENT_S1_NRPP", getAdminStr(), timeStr, reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.Warn)
+                            {
+                                Notification.Show(Notification.Types.Warn,
+                                    Locale.Get("PUNISHMENT_L_WARN"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_WARN", reason) : Locale.Get("PUNISHMENT_S1_WARN", getAdminStr(), reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.FractionMute)
+                            {
+                                Notification.Show(Notification.Types.Mute,
+                                    Locale.Get("PUNISHMENT_L_FMUTE"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_FMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_FMUTE", getAdminStr(), timeStr, reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.OrganisationMute)
+                            {
+                                Notification.Show(Notification.Types.Mute,
+                                    Locale.Get("PUNISHMENT_L_OMUTE"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_OMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_OMUTE", getAdminStr(), timeStr, reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.Arrest)
+                            {
+                                string[] strData = mData.AdditionalData?.Split('_');
+
+                                if (strData == null)
+                                    return;
+
+                                timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
+                                Notification.Show(Notification.Types.Jail2,
+                                    Locale.Get("PUNISHMENT_L_RPP1"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_RPP1", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP1", getAdminStr(), timeStr, reason)
+                                );
+                            }
+                            else if (type == Punishment.Types.FederalPrison)
+                            {
+                                string[] strData = mData.AdditionalData?.Split('_');
+
+                                if (strData == null)
+                                    return;
+
+                                timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
+                                Notification.Show(Notification.Types.Jail2,
+                                    Locale.Get("PUNISHMENT_L_RPP2"),
+                                    admin == null ? Locale.Get("PUNISHMENT_S0_RPP2", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP2", getAdminStr(), timeStr, reason)
+                                );
                             }
                         }
-
-                        mData.EndDate = endDate;
-
-                        return;
                     }
                     else
                     {
-                        mData = new Punishment() { Type = type, EndDate = endDate, Id = id, AdditionalData = addData };
+                        Punishment mData = Punishment.All.Where(x => x.Type == type && x.Id == id).FirstOrDefault();
 
-                        Punishment.AddPunishment(mData);
+                        if (mData != null)
+                            Punishment.RemovePunishment(mData);
 
-                        var timeStr = endDate.Subtract(Core.ServerTime).GetBeautyString();
-
-                        if (type == Punishment.Types.Mute)
-                        {
-                            Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_MUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_MUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_MUTE", getAdminStr(), timeStr, reason));
-                        }
-                        else if (type == Punishment.Types.NRPPrison)
-                        {
-                            var strData = mData.AdditionalData?.Split('_');
-
-                            if (strData == null)
-                                return;
-
-                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
-
-                            Notification.Show(Notification.Types.Jail1, Locale.Get("PUNISHMENT_L_NRPP"), admin == null ? Locale.Get("PUNISHMENT_S0_NRPP", timeStr, reason) : Locale.Get("PUNISHMENT_S1_NRPP", getAdminStr(), timeStr, reason));
-                        }
-                        else if (type == Punishment.Types.Warn)
-                        {
-                            Notification.Show(Notification.Types.Warn, Locale.Get("PUNISHMENT_L_WARN"), admin == null ? Locale.Get("PUNISHMENT_S0_WARN", reason) : Locale.Get("PUNISHMENT_S1_WARN", getAdminStr(), reason));
-                        }
-                        else if (type == Punishment.Types.FractionMute)
-                        {
-                            Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_FMUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_FMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_FMUTE", getAdminStr(), timeStr, reason));
-                        }
+                        if (type == Punishment.Types.FractionMute)
+                            Notification.Show(Notification.Types.Information,
+                                Locale.Get("PUNISHMENT_L_FMUTE"),
+                                endDateL == -2 ? Locale.Get("PUNISHMENT_F0_FRAC") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason)
+                            );
                         else if (type == Punishment.Types.OrganisationMute)
-                        {
-                            Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_OMUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_OMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_OMUTE", getAdminStr(), timeStr, reason));
-                        }
+                            Notification.Show(Notification.Types.Information,
+                                Locale.Get("PUNISHMENT_L_OMUTE"),
+                                endDateL == -2 ? Locale.Get("PUNISHMENT_F0_ORG") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason)
+                            );
                         else if (type == Punishment.Types.Arrest)
-                        {
-                            var strData = mData.AdditionalData?.Split('_');
-
-                            if (strData == null)
-                                return;
-
-                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
-
-                            Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_S0_RPP1", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP1", getAdminStr(), timeStr, reason));
-                        }
+                            Notification.Show(Notification.Types.Information,
+                                Locale.Get("PUNISHMENT_L_RPP1"),
+                                endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason)
+                            );
                         else if (type == Punishment.Types.FederalPrison)
-                        {
-                            var strData = mData.AdditionalData?.Split('_');
-
-                            if (strData == null)
-                                return;
-
-                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
-
-                            Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP2"), admin == null ? Locale.Get("PUNISHMENT_S0_RPP2", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP2", getAdminStr(), timeStr, reason));
-                        }
+                            Notification.Show(Notification.Types.Information,
+                                Locale.Get("PUNISHMENT_L_RPP2"),
+                                endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason)
+                            );
+                        else
+                            Notification.Show(Notification.Types.Information,
+                                type == Punishment.Types.Mute ? Locale.Get("PUNISHMENT_L_MUTE") :
+                                type == Punishment.Types.NRPPrison ? Locale.Get("PUNISHMENT_L_NRPP") :
+                                type == Punishment.Types.Warn ? Locale.Get("PUNISHMENT_L_WARN") : "???",
+                                endDateL == -2 ? Locale.Get("PUNISHMENT_F0_DEF") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason)
+                            );
                     }
                 }
-                else
-                {
-                    var mData = Punishment.All.Where(x => x.Type == type && x.Id == id).FirstOrDefault();
-
-                    if (mData != null)
-                    {
-                        Punishment.RemovePunishment(mData);
-                    }
-
-                    if (type == Punishment.Types.FractionMute)
-                    {
-                        Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_FMUTE"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_FRAC") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
-                    }
-                    else if (type == Punishment.Types.OrganisationMute)
-                    {
-                        Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_OMUTE"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_ORG") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
-                    }
-                    else if (type == Punishment.Types.Arrest)
-                    {
-                        Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP1"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
-                    }
-                    else if (type == Punishment.Types.FederalPrison)
-                    {
-                        Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP2"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
-                    }
-                    else
-                    {
-                        Notification.Show(Notification.Types.Information, type == Punishment.Types.Mute ? Locale.Get("PUNISHMENT_L_MUTE") : type == Punishment.Types.NRPPrison ? Locale.Get("PUNISHMENT_L_NRPP") : type == Punishment.Types.Warn ? Locale.Get("PUNISHMENT_L_WARN") : "???", endDateL == -2 ? Locale.Get("PUNISHMENT_F0_DEF") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
-                    }
-                }
-            });
+            );
         }
     }
 }

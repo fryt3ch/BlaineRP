@@ -50,7 +50,7 @@ namespace BlaineRP.Client.Game.Misc
                     "prologuerdb",
                 };
 
-                for (int i = 0; i < iplList.Length; i++)
+                for (var i = 0; i < iplList.Length; i++)
                 {
                     RAGE.Game.Streaming.RemoveIpl(iplList[i]);
                 }
@@ -58,47 +58,42 @@ namespace BlaineRP.Client.Game.Misc
                 var demorganCs = new Circle(new Vector3(3217.697f, -4834.826f, 111.8152f), 4500f, false, Utils.Misc.RedColor, 2, null)
                 {
                     ApproveType = ApproveTypes.None,
-
                     OnEnter = (cancel) =>
                     {
                         if (CayoPerico.MainColshape?.IsInside == true)
                             CayoPerico.MainColshape.OnExit.Invoke(null);
 
-                        for (int i = 0; i < iplList.Length; i++)
+                        for (var i = 0; i < iplList.Length; i++)
                         {
                             RAGE.Game.Streaming.RequestIpl(iplList[i]);
                         }
 
-                        var intid = RAGE.Game.Interior.GetInteriorAtCoords(3217.697f, -4834.826f, 111.8152f);
+                        int intid = RAGE.Game.Interior.GetInteriorAtCoords(3217.697f, -4834.826f, 111.8152f);
 
                         RAGE.Game.Interior.RefreshInterior(intid);
 
                         var demorganCs1 = new Cylinder(new Vector3(5332.779f, -5121.378f, 70.60863f), 350f, 100f, false, Utils.Misc.RedColor, 2, null)
                         {
                             ApproveType = ApproveTypes.None,
-
                             OnExit = (cancel) =>
                             {
-                                var demorganData = Punishment.All.Where(x => x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
+                                Punishment demorganData = Punishment.All.Where(x => x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
 
                                 if (demorganData != null)
-                                {
                                     Events.CallRemote("Player::NRPP::TPME");
-                                }
                             },
                         };
 
                         Player.LocalPlayer.SetData("NorthYankton::DemorganTempCs", demorganCs1);
                     },
-
                     OnExit = (cancel) =>
                     {
-                        for (int i = 0; i < iplList.Length; i++)
+                        for (var i = 0; i < iplList.Length; i++)
                         {
                             RAGE.Game.Streaming.RemoveIpl(iplList[i]);
                         }
 
-                        var demorganCs1 = Player.LocalPlayer.GetData<ExtraColshape>("NorthYankton::DemorganTempCs");
+                        ExtraColshape demorganCs1 = Player.LocalPlayer.GetData<ExtraColshape>("NorthYankton::DemorganTempCs");
 
                         if (demorganCs1 != null)
                         {

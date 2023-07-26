@@ -4,6 +4,7 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Casino;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Estates;
@@ -13,9 +14,6 @@ using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using RAGE;
 using RAGE.Elements;
-using NPC = BlaineRP.Client.Game.NPCs.NPC;
-using Vehicle = RAGE.Elements.Vehicle;
-using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
 namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
@@ -29,7 +27,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+                    string[] casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
 
                     if (casinoStrData == null)
                         return;
@@ -39,11 +37,11 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     var casino = Casino.Casino.GetById(casinoId);
 
-                    var table = casino.GetBlackjackById(tableId);
+                    Blackjack table = casino.GetBlackjackById(tableId);
 
                     LastSent = World.Core.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::BLJE", casinoId, tableId))?.Split('^');
+                    string[] res = ((string)await Events.CallRemoteProc("Casino::BLJE", casinoId, tableId))?.Split('^');
 
                     if (res == null)
                         return;
@@ -56,7 +54,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     var stateData = (string)res[2];
 
                     if (table.CurrentStateData != stateData)
-                        Casino.Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, true);
+                        Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, true);
 
                     CasinoMinigames.ShowBlackjack(casino, table, seatIdx, balance);
                 }
@@ -67,7 +65,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+                    string[] casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
 
                     if (casinoStrData == null)
                         return;
@@ -77,11 +75,11 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     var casino = Casino.Casino.GetById(casinoId);
 
-                    var slotMachine = casino.GetSlotMachineById(slotMachineId);
+                    SlotMachine slotMachine = casino.GetSlotMachineById(slotMachineId);
 
                     LastSent = World.Core.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::SLME", casinoId, slotMachineId))?.Split('^');
+                    string[] res = ((string)await Events.CallRemoteProc("Casino::SLME", casinoId, slotMachineId))?.Split('^');
 
                     if (res == null)
                         return;
@@ -104,7 +102,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(2000, false, true))
                         return;
 
-                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+                    string[] casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
 
                     if (casinoStrData == null)
                         return;
@@ -114,7 +112,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     var casino = Casino.Casino.GetById(casinoId);
 
-                    var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
+                    LuckyWheel luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
                     LastSent = World.Core.ServerTime;
 
@@ -127,7 +125,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+                    string[] casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
 
                     if (casinoStrData == null)
                         return;
@@ -137,7 +135,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     LastSent = World.Core.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId))?.Split('^');
+                    string[] res = ((string)await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId))?.Split('^');
 
                     if (res == null)
                         return;
@@ -147,13 +145,13 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     var casino = Casino.Casino.GetById(casinoId);
 
-                    var roulette = casino.GetRouletteById(rouletteId);
+                    Roulette roulette = casino.GetRouletteById(rouletteId);
 
                     if (roulette.TextLabel == null)
                         return;
 
                     if (roulette.CurrentStateData != stateData)
-                        Casino.Roulette.OnCurrentStateDataUpdated(casinoId, rouletteId, stateData, true);
+                        Roulette.OnCurrentStateDataUpdated(casinoId, rouletteId, stateData, true);
 
                     CasinoMinigames.ShowRoulette(casino, roulette, chipsBalance);
                 }
@@ -169,7 +167,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var elevatorId = Player.LocalPlayer.GetData<uint>("EXED::ElevatorId");
+                    uint elevatorId = Player.LocalPlayer.GetData<uint>("EXED::ElevatorId");
 
                     var elevatorData = Misc.Elevator.Get(elevatorId);
 
@@ -203,7 +201,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 ActionBox.Close();
                             }
                         },
-                        null);
+                        null
+                    );
                 }
             },
             {
@@ -217,12 +216,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+                    string[] fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
 
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((FractionTypes)int.Parse(fTypeS[0]));
 
                     if (pData.CurrentFraction != fData)
                     {
@@ -233,7 +232,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     var menuIdx = byte.Parse(fTypeS[1]);
 
-                    var arrestsData = fData?.GetCurrentData<List<Police.ArrestInfo>>("Arrests");
+                    List<Police.ArrestInfo> arrestsData = fData?.GetCurrentData<List<Police.ArrestInfo>>("Arrests");
 
                     if (arrestsData == null)
                         return;
@@ -252,7 +251,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var estAgencyIds = Player.LocalPlayer.GetData<string>("EXED::DriveSchoolId")?.Split('_');
+                    string[] estAgencyIds = Player.LocalPlayer.GetData<string>("EXED::DriveSchoolId")?.Split('_');
 
                     if (estAgencyIds == null)
                         return;
@@ -262,7 +261,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
                     LastSent = World.Core.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("EstAgency::GD", id, posId))?.Split('_');
+                    string[] res = ((string)await Events.CallRemoteProc("EstAgency::GD", id, posId))?.Split('_');
 
                     if (res == null)
                         return;
@@ -284,9 +283,9 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (!Player.LocalPlayer.HasData("EXED::DriveSchoolId"))
                         return;
 
-                    var schoolId = Player.LocalPlayer.GetData<int>("EXED::DriveSchoolId");
+                    int schoolId = Player.LocalPlayer.GetData<int>("EXED::DriveSchoolId");
 
-                    var lics = pData.Licenses;
+                    HashSet<LicenseTypes> lics = pData.Licenses;
 
                     var notOwnedLics = Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToHashSet();
 
@@ -314,7 +313,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 AutoschoolTest.Show(schoolId, licType, Autoschool.Prices.GetValueOrDefault(licType));
                             }
                         },
-                        null);
+                        null
+                    );
                 }
             },
             {
@@ -328,12 +328,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+                    string[] fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
 
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((FractionTypes)int.Parse(fTypeS[0]));
 
                     var fDataUnif = fData as IUniformable;
 
@@ -390,7 +390,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 return;
                             }
                         },
-                        null);
+                        null
+                    );
                 }
             },
             {
@@ -404,12 +405,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+                    string[] fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
 
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((FractionTypes)int.Parse(fTypeS[0]));
 
                     if (fData == null)
                         return;
@@ -508,13 +509,17 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                         return;
 
-                    var house = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
+                    HouseBase house = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
 
                     if (house is House rHouse && rHouse.GarageType != null)
                     {
                         await ActionBox.ShowSelect("HouseExit",
                             Locale.Actions.HouseExitActionBoxHeader,
-                            new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage), },
+                            new (decimal, string)[]
+                            {
+                                (0, Locale.Actions.HouseExitActionBoxOutside),
+                                (1, Locale.Actions.HouseExitActionBoxToGarage),
+                            },
                             null,
                             null,
                             ActionBox.DefaultBindAction,
@@ -535,7 +540,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                         Events.CallRemote("House::Garage", true);
                                 }
                             },
-                            null);
+                            null
+                        );
                     }
                     else
                     {
@@ -556,7 +562,11 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     else
                         await ActionBox.ShowSelect("HouseExit",
                             Locale.Actions.HouseExitActionBoxHeader,
-                            new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToHouse), },
+                            new (decimal, string)[]
+                            {
+                                (0, Locale.Actions.HouseExitActionBoxOutside),
+                                (1, Locale.Actions.HouseExitActionBoxToHouse),
+                            },
                             null,
                             null,
                             ActionBox.DefaultBindAction,
@@ -577,7 +587,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                         Events.CallRemote("House::Garage", false);
                                 }
                             },
-                            null);
+                            null
+                        );
                 }
             },
             {
@@ -589,7 +600,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (!Player.LocalPlayer.HasData("CurrentNPC"))
                         return;
 
-                    var npc = Player.LocalPlayer.GetData<NPC>("CurrentNPC");
+                    NPCs.NPC npc = Player.LocalPlayer.GetData<NPCs.NPC>("CurrentNPC");
 
                     if (npc == null)
                         return;
@@ -624,31 +635,35 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (!Player.LocalPlayer.HasData("CurrentTuning"))
                         return;
 
-                    var baseVeh = Player.LocalPlayer.Vehicle;
+                    Vehicle baseVeh = Player.LocalPlayer.Vehicle;
 
                     if (baseVeh == null)
                         return;
 
-                    var bVehData = VehicleData.GetData(baseVeh);
+                    var bVehData = EntitiesData.VehicleData.GetData(baseVeh);
 
                     if (bVehData == null)
                         return;
 
-                    var trailerVehHandle = baseVeh.GetTrailerVehicle();
+                    int trailerVehHandle = baseVeh.GetTrailerVehicle();
 
                     if (trailerVehHandle > 0 && Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false) is Vehicle trailerVeh)
                         if (trailerVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
                         {
-                            var boatData = VehicleData.GetData(boat);
+                            var boatData = EntitiesData.VehicleData.GetData(boat);
 
                             if (boatData == null)
                                 return;
 
-                            var tuningId = Player.LocalPlayer.GetData<TuningShop>("CurrentTuning").Id;
+                            int tuningId = Player.LocalPlayer.GetData<TuningShop>("CurrentTuning").Id;
 
                             await ActionBox.ShowSelect("VehicleTuningVehicleSelect",
                                 Locale.Actions.VehicleTuningVehicleSelect,
-                                new (decimal Id, string Text)[] { (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"), (2, $"{boatData.Data.SubName} [#{boatData.VID}]"), },
+                                new (decimal Id, string Text)[]
+                                {
+                                    (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"),
+                                    (2, $"{boatData.Data.SubName} [#{boatData.VID}]"),
+                                },
                                 null,
                                 null,
                                 ActionBox.DefaultBindAction,
@@ -677,7 +692,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                         return;
                                     }
                                 },
-                                null);
+                                null
+                            );
 
                             return;
                         }
@@ -735,7 +751,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (LastSent.IsSpam(1000, false, false))
                         return;
 
-                    var aRoot = Player.LocalPlayer.GetData<ApartmentsRoot>("ApartmentsRoot::Current");
+                    ApartmentsRoot aRoot = Player.LocalPlayer.GetData<ApartmentsRoot>("ApartmentsRoot::Current");
 
                     if (aRoot == null)
                         return;
@@ -746,7 +762,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     {
                         LastSent = World.Core.ServerTime;
 
-                        var shell = aRoot.Shell;
+                        ApartmentsRoot.ShellData shell = aRoot.Shell;
 
                         UI.CEF.Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, UI.CEF.Elevator.ContextTypes.ApartmentsRoot);
                     }

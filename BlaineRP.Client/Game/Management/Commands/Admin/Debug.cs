@@ -9,8 +9,6 @@ using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Interaction = BlaineRP.Client.Game.Management.Interaction;
-using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
@@ -42,7 +40,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (step <= 0f)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 0.5f;
 
             if (Helpers.Colshapes.Core.PolygonCreationTask != null)
@@ -52,27 +50,41 @@ namespace BlaineRP.Client.Game.Management.Commands
                 Helpers.Colshapes.Core.TempPolygon?.Destroy();
             }
 
-            Helpers.Colshapes.Core.TempPolygon = new Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            Helpers.Colshapes.Core.TempPolygon = new Polygon(new List<Vector3>()
+                {
+                    newVertice,
+                },
+                height,
+                0f,
+                false,
+                new Utils.Colour(255, 0, 0, 255),
+                Player.LocalPlayer.Dimension,
+                null
+            );
 
             Helpers.Colshapes.Core.PolygonCreationTask = new Utils.AsyncTask(() =>
-            {
-                if (Helpers.Colshapes.Core.TempPolygon == null)
-                    return true;
+                {
+                    if (Helpers.Colshapes.Core.TempPolygon == null)
+                        return true;
 
-                var newVertice = Player.LocalPlayer.Position;
-                newVertice.Z -= 1f;
+                    Vector3 newVertice = Player.LocalPlayer.Position;
+                    newVertice.Z -= 1f;
 
-                var vertices = Helpers.Colshapes.Core.TempPolygon.Vertices;
+                    List<Vector3> vertices = Helpers.Colshapes.Core.TempPolygon.Vertices;
 
-                if (vertices[vertices.Count - 1].DistanceTo(newVertice) < step)
+                    if (vertices[vertices.Count - 1].DistanceTo(newVertice) < step)
+                        return false;
+
+                    Helpers.Colshapes.Core.TempPolygon.AddVertice(newVertice);
+
+                    //Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Polygon_{(height > 0 ? "3D" : "2D")}] New pos: {newVertice}");
+
                     return false;
-
-                Helpers.Colshapes.Core.TempPolygon.AddVertice(newVertice);
-
-                //Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Polygon_{(height > 0 ? "3D" : "2D")}] New pos: {newVertice}");
-
-                return false;
-            }, 100, true, 0);
+                },
+                100,
+                true,
+                0
+            );
 
             Helpers.Colshapes.Core.PolygonCreationTask.Run();
         }
@@ -105,7 +117,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (radius <= 0)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
             new Circle(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
@@ -119,7 +131,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (radius <= 0 || height <= 0)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
             new Cylinder(newVertice, radius, height, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
@@ -133,7 +145,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (radius <= 0)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
             new Sphere(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
@@ -147,7 +159,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (sX < 0 || sY < 0 || height < 0)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
             if (sX != 0 && sY != 0)
@@ -188,7 +200,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (poly == null)
                 return;
 
-            var newVertice = Player.LocalPlayer.Position;
+            Vector3 newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
             if (idx < 0)
@@ -260,7 +272,10 @@ namespace BlaineRP.Client.Game.Management.Commands
             else
                 Settings.User.Other.HighPolygonsMode = (bool)state;
 
-            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode"));
+            Notification.Show(Notification.Types.Success,
+                Locale.Notifications.Commands.Header,
+                string.Format(Settings.User.Other.HighPolygonsMode ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "HighPolyMode")
+            );
         }
 
         [Command("colshapes_visible", true, "Сменить видимость колшейпов", "cs_vis")]
@@ -271,7 +286,10 @@ namespace BlaineRP.Client.Game.Management.Commands
             else
                 Settings.User.Other.ColshapesVisible = (bool)state;
 
-            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible"));
+            Notification.Show(Notification.Types.Success,
+                Locale.Notifications.Commands.Header,
+                string.Format(Settings.User.Other.ColshapesVisible ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "ColshapesVisible")
+            );
         }
 
         [Command("5sound", true, "Проиграть звук из GTA5", "gta5sound")]
@@ -283,7 +301,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("newplacemarker", true, "Получить текущую позицию", "npmarker")]
         public static void NewPlaceMarker()
         {
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
             float z = pos.Z;
 
@@ -291,17 +309,19 @@ namespace BlaineRP.Client.Game.Management.Commands
 
             pos.Z = z;
 
-            float minDist = 1000f;
+            var minDist = 1000f;
 
             Marker marker = null;
 
-            foreach (var x in RAGE.Elements.Entities.Markers.Streamed.ToList())
+            foreach (Marker x in Entities.Markers.Streamed.ToList())
+            {
                 if (Vector3.Distance(Player.LocalPlayer.Position, x.Position) < minDist)
                 {
                     minDist = Vector3.Distance(Player.LocalPlayer.Position, x.Position);
 
                     marker = x;
                 }
+            }
 
             if (marker == null)
                 return;
@@ -312,7 +332,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("loadipl", true, "Загрузить IPL", "lipl")]
         public static void LoadIpl(string ipl, float x = 0, float y = 0, float z = 0)
         {
-            var interior = RAGE.Game.Interior.GetInteriorAtCoords(x, y, z);
+            int interior = RAGE.Game.Interior.GetInteriorAtCoords(x, y, z);
 
             RAGE.Game.Streaming.RequestIpl(ipl);
 
@@ -322,7 +342,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("unloadipl", true, "Выгрузить IPL", "unipl")]
         public static void RemoveIpl(string ipl, float x = 0, float y = 0, float z = 0)
         {
-            var interior = RAGE.Game.Interior.GetInteriorAtCoords(x, y, z);
+            int interior = RAGE.Game.Interior.GetInteriorAtCoords(x, y, z);
 
             RAGE.Game.Streaming.RemoveIpl(ipl);
 
@@ -332,14 +352,16 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("objpos", true, "Получить текущую позицию объекта типа", "objectpos")]
         public static void ObjectPosition(string model, float radius = 1f)
         {
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
-            var handle = RAGE.Game.Object.GetClosestObjectOfType(pos.X, pos.Y, pos.Z, radius, RAGE.Util.Joaat.Hash(model), false, true, true);
+            int handle = RAGE.Game.Object.GetClosestObjectOfType(pos.X, pos.Y, pos.Z, radius, RAGE.Util.Joaat.Hash(model), false, true, true);
 
             if (handle <= 0)
                 return;
 
-            Events.CallLocal("Chat::ShowServerMessage", $"Model: {model} | Pos: {RAGE.Game.Entity.GetEntityCoords(handle, true)} | Rot: {RAGE.Game.Entity.GetEntityRotation(handle, 5)}");
+            Events.CallLocal("Chat::ShowServerMessage",
+                $"Model: {model} | Pos: {RAGE.Game.Entity.GetEntityCoords(handle, true)} | Rot: {RAGE.Game.Entity.GetEntityRotation(handle, 5)}"
+            );
         }
 
         [Command("btw", true, "Установить сытость игроку")]
@@ -350,17 +372,48 @@ namespace BlaineRP.Client.Game.Management.Commands
         }
 
         [Command("attachtool_start", true, "Установить сытость игроку")]
-        public static async void AttachToolStart(string model, int boneId, float offX = 0f, float offY = 0f, float offZ = 0f, float rotX = 0f, float rotY = 0f, float rotZ = 0f, bool fixedRot = true)
+        public static async void AttachToolStart(string model,
+                                                 int boneId,
+                                                 float offX = 0f,
+                                                 float offY = 0f,
+                                                 float offZ = 0f,
+                                                 float rotX = 0f,
+                                                 float rotY = 0f,
+                                                 float rotZ = 0f,
+                                                 bool fixedRot = true)
         {
             AttachToolStop();
 
-            var modelNum = RAGE.Util.Joaat.Hash(model);
+            uint modelNum = RAGE.Util.Joaat.Hash(model);
 
             await Streaming.RequestModel(modelNum);
 
-            var gameEntity = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(modelNum, Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, false, false, false));
+            var gameEntity = new MapObject(RAGE.Game.Object.CreateObject(modelNum,
+                    Player.LocalPlayer.Position.X,
+                    Player.LocalPlayer.Position.Y,
+                    Player.LocalPlayer.Position.Z,
+                    false,
+                    false,
+                    false
+                )
+            );
 
-            RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), offX, offY, offZ, rotX, rotY, rotZ, false, false, false, false, 2, fixedRot);
+            RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle,
+                Player.LocalPlayer.Handle,
+                Player.LocalPlayer.GetBoneIndex(boneId),
+                offX,
+                offY,
+                offZ,
+                rotX,
+                rotY,
+                rotZ,
+                false,
+                false,
+                false,
+                false,
+                2,
+                fixedRot
+            );
 
             Player.LocalPlayer.SetData("Temp::ATTOOL::Sens", 0.1f);
             Player.LocalPlayer.SetData("Temp::ATTOOL::PosOff", new Vector3(offX, offY, offZ));
@@ -372,108 +425,151 @@ namespace BlaineRP.Client.Game.Management.Commands
 
             var binds = new List<int>()
             {
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
-                {
-                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
-
-                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using X axis now!");
-                }),
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
-                {
-                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 1);
-
-                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Y axis now!");
-                }),
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
-                {
-                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 2);
-
-                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Z axis now!");
-                }),
-
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
-                {
-                    if (Utils.Misc.IsAnyCefActive(true))
-                        return;
-
-                    var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
-
-                    var xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
-
-                    var rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
-                    var pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
-
-                    var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
-
-                    if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.X,
+                    true,
+                    () =>
                     {
-                        if (xyz == 0)
-                            rot.X -= sens;
-                        else if (xyz == 1)
-                            rot.Y -= sens;
-                        else
-                            rot.Z -= sens;
+                        Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
+
+                        Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using X axis now!");
                     }
-                    else
+                ),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Y,
+                    true,
+                    () =>
                     {
-                        if (xyz == 0)
-                            pos.X -= sens;
-                        else if (xyz == 1)
-                            pos.Y -= sens;
-                        else
-                            pos.Z -= sens;
+                        Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 1);
+
+                        Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Y axis now!");
                     }
-
-                    var ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
-
-                    RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
-
-                    RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), pos.X, pos.Y, pos.Z, rot.X, rot.Y, rot.Z, false, false, false, false, 2, fr);
-
-                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
-                }),
-
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
-                {
-                    if (Utils.Misc.IsAnyCefActive(true))
-                        return;
-
-                    var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
-
-                    var xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
-
-                    var rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
-                    var pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
-
-                    var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
-
-                    if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                ),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Z,
+                    true,
+                    () =>
                     {
-                        if (xyz == 0)
-                            rot.X += sens;
-                        else if (xyz == 1)
-                            rot.Y += sens;
-                        else
-                            rot.Z += sens;
+                        Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 2);
+
+                        Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Z axis now!");
                     }
-                    else
+                ),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Left,
+                    true,
+                    () =>
                     {
-                        if (xyz == 0)
-                            pos.X += sens;
-                        else if (xyz == 1)
-                            pos.Y += sens;
+                        if (Utils.Misc.IsAnyCefActive(true))
+                            return;
+
+                        float sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
+
+                        int xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
+
+                        Vector3 rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
+                        Vector3 pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
+
+                        bool fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
+
+                        if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                        {
+                            if (xyz == 0)
+                                rot.X -= sens;
+                            else if (xyz == 1)
+                                rot.Y -= sens;
+                            else
+                                rot.Z -= sens;
+                        }
                         else
-                            pos.Z += sens;
+                        {
+                            if (xyz == 0)
+                                pos.X -= sens;
+                            else if (xyz == 1)
+                                pos.Y -= sens;
+                            else
+                                pos.Z -= sens;
+                        }
+
+                        GameEntity ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
+
+                        RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
+
+                        RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle,
+                            Player.LocalPlayer.Handle,
+                            Player.LocalPlayer.GetBoneIndex(boneId),
+                            pos.X,
+                            pos.Y,
+                            pos.Z,
+                            rot.X,
+                            rot.Y,
+                            rot.Z,
+                            false,
+                            false,
+                            false,
+                            false,
+                            2,
+                            fr
+                        );
+
+                        Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
                     }
+                ),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Right,
+                    true,
+                    () =>
+                    {
+                        if (Utils.Misc.IsAnyCefActive(true))
+                            return;
 
-                    var ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
+                        float sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
 
-                    RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
+                        int xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
 
-                    RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), pos.X, pos.Y, pos.Z, rot.X, rot.Y, rot.Z, false, false, false, false, 2, fr);
+                        Vector3 rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
+                        Vector3 pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
 
-                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
-                }),
+                        bool fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
+
+                        if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                        {
+                            if (xyz == 0)
+                                rot.X += sens;
+                            else if (xyz == 1)
+                                rot.Y += sens;
+                            else
+                                rot.Z += sens;
+                        }
+                        else
+                        {
+                            if (xyz == 0)
+                                pos.X += sens;
+                            else if (xyz == 1)
+                                pos.Y += sens;
+                            else
+                                pos.Z += sens;
+                        }
+
+                        GameEntity ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
+
+                        RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
+
+                        RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle,
+                            Player.LocalPlayer.Handle,
+                            Player.LocalPlayer.GetBoneIndex(boneId),
+                            pos.X,
+                            pos.Y,
+                            pos.Z,
+                            rot.X,
+                            rot.Y,
+                            rot.Z,
+                            false,
+                            false,
+                            false,
+                            false,
+                            2,
+                            fr
+                        );
+
+                        Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
+                    }
+                ),
             };
 
             Player.LocalPlayer.SetData("Temp::ATTOOL::Binds", binds);
@@ -509,9 +605,16 @@ namespace BlaineRP.Client.Game.Management.Commands
         }
 
         [Command("prop_spawn", true, "Установить сытость игроку")]
-        public static async void SpawnProp(string model, float? posX = null, float? posY = null, float? posZ = null, float rotX = 0f, float rotY = 0f, float rotZ = 0f, bool onGround = false)
+        public static async void SpawnProp(string model,
+                                           float? posX = null,
+                                           float? posY = null,
+                                           float? posZ = null,
+                                           float rotX = 0f,
+                                           float rotY = 0f,
+                                           float rotZ = 0f,
+                                           bool onGround = false)
         {
-            var propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
+            List<GameEntity> propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
 
             if (propsList == null)
             {
@@ -520,7 +623,7 @@ namespace BlaineRP.Client.Game.Management.Commands
                 Player.LocalPlayer.SetData("Temp::SPCL", propsList);
             }
 
-            var hash = RAGE.Util.Joaat.Hash(model);
+            uint hash = RAGE.Util.Joaat.Hash(model);
 
             if (!await Streaming.RequestModel(hash))
                 return;
@@ -547,12 +650,12 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("prop_del", true, "Установить сытость игроку")]
         public static void DelProp(int? handle = null)
         {
-            var gEntity = handle is int handleInt ? Utils.Game.Misc.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+            GameEntity gEntity = handle is int handleInt ? Utils.Game.Misc.GetMapObjectByHandle(handleInt, false) : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
 
             if (gEntity == null)
                 return;
 
-            var propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
+            List<GameEntity> propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
 
             if (propsList != null)
             {
@@ -580,7 +683,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("entity_select_edit_start", true, "Установить сытость игроку")]
         public static void EntitySelectorEditStart()
         {
-            var gEntity = Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+            GameEntity gEntity = Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
 
             if (gEntity?.Exists != true)
                 return;
@@ -588,25 +691,18 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (MapEditor.IsActive)
                 MapEditor.Close();
 
-            MapEditor.Show
-            (
-                gEntity, "DebugEntityEdit", new MapEditor.Mode(true, true, true, true, true, true),
-
+            MapEditor.Show(gEntity,
+                "DebugEntityEdit",
+                new MapEditor.Mode(true, true, true, true, true, true),
                 () =>
                 {
-
                 },
-
                 () => MapEditor.Render(),
-
                 () =>
                 {
-
                 },
-
                 (pos, rot) =>
                 {
-
                 }
             );
         }
@@ -631,22 +727,16 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (MapEditor.IsActive)
                 MapEditor.Close();
 
-            MapEditor.Show
-            (
-                colshape, "DebugColshapeEdit", new MapEditor.Mode(true, true, true, false, true, false),
-
+            MapEditor.Show(colshape,
+                "DebugColshapeEdit",
+                new MapEditor.Mode(true, true, true, false, true, false),
                 () =>
                 {
-
                 },
-
                 () => MapEditor.RenderColshape(),
-
                 () =>
                 {
-
                 },
-
                 (pos, rot) =>
                 {
                     if (pos == null)
@@ -669,7 +759,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("farm_pos_save", true, "Установить сытость игроку")]
         public static void FarmPosSave()
         {
-            var farm = Farm.All[38] as Farm;
+            var farm = Business.All[38] as Farm;
 
             var t = new Dictionary<int, Dictionary<int, List<List<float>>>>();
 
@@ -677,7 +767,7 @@ namespace BlaineRP.Client.Game.Management.Commands
 
             t.Add(farm.Id, fT);
 
-            for (int i = 5; i < farm.CropFields.Count; i++)
+            for (var i = 5; i < farm.CropFields.Count; i++)
             {
                 var fiT = new List<List<float>>();
 
@@ -691,7 +781,7 @@ namespace BlaineRP.Client.Game.Management.Commands
 
                     for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
                     {
-                        var coords = farm.CropFields[i].GetCropPosition3D(j, k);
+                        Vector3 coords = farm.CropFields[i].GetCropPosition3D(j, k);
 
                         var z = 0f;
 
@@ -701,6 +791,7 @@ namespace BlaineRP.Client.Game.Management.Commands
                     }
                 }
             }
+
             Utils.Misc.DebugServerSaveText(RAGE.Util.Json.Serialize(t));
         }
 
@@ -708,7 +799,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("pos_s", true, "Получить текущую позицию", "position_save")]
         public static void PositionSave(bool onGround = false, string info = "")
         {
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
             if (onGround)
                 pos.Z -= 1f;
@@ -718,7 +809,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("posv_s", true, "Получить текущую позицию", "position_save")]
         public static void PositionVehicleSave(string info = "")
         {
-            var pos = Player.LocalPlayer.Vehicle?.Position;
+            Vector3 pos = Player.LocalPlayer.Vehicle?.Position;
 
             if (pos == null)
                 return;
@@ -728,7 +819,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("debug_blip", true, "Получить текущую позицию")]
         public static void DebugBlip(uint model = 162, byte color = 1, string name = "DEBUG")
         {
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
             var blip = new ExtraBlip(model, pos, name, 1f, color, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, ExtraBlip.Types.Default);
         }
@@ -736,7 +827,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("tp_house", true, "Получить текущую позицию")]
         public static async void TpHouse(uint id)
         {
-            var npc = NPC.GetData($"house_h_{id}");
+            var npc = NPCs.NPC.GetData($"house_h_{id}");
 
             if (npc == null)
                 return;
@@ -751,12 +842,12 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("tp_garage", true, "Получить текущую позицию")]
         public static async void TpGarage(uint id)
         {
-            var veh = RAGE.Elements.Entities.Vehicles.All.Where(x => x.GetData<uint>("HOUSE_ID") == id).FirstOrDefault();
+            Vehicle veh = Entities.Vehicles.All.Where(x => x.GetData<uint>("HOUSE_ID") == id).FirstOrDefault();
 
             if (veh == null)
                 return;
 
-            var pos = veh.Position;
+            Vector3 pos = veh.Position;
 
             pos.Z += 100f;
 
@@ -770,7 +861,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("new_house", true, "Получить текущую позицию")]
         public static void NewHouse()
         {
-            var last = House.All.Last();
+            KeyValuePair<uint, House> last = House.All.Last();
 
             var house = new House(last.Key + 1, Player.LocalPlayer.Position, 2, 2, new Vector3(0f, 0f, 0f), 0, 0, 0);
 
@@ -796,7 +887,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("garage_house", true, "")]
         public static void GarageHouse(uint id)
         {
-            var house = House.All.GetValueOrDefault(id);
+            House house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -809,12 +900,12 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("enter_house", true, "")]
         public static void EnterHouse(uint id)
         {
-            var house = House.All.GetValueOrDefault(id);
+            House house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
 
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
             house.Position.X = pos.X;
             house.Position.Y = pos.Y;
@@ -826,17 +917,21 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("save_house", true, "")]
         public static async void SaveHouse(uint id)
         {
-            var house = House.All.GetValueOrDefault(id);
+            House house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
 
-            var data = ((string)await Events.CallRemoteProc("debug_gethouseinfo", id))?.Split('_');
+            string[] data = ((string)await Events.CallRemoteProc("debug_gethouseinfo", id))?.Split('_');
 
             if (house.GaragePosition == null)
-                Utils.Misc.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
+                Utils.Misc.DebugServerSaveText(
+                    $"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);"
+                );
             else
-                Utils.Misc.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
+                Utils.Misc.DebugServerSaveText(
+                    $"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));"
+                );
         }
     }
 }

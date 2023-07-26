@@ -4,6 +4,10 @@ namespace BlaineRP.Client.Game.Management.Attachments
 {
     public class AttachmentEntityNet
     {
+        public AttachmentEntityNet()
+        {
+        }
+
         [JsonProperty(PropertyName = "E")]
         public RAGE.Elements.Type EntityType { get; set; }
 
@@ -15,10 +19,6 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
         [JsonProperty(PropertyName = "D")]
         public string SyncData { get; set; }
-
-        public AttachmentEntityNet()
-        {
-        }
 
         public override bool Equals(object obj)
         {

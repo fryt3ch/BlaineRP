@@ -15,18 +15,6 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public class Cabbie : Job
     {
-        public class OrderInfo
-        {
-            public uint Id { get; set; }
-
-            public Vector3 Position { get; set; }
-
-            public OrderInfo()
-            {
-
-            }
-        }
-
         public Cabbie(int Id, Utils.Vector4 Position) : base(Id, JobTypes.Cabbie)
         {
             Blip = new ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
@@ -43,34 +31,49 @@ namespace BlaineRP.Client.Game.Jobs
 
             var counter = 0;
 
-            var pPos = Player.LocalPlayer.Position;
+            Vector3 pPos = Player.LocalPlayer.Position;
 
             var dict = new Dictionary<uint, float>();
 
-            activeOrders = activeOrders.OrderBy(x => { var dist = pPos.DistanceTo(x.Position); dict.Add(x.Id, dist); return dist; }).ToList();
+            activeOrders = activeOrders.OrderBy(x =>
+                                            {
+                                                float dist = pPos.DistanceTo(x.Position);
+                                                dict.Add(x.Id, dist);
+                                                return dist;
+                                            }
+                                        )
+                                       .ToList();
 
-            var vehicle = Player.LocalPlayer.Vehicle;
+            Vehicle vehicle = Player.LocalPlayer.Vehicle;
 
-            await ActionBox.ShowSelect
-            (
-                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.Game.Misc.GetStreetName(x.Position), System.Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
-
+            await ActionBox.ShowSelect("JobCabbieOrderSelect",
+                Locale.Actions.JobVehicleOrderSelectTitle,
+                activeOrders.Select(x => ((decimal)counter++,
+                                 string.Format(Locale.Actions.JobCabbieOrderText,
+                                     counter,
+                                     Utils.Game.Misc.GetStreetName(x.Position),
+                                     Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)
+                                 ))
+                             )
+                            .ToArray(),
+                Locale.Actions.SelectOkBtn2,
+                Locale.Actions.SelectCancelBtn1,
                 () =>
                 {
                     ActionBox.DefaultBindAction.Invoke();
 
                     var checkAction = new Action(() =>
-                    {
-                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                            ActionBox.Close(true);
-                    });
+                        {
+                            if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                ActionBox.Close(true);
+                        }
+                    );
 
                     Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
 
                     Main.Update -= checkAction.Invoke;
                     Main.Update += checkAction.Invoke;
                 },
-
                 async (rType, idD) =>
                 {
                     var id = (int)idD;
@@ -82,7 +85,7 @@ namespace BlaineRP.Client.Game.Jobs
 
                     if (rType == ActionBox.ReplyTypes.OK)
                     {
-                        var orders = pData.CurrentJob?.GetCurrentData<List<Cabbie.OrderInfo>>("AOL");
+                        List<OrderInfo> orders = pData.CurrentJob?.GetCurrentData<List<OrderInfo>>("AOL");
 
                         if (orders == null)
                             return;
@@ -90,7 +93,7 @@ namespace BlaineRP.Client.Game.Jobs
                         if (id >= orders.Count)
                             return;
 
-                        var order = orders[id];
+                        OrderInfo order = orders[id];
 
                         var res = Utils.Convert.ToByte(await RAGE.Events.CallRemoteProc("Job::CAB::TO", order.Id));
 
@@ -110,13 +113,18 @@ namespace BlaineRP.Client.Game.Jobs
 
                                 blip.SetRoute(true);
 
-                                var colshape = new Circle(pos, Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE, true, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+                                var colshape = new Circle(pos,
+                                    Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE,
+                                    true,
+                                    new Utils.Colour(255, 0, 0, 125),
+                                    Settings.App.Static.MainDimension,
+                                    null
+                                )
                                 {
                                     ApproveType = ApproveTypes.OnlyServerVehicleDriver,
-
                                     OnEnter = (cancel) =>
                                     {
-                                        var jobVehicle = cabbieJob.GetCurrentData<RAGE.Elements.Vehicle>("JVEH");
+                                        Vehicle jobVehicle = cabbieJob.GetCurrentData<Vehicle>("JVEH");
 
                                         if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                         {
@@ -126,7 +134,7 @@ namespace BlaineRP.Client.Game.Jobs
                                         }
 
                                         RAGE.Events.CallRemote("Job::CAB::OS", order.Id);
-                                    }
+                                    },
                                 };
 
                                 cabbieJob.SetCurrentData("Blip", blip);
@@ -138,13 +146,9 @@ namespace BlaineRP.Client.Game.Jobs
                         else
                         {
                             if (res == 2)
-                            {
                                 Notification.ShowError(Locale.Notifications.General.JobOrderAlreadyTaken);
-                            }
                             else
-                            {
                                 Notification.ShowError(Locale.Notifications.General.JobOrderTakeError);
-                            }
                         }
                     }
                     else if (rType == ActionBox.ReplyTypes.Cancel)
@@ -152,12 +156,13 @@ namespace BlaineRP.Client.Game.Jobs
                         ActionBox.Close(true);
                     }
                     else
+                    {
                         return;
+                    }
                 },
-
                 () =>
                 {
-                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+                    Action checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
 
                     if (checkAction != null)
                     {
@@ -173,18 +178,25 @@ namespace BlaineRP.Client.Game.Jobs
         {
             base.OnStartJob(data);
 
-            var activeOrders = ((JArray)data[1]).ToObject<List<string>>().Select(x =>
-            {
-                var t = x.Split('_');
+            var activeOrders = ((JArray)data[1]).ToObject<List<string>>()
+                                                .Select(x =>
+                                                     {
+                                                         string[] t = x.Split('_');
 
-                var id = uint.Parse(t[0]);
+                                                         var id = uint.Parse(t[0]);
 
-                return new OrderInfo() { Id = id, Position = new Vector3(float.Parse(t[1]), float.Parse(t[2]), float.Parse(t[3])) };
-            }).ToList();
+                                                         return new OrderInfo()
+                                                         {
+                                                             Id = id,
+                                                             Position = new Vector3(float.Parse(t[1]), float.Parse(t[2]), float.Parse(t[3])),
+                                                         };
+                                                     }
+                                                 )
+                                                .ToList();
 
             SetCurrentData("AOL", activeOrders);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
+            SetCurrentData("JVEH", Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()
@@ -193,6 +205,17 @@ namespace BlaineRP.Client.Game.Jobs
             GetCurrentData<ExtraColshape>("CS")?.Destroy();
 
             base.OnEndJob();
+        }
+
+        public class OrderInfo
+        {
+            public OrderInfo()
+            {
+            }
+
+            public uint Id { get; set; }
+
+            public Vector3 Position { get; set; }
         }
     }
 }

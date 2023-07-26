@@ -15,6 +15,55 @@ namespace BlaineRP.Client.Game.World
     [Script(int.MaxValue)]
     public partial class Core
     {
+        private static bool _enabledItemsOnGround;
+
+        private static Dictionary<string, Action<object, object>> DataActions = new Dictionary<string, Action<object, object>>();
+
+        public Core()
+        {
+            Events.AddDataHandler("IOG",
+                (Entity entity, object value, object oldValue) =>
+                {
+                    if (entity is MapObject obj)
+                        obj.NotifyStreaming = true;
+                }
+            );
+
+            var closestIogTask = new AsyncTask(() =>
+                {
+                    float minDist = float.MaxValue;
+                    int minIdx = -1;
+
+                    for (var i = 0; i < ItemsOnGround.Count; i++)
+                    {
+                        if (ItemsOnGround[i].Type != ItemOnGround.Types.Default || ItemsOnGround[i].Object?.Exists != true)
+                            continue;
+
+                        float dist = Vector3.Distance(Player.LocalPlayer.Position, ItemsOnGround[i].Object.GetCoords(true));
+
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+
+                            minIdx = i;
+                        }
+
+                        ItemsOnGround[i].Object.SetData("Dist", dist);
+                    }
+
+                    if (minIdx < 0)
+                        ClosestItemOnGround = null;
+                    else
+                        ClosestItemOnGround = ItemsOnGround[minIdx];
+                },
+                1_000,
+                true,
+                0
+            );
+
+            closestIogTask.Run();
+        }
+
         public static DateTime ServerTime { get; private set; } = DateTime.UtcNow;
 
         public static DateTime LocalTime { get; private set; } = DateTime.Now;
@@ -32,20 +81,39 @@ namespace BlaineRP.Client.Game.World
         /// <summary>Ближайший к игроку предмет на земле</summary>
         public static ItemOnGround ClosestItemOnGround { get; set; }
 
-        private static bool _enabledItemsOnGround;
-
         /// <summary>Включено ли взаимодействие с предметами на земле в данный момент?</summary>
-        public static bool EnabledItemsOnGround { get => _enabledItemsOnGround; set { if (!_enabledItemsOnGround && value) { Main.Render -= ItemsOnGroundRender; Main.Render += ItemsOnGroundRender; } else if (_enabledItemsOnGround && !value) Main.Render -= ItemsOnGroundRender; _enabledItemsOnGround = value; ClosestItemOnGround = null; } }
+        public static bool EnabledItemsOnGround
+        {
+            get => _enabledItemsOnGround;
+            set
+            {
+                if (!_enabledItemsOnGround && value)
+                {
+                    Main.Render -= ItemsOnGroundRender;
+                    Main.Render += ItemsOnGroundRender;
+                }
+                else if (_enabledItemsOnGround && !value)
+                {
+                    Main.Render -= ItemsOnGroundRender;
+                }
+
+                _enabledItemsOnGround = value;
+                ClosestItemOnGround = null;
+            }
+        }
 
         public static List<ItemOnGround> ItemsOnGround { get; set; } = new List<ItemOnGround>();
 
-        private static RAGE.Elements.Colshape ServerDataColshape { get; set; }
+        private static Colshape ServerDataColshape { get; set; }
 
-        public static T GetSharedData<T>(string key, T defaultValue = default(T)) => ServerDataColshape.GetSharedData<T>(key, defaultValue);
-
-        public static async System.Threading.Tasks.Task<T> GetRetrievableData<T>(string key, T defaultValue = default(T))
+        public static T GetSharedData<T>(string key, T defaultValue = default)
         {
-            var obj = await Events.CallRemoteProc("SW::GRD", RAGE.Util.Joaat.Hash(key));
+            return ServerDataColshape.GetSharedData<T>(key, defaultValue);
+        }
+
+        public static async System.Threading.Tasks.Task<T> GetRetrievableData<T>(string key, T defaultValue = default)
+        {
+            object obj = await Events.CallRemoteProc("SW::GRD", RAGE.Util.Joaat.Hash(key));
 
             if (obj is T objT)
                 return objT;
@@ -53,32 +121,33 @@ namespace BlaineRP.Client.Game.World
             return defaultValue;
         }
 
-        private static Dictionary<string, Action<object, object>> DataActions = new Dictionary<string, Action<object, object>>();
-
-        public static void InvokeHandler(string dataKey, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);
+        public static void InvokeHandler(string dataKey, object value, object oldValue = null)
+        {
+            DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);
+        }
 
         public static void AddDataHandler(string dataKey, Action<object, object> action)
         {
-            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
-            {
-                if (entity is Colshape colshape && colshape == ServerDataColshape)
+            Events.AddDataHandler(dataKey,
+                (Entity entity, object value, object oldValue) =>
                 {
-                    action.Invoke(value, oldValue);
+                    if (entity is Colshape colshape && colshape == ServerDataColshape)
+                        action.Invoke(value, oldValue);
                 }
-            });
+            );
 
             DataActions.Add(dataKey, action);
         }
 
         public static void AddDataHandler(string dataKey, Action<string, object, object> action)
         {
-            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
-            {
-                if (entity is Colshape colshape && colshape == ServerDataColshape)
+            Events.AddDataHandler(dataKey,
+                (Entity entity, object value, object oldValue) =>
                 {
-                    action.Invoke(dataKey, value, oldValue);
+                    if (entity is Colshape colshape && colshape == ServerDataColshape)
+                        action.Invoke(dataKey, value, oldValue);
                 }
-            });
+            );
         }
 
         public static void LoadServerDataColshape()
@@ -137,54 +206,13 @@ namespace BlaineRP.Client.Game.World
             obj.ResetData();
         }
 
-        public Core()
-        {
-            Events.AddDataHandler("IOG", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity is MapObject obj)
-                {
-                    obj.NotifyStreaming = true;
-                }
-            });
-
-            var closestIogTask = new AsyncTask(() =>
-            {
-                var minDist = float.MaxValue;
-                var minIdx = -1;
-
-                for (int i = 0; i < ItemsOnGround.Count; i++)
-                {
-                    if (ItemsOnGround[i].Type != ItemOnGround.Types.Default || ItemsOnGround[i].Object?.Exists != true)
-                        continue;
-
-                    var dist = Vector3.Distance(Player.LocalPlayer.Position, ItemsOnGround[i].Object.GetCoords(true));
-
-                    if (dist < minDist)
-                    {
-                        minDist = dist;
-
-                        minIdx = i;
-                    }
-
-                    ItemsOnGround[i].Object.SetData("Dist", dist);
-                }
-
-                if (minIdx < 0)
-                    ClosestItemOnGround = null;
-                else
-                    ClosestItemOnGround = ItemsOnGround[minIdx];
-            }, 1_000, true, 0);
-
-            closestIogTask.Run();
-        }
-
         private static void ItemsOnGroundRender()
         {
             float screenX = 0f, screenY = 0f;
 
-            for (int i = 0; i < ItemsOnGround.Count; i++)
+            for (var i = 0; i < ItemsOnGround.Count; i++)
             {
-                var temp = ItemsOnGround[i];
+                ItemOnGround temp = ItemsOnGround[i];
 
                 if (temp.Type != ItemOnGround.Types.Default || temp.Object?.Exists != true)
                     continue;
@@ -196,9 +224,7 @@ namespace BlaineRP.Client.Game.World
                         ClosestItemOnGround = null;
 
                         if (ActionBox.CurrentContextStr == "ItemOnGroundTakeRange")
-                        {
                             ActionBox.Close(true);
-                        }
                     }
 
                     continue;
@@ -208,25 +234,29 @@ namespace BlaineRP.Client.Game.World
                     continue;
 
                 if (!Settings.User.Interface.HideIOGNames)
-                {
                     Graphics.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                }
 
                 if (temp == ClosestItemOnGround && !Settings.User.Interface.HideInteractionBtn)
-                    Graphics.DrawText(Input.Core.Get(BindTypes.TakeItem).GetKeyString(), screenX, Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Graphics.DrawText(Input.Core.Get(BindTypes.TakeItem).GetKeyString(),
+                        screenX,
+                        Settings.User.Interface.HideIOGNames ? screenY : screenY + 0.025f,
+                        255,
+                        0,
+                        0,
+                        255,
+                        0.4f,
+                        RAGE.Game.Font.ChaletComprimeCologne,
+                        true
+                    );
             }
         }
 
         public static void SetSpecialWeather(WeatherTypes? weather)
         {
             if (weather == null)
-            {
                 InvokeHandler("Weather", GetSharedData<int>("Weather"), null);
-            }
             else
-            {
                 SetWeatherNow((WeatherTypes)weather);
-            }
         }
 
         public static void SetWeatherNow(WeatherTypes weather)

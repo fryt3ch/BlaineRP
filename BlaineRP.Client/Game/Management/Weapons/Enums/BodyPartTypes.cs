@@ -5,6 +5,6 @@
         Zero = -1,
         Head = 0,
         Chest,
-        Limb
+        Limb,
     }
 }

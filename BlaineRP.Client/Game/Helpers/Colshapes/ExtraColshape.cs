@@ -11,6 +11,32 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
     public abstract partial class ExtraColshape
     {
+        /// <summary>Время последней отправки на сервер, используя колшейп</summary>
+        public static DateTime LastSent;
+
+        public ExtraColshape(ColshapeTypes Type,
+                             bool IsVisible,
+                             Colour Colour,
+                             uint Dimension,
+                             Colshape Colshape = null,
+                             InteractionTypes InteractionType = InteractionTypes.None,
+                             ActionTypes ActionType = ActionTypes.None)
+        {
+            this.Colshape = Colshape ?? new SphereColshape(Vector3.Zero, 0f, Settings.App.Static.StuffDimension);
+
+            this.Type = Type;
+            this.Colour = Colour;
+            this.Dimension = Dimension;
+            this.IsVisible = IsVisible;
+
+            this.InteractionType = InteractionType;
+            this.ActionType = ActionType;
+
+            ApproveType = ApproveTypes.OnlyByFoot;
+
+            All.Add(this);
+        }
+
         private static bool _interactionColshapesAllowed { get; set; }
 
         /// <summary>Доступны ли в данный момент для взаимодействия соответствующие колшейпы?</summary>
@@ -22,57 +48,11 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
         public static bool InteractionColshapesDisabledThisFrame { get; set; }
 
-        /// <summary>Время последней отправки на сервер, используя колшейп</summary>
-        public static DateTime LastSent;
-
         /// <summary>Словарь всех колшэйпов</summary>
         public static List<ExtraColshape> All { get; private set; } = new List<ExtraColshape>();
 
         /// <summary>Список колшэйпов, находящихся в зоне стрима игрока</summary>
         public static List<ExtraColshape> Streamed { get; private set; } = new List<ExtraColshape>();
-
-        /// <summary>Получить колшейп по айди (локальный)</summary>
-        public static ExtraColshape GetById(int id)
-        {
-            return All.Where(x => x?.Colshape?.Id == id).FirstOrDefault();
-        }
-
-        public static ExtraColshape GetByName(string name)
-        {
-            return All.Where(x => x.Name == name).FirstOrDefault();
-        }
-
-        /// <summary>Получить колшейп по айди (серверный)</summary>
-        public static ExtraColshape GetByRemoteId(int id)
-        {
-            return All.Where(x => x?.Colshape?.RemoteId == id).FirstOrDefault();
-        }
-
-        /// <summary>Получить колшейп по его держателю</summary>
-        public static ExtraColshape Get(Colshape colshape)
-        {
-            return colshape == null ? null : All.Where(x => x.Colshape == colshape).FirstOrDefault();
-        }
-
-        public static List<ExtraColshape> GetAllByName(string name)
-        {
-            return All.Where(x => x.Name == name).ToList();
-        }
-
-        public static Action<ExtraColshape> GetEnterAction(ActionTypes aType)
-        {
-            return _actions.GetValueOrDefault(aType)?.GetValueOrDefault(true);
-        }
-
-        public static Action<ExtraColshape> GetExitAction(ActionTypes aType)
-        {
-            return _actions.GetValueOrDefault(aType)?.GetValueOrDefault(false);
-        }
-
-        public static Action GetInteractionAction(InteractionTypes iType)
-        {
-            return _interactionActions.GetValueOrDefault(iType);
-        }
 
         public abstract string ShortData { get; }
 
@@ -123,6 +103,74 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
         /// <summary>Название колшейпа</summary>
         public string Name { get; set; }
 
+        /// <summary>Данные колшейпа</summary>
+        public object Data { get; set; }
+
+        public Colshape.ColshapeEventDelegate OnEnter
+        {
+            get => Colshape?.OnEnter;
+            set
+            {
+                if (Colshape?.IsNull != false)
+                    return;
+                Colshape.OnEnter = value;
+            }
+        }
+
+        public Colshape.ColshapeEventDelegate OnExit
+        {
+            get => Colshape?.OnExit;
+            set
+            {
+                if (Colshape?.IsNull != false)
+                    return;
+                Colshape.OnExit = value;
+            }
+        }
+
+        /// <summary>Получить колшейп по айди (локальный)</summary>
+        public static ExtraColshape GetById(int id)
+        {
+            return All.Where(x => x?.Colshape?.Id == id).FirstOrDefault();
+        }
+
+        public static ExtraColshape GetByName(string name)
+        {
+            return All.Where(x => x.Name == name).FirstOrDefault();
+        }
+
+        /// <summary>Получить колшейп по айди (серверный)</summary>
+        public static ExtraColshape GetByRemoteId(int id)
+        {
+            return All.Where(x => x?.Colshape?.RemoteId == id).FirstOrDefault();
+        }
+
+        /// <summary>Получить колшейп по его держателю</summary>
+        public static ExtraColshape Get(Colshape colshape)
+        {
+            return colshape == null ? null : All.Where(x => x.Colshape == colshape).FirstOrDefault();
+        }
+
+        public static List<ExtraColshape> GetAllByName(string name)
+        {
+            return All.Where(x => x.Name == name).ToList();
+        }
+
+        public static Action<ExtraColshape> GetEnterAction(ActionTypes aType)
+        {
+            return _actions.GetValueOrDefault(aType)?.GetValueOrDefault(true);
+        }
+
+        public static Action<ExtraColshape> GetExitAction(ActionTypes aType)
+        {
+            return _actions.GetValueOrDefault(aType)?.GetValueOrDefault(false);
+        }
+
+        public static Action GetInteractionAction(InteractionTypes iType)
+        {
+            return _interactionActions.GetValueOrDefault(iType);
+        }
+
         /// <summary>Метод для отрисовки колшейпа на экране</summary>
         public abstract void Draw();
 
@@ -141,29 +189,6 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
         public virtual bool IsStreamed()
         {
             return Colshape?.IsNull == false && (Dimension == uint.MaxValue || Player.LocalPlayer.Dimension == Dimension);
-        }
-
-        /// <summary>Данные колшейпа</summary>
-        public object Data { get; set; }
-
-        public Colshape.ColshapeEventDelegate OnEnter
-        {
-            get => Colshape?.OnEnter;
-            set
-            {
-                if (Colshape?.IsNull != false) return;
-                Colshape.OnEnter = value;
-            }
-        }
-
-        public Colshape.ColshapeEventDelegate OnExit
-        {
-            get => Colshape?.OnExit;
-            set
-            {
-                if (Colshape?.IsNull != false) return;
-                Colshape.OnExit = value;
-            }
         }
 
         public void Destroy()
@@ -194,36 +219,13 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
             }
         }
 
-        public ExtraColshape(ColshapeTypes Type,
-                             bool IsVisible,
-                             Colour Colour,
-                             uint Dimension,
-                             Colshape Colshape = null,
-                             InteractionTypes InteractionType = InteractionTypes.None,
-                             ActionTypes ActionType = ActionTypes.None)
-        {
-            this.Colshape = Colshape ?? new SphereColshape(Vector3.Zero, 0f, Settings.App.Static.StuffDimension);
-
-            this.Type = Type;
-            this.Colour = Colour;
-            this.Dimension = Dimension;
-            this.IsVisible = IsVisible;
-
-            this.InteractionType = InteractionType;
-            this.ActionType = ActionType;
-
-            ApproveType = ApproveTypes.OnlyByFoot;
-
-            All.Add(this);
-        }
-
         public static void Render()
         {
-            var pos = RAGE.Game.Cam.GetGameplayCamCoord();
+            Vector3 pos = RAGE.Game.Cam.GetGameplayCamCoord();
 
             var list = Streamed.OrderBy(x => x.Position.DistanceTo(pos)).ToList();
 
-            foreach (var x in Streamed.OrderBy(x => x.Position.DistanceTo(pos)))
+            foreach (ExtraColshape x in Streamed.OrderBy(x => x.Position.DistanceTo(pos)))
             {
                 if (Settings.User.Other.ColshapesVisible || x.IsVisible)
                     x.Draw();
@@ -232,11 +234,25 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
         public static void Activate()
         {
-            var streamUpdateTask = new AsyncTask(() => { UpdateInside(); }, 250, true, 0);
+            var streamUpdateTask = new AsyncTask(() =>
+                {
+                    UpdateInside();
+                },
+                250,
+                true,
+                0
+            );
 
             streamUpdateTask.Run();
 
-            var updateTask = new AsyncTask(() => { UpdateStreamed(); }, 1_000, true, 0);
+            var updateTask = new AsyncTask(() =>
+                {
+                    UpdateStreamed();
+                },
+                1_000,
+                true,
+                0
+            );
 
             updateTask.Run();
         }
@@ -245,9 +261,9 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
         {
             for (var i = 0; i < All.Count; i++)
             {
-                var cs = All[i];
+                ExtraColshape cs = All[i];
 
-                var state = cs?.IsStreamed();
+                bool? state = cs?.IsStreamed();
 
                 if (state == null)
                     continue;
@@ -274,7 +290,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
 
         public static void UpdateInside()
         {
-            var interactionAllowed = InteractionColshapesAllowed;
+            bool interactionAllowed = InteractionColshapesAllowed;
 
             if (InteractionColshapesDisabledThisFrame)
             {
@@ -283,43 +299,45 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                 InteractionColshapesDisabledThisFrame = false;
             }
 
-            var pos = Player.LocalPlayer.Vehicle is Vehicle veh ? veh.Position : Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Vehicle is Vehicle veh ? veh.Position : Player.LocalPlayer.Position;
 
             Streamed.OrderByDescending(x => x.IsInside)
                     .ToList()
                     .ForEach(curPoly =>
-                     {
-                         if (curPoly.IsInside)
                          {
-                             /*                    if (curPoly?.Colshape?.IsNull != false)
-                                                 {
-                                                     if (curPoly?.Colshape != null)
-                                                         All.Remove(curPoly.Colshape);
-         
-                                                     continue;
-                                                 }*/
-
-                             if (curPoly.IsInteraction && !interactionAllowed || !curPoly.IsPointInside(pos) ||
-                                 !(_approveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
+                             if (curPoly.IsInside)
                              {
-                                 curPoly.IsInside = false;
+                                 /*                    if (curPoly?.Colshape?.IsNull != false)
+                                                     {
+                                                         if (curPoly?.Colshape != null)
+                                                             All.Remove(curPoly.Colshape);
+             
+                                                         continue;
+                                                     }*/
 
-                                 Events.OnPlayerExitColshape?.Invoke(curPoly.Colshape, null);
+                                 if (curPoly.IsInteraction && !interactionAllowed ||
+                                     !curPoly.IsPointInside(pos) ||
+                                     !(_approveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
+                                 {
+                                     curPoly.IsInside = false;
+
+                                     Events.OnPlayerExitColshape?.Invoke(curPoly.Colshape, null);
+                                 }
+                             }
+                             else
+                             {
+                                 if (curPoly.IsInteraction && !interactionAllowed || !(_approveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
+                                     return;
+
+                                 if (curPoly.IsPointInside(pos))
+                                 {
+                                     curPoly.IsInside = true;
+
+                                     Events.OnPlayerEnterColshape?.Invoke(curPoly.Colshape, null);
+                                 }
                              }
                          }
-                         else
-                         {
-                             if (curPoly.IsInteraction && !interactionAllowed || !(_approveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
-                                 return;
-
-                             if (curPoly.IsPointInside(pos))
-                             {
-                                 curPoly.IsInside = true;
-
-                                 Events.OnPlayerEnterColshape?.Invoke(curPoly.Colshape, null);
-                             }
-                         }
-                     });
+                     );
         }
     }
 }

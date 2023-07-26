@@ -11,6 +11,16 @@ namespace BlaineRP.Client.Game.Quests
 {
     public partial class Quest
     {
+        public Quest(QuestTypes Type, byte Step, int StepProgress, string CurrentData)
+        {
+            this.Type = Type;
+
+            this.Step = Step;
+            this.StepProgress = StepProgress;
+
+            this.CurrentData = CurrentData;
+        }
+
         public static Quest ActualQuest { get; private set; }
 
         public QuestTypes Type { get; set; }
@@ -27,32 +37,11 @@ namespace BlaineRP.Client.Game.Quests
 
         private Dictionary<string, object> ActualData { get; set; } = new Dictionary<string, object>();
 
-        public void SetActualData(string key, object data)
-        {
-            if (ActualData == null)
-                return;
-
-            if (!ActualData.TryAdd(key, data))
-                ActualData[key] = data;
-        }
-
-        public T GetActualData<T>(string key)
-        {
-            var data = ActualData.GetValueOrDefault(key);
-
-            if (data is T dataT)
-                return dataT;
-
-            return default(T);
-        }
-
-        public bool ResetActualData(string key) => ActualData.Remove(key);
-
         public string GoalWithProgress
         {
             get
             {
-                var sData = CurrentStepData;
+                QuestData.StepData sData = CurrentStepData;
 
                 if (sData == null)
                     return null;
@@ -64,17 +53,34 @@ namespace BlaineRP.Client.Game.Quests
             }
         }
 
-        public Quest(QuestTypes Type, byte Step, int StepProgress, string CurrentData)
+        public void SetActualData(string key, object data)
         {
-            this.Type = Type;
+            if (ActualData == null)
+                return;
 
-            this.Step = Step;
-            this.StepProgress = StepProgress;
-
-            this.CurrentData = CurrentData;
+            if (!ActualData.TryAdd(key, data))
+                ActualData[key] = data;
         }
 
-        public static Quest GetPlayerQuest(PlayerData pData, QuestTypes type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
+        public T GetActualData<T>(string key)
+        {
+            object data = ActualData.GetValueOrDefault(key);
+
+            if (data is T dataT)
+                return dataT;
+
+            return default(T);
+        }
+
+        public bool ResetActualData(string key)
+        {
+            return ActualData.Remove(key);
+        }
+
+        public static Quest GetPlayerQuest(PlayerData pData, QuestTypes type)
+        {
+            return pData.Quests.Where(x => x.Type == type).FirstOrDefault();
+        }
 
         public void MenuIconFunc()
         {
@@ -83,7 +89,7 @@ namespace BlaineRP.Client.Game.Quests
 
         public void UpdateHudQuest()
         {
-            var data = Data;
+            QuestData data = Data;
 
             HUD.SetQuestParams(data.GiverName, data.Name, GoalWithProgress, data.ColourType);
         }
@@ -93,9 +99,7 @@ namespace BlaineRP.Client.Game.Quests
             StepProgress = newProgress;
 
             if (ActualQuest == this)
-            {
                 UpdateHudQuest();
-            }
         }
 
         public void UpdateStep(byte newStep)
@@ -105,21 +109,17 @@ namespace BlaineRP.Client.Game.Quests
             if (pData == null)
                 return;
 
-            var sData = CurrentStepData;
+            QuestData.StepData sData = CurrentStepData;
 
             if (sData != null)
-            {
                 sData.EndAction?.Invoke(pData, this);
-            }
 
             sData = Data.Steps.GetValueOrDefault(newStep);
 
             Step = newStep;
 
             if (sData != null)
-            {
                 sData.StartAction?.Invoke(pData, this);
-            }
 
             //SetActive(true);
         }
@@ -133,7 +133,7 @@ namespace BlaineRP.Client.Game.Quests
 
             if (state)
             {
-                var sData = CurrentStepData;
+                QuestData.StepData sData = CurrentStepData;
 
                 if (sData == null)
                     return;
@@ -141,17 +141,15 @@ namespace BlaineRP.Client.Game.Quests
                 ActualQuest = this;
 
                 if (!Settings.User.Interface.HideQuest)
-                {
                     HUD.EnableQuest(true);
-                }
 
                 if (route)
                 {
-                    var mBlip = GetActualData<ExtraBlip>("E_BP_M");
+                    ExtraBlip mBlip = GetActualData<ExtraBlip>("E_BP_M");
 
                     if (mBlip != null)
                     {
-                        var coords = mBlip.Position;
+                        Vector3 coords = mBlip.Position;
                         Utils.Game.Misc.SetWaypoint(coords.X, coords.Y);
                     }
                 }
@@ -161,13 +159,9 @@ namespace BlaineRP.Client.Game.Quests
                 ActualQuest = pData.Quests.Where(x => x != this).FirstOrDefault();
 
                 if (ActualQuest != null)
-                {
                     ActualQuest.SetActive(true);
-                }
                 else
-                {
                     HUD.EnableQuest(false);
-                }
             }
         }
 
@@ -178,12 +172,10 @@ namespace BlaineRP.Client.Game.Quests
             if (pData == null)
                 return;
 
-            var sData = CurrentStepData;
+            QuestData.StepData sData = CurrentStepData;
 
             if (sData != null)
-            {
                 sData.StartAction?.Invoke(pData, this);
-            }
 
             if (ActualQuest == null)
                 SetActive(true, false);
@@ -197,23 +189,19 @@ namespace BlaineRP.Client.Game.Quests
                 return;
 
             if (ActualQuest == this)
-            {
                 SetActive(false);
-            }
 
-            var sData = CurrentStepData;
+            QuestData.StepData sData = CurrentStepData;
 
             if (sData != null)
-            {
                 sData.EndAction?.Invoke(pData, this);
-            }
 
             ClearAllActualData();
         }
 
         public void ClearAllActualData()
         {
-            foreach (var x in ActualData.Keys.ToList())
+            foreach (string x in ActualData.Keys.ToList())
             {
                 object value;
 
@@ -221,19 +209,18 @@ namespace BlaineRP.Client.Game.Quests
                     return;
 
                 if (x.StartsWith("E_"))
-                {
                     ((dynamic)value)?.Destroy();
-                }
                 else if (x.StartsWith("CS_"))
-                {
                     (value as ExtraColshape)?.Destroy();
-                }
             }
 
             ActualData.Clear();
         }
 
-        public async System.Threading.Tasks.Task<byte> CallProgressUpdateProc(params object[] args) => (byte)(int)await Events.CallRemoteProc("Quest::PU", (int)Type, string.Join('&', args));
+        public async System.Threading.Tasks.Task<byte> CallProgressUpdateProc(params object[] args)
+        {
+            return (byte)(int)await Events.CallRemoteProc("Quest::PU", (int)Type, string.Join('&', args));
+        }
 
         public void SetQuestAsCompleted(bool success, bool notify)
         {

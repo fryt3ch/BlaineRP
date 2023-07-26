@@ -11,18 +11,31 @@ namespace BlaineRP.Client.Game.World
 {
     public class ItemOnGround
     {
-        public static DateTime LastShowed;
-        public static DateTime LastSent;
-
         public enum Types : byte
         {
             /// <summary>Стандартный тип предмета на земле</summary>
             /// <remarks>Автоматически удаляется с определенными условиями, может быть подобран кем угодно</remarks>
             Default = 0,
 
-            /// <summary>Тип предмета на земле, который был намеренно установлен игроком (предметы, наследующие вбстрактный класс PlaceableItem)</summary>
-            /// <remarks>Предметы данного типа не удаляется автоматически, так же не могут быть подобраны кем угодно (пока действуют определенные условия)</remarks>
+            /// <summary>
+            ///     Тип предмета на земле, который был намеренно установлен игроком (предметы, наследующие вбстрактный класс
+            ///     PlaceableItem)
+            /// </summary>
+            /// <remarks>
+            ///     Предметы данного типа не удаляется автоматически, так же не могут быть подобраны кем угодно (пока действуют
+            ///     определенные условия)
+            /// </remarks>
             PlacedItem,
+        }
+
+        public static DateTime LastShowed;
+        public static DateTime LastSent;
+
+        private ItemOnGround(MapObject Object)
+        {
+            this.Object = Object;
+
+            Name = Items.Core.GetName(Id);
         }
 
         public MapObject Object { get; set; }
@@ -38,13 +51,6 @@ namespace BlaineRP.Client.Game.World
         public bool IsLocked => Object.GetSharedData<bool>("L", false);
 
         public string Name { get; private set; }
-
-        private ItemOnGround(MapObject Object)
-        {
-            this.Object = Object;
-
-            this.Name = Items.Core.GetName(Id);
-        }
 
         public static ItemOnGround GetItemOnGroundObject(MapObject obj)
         {
@@ -84,17 +90,19 @@ namespace BlaineRP.Client.Game.World
 
                 LastShowed = Core.ServerTime;
 
-                var iog = this;
+                ItemOnGround iog = this;
 
-                await ActionBox.ShowRange
-                (
-                    "ItemOnGroundTakeRange", string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, ActionBox.RangeSubTypes.Default,
-
+                await ActionBox.ShowRange("ItemOnGroundTakeRange",
+                    string.Format(Locale.Actions.Take, Name),
+                    1,
+                    Amount,
+                    Amount,
+                    1,
+                    ActionBox.RangeSubTypes.Default,
                     ActionBox.DefaultBindAction,
-
                     (rType, amountD) =>
                     {
-                        if (ItemOnGround.LastSent.IsSpam(500, false, true))
+                        if (LastSent.IsSpam(500, false, true))
                             return;
 
                         int amount;
@@ -117,10 +125,9 @@ namespace BlaineRP.Client.Game.World
                         {
                             Events.CallRemote("Inventory::Take", iog.Uid, amount);
 
-                            ItemOnGround.LastSent = Core.ServerTime;
+                            LastSent = Core.ServerTime;
                         }
                     },
-
                     null
                 );
             }

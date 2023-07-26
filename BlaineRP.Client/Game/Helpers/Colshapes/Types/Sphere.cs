@@ -8,11 +8,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 {
     public class Sphere : ExtraColshape
     {
-        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}";
-
-        public float Radius { get; set; }
-
-        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(ColshapeTypes.Sphere, IsVisible, Colour, Dimension, Colshape)
+        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(ColshapeTypes.Sphere,
+            IsVisible,
+            Colour,
+            Dimension,
+            Colshape
+        )
         {
             this.Radius = Radius;
 
@@ -21,6 +22,10 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
             if (IsStreamed())
                 Streamed.Add(this);
         }
+
+        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}";
+
+        public float Radius { get; set; }
 
         public override void Draw()
         {
@@ -33,9 +38,29 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
                 if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}",
+                    screenX,
+                    screenY,
+                    255,
+                    255,
+                    255,
+                    255,
+                    0.4f,
+                    RAGE.Game.Font.ChaletComprimeCologne,
+                    true
+                );
                 Graphics.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}",
+                    screenX,
+                    screenY += NameTags.Interval / 2,
+                    255,
+                    255,
+                    255,
+                    255,
+                    0.4f,
+                    RAGE.Game.Font.ChaletComprimeCologne,
+                    true
+                );
             }
         }
 
@@ -47,6 +72,9 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
             return Vector3.Distance(Player.LocalPlayer.Position, Position) <= Radius + Settings.App.Profile.Current.Game.StreamDistance;
         }
 
-        public override bool IsPointInside(Vector3 point) => Vector3.Distance(point, Position) <= Radius;
+        public override bool IsPointInside(Vector3 point)
+        {
+            return Vector3.Distance(point, Position) <= Radius;
+        }
     }
 }

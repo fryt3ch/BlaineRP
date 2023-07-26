@@ -5,16 +5,16 @@ namespace BlaineRP.Client.Game.EntitiesData
 {
     public class PedData
     {
+        public PedData(Ped Ped)
+        {
+            this.Ped = Ped;
+        }
+
         public Ped Ped { get; set; }
 
         public bool IsInvincible => Ped.GetSharedData<bool>("GM", false);
 
         public bool IsInvisible => Ped.GetSharedData<bool>("INV", false);
-
-        public PedData(Ped Ped)
-        {
-            this.Ped = Ped;
-        }
 
         public void Reset()
         {

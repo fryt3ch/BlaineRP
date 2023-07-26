@@ -11,68 +11,76 @@ namespace BlaineRP.Client.Game.Quests
     {
         public JFRM1()
         {
-            new Quest.QuestData(QuestTypes.JFRM1, "Сбор пшеницы", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
-            {
+            new Quest.QuestData(QuestTypes.JFRM1,
+                "Сбор пшеницы",
+                "Фермер",
+                new Dictionary<byte, Quest.QuestData.StepData>()
                 {
-                    0,
-
-                    new Quest.QuestData.StepData("Собирайте урожай, проезжая на тракторе по точкам", 1)
                     {
-                        StartAction = (pData, quest) =>
+                        0, new Quest.QuestData.StepData("Собирайте урожай, проезжая на тракторе по точкам", 1)
                         {
-                            var qData = quest.CurrentData?.Split('&');
-
-                            if (qData == null || qData.Length != 1)
-                                return;
-
-                            var job = pData.CurrentJob as Farmer;
-
-                            if (job == null)
-                                return;
-
-                            var businessData = job.FarmBusiness;
-
-                            if (businessData == null)
-                                return;
-
-                            var jobVehicleRId = ushort.Parse(qData[0]);
-
-                            job.SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(jobVehicleRId));
-
-                            for (int i = 0; i < businessData.CropFields.Count; i++)
+                            StartAction = (pData, quest) =>
                             {
-                                var fieldData = businessData.CropFields[i];
+                                string[] qData = quest.CurrentData?.Split('&');
 
-                                if (fieldData.Type != Farm.CropField.Types.Wheat)
-                                    continue;
+                                if (qData == null || qData.Length != 1)
+                                    return;
 
-                                var srcCs = fieldData.Colshape as Cuboid;
+                                var job = pData.CurrentJob as Farmer;
 
-                                if (srcCs == null)
-                                    continue;
+                                if (job == null)
+                                    return;
 
-                                var cs = new Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                                Farm businessData = job.FarmBusiness;
+
+                                if (businessData == null)
+                                    return;
+
+                                var jobVehicleRId = ushort.Parse(qData[0]);
+
+                                job.SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(jobVehicleRId));
+
+                                for (var i = 0; i < businessData.CropFields.Count; i++)
                                 {
-                                    ApproveType = ApproveTypes.OnlyVehicleDriver,
+                                    Farm.CropField fieldData = businessData.CropFields[i];
 
-                                    ActionType = ActionTypes.VehicleSpeedLimit,
+                                    if (fieldData.Type != Farm.CropField.Types.Wheat)
+                                        continue;
 
-                                    Data = Farm.TRACTOR_MAX_SPEED_KM_H / 3.6f,
-                                };
+                                    var srcCs = fieldData.Colshape as Cuboid;
 
-                                quest.SetActualData($"CS_VSL_{i}", cs);
-                            }
+                                    if (srcCs == null)
+                                        continue;
 
-                            businessData.UpdateTractorTakerData(quest);
-                        },
+                                    var cs = new Cuboid(srcCs.Position,
+                                        srcCs.Width,
+                                        srcCs.Depth,
+                                        srcCs.Height,
+                                        srcCs.Heading,
+                                        false,
+                                        Utils.Misc.RedColor,
+                                        Settings.App.Static.MainDimension,
+                                        null
+                                    )
+                                    {
+                                        ApproveType = ApproveTypes.OnlyVehicleDriver,
+                                        ActionType = ActionTypes.VehicleSpeedLimit,
+                                        Data = Farm.TRACTOR_MAX_SPEED_KM_H / 3.6f,
+                                    };
 
-                        EndAction = (pData, quest) =>
-                        {
-                            quest.ClearAllActualData();
+                                    quest.SetActualData($"CS_VSL_{i}", cs);
+                                }
+
+                                businessData.UpdateTractorTakerData(quest);
+                            },
+                            EndAction = (pData, quest) =>
+                            {
+                                quest.ClearAllActualData();
+                            },
                         }
-                    }
-                },
-            });
+                    },
+                }
+            );
         }
     }
 }

@@ -16,9 +16,7 @@ namespace BlaineRP.Client.Game.Misc
                 MainColshape = new Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null)
                 {
                     Name = "CayoPerico_Loader",
-
                     ApproveType = ApproveTypes.None,
-
                     OnEnter = (cancel) =>
                     {
                         if (Player.LocalPlayer.Dimension == 2)
@@ -29,7 +27,6 @@ namespace BlaineRP.Client.Game.Misc
 
                         ToggleCayoPericoIsland(true, true);
                     },
-
                     OnExit = (cancel) =>
                     {
                         if (!IslandLoaded)
@@ -37,7 +34,6 @@ namespace BlaineRP.Client.Game.Misc
 
                         ToggleCayoPericoIsland(false, true);
                     },
-
                 };
 
                 ToggleCayoPericoIsland(false, false);

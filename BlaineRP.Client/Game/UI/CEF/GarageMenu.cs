@@ -9,22 +9,13 @@ using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Input.Core;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class GarageMenu
     {
-        public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.MenuGarage);
-
         private static DateTime LastSent;
-
-        private static GarageRoot CurrentGarageRoot { get; set; }
-
-        private static List<int> TempBinds { get; set; }
-
-        private static ExtraColshape CloseColshape { get; set; }
 
         public GarageMenu()
         {
@@ -34,70 +25,82 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Events.Add("MenuGar::Close", (args) => Close());
 
-            Events.Add("MenuGar::Action", async (args) =>
-            {
-                var aId = (string)args[0];
-
-                var gId = (int)args[1];
-
-                var garage = CurrentGarageRoot?.AllGarages.ElementAt(gId - 1);
-
-                if (garage == null)
-                    return;
-
-                if (LastSent.IsSpam(500, false, true))
-                    return;
-
-                LastSent = Game.World.Core.ServerTime;
-
-                if (aId == "enter")
+            Events.Add("MenuGar::Action",
+                async (args) =>
                 {
-                    Events.CallRemote("Garage::Enter", garage.Id);
-                }
-                else if (aId == "open")
-                {
-                    if ((bool)await Events.CallRemoteProc("Garage::ToggleLock", garage.Id, false))
-                        SetIsLocked(gId, false);
-                }
-                else if (aId == "close")
-                {
-                    if ((bool)await Events.CallRemoteProc("Garage::ToggleLock", garage.Id, true))
-                        SetIsLocked(gId, true);
-                }
-                else if (aId == "sell")
-                {
-                    var approveContext = "GarageMenuSellGov}";
-                    var approveTime = 5_000;
+                    var aId = (string)args[0];
 
-                    if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
+                    var gId = (int)args[1];
+
+                    Garage garage = CurrentGarageRoot?.AllGarages.ElementAt(gId - 1);
+
+                    if (garage == null)
+                        return;
+
+                    if (LastSent.IsSpam(500, false, true))
+                        return;
+
+                    LastSent = World.Core.ServerTime;
+
+                    if (aId == "enter")
                     {
-                        CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
-
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(garage.Price))), approveTime);
+                        Events.CallRemote("Garage::Enter", garage.Id);
                     }
-                    else
+                    else if (aId == "open")
                     {
-                        CEF.Notification.ClearAll();
+                        if ((bool)await Events.CallRemoteProc("Garage::ToggleLock", garage.Id, false))
+                            SetIsLocked(gId, false);
+                    }
+                    else if (aId == "close")
+                    {
+                        if ((bool)await Events.CallRemoteProc("Garage::ToggleLock", garage.Id, true))
+                            SetIsLocked(gId, true);
+                    }
+                    else if (aId == "sell")
+                    {
+                        var approveContext = "GarageMenuSellGov}";
+                        var approveTime = 5_000;
 
-                        CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+                        if (Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                        {
+                            Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
 
-                        if ((bool)await Events.CallRemoteProc("Garage::STG", garage.Id))
+                            Notification.Show(Notification.Types.Question,
+                                Locale.Get("NOTIFICATION_HEADER_APPROVE"),
+                                string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(garage.Price))),
+                                approveTime
+                            );
+                        }
+                        else
+                        {
+                            Notification.ClearAll();
+
+                            Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+
+                            if ((bool)await Events.CallRemoteProc("Garage::STG", garage.Id))
+                                Close();
+                        }
+                    }
+                    else if (aId == "buy")
+                    {
+                        if ((bool)await Events.CallRemoteProc("Garage::BuyGov", garage.Id))
                         {
                             Close();
+
+                            return;
                         }
                     }
                 }
-                else if (aId == "buy")
-                {
-                    if ((bool)await Events.CallRemoteProc("Garage::BuyGov", garage.Id))
-                    {
-                        Close();
-
-                        return;
-                    }
-                }
-            });
+            );
         }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.MenuGarage);
+
+        private static GarageRoot CurrentGarageRoot { get; set; }
+
+        private static List<int> TempBinds { get; set; }
+
+        private static ExtraColshape CloseColshape { get; set; }
 
         public static async System.Threading.Tasks.Task Show(GarageRoot gRoot)
         {
@@ -112,16 +115,16 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            var ownedGarages = pData.OwnedGarages.Select(x => x.Id);
+            IEnumerable<uint> ownedGarages = pData.OwnedGarages.Select(x => x.Id);
 
             var isOwnedGarageClosed = false;
 
-            var ownedGarage = pData.OwnedGarages.Where(x => x.RootId == gRoot.Id).FirstOrDefault();
+            Garage ownedGarage = pData.OwnedGarages.Where(x => x.RootId == gRoot.Id).FirstOrDefault();
 
             if (ownedGarage != null)
                 isOwnedGarageClosed = (bool?)await Events.CallRemoteProc("Garage::GetIsLocked", ownedGarage.Id) ?? false;
 
-            await CEF.Browser.Render(Browser.IntTypes.MenuGarage, true, true);
+            await Browser.Render(Browser.IntTypes.MenuGarage, true, true);
 
             CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
@@ -129,40 +132,68 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (CloseColshape?.Exists == true)
                         Close();
-                }
+                },
             };
 
             CurrentGarageRoot = gRoot;
 
-            List<object> gData = new List<object>();
+            var gData = new List<object>();
 
             var counter = 0;
 
             int? ownedNum = null;
 
-            foreach (var x in gRoot.AllGarages)
+            foreach (Garage x in gRoot.AllGarages)
             {
                 counter++;
 
-                var oName = x.OwnerName;
+                string oName = x.OwnerName;
 
                 if (ownedNum == null && ownedGarages.Contains(x.Id))
                 {
                     ownedNum = counter;
 
-                    gData.Add(new object[] { counter, oName, (int)x.Type, x.Price, x.Tax, isOwnedGarageClosed });
+                    gData.Add(new object[]
+                        {
+                            counter,
+                            oName,
+                            (int)x.Type,
+                            x.Price,
+                            x.Tax,
+                            isOwnedGarageClosed,
+                        }
+                    );
                 }
                 else
                 {
-                    gData.Add(new object[] { counter, oName, (int)x.Type, x.Price, x.Tax, oName == null ? null : (bool?)true });
+                    gData.Add(new object[]
+                        {
+                            counter,
+                            oName,
+                            (int)x.Type,
+                            x.Price,
+                            x.Tax,
+                            oName == null ? null : (bool?)true,
+                        }
+                    );
                 }
             }
 
-            CEF.Browser.Window.ExecuteJs("MenuGar.draw", new object[] { new object[] { gRoot.Id + 1, gData, ownedNum } });
+            Browser.Window.ExecuteJs("MenuGar.draw",
+                new object[]
+                {
+                    new object[]
+                    {
+                        gRoot.Id + 1,
+                        gData,
+                        ownedNum,
+                    },
+                }
+            );
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close()
@@ -174,18 +205,23 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CloseColshape = null;
 
-            CEF.Browser.Render(Browser.IntTypes.MenuGarage, false);
+            Browser.Render(Browser.IntTypes.MenuGarage, false);
 
             CurrentGarageRoot = null;
 
-            foreach (var x in TempBinds)
-                Core.Unbind(x);
+            foreach (int x in TempBinds)
+            {
+                Input.Core.Unbind(x);
+            }
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
             TempBinds.Clear();
         }
 
-        private static void SetIsLocked(int gNum, bool state) => CEF.Browser.Window.ExecuteJs("MenuGar.changeLocked", gNum, state);
+        private static void SetIsLocked(int gNum, bool state)
+        {
+            Browser.Window.ExecuteJs("MenuGar.changeLocked", gNum, state);
+        }
     }
 }

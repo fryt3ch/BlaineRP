@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Extensions.System
         {
             if (number < min)
             {
-                converted = default;
+                converted = default(T);
 
                 if (notify)
                     Notification.ShowError(string.Format(Locale.Notifications.General.LessThanMinValue, min));
@@ -17,7 +17,7 @@ namespace BlaineRP.Client.Extensions.System
             }
             else if (number > max)
             {
-                converted = converted = default;
+                converted = converted = default(T);
 
                 if (notify)
                     Notification.ShowError(string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));

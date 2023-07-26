@@ -7,22 +7,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
     {
         public int BoneID;
 
-        public Vector3 PositionOffset { get; set; }
-        public Vector3 Rotation { get; set; }
-
-        public bool UseSoftPinning { get; set; }
-
-        public bool Collision { get; set; }
-
-        public bool IsPed { get; set; }
-
-        public int RotationOrder { get; set; }
-
-        public bool FixedRot { get; set; }
-
         public Action<object[]> EntityAction;
-
-        public byte DisableInteraction { get; set; }
 
         public AttachmentData(int BoneID,
                               Vector3 PositionOffset,
@@ -46,5 +31,20 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
             this.EntityAction = EntityAction;
         }
+
+        public Vector3 PositionOffset { get; set; }
+        public Vector3 Rotation { get; set; }
+
+        public bool UseSoftPinning { get; set; }
+
+        public bool Collision { get; set; }
+
+        public bool IsPed { get; set; }
+
+        public int RotationOrder { get; set; }
+
+        public bool FixedRot { get; set; }
+
+        public byte DisableInteraction { get; set; }
     }
 }

@@ -1,10 +1,7 @@
 ﻿#define DEBUGGING
-using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Utils.Game;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
 using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Blips;
@@ -13,48 +10,32 @@ using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
-using Audio = BlaineRP.Client.Utils.Game.Audio;
-using Core = BlaineRP.Client.Game.Management.Attachments.Core;
-using Players = BlaineRP.Client.Game.Scripts.Sync.Players;
+using BlaineRP.Client.Utils.Game;
+using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 
 namespace BlaineRP.Client
 {
     public class Main : Events.Script
     {
-        public static int CurrentFps => (int)System.Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
-
-        public delegate void UpdateHandler();
-        public delegate void ScreenResolutionChangeHandler(int x, int y);
-
         public delegate void OnMouseClick(int x, int y, bool up, bool right);
+
         public delegate void OnMouseClickCef(int x, int y, bool up, bool right, float relX, float relY, Vector3 worldPos, int eHandle);
 
+        public delegate void ScreenResolutionChangeHandler(int x, int y);
+
+        public delegate void UpdateHandler();
+
         public delegate void WaypointCreatedHandler(Vector3 position);
+
         public delegate void WaypointDeletedHandler();
-
-        public static event UpdateHandler Update;
-        public static event UpdateHandler Render;
-
-        public static event OnMouseClick MouseClicked;
-        public static event OnMouseClickCef MouseClickedWithRaycast;
-
-        public static event WaypointCreatedHandler WaypointCreated;
-        public static event WaypointDeletedHandler WaypointDeleted;
-
-        public static event ScreenResolutionChangeHandler ScreenResolutionChange;
 
         private static Vector3 _waypointPosition;
         private static RAGE.Ui.Cursor.Vector2 _screenResolution = new RAGE.Ui.Cursor.Vector2(0f, 0f);
 
         private static int _disableAllControlsCounter;
         private static int _disableMoveCounter;
-
-        public static Vector3 WaypointPosition => _waypointPosition;
-
-        public static RAGE.Ui.Cursor.Vector2 ScreenResolution => _screenResolution;
-
-        public static DateTime? ExtraGameDate { get; set; }
 
         public Main()
         {
@@ -67,24 +48,21 @@ namespace BlaineRP.Client
                 {
                     if (up)
                     {
-
                     }
                     else
                     {
-
                     }
                 }
                 else
                 {
                     if (up)
                     {
-
                     }
                     else
                     {
                         if (Player.LocalPlayer.HasData("Temp::SEntity"))
                         {
-                            var pPos = Player.LocalPlayer.Position;
+                            Vector3 pPos = Player.LocalPlayer.Position;
 
                             pPos.Z += 1f;
 
@@ -95,7 +73,9 @@ namespace BlaineRP.Client
 
                             Player.LocalPlayer.SetData("Temp::SEntity", gEntity);
 
-                            Events.CallLocal("Chat::ShowServerMessage", $"[EntitySelect] Selected: Type: {gEntity.Type}, Handle: {gEntity.Handle}, Id: {gEntity.Id}, RemoteId: {(gEntity.IsLocal ? -1 : gEntity.RemoteId)}");
+                            Events.CallLocal("Chat::ShowServerMessage",
+                                $"[EntitySelect] Selected: Type: {gEntity.Type}, Handle: {gEntity.Handle}, Id: {gEntity.Id}, RemoteId: {(gEntity.IsLocal ? -1 : gEntity.RemoteId)}"
+                            );
                         }
                     }
                 }
@@ -113,7 +93,7 @@ namespace BlaineRP.Client
                 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.App.Profile.Current.General.CultureInfo;
                 System.Globalization.CultureInfo.CurrentCulture = Settings.App.Profile.Current.General.CultureInfo;
 
-                (new Utils.AsyncTask(() => Update?.Invoke(), 0, true)).Run();
+                new Utils.AsyncTask(() => Update?.Invoke(), 0, true).Run();
 
                 Events.Tick += (_) => Render.Invoke();
 
@@ -153,7 +133,7 @@ namespace BlaineRP.Client
 
                 RAGE.Game.Ui.SetMapFullScreen(false);
 
-                System.GC.Collect();
+                GC.Collect();
 
                 RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
                 Misc.ClearTvChannelPlaylist(-1);
@@ -166,7 +146,7 @@ namespace BlaineRP.Client
                 RAGE.Game.Audio.StopAudioScenes();
 
                 RAGE.Game.Audio.SetAudioFlag("LoadMPData", true);
-                Audio.DisableFlightMusic();
+                Utils.Game.Audio.DisableFlightMusic();
 
                 LoadHUD();
 
@@ -180,13 +160,10 @@ namespace BlaineRP.Client
 
                 #region SCRIPTS_TO_REPLACE
 
-
-
                 #endregion
 
                 Events.OnPlayerJoin += (player) =>
                 {
-
                 };
 
                 Events.OnPlayerSpawn += (cancel) =>
@@ -200,7 +177,7 @@ namespace BlaineRP.Client
 
                     RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0); // SetPedCanLosePropsOnDamage
 
-                    Core.ReattachObjects(Player.LocalPlayer);
+                    Game.Management.Attachments.Core.ReattachObjects(Player.LocalPlayer);
 
                     Player.LocalPlayer.SetFlashLightEnabled(true);
 
@@ -221,14 +198,25 @@ namespace BlaineRP.Client
                     if (pData == null)
                         return;
 
-                    var pos = player.Position;
+                    Vector3 pos = player.Position;
 
                     if (Player.LocalPlayer.Position.DistanceTo(pos) > 25f)
                         return;
 
-                    var curTime = Game.World.Core.ServerTime;
+                    DateTime curTime = Game.World.Core.ServerTime;
 
-                    var text = new ExtraLabel(pos, Locale.Get("PLAYER_QUIT_TEXT", curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+                    var text = new ExtraLabel(pos,
+                        Locale.Get("PLAYER_QUIT_TEXT", curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId),
+                        new RGBA(255, 255, 255, 255),
+                        10f,
+                        0,
+                        true,
+                        player.Dimension
+                    )
+                    {
+                        Font = 4,
+                        LOS = false,
+                    };
 
                     pos.Z -= 1f;
 
@@ -247,126 +235,114 @@ namespace BlaineRP.Client
                     if (gEntity == null || !await Streaming.WaitIsLoaded(gEntity))
                         return;
 
-                    await Core.OnEntityStreamIn(entity);
+                    await Game.Management.Attachments.Core.OnEntityStreamIn(entity);
 
                     if (entity is Vehicle veh)
-                    {
                         await Game.Scripts.Sync.Vehicles.OnVehicleStreamIn(veh);
-                    }
                     else if (entity is Player player)
-                    {
-                        await Players.OnPlayerStreamIn(player);
-                    }
+                        await Game.Scripts.Sync.Players.OnPlayerStreamIn(player);
                     else if (entity is Ped ped)
-                    {
                         await Peds.OnPedStreamIn(ped);
-                    }
                     else if (entity is MapObject obj)
-                    {
                         await Game.World.Core.OnMapObjectStreamIn(obj);
-                    }
 
                     Game.UI.CEF.Audio.OnEntityStreamIn(gEntity);
 
-                    var customActions = entity.StreamInCustomActionsGet();
+                    HashSet<Action<Entity>> customActions = entity.StreamInCustomActionsGet();
 
                     if (customActions != null)
-                    {
-                        foreach (var x in customActions)
+                        foreach (Action<Entity> x in customActions)
                         {
                             x.Invoke(entity);
                         }
-                    }
                 };
 
                 Events.OnEntityStreamOut += async (entity) =>
                 {
-                    await Core.OnEntityStreamOut(entity);
+                    await Game.Management.Attachments.Core.OnEntityStreamOut(entity);
 
                     if (entity is Vehicle veh)
-                    {
                         await Game.Scripts.Sync.Vehicles.OnVehicleStreamOut(veh);
-                    }
                     else if (entity is Player player)
-                    {
-                        await Players.OnPlayerStreamOut(player);
-                    }
+                        await Game.Scripts.Sync.Players.OnPlayerStreamOut(player);
                     else if (entity is Ped ped)
-                    {
                         await Peds.OnPedStreamOut(ped);
-                    }
                     else if (entity is MapObject obj)
-                    {
                         await Game.World.Core.OnMapObjectStreamOut(obj);
-                    }
 
                     if (entity is GameEntity gEntity)
-                    {
                         Game.UI.CEF.Audio.OnEntityStreamOut(gEntity);
-                    }
 
-                    var customActions = entity.StreamOutCustomActionsGet();
+                    HashSet<Action<Entity>> customActions = entity.StreamOutCustomActionsGet();
 
                     if (customActions != null)
-                    {
-                        foreach (var x in customActions)
+                        foreach (Action<Entity> x in customActions)
                         {
                             x.Invoke(entity);
                         }
-                    }
                 };
 
                 if (Settings.App.Static.DisableIdleCamera)
-                {
-                    (new Utils.AsyncTask(() =>
+                    new Utils.AsyncTask(() =>
+                        {
+                            RAGE.Game.Invoker.Invoke(0x9E4CFFF989258472); // InvalidateVehicleIdleCam
+                            RAGE.Game.Invoker.Invoke(0xF4F2C0D4EE209E20); // InvalidateIdleCam
+                        },
+                        25_000,
+                        true,
+                        0
+                    ).Run();
+
+                new Utils.AsyncTask(() =>
                     {
-                        RAGE.Game.Invoker.Invoke(0x9E4CFFF989258472);   // InvalidateVehicleIdleCam
-                        RAGE.Game.Invoker.Invoke(0xF4F2C0D4EE209E20);   // InvalidateIdleCam
-                    }, 25_000, true, 0)).Run();
-                }
+                        int x = 0, y = 0;
 
-                (new Utils.AsyncTask(() =>
-                {
-                    int x = 0, y = 0;
+                        RAGE.Game.Graphics.GetActiveScreenResolution(ref x, ref y);
 
-                    RAGE.Game.Graphics.GetActiveScreenResolution(ref x, ref y);
+                        if (x == ScreenResolution.X && y == ScreenResolution.Y)
+                            return;
 
-                    if (x == ScreenResolution.X && y == ScreenResolution.Y)
-                        return;
+                        ScreenResolution.X = x;
+                        ScreenResolution.Y = y;
 
-                    ScreenResolution.X = x; ScreenResolution.Y = y;
-
-                    ScreenResolutionChange?.Invoke(x, y);
-                }, 2_500, true, 0)).Run();
+                        ScreenResolutionChange?.Invoke(x, y);
+                    },
+                    2_500,
+                    true,
+                    0
+                ).Run();
 
                 Vector3 lastWaypointPos = null;
 
-                (new Utils.AsyncTask(() =>
-                {
-                    var time = ExtraGameDate ?? Game.World.Core.ServerTime;
-
-                    RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
-                    RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);
-
-                    var pos = Misc.GetWaypointPosition();
-
-                    if (pos != null)
+                new Utils.AsyncTask(() =>
                     {
-                        if (lastWaypointPos == null || lastWaypointPos.X != pos.X || lastWaypointPos.Y != pos.Y)
+                        DateTime time = ExtraGameDate ?? Game.World.Core.ServerTime;
+
+                        RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
+                        RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);
+
+                        Vector3 pos = Misc.GetWaypointPosition();
+
+                        if (pos != null)
                         {
-                            lastWaypointPos = pos;
+                            if (lastWaypointPos == null || lastWaypointPos.X != pos.X || lastWaypointPos.Y != pos.Y)
+                            {
+                                lastWaypointPos = pos;
 
-                            WaypointCreated?.Invoke(pos);
+                                WaypointCreated?.Invoke(pos);
+                            }
                         }
-                    }
-                    else if (lastWaypointPos != null)
-                    {
-                        lastWaypointPos = null;
+                        else if (lastWaypointPos != null)
+                        {
+                            lastWaypointPos = null;
 
-                        WaypointDeleted?.Invoke();
-                    }
-
-                }, 1_000, true, 0)).Run();
+                            WaypointDeleted?.Invoke();
+                        }
+                    },
+                    1_000,
+                    true,
+                    0
+                ).Run();
 
                 WaypointCreated += (Vector3 position) =>
                 {
@@ -387,6 +363,25 @@ namespace BlaineRP.Client
                 };
             };
         }
+
+        public static int CurrentFps => (int)Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
+
+        public static Vector3 WaypointPosition => _waypointPosition;
+
+        public static RAGE.Ui.Cursor.Vector2 ScreenResolution => _screenResolution;
+
+        public static DateTime? ExtraGameDate { get; set; }
+
+        public static event UpdateHandler Update;
+        public static event UpdateHandler Render;
+
+        public static event OnMouseClick MouseClicked;
+        public static event OnMouseClickCef MouseClickedWithRaycast;
+
+        public static event WaypointCreatedHandler WaypointCreated;
+        public static event WaypointDeletedHandler WaypointDeleted;
+
+        public static event ScreenResolutionChangeHandler ScreenResolutionChange;
 
         private static void HideHudComponents()
         {
@@ -541,7 +536,9 @@ namespace BlaineRP.Client
             else
             {
                 RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"CID #{pData.CID}");
-                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, Locale.Get("GEN_PAUSEMENU_MONEY_T", Locale.Get("GEN_MONEY_0", pData.Cash), Locale.Get("GEN_MONEY_0", pData.BankBalance)));
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365,
+                    Locale.Get("GEN_PAUSEMENU_MONEY_T", Locale.Get("GEN_MONEY_0", pData.Cash), Locale.Get("GEN_MONEY_0", pData.BankBalance))
+                );
             }
 
             RAGE.Game.Invoker.Invoke(0xC58424BA936EB458, false); // ScaleformMovieMethodAddParamBool

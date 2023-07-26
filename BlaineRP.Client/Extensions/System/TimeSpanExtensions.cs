@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Extensions.System
         {
             if (timeSpan.Days > 365)
             {
-                var years = timeSpan.Days / 365;
+                int years = timeSpan.Days / 365;
 
                 if (years >= 3)
                     return Locale.Get("GEN_TIMESPAN_YEARS_1");
@@ -16,11 +16,11 @@ namespace BlaineRP.Client.Extensions.System
                 return Locale.Get("GEN_TIMESPAN_YEARS_0", years);
             }
 
-            var days = timeSpan.Days;
+            int days = timeSpan.Days;
 
             if (days >= 1)
             {
-                var hours = timeSpan.Hours;
+                int hours = timeSpan.Hours;
 
                 if (hours >= 1)
                     return Locale.Get("GEN_TIMESPAN_DAYS_HOURS_0", days, hours);
@@ -28,11 +28,11 @@ namespace BlaineRP.Client.Extensions.System
                 return Locale.Get("GEN_TIMESPAN_DAYS_0", days);
             }
 
-            var hours1 = timeSpan.Hours;
+            int hours1 = timeSpan.Hours;
 
             if (hours1 >= 1)
             {
-                var mins = timeSpan.Minutes;
+                int mins = timeSpan.Minutes;
 
                 if (mins >= 1)
                     return Locale.Get("GEN_TIMESPAN_HOURS_MINS_0", hours1, mins);
@@ -40,9 +40,9 @@ namespace BlaineRP.Client.Extensions.System
                 return Locale.Get("GEN_TIMESPAN_HOURS_0", hours1);
             }
 
-            var mins1 = timeSpan.Minutes;
+            int mins1 = timeSpan.Minutes;
 
-            var secs = timeSpan.Seconds;
+            int secs = timeSpan.Seconds;
 
             if (mins1 >= 1)
             {

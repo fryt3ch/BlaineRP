@@ -15,81 +15,83 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
     {
         public Radio()
         {
-            Events.Add("Phone::Radio", (args) =>
-            {
-                var type = (string)args[0];
-
-                if (type == "play")
+            Events.Add("Phone::Radio",
+                (args) =>
                 {
-                    var state = !(bool)args[1];
+                    var type = (string)args[0];
 
-                    if (state)
+                    if (type == "play")
                     {
-                        var sType = Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType;
+                        bool state = !(bool)args[1];
 
-                        Core.ToggleMobilePhoneRadio(true);
+                        if (state)
+                        {
+                            RadioStationTypes sType = Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType;
 
-                        Core.SetCurrentRadioStationType(sType);
+                            Core.ToggleMobilePhoneRadio(true);
+
+                            Core.SetCurrentRadioStationType(sType);
+
+                            UpdateRadioStation(sType);
+
+                            UpdateRadioStationState(true);
+                        }
+                        else
+                        {
+                            Core.ToggleMobilePhoneRadio(false);
+
+                            UpdateRadioStationState(false);
+                        }
+                    }
+                    else if (type == "rewind")
+                    {
+                        var allStations = Enum.GetValues(typeof(RadioStationTypes)).Cast<RadioStationTypes>().ToList();
+
+                        int deltaIdx = (int)args[2] < 0 ? -1 : 1;
+
+                        int newStationIdx = allStations.IndexOf(Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType) + deltaIdx;
+
+                        if (newStationIdx <= 0)
+                            newStationIdx = allStations.Count - 1;
+                        else if (newStationIdx >= allStations.Count)
+                            newStationIdx = 1;
+
+                        RadioStationTypes sType = allStations[newStationIdx];
+
+                        Vector3 pos = Player.LocalPlayer.Position;
+
+                        if (sType == RadioStationTypes.WCTR)
+                        {
+                            if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                                sType = allStations[newStationIdx + deltaIdx];
+                        }
+                        else if (sType == RadioStationTypes.BCTR)
+                        {
+                            if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
+                                sType = allStations[newStationIdx + deltaIdx];
+                        }
 
                         UpdateRadioStation(sType);
-
-                        UpdateRadioStationState(true);
                     }
-                    else
+                    else if (type == "volume")
                     {
-                        Core.ToggleMobilePhoneRadio(false);
+                        var volume = Utils.Convert.ToSingle(args[2]);
 
-                        UpdateRadioStationState(false);
+                        Audio.Data localStreamData = Core.LocalPlayerStreamRadioAudioData;
+
+                        if (localStreamData == null)
+                        {
+                            //CEF.Browser.Window.ExecuteJs("Phone.setSliderVal", "phone-value", Settings.User.Audio.PlayerLocalRadioVolume);
+                        }
+                        else
+                        {
+                            BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume = volume;
+
+                            localStreamData.SetVolume(volume);
+                        }
                     }
                 }
-                else if (type == "rewind")
-                {
-                    var allStations = Enum.GetValues(typeof(RadioStationTypes)).Cast<RadioStationTypes>().ToList();
-
-                    var deltaIdx = (int)args[2] < 0 ? -1 : 1;
-
-                    var newStationIdx = allStations.IndexOf(Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType) + deltaIdx;
-
-                    if (newStationIdx <= 0)
-                        newStationIdx = allStations.Count - 1;
-                    else if (newStationIdx >= allStations.Count)
-                        newStationIdx = 1;
-
-                    var sType = allStations[newStationIdx];
-
-                    var pos = Player.LocalPlayer.Position;
-
-                    if (sType == RadioStationTypes.WCTR)
-                    {
-                        if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
-                            sType = allStations[newStationIdx + deltaIdx];
-                    }
-                    else if (sType == RadioStationTypes.BCTR)
-                    {
-                        if (Utils.Game.Misc.IsCoordInCountrysideV(pos.X, pos.Y, pos.Z))
-                            sType = allStations[newStationIdx + deltaIdx];
-                    }
-
-                    UpdateRadioStation(sType);
-                }
-                else if (type == "volume")
-                {
-                    var volume = Utils.Convert.ToSingle(args[2]);
-
-                    var localStreamData = Core.LocalPlayerStreamRadioAudioData;
-
-                    if (localStreamData == null)
-                    {
-                        //CEF.Browser.Window.ExecuteJs("Phone.setSliderVal", "phone-value", Settings.User.Audio.PlayerLocalRadioVolume);
-                    }
-                    else
-                    {
-                        BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume = volume;
-
-                        localStreamData.SetVolume(volume);
-                    }
-                }
-            });
+            );
         }
 
         public static Action<int> CurrentTransactionAction { get; set; }
@@ -103,13 +105,23 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
-            var sType = Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType;
+            RadioStationTypes sType = Core.CurrentStationType == RadioStationTypes.Off ? RadioStationTypes.NSPFM : Core.CurrentStationType;
 
             string trackName1, trackName2;
 
             Core.GetCurrentRadioTrackDetails(out trackName1, out trackName2);
 
-            Browser.Window.ExecuteJs("Phone.drawRadioApp", new List<object> { (int)sType, Core.GetRadioStationName(sType), trackName1, trackName2, Core.IsMobilePhoneRadioEnabled, BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume });
+            Browser.Window.ExecuteJs("Phone.drawRadioApp",
+                new List<object>
+                {
+                    (int)sType,
+                    Core.GetRadioStationName(sType),
+                    trackName1,
+                    trackName2,
+                    Core.IsMobilePhoneRadioEnabled,
+                    BlaineRP.Client.Settings.User.Audio.PlayerLocalRadioVolume,
+                }
+            );
         }
 
         public static void UpdateRadioStation(RadioStationTypes sType)
@@ -117,7 +129,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             if (CEF.Phone.Phone.CurrentApp != AppTypes.Radio)
                 return;
 
-            var mRadioWasEnabled = Core.IsMobilePhoneRadioEnabled;
+            bool mRadioWasEnabled = Core.IsMobilePhoneRadioEnabled;
 
             if (!mRadioWasEnabled)
                 Core.ToggleMobilePhoneRadio(true);

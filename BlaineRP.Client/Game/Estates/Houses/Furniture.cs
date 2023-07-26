@@ -9,10 +9,6 @@ namespace BlaineRP.Client.Game.Estates
 {
     public class Furniture
     {
-        public static Dictionary<string, Furniture> All { get; set; } = new Dictionary<string, Furniture>();
-
-        public static Furniture GetData(string id) => All.GetValueOrDefault(id);
-
         public enum Types
         {
             Chair = 0,
@@ -49,36 +45,25 @@ namespace BlaineRP.Client.Game.Estates
         private static Dictionary<Types, Action<MapObject, object[]>> CreateActions = new Dictionary<Types, Action<MapObject, object[]>>()
         {
             {
-                Types.Locker,
-
-                (obj, args) =>
+                Types.Locker, (obj, args) =>
                 {
                     obj.SetData("ContainerID", (uint)args[0]);
                 }
             },
-
             {
-                Types.Wardrobe,
-
-                (obj, args) =>
+                Types.Wardrobe, (obj, args) =>
                 {
                     obj.SetData("ContainerID", (uint)args[0]);
                 }
             },
-
             {
-                Types.Fridge,
-
-                (obj, args) =>
+                Types.Fridge, (obj, args) =>
                 {
                     obj.SetData("ContainerID", (uint)args[0]);
                 }
             },
-
             {
-                Types.KitchenSet,
-
-                (obj, args) =>
+                Types.KitchenSet, (obj, args) =>
                 {
                     obj.SetData("UID", (uint)args[0]);
                 }
@@ -88,63 +73,34 @@ namespace BlaineRP.Client.Game.Estates
         private static Dictionary<Types, Action<MapObject>> InteractionActions = new Dictionary<Types, Action<MapObject>>()
         {
             {
-                Types.Locker,
-
-                (obj) =>
+                Types.Locker, (obj) =>
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
-                    {
                         Inventory.Show(Inventory.Types.Container, contId);
-                    }
                 }
             },
-
             {
-                Types.Wardrobe,
-
-                (obj) =>
+                Types.Wardrobe, (obj) =>
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
-                    {
                         Inventory.Show(Inventory.Types.Container, contId);
-                    }
                 }
             },
-
             {
-                Types.Fridge,
-
-                (obj) =>
+                Types.Fridge, (obj) =>
                 {
                     if (obj.GetData<uint?>("ContainerID") is uint contId)
-                    {
                         Inventory.Show(Inventory.Types.Container, contId);
-                    }
                 }
             },
-
             {
-                Types.KitchenSet,
-
-                (obj) =>
+                Types.KitchenSet, (obj) =>
                 {
                     if (obj.GetData<uint?>("UID") is uint uid)
-                    {
                         Inventory.Show(Inventory.Types.Workbench, 1, uid);
-                    }
                 }
             },
         };
-
-        public string Id { get; set; }
-
-        public string Name { get; set; }
-
-        public Types Type { get; set; }
-
-        public uint Model { get; set; }
-
-        public Action<MapObject> InteractionAction => InteractionActions.GetValueOrDefault(Type);
 
         public Furniture(string Id, Types Type, string Name, uint Model)
         {
@@ -157,13 +113,36 @@ namespace BlaineRP.Client.Game.Estates
             All.Add(Id, this);
         }
 
-        public static Action<MapObject> GetInteractionAction(string id) => InteractionActions.GetValueOrDefault(All[id].Type);
+        public static Dictionary<string, Furniture> All { get; set; } = new Dictionary<string, Furniture>();
 
-        public static Action<MapObject, object[]> GetCreateAction(string id) => CreateActions.GetValueOrDefault(All[id].Type);
+        public string Id { get; set; }
+
+        public string Name { get; set; }
+
+        public Types Type { get; set; }
+
+        public uint Model { get; set; }
+
+        public Action<MapObject> InteractionAction => InteractionActions.GetValueOrDefault(Type);
+
+        public static Furniture GetData(string id)
+        {
+            return All.GetValueOrDefault(id);
+        }
+
+        public static Action<MapObject> GetInteractionAction(string id)
+        {
+            return InteractionActions.GetValueOrDefault(All[id].Type);
+        }
+
+        public static Action<MapObject, object[]> GetCreateAction(string id)
+        {
+            return CreateActions.GetValueOrDefault(All[id].Type);
+        }
 
         public MapObject CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
         {
-            var obj = Streaming.CreateObjectNoOffsetImmediately(Model, pos.X, pos.Y, pos.Z);
+            MapObject obj = Streaming.CreateObjectNoOffsetImmediately(Model, pos.X, pos.Y, pos.Z);
 
             obj.FreezePosition(true);
 
@@ -171,7 +150,7 @@ namespace BlaineRP.Client.Game.Estates
 
             obj.SetData("UID", uid);
 
-            var cAct = CreateActions.GetValueOrDefault(Type);
+            Action<MapObject, object[]> cAct = CreateActions.GetValueOrDefault(Type);
 
             if (cAct == null)
                 return obj;

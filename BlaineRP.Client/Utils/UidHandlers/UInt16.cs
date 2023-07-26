@@ -5,6 +5,11 @@ namespace BlaineRP.Client.Utils.UidHandlers
 {
     public class UInt16
     {
+        public UInt16(ushort LastAddedMaxUid = 0)
+        {
+            this.LastAddedMaxUid = LastAddedMaxUid;
+        }
+
         public ushort LastAddedMaxUid { get; private set; }
 
         private HashSet<ushort> FreeUids { get; set; } = new HashSet<ushort>();
@@ -13,7 +18,10 @@ namespace BlaineRP.Client.Utils.UidHandlers
 
         public string HandlerStr => $"LastAddedMaxUid: {LastAddedMaxUid}, FreeUids: {string.Join(',', FreeUids)}";
 
-        public bool SetUidAsFree(ushort uid) => FreeUids.Add(uid);
+        public bool SetUidAsFree(ushort uid)
+        {
+            return FreeUids.Add(uid);
+        }
 
         public ushort MoveNextUid()
         {
@@ -47,11 +55,9 @@ namespace BlaineRP.Client.Utils.UidHandlers
             return false;
         }
 
-        public void ResetLastAddedMaxUid() => LastAddedMaxUid = 0;
-
-        public UInt16(ushort LastAddedMaxUid = 0)
+        public void ResetLastAddedMaxUid()
         {
-            this.LastAddedMaxUid = LastAddedMaxUid;
+            LastAddedMaxUid = 0;
         }
     }
 }

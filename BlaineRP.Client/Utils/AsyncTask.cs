@@ -6,20 +6,14 @@ namespace BlaineRP.Client.Utils
 {
     public class AsyncTask
     {
-        private CancellationTokenSource _cancellationTokenSource;
-
         private readonly Action _action;
-        private readonly Func<bool> _func;
 
         private readonly int _delay;
-        private readonly bool _loop;
 
         private readonly int _delayToStart;
-
-        /// <summary>Завершено ли задание?</summary>
-        public bool IsFinished { get; private set; }
-
-        public bool IsCancelled => _cancellationTokenSource?.IsCancellationRequested != false;
+        private readonly Func<bool> _func;
+        private readonly bool _loop;
+        private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>Новое асинхронное задание с возвращаемым значением</summary>
         /// <param name="action">Действие</param>
@@ -52,6 +46,11 @@ namespace BlaineRP.Client.Utils
 
             _delayToStart = delayToStart;
         }
+
+        /// <summary>Завершено ли задание?</summary>
+        public bool IsFinished { get; private set; }
+
+        public bool IsCancelled => _cancellationTokenSource?.IsCancellationRequested != false;
 
         public void Run()
         {
@@ -142,16 +141,15 @@ namespace BlaineRP.Client.Utils
             public static void SetAsPending(AsyncTask asyncTask, string key)
             {
                 if (!PendingTasksDict.TryAdd(key, asyncTask))
-                {
                     PendingTasksDict[key] = asyncTask;
-                }
 
                 asyncTask.Run();
             }
 
             public static bool CancelPendingTask(string key)
             {
-                if (!PendingTasksDict.Remove(key, out var aTask)) return false;
+                if (!PendingTasksDict.Remove(key, out AsyncTask aTask))
+                    return false;
 
                 aTask.Cancel();
 
@@ -160,7 +158,7 @@ namespace BlaineRP.Client.Utils
 
             public static bool IsTaskStillPending(string key, AsyncTask aTask)
             {
-                var task = PendingTasksDict.GetValueOrDefault(key);
+                AsyncTask task = PendingTasksDict.GetValueOrDefault(key);
 
                 if (task?.IsCancelled != false)
                     return false;
@@ -168,7 +166,10 @@ namespace BlaineRP.Client.Utils
                 return aTask == null || task == aTask;
             }
 
-            public static void Run(Action action, int timeout) => ExecuteOnceAction(action, timeout);
+            public static void Run(Action action, int timeout)
+            {
+                ExecuteOnceAction(action, timeout);
+            }
 
             private static async void ExecuteOnceAction(Action action, int timeout)
             {

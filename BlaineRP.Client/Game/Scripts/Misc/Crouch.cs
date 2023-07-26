@@ -6,17 +6,15 @@ using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.Scripts.Misc
 {
     public class Crouch
     {
-        private static DateTime LastSwitchTime;
-
         private const string MovementClipSet = "move_ped_crouched";
         private const string StrafeClipSet = "move_ped_crouched_strafing";
         public const float ClipSetSwitchTime = 0.25f;
+        private static DateTime LastSwitchTime;
 
         public static bool Toggled { get; private set; }
 
@@ -27,7 +25,17 @@ namespace BlaineRP.Client.Game.Scripts.Misc
 
             if (!Toggled)
             {
-                if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.InVehicle, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot))
+                if (PlayerActions.IsAnyActionActive(false,
+                        PlayerActions.Types.InVehicle,
+                        PlayerActions.Types.Knocked,
+                        PlayerActions.Types.Frozen,
+                        PlayerActions.Types.IsSwimming,
+                        PlayerActions.Types.Climbing,
+                        PlayerActions.Types.Falling,
+                        PlayerActions.Types.Ragdoll,
+                        PlayerActions.Types.Jumping,
+                        PlayerActions.Types.NotOnFoot
+                    ))
                     return;
 
                 On();
@@ -37,7 +45,7 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                 Off();
             }
 
-            LastSwitchTime = Core.ServerTime;
+            LastSwitchTime = World.Core.ServerTime;
         }
 
         public static async void On(bool ready = false, Player player = null)
@@ -88,9 +96,7 @@ namespace BlaineRP.Client.Game.Scripts.Misc
             else
             {
                 if (player.Handle == Player.LocalPlayer.Handle)
-                {
                     Toggled = false;
-                }
 
                 player.ResetMovementClipset(ClipSetSwitchTime);
                 player.ResetStrafeClipset();
@@ -101,13 +107,23 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                     return;
 
                 if (pData.Walkstyle != WalkstyleTypes.None)
-                    Game.Animations.Core.Set(player, pData.Walkstyle);
+                    Core.Set(player, pData.Walkstyle);
             }
         }
 
         private static void OnTick()
         {
-            if (PlayerActions.IsAnyActionActive(false, PlayerActions.Types.InVehicle, PlayerActions.Types.Knocked, PlayerActions.Types.Frozen, PlayerActions.Types.IsSwimming, PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot))
+            if (PlayerActions.IsAnyActionActive(false,
+                    PlayerActions.Types.InVehicle,
+                    PlayerActions.Types.Knocked,
+                    PlayerActions.Types.Frozen,
+                    PlayerActions.Types.IsSwimming,
+                    PlayerActions.Types.Climbing,
+                    PlayerActions.Types.Falling,
+                    PlayerActions.Types.Ragdoll,
+                    PlayerActions.Types.Jumping,
+                    PlayerActions.Types.NotOnFoot
+                ))
                 Off();
 
             if (Utils.Game.Camera.IsFirstPersonActive())

@@ -8,10 +8,6 @@ namespace BlaineRP.Client.Game.Data.Vehicles
     {
         public static readonly Dictionary<string, Vehicle> All = new Dictionary<string, Vehicle>();
 
-        public static Vehicle GetById(string id) => id == null ? null : All.GetValueOrDefault(id);
-
-        public static Vehicle GetByModel(uint model) => All.Where(x => x.Value.Model == model).Select(x => x.Value).FirstOrDefault();
-
         public Core()
         {
             #region TO_REPLACE
@@ -63,6 +59,16 @@ namespace BlaineRP.Client.Game.Data.Vehicles
                         }
 
                         Events.CallRemote("vehicle_data_f", newModels.Count);*/
+        }
+
+        public static Vehicle GetById(string id)
+        {
+            return id == null ? null : All.GetValueOrDefault(id);
+        }
+
+        public static Vehicle GetByModel(uint model)
+        {
+            return All.Where(x => x.Value.Model == model).Select(x => x.Value).FirstOrDefault();
         }
     }
 }

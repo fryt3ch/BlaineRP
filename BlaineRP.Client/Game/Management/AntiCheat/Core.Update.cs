@@ -21,23 +21,20 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                             }
                         }*/
 
-            var curPos = Player.LocalPlayer.Position;
+            Vector3 curPos = Player.LocalPlayer.Position;
 
             AntiAltF4Vehicle();
 
             if (!AsyncTask.Methods.IsTaskStillPending(TeleportTaskKey, null))
             {
-                var diff = Vector3.Distance(curPos, LastPosition);
+                float diff = Vector3.Distance(curPos, LastPosition);
 
-                if ((Player.LocalPlayer.Vehicle == null && Player.LocalPlayer.IsRagdoll() && Player.LocalPlayer.IsInAir()) || (Player.LocalPlayer.Vehicle != null))
+                if (Player.LocalPlayer.Vehicle == null && Player.LocalPlayer.IsRagdoll() && Player.LocalPlayer.IsInAir() || Player.LocalPlayer.Vehicle != null)
                     diff = System.Math.Abs(diff - Player.LocalPlayer.GetSpeed());
 
                 if (diff >= 50f)
-                {
                     //Utils.ConsoleOutput($"{RAGE.Util.Json.Serialize(curPos)}, {RAGE.Util.Json.Serialize(LastPosition)}");
-
                     Events.CallRemote("AC::Detect::TP", diff);
-                }
             }
             else
             {
@@ -53,49 +50,49 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
 
             if (!AsyncTask.Methods.IsTaskStillPending(HealthTaskKey, null) && !LastAllowedInvincible)
             {
-                var diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
+                int diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
 
                 if (diff > 0)
                     Player.LocalPlayer.SetRealHealth(LastHealth);
             }
             else if (Player.LocalPlayer.GetRealHealth() > LastAllowedHP)
+            {
                 Player.LocalPlayer.SetRealHealth(LastAllowedHP);
+            }
 
             LastHealth = Player.LocalPlayer.GetRealHealth();
 
             if (!AsyncTask.Methods.IsTaskStillPending(ArmourTaskKey, null))
             {
-                var diff = Player.LocalPlayer.GetArmour() - LastArmour;
+                int diff = Player.LocalPlayer.GetArmour() - LastArmour;
 
                 if (diff > 0)
                     Player.LocalPlayer.SetArmour(0);
             }
             else if (Player.LocalPlayer.GetArmour() > LastAllowedArm)
+            {
                 Player.LocalPlayer.SetArmour(LastAllowedArm);
+            }
 
             LastArmour = Player.LocalPlayer.GetArmour();
 
             if (!AsyncTask.Methods.IsTaskStillPending(AlphaTaskKey, null))
-            {
                 if (Player.LocalPlayer.GetAlpha() != LastAllowedAlpha)
                     Player.LocalPlayer.SetAlpha(LastAllowedAlpha, false);
-            }
 
             if (!AsyncTask.Methods.IsTaskStillPending(WeaponTaskKey, null))
             {
-                var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
+                uint curWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
                 if (curWeapon != LastAllowedWeapon && curWeapon != Weapons.Core.MobileHash)
-                {
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
-                }
 
                 if (LastAllowedAmmo >= 0 && Player.LocalPlayer.GetAmmoInWeapon(curWeapon) > LastAllowedAmmo)
                     Player.LocalPlayer.SetAmmo(curWeapon, 0, 1);
             }
             else
             {
-                var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
+                uint curWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
                 if (curWeapon != LastAllowedWeapon && curWeapon != Weapons.Core.MobileHash)
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
@@ -104,9 +101,9 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                     Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
             }
 
-            for (int i = 0; i < Vehicles.ControlledVehicles.Count; i++)
+            for (var i = 0; i < Vehicles.ControlledVehicles.Count; i++)
             {
-                var veh = Vehicles.ControlledVehicles[i];
+                Vehicle veh = Vehicles.ControlledVehicles[i];
 
                 if (veh?.Exists != true)
                     continue;
@@ -116,8 +113,8 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                 if (vData == null)
                     continue;
 
-                var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
-                var curHp = veh.GetEngineHealth();
+                float lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
+                float curHp = veh.GetEngineHealth();
 
                 /*                if (!vData.IsInvincible)
                                 {
@@ -147,22 +144,18 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                 else
                 {
                     if (curHp - lastHp > 0)
-                    {
                         veh.SetEngineHealth(lastHp);
-                    }
                     else
-                    {
                         veh.SetData("LastHealth", curHp);
-                    }
                 }
 
                 if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || AsyncTask.Methods.IsTaskStillPending(TeleportTaskKey, null)))
                 {
-                    var posData = posStr.Split('_');
+                    string[] posData = posStr.Split('_');
 
                     var vect = new Vector3(float.Parse(posData[0]), float.Parse(posData[1]), float.Parse(posData[2]));
 
-                    var tpVeh = veh;
+                    Vehicle tpVeh = veh;
 
                     if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
                         tpVeh = trVeh;
@@ -179,11 +172,11 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                     }
                 }
 
-                var trailerVehHandle = -1;
+                int trailerVehHandle = -1;
 
                 if (veh.GetTrailerVehicle(ref trailerVehHandle))
                 {
-                    var trailerVeh = Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false);
+                    Vehicle trailerVeh = Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false);
 
                     if (trailerVeh?.Exists != true)
                     {
@@ -221,12 +214,10 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                 }
                 else
                 {
-                    var actualAttach = vData.IsAttachedToVehicle;
+                    AttachmentEntity actualAttach = vData.IsAttachedToVehicle;
 
-                    if (actualAttach != null && (actualAttach.Type == AttachmentTypes.VehicleTrailerObjBoat))
-                    {
+                    if (actualAttach != null && actualAttach.Type == AttachmentTypes.VehicleTrailerObjBoat)
                         Events.CallRemote("votc", veh, null);
-                    }
                 }
             }
 

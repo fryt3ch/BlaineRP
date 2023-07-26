@@ -14,24 +14,52 @@ namespace BlaineRP.Client.Game.Helpers.Blips
         public enum Types
         {
             Default = 0,
+
             [Language.Localized("BLIPS_DEF_GPS_NAME_0", "NAME_0")]
             GPS,
+
             [Language.Localized("BLIPS_DEF_FURNITURE_NAME_0", "NAME_0")]
             Furniture,
+
             [Language.Localized("BLIPS_DEF_AUTOPILOT_NAME_0", "NAME_0")]
             AutoPilot,
         }
 
+        public ExtraBlip(uint Sprite,
+                         Vector3 Position,
+                         string Name = "",
+                         float Scale = 1f,
+                         byte Colour = 0,
+                         int Alpha = 255,
+                         float DrawDistance = 0f,
+                         bool ShortRange = false,
+                         int Rotation = 0,
+                         float Radius = 0f,
+                         uint Dimension = uint.MaxValue,
+                         Types Type = Types.Default)
+        {
+            if (Type != Types.Default)
+            {
+                if (Name == null || Name.Length == 0)
+                    Name = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(Type.GetType(), Type.ToString(), "NAME_0") ?? "null");
+
+                DestroyAllByType(Type);
+            }
+
+            Blip = new Blip(Sprite, Position, Name, Scale, Colour, Alpha, DrawDistance, ShortRange, Rotation, Radius, Dimension);
+
+            _Name = Name;
+            _Colour = Colour;
+            _Display = 2;
+            _IsShortRange = ShortRange;
+
+            this.Position = new Vector3(Position.X, Position.Y, Position.Z);
+            this.Type = Type;
+
+            All.Add(Blip, this);
+        }
+
         private static Dictionary<Blip, ExtraBlip> All { get; set; } = new Dictionary<Blip, ExtraBlip>();
-
-        /// <summary>Получить блип по айди (локальный)</summary>
-        public static ExtraBlip GetById(int id) => All.Where(x => x.Key?.Id == id).Select(x => x.Value).FirstOrDefault();
-
-        /// <summary>Получить блип по айди (серверный)</summary>
-        public static ExtraBlip GetByRemoteId(int id) => All.Where(x => x.Key?.RemoteId == id).Select(x => x.Value).FirstOrDefault();
-
-        /// <summary>Получить  блип по его держателю</summary>
-        public static ExtraBlip Get(Blip blip) => All.GetValueOrDefault(blip);
 
         private string _Name { get; set; }
 
@@ -49,45 +77,68 @@ namespace BlaineRP.Client.Game.Helpers.Blips
 
         public ExtraColshape Colshape { get; set; }
 
-        public uint Dimension { get => Blip.Dimension; set => Blip.Dimension = value; }
+        public uint Dimension
+        {
+            get => Blip.Dimension;
+            set => Blip.Dimension = value;
+        }
 
-        public uint Sprite { get => Blip.Model; set => Blip.Model = value; }
+        public uint Sprite
+        {
+            get => Blip.Model;
+            set => Blip.Model = value;
+        }
 
-        public string Name { get => _Name; set => SetName(value); }
+        public string Name
+        {
+            get => _Name;
+            set => SetName(value);
+        }
 
-        public byte Colour { get => _Colour; set => SetColour(value); }
+        public byte Colour
+        {
+            get => _Colour;
+            set => SetColour(value);
+        }
 
-        public byte Display { get => _Display; set => SetDisplay(value); }
+        public byte Display
+        {
+            get => _Display;
+            set => SetDisplay(value);
+        }
 
-        public int FlashInterval { get => _FlashInterval; set => SetFlashInterval(value); }
+        public int FlashInterval
+        {
+            get => _FlashInterval;
+            set => SetFlashInterval(value);
+        }
 
-        public bool IsShortRange { get => _IsShortRange; set => SetAsShortRange(value); }
+        public bool IsShortRange
+        {
+            get => _IsShortRange;
+            set => SetAsShortRange(value);
+        }
 
         public bool Exists => All.ContainsKey(Blip);
 
         public Types Type { get; set; }
 
-        public ExtraBlip(uint Sprite, Vector3 Position, string Name = "", float Scale = 1f, byte Colour = 0, int Alpha = 255, float DrawDistance = 0f, bool ShortRange = false, int Rotation = 0, float Radius = 0f, uint Dimension = uint.MaxValue, Types Type = Types.Default)
+        /// <summary>Получить блип по айди (локальный)</summary>
+        public static ExtraBlip GetById(int id)
         {
-            if (Type != Types.Default)
-            {
-                if (Name == null || Name.Length == 0)
-                    Name = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(Type.GetType(), Type.ToString(), "NAME_0") ?? "null");
+            return All.Where(x => x.Key?.Id == id).Select(x => x.Value).FirstOrDefault();
+        }
 
-                DestroyAllByType(Type);
-            }
+        /// <summary>Получить блип по айди (серверный)</summary>
+        public static ExtraBlip GetByRemoteId(int id)
+        {
+            return All.Where(x => x.Key?.RemoteId == id).Select(x => x.Value).FirstOrDefault();
+        }
 
-            this.Blip = new Blip(Sprite, Position, Name, Scale, Colour, Alpha, DrawDistance, ShortRange, Rotation, Radius, Dimension);
-
-            this._Name = Name;
-            this._Colour = Colour;
-            this._Display = 2;
-            this._IsShortRange = ShortRange;
-
-            this.Position = new Vector3(Position.X, Position.Y, Position.Z);
-            this.Type = Type;
-
-            All.Add(this.Blip, this);
+        /// <summary>Получить  блип по его держателю</summary>
+        public static ExtraBlip Get(Blip blip)
+        {
+            return All.GetValueOrDefault(blip);
         }
 
         public bool SetAsReachable(float range = 2.5f)
@@ -103,9 +154,7 @@ namespace BlaineRP.Client.Game.Helpers.Blips
             Colshape = new Circle(Position, range, false, Utils.Misc.RedColor, Dimension, null)
             {
                 ApproveType = ApproveTypes.None,
-
                 ActionType = ActionTypes.ReachableBlip,
-
                 Data = this,
             };
 
@@ -124,18 +173,14 @@ namespace BlaineRP.Client.Game.Helpers.Blips
 
         public void SetRoute(bool state)
         {
-            this.Blip.SetRoute(state);
+            Blip.SetRoute(state);
         }
 
         public void Destroy()
         {
             if (Blip != null)
-            {
                 if (All.Remove(Blip))
-                {
                     Blip.Destroy();
-                }
-            }
 
             Colshape?.Destroy();
         }
@@ -195,20 +240,29 @@ namespace BlaineRP.Client.Game.Helpers.Blips
 
         public void SetCoords(float x, float y, float z)
         {
-            this.Position = new Vector3(x, y, z);
+            Position = new Vector3(x, y, z);
 
             Blip.SetCoords(x, y, z);
         }
 
-        public void SetData<T>(string key, T value) => Blip.SetData(key, value);
+        public void SetData<T>(string key, T value)
+        {
+            Blip.SetData(key, value);
+        }
 
-        public T GetData<T>(string key) => Blip.GetData<T>(key);
+        public T GetData<T>(string key)
+        {
+            return Blip.GetData<T>(key);
+        }
 
-        public static void DestroyAllByType(Types type) => All.Where(x => x.Value?.Type == type).ToList().ForEach(x => x.Value.Destroy());
+        public static void DestroyAllByType(Types type)
+        {
+            All.Where(x => x.Value?.Type == type).ToList().ForEach(x => x.Value.Destroy());
+        }
 
         public static void RefreshAllBlips()
         {
-            foreach (var x in All.Values.ToList())
+            foreach (ExtraBlip x in All.Values.ToList())
             {
                 //x.SetName(x.Name);
 

@@ -61,15 +61,15 @@ namespace BlaineRP.Client
                     { Game.UI.CEF.Inventory.ContainerTypes.Wardrobe, "Гардероб" },
                 };
 
-                public static Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string Name, string CraftBtnText)> WorkbenchNames = new Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string, string)>()
-                {
-                    { Game.UI.CEF.Inventory.WorkbenchTypes.None, ("null", "null") },
-
-                    { Game.UI.CEF.Inventory.WorkbenchTypes.CraftTable, ("Верстак", "Создать") },
-                    { Game.UI.CEF.Inventory.WorkbenchTypes.Grill, ("Гриль", "Приготовить") },
-                    { Game.UI.CEF.Inventory.WorkbenchTypes.GasStove, ("Газовая плита", "Приготовить") },
-                    { Game.UI.CEF.Inventory.WorkbenchTypes.KitchenSet, ("Кухонный гарнитур", "Приготовить") },
-                };
+                public static Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string Name, string CraftBtnText)> WorkbenchNames =
+                    new Dictionary<Game.UI.CEF.Inventory.WorkbenchTypes, (string, string)>()
+                    {
+                        { Game.UI.CEF.Inventory.WorkbenchTypes.None, ("null", "null") },
+                        { Game.UI.CEF.Inventory.WorkbenchTypes.CraftTable, ("Верстак", "Создать") },
+                        { Game.UI.CEF.Inventory.WorkbenchTypes.Grill, ("Гриль", "Приготовить") },
+                        { Game.UI.CEF.Inventory.WorkbenchTypes.GasStove, ("Газовая плита", "Приготовить") },
+                        { Game.UI.CEF.Inventory.WorkbenchTypes.KitchenSet, ("Кухонный гарнитур", "Приготовить") },
+                    };
             }
         }
     }

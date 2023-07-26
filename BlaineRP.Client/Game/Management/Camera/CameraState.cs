@@ -5,6 +5,14 @@ namespace BlaineRP.Client.Game.Management.Camera
 {
     internal class CameraState
     {
+        public enum BehaviourTypes
+        {
+            None = -1,
+            FrontOf,
+            PointAt,
+            PointBone,
+        }
+
         public enum RenderTypes
         {
             None = -1,
@@ -13,12 +21,43 @@ namespace BlaineRP.Client.Game.Management.Camera
             Both,
         }
 
-        public enum BehaviourTypes
+        /// <summary>Состояние камеры</summary>
+        /// <param name="position">Позиция камеры (если задана основная сущность, то этот параметр - смещение, а не сама позиция)</param>
+        /// <param name="rotation">Поворот камеры (если null, то будет использоваться 0 0 0)</param>
+        /// <param name="fov">Поле обзора</param>
+        /// <param name="targetPosition">
+        ///     Целевая позиция (если задана целевая сущность, то этот параметр - смещение (от
+        ///     сущности/кости), а не сама позиция)
+        /// </param>
+        /// <param name="transitionTime">Время перехода от прошлой камеры к текущей</param>
+        public CameraState(Vector3 position = null,
+                           Vector3 rotation = null,
+                           float fov = 50,
+                           Vector3 targetPosition = null,
+                           int transitionTime = 0,
+                           RenderTypes sourceRenderType = RenderTypes.None,
+                           RenderTypes targetRenderType = RenderTypes.None)
         {
-            None = -1,
-            FrontOf,
-            PointAt,
-            PointBone,
+            Position = position;
+            Rotation = rotation;
+            Fov = fov;
+            TargetPosition = targetPosition;
+
+            TransitionTime = transitionTime;
+
+            SourceRenderType = sourceRenderType;
+            TargetRenderType = targetRenderType;
+
+            SourceBehaviourType = BehaviourTypes.None;
+            TargetBehaviourType = BehaviourTypes.None;
+
+            SourceParams = null;
+            TargetParams = null;
+
+            MinFov = fov;
+            MaxFov = fov;
+
+            ShakeAmplitude = 0.5f;
         }
 
         public Vector3 Position { get; set; }
@@ -49,35 +88,5 @@ namespace BlaineRP.Client.Game.Management.Camera
         public Action<object[]> OnAction { get; set; }
 
         public Action<object[]> OffAction { get; set; }
-
-        /// <summary>Состояние камеры</summary>
-        /// <param name="position">Позиция камеры (если задана основная сущность, то этот параметр - смещение, а не сама позиция)</param>
-        /// <param name="rotation">Поворот камеры (если null, то будет использоваться 0 0 0)</param>
-        /// <param name="fov">Поле обзора</param>
-        /// <param name="targetPosition">Целевая позиция (если задана целевая сущность, то этот параметр - смещение (от сущности/кости), а не сама позиция)</param>
-        /// <param name="transitionTime">Время перехода от прошлой камеры к текущей</param>
-        public CameraState(Vector3 position = null, Vector3 rotation = null, float fov = 50, Vector3 targetPosition = null, int transitionTime = 0, RenderTypes sourceRenderType = RenderTypes.None, RenderTypes targetRenderType = RenderTypes.None)
-        {
-            Position = position;
-            Rotation = rotation;
-            Fov = fov;
-            TargetPosition = targetPosition;
-
-            TransitionTime = transitionTime;
-
-            SourceRenderType = sourceRenderType;
-            TargetRenderType = targetRenderType;
-
-            SourceBehaviourType = BehaviourTypes.None;
-            TargetBehaviourType = BehaviourTypes.None;
-
-            SourceParams = null;
-            TargetParams = null;
-
-            MinFov = fov;
-            MaxFov = fov;
-
-            ShakeAmplitude = 0.5f;
-        }
     }
 }

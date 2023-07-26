@@ -6,10 +6,18 @@ namespace BlaineRP.Client
     {
         // restricted chars for regex _|&^
 
-        public static string Get(string key, params object[] formatArgs) => Language.Strings.Get(key, formatArgs);
-        public static string? GetNullOtherwise(string key, params object[] formatArgs) => Language.Strings.GetNullOtherwise(key);
+        public static string Get(string key, params object[] formatArgs)
+        {
+            return Language.Strings.Get(key, formatArgs);
+        }
+
+        public static string? GetNullOtherwise(string key, params object[] formatArgs)
+        {
+            return Language.Strings.GetNullOtherwise(key);
+        }
 
         #region General
+
         public static partial class General
         {
             public static string PropertyHouseString = "Дом";
@@ -32,6 +40,12 @@ namespace BlaineRP.Client
             public static string PhoneOutgoingCall = "Исходящий вызов";
             public static string PhoneIncomingCall = "Входящий вызов";
 
+            public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
+            {
+                { 900, "Банк" },
+                { 873, "Сервис доставки" },
+            };
+
             public static class PhoneCamera
             {
                 public const string On = "вкл.";
@@ -50,12 +64,6 @@ namespace BlaineRP.Client
                 public const string Photo = "Фото";
             }
 
-            public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
-            {
-                { 900, "Банк" },
-                { 873, "Сервис доставки" },
-            };
-
             public static class Blip
             {
                 public static string ApartmentsOwnedBlip = "{0}, кв. {1}";
@@ -66,6 +74,7 @@ namespace BlaineRP.Client
                 public static string JobTaxiTargetPlayer = "Заказчик такси";
             }
         }
+
         #endregion
     }
 }

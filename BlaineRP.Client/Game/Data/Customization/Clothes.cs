@@ -5,11 +5,10 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Management.Attachments;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
 namespace BlaineRP.Client.Game.Data.Customization
 {
-    class Clothes
+    internal class Clothes
     {
         private static Dictionary<System.Type, int> Slots = new Dictionary<System.Type, int>()
         {
@@ -21,22 +20,18 @@ namespace BlaineRP.Client.Game.Data.Customization
             { typeof(Mask), 1 },
             { typeof(Accessory), 7 },
             { typeof(Bag), 5 },
-
             { typeof(Hat), 0 },
             { typeof(Glasses), 1 },
             { typeof(Earrings), 2 },
             { typeof(Watches), 6 },
             { typeof(Bracelet), 7 },
-
             { typeof(Ring), int.MinValue },
         };
 
         private static Dictionary<bool, Dictionary<System.Type, int>> NudeClothes = new Dictionary<bool, Dictionary<System.Type, int>>()
         {
             {
-                true,
-
-                new Dictionary<System.Type, int>()
+                true, new Dictionary<System.Type, int>()
                 {
                     { typeof(Top), 15 },
                     { typeof(Under), 15 },
@@ -46,15 +41,11 @@ namespace BlaineRP.Client.Game.Data.Customization
                     { typeof(Accessory), 0 },
                     { typeof(Mask), 0 },
                     { typeof(Bag), 0 },
-
                     { typeof(Ring), 0 },
                 }
             },
-
             {
-                false,
-
-                new Dictionary<System.Type, int>()
+                false, new Dictionary<System.Type, int>()
                 {
                     { typeof(Top), 15 },
                     { typeof(Under), 15 },
@@ -64,34 +55,24 @@ namespace BlaineRP.Client.Game.Data.Customization
                     { typeof(Accessory), 0 },
                     { typeof(Mask), 0 },
                     { typeof(Bag), 0 },
-
                     { typeof(Ring), 0 },
                 }
             },
         };
 
-        public class TempClothes
+        public static int GetSlot(System.Type type)
         {
-            public string ID { get; set; }
-            public int Variation { get; set; }
-            public bool Toggled { get; set; }
-
-            public TempClothes(string ID, int Variation, bool Toggled = false)
-            {
-                this.ID = ID;
-                this.Variation = Variation;
-
-                this.Toggled = Toggled;
-            }
+            return Slots.GetValueOrDefault(type);
         }
-        
-        public static int GetSlot(System.Type type) => Slots.GetValueOrDefault(type);
 
-        public static int GetNudeDrawable(System.Type type, bool sex) => NudeClothes[sex].GetValueOrDefault(type);
+        public static int GetNudeDrawable(System.Type type, bool sex)
+        {
+            return NudeClothes[sex].GetValueOrDefault(type);
+        }
 
         public static async void Wear(string id, int var = 0, params object[] args)
         {
-            var type = Items.Core.GetType(id, true);
+            System.Type type = Items.Core.GetType(id, true);
 
             if (type == null)
                 return;
@@ -101,14 +82,13 @@ namespace BlaineRP.Client.Game.Data.Customization
             if (data == null)
                 return;
 
-            var sex = Player.LocalPlayer.GetSex();
+            bool sex = Player.LocalPlayer.GetSex();
 
-            var variation = var < data.Textures.Length && var >= 0 ? data.Textures[var] : 0;
+            int variation = var < data.Textures.Length && var >= 0 ? data.Textures[var] : 0;
 
-            var slot = GetSlot(type);
+            int slot = GetSlot(type);
 
             if (slot < 0)
-            {
                 if (data is Ring.ItemData ringData)
                 {
                     Unwear(typeof(Ring));
@@ -116,7 +96,6 @@ namespace BlaineRP.Client.Game.Data.Customization
                     var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData != null)
-                    {
                         if (pData.WearedRing is AttachmentObject atObj && atObj.Object?.Exists == true)
                         {
                             RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
@@ -125,16 +104,18 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                             atObj.Object.Destroy();
                         }
-                    }
 
-                    var ringObj = await Core.AttachObjectSimpleLocal(ringData.Model, Player.LocalPlayer, (args[0] as bool? ?? false) ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3);
+                    GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
+                        Player.LocalPlayer,
+                        args[0] as bool? ?? false ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3
+                    );
 
                     if (ringObj == null)
                         return;
 
                     Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
                 }
-            }
+
             if (type.GetInterfaces().Contains(typeof(Items.Clothes.IProp)))
             {
                 if (data is Hat.ItemData hData)
@@ -196,14 +177,14 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     if (Player.LocalPlayer.HasData("TempClothes::Under"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
                     }
                     else if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -260,11 +241,13 @@ namespace BlaineRP.Client.Game.Data.Customization
                         Player.LocalPlayer.SetData("TempClothes::Under", currentUnderTemp);
                     }
                     else
+                    {
                         Player.LocalPlayer.SetData("TempClothes::Under", new TempClothes(id, variation));
+                    }
 
                     if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -277,7 +260,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                     if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         Unwear(type);
 
-                    var curTorso = Player.LocalPlayer.GetDrawableVariation(slot);
+                    int curTorso = Player.LocalPlayer.GetDrawableVariation(slot);
 
                     if (gData.BestTorsos.ContainsKey(curTorso))
                     {
@@ -295,7 +278,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
         public static async void Action(string id, int var, params object[] args)
         {
-            var type = Items.Core.GetType(id, true);
+            System.Type type = Items.Core.GetType(id, true);
 
             if (type == null)
                 return;
@@ -305,12 +288,11 @@ namespace BlaineRP.Client.Game.Data.Customization
             if (data == null)
                 return;
 
-            var slot = GetSlot(type);
+            int slot = GetSlot(type);
 
             var = var < data.Textures.Length && var >= 0 ? data.Textures[var] : 0;
 
             if (slot < 0)
-            {
                 if (data is Ring.ItemData ringData)
                 {
                     Unwear(typeof(Ring));
@@ -318,7 +300,6 @@ namespace BlaineRP.Client.Game.Data.Customization
                     var pData = PlayerData.GetData(Player.LocalPlayer);
 
                     if (pData != null)
-                    {
                         if (pData.WearedRing is AttachmentObject atObj && atObj.Object?.Exists == true)
                         {
                             RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
@@ -327,22 +308,24 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                             atObj.Object.Destroy();
                         }
-                    }
 
-                    var ringObj = await Core.AttachObjectSimpleLocal(ringData.Model, Player.LocalPlayer, (args[0] as bool? ?? false) ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3);
+                    GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
+                        Player.LocalPlayer,
+                        args[0] as bool? ?? false ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3
+                    );
 
                     if (ringObj == null)
                         return;
 
                     Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
                 }
-            }
+
             if (data is Hat.ItemData hData)
             {
                 if (hData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Hat"))
                     return;
 
-                var current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Hat");
+                TempClothes current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Hat");
 
                 if (!current.Toggled)
                 {
@@ -366,7 +349,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                 if (tData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Top"))
                     return;
 
-                var current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
+                TempClothes current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
 
                 if (!current.Toggled)
                 {
@@ -380,14 +363,14 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     if (Player.LocalPlayer.HasData("TempClothes::Under"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
                     }
                     else if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -405,14 +388,14 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     if (Player.LocalPlayer.HasData("TempClothes::Under"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
                     }
                     else if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -424,7 +407,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                 if (uData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Under"))
                     return;
 
-                var current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                TempClothes current = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                 if (current == null)
                     return;
@@ -445,7 +428,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
-                            var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                            TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                             if (temp != null)
                                 Wear(temp.ID, temp.Variation);
@@ -458,7 +441,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
-                            var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                            TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                             if (temp != null)
                                 Wear(temp.ID, temp.Variation);
@@ -478,7 +461,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
-                            var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                            TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                             if (temp != null)
                                 Wear(temp.ID, temp.Variation);
@@ -491,7 +474,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
-                            var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                            TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                             if (temp != null)
                                 Wear(temp.ID, temp.Variation);
@@ -499,23 +482,23 @@ namespace BlaineRP.Client.Game.Data.Customization
                     }
                 }
                 else
+                {
                     return;
+                }
             }
         }
 
         public static void Unwear(System.Type type)
         {
-            if (RAGE.Elements.Player.LocalPlayer.Model != 0x705E61F2 && RAGE.Elements.Player.LocalPlayer.Model != 0x9C9EFFD8)
+            if (Player.LocalPlayer.Model != 0x705E61F2 && Player.LocalPlayer.Model != 0x9C9EFFD8)
                 return;
 
-            var sex = Player.LocalPlayer.GetSex();
+            bool sex = Player.LocalPlayer.GetSex();
 
-            var slot = GetSlot(type);
+            int slot = GetSlot(type);
 
             if (slot < 0)
-            {
                 if (type == typeof(Ring))
-                {
                     if (Player.LocalPlayer.GetData<GameEntity>("TempClothes::Ring") is GameEntity gEntity)
                     {
                         RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
@@ -526,16 +509,13 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         Player.LocalPlayer.ResetData("TempClothes::Ring");
                     }
-                }
-            }
+
             if (type.GetInterfaces().Contains(typeof(Items.Clothes.IProp)))
             {
                 Player.LocalPlayer.ClearProp(slot);
 
                 if (type == typeof(Hat))
-                {
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
-                }
             }
             else
             {
@@ -548,14 +528,14 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     if (Player.LocalPlayer.HasData("TempClothes::Under"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
                     }
                     else if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -573,7 +553,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
-                            var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
+                            TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Gloves");
 
                             if (temp != null)
                                 Wear(temp.ID, temp.Variation);
@@ -583,7 +563,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                     {
                         Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(type, sex), 0, 2);
 
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -598,14 +578,14 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     if (Player.LocalPlayer.HasData("TempClothes::Top"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
                     }
                     else if (Player.LocalPlayer.HasData("TempClothes::Under"))
                     {
-                        var temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
+                        TempClothes temp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
                         if (temp != null)
                             Wear(temp.ID, temp.Variation);
@@ -620,7 +600,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
         public static void UndressAll()
         {
-            var sex = Player.LocalPlayer.GetSex();
+            bool sex = Player.LocalPlayer.GetSex();
 
             Player.LocalPlayer.ResetData("TempClothes::Under");
             Player.LocalPlayer.ResetData("TempClothes::Hat");
@@ -669,6 +649,21 @@ namespace BlaineRP.Client.Game.Data.Customization
                 { 6, (player.GetPropIndex(6), player.GetPropTextureIndex(6)) },
                 { 7, (player.GetPropIndex(7), player.GetPropTextureIndex(7)) },
             };
+        }
+
+        public class TempClothes
+        {
+            public TempClothes(string ID, int Variation, bool Toggled = false)
+            {
+                this.ID = ID;
+                this.Variation = Variation;
+
+                this.Toggled = Toggled;
+            }
+
+            public string ID { get; set; }
+            public int Variation { get; set; }
+            public bool Toggled { get; set; }
         }
     }
 }

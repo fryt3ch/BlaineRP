@@ -14,159 +14,211 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
     [Script(int.MaxValue)]
     public class GPS
     {
-        private static Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>> AllPositions = new Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>>()
-        {
+        private static Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>> AllPositions =
+            new Dictionary<string, Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>>()
             {
-                "money",
-
-                new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
                 {
-                    { "banks", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_bank&closest0", null } } },
-                    { "atms", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_atm&closest1", null } } },
-                }
-            },
-
-            {
-                "clothes",
-
-                new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                    "money", new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                    {
+                        {
+                            "banks", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_bank&closest0", null },
+                            }
+                        },
+                        {
+                            "atms", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_atm&closest1", null },
+                            }
+                        },
+                    }
+                },
                 {
-                    { "clothes1", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_clothes1&closest1", null } } },
-                    { "clothes2", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_clothes2&closest1", null } } },
-                    { "clothes3", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_clothes3&closest1", null } } },
-                }
-            },
-
-            {
-                "bizother",
-
-                new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                    "clothes", new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                    {
+                        {
+                            "clothes1", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_clothes1&closest1", null },
+                            }
+                        },
+                        {
+                            "clothes2", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_clothes2&closest1", null },
+                            }
+                        },
+                        {
+                            "clothes3", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_clothes3&closest1", null },
+                            }
+                        },
+                    }
+                },
                 {
-                    { "market", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_market&closest1", null } } },
-                    { "gas", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_gas&closest2", null } } },
-                    { "tuning", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_tuning&closest1", null } } },
-                    { "weapon", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_weapon&closest1", null } } },
-                    { "furn", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_furn&closest1", null } } },
-                    { "farm", new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { "a_farm&closest2", null } } },
-                }
-            },
-        };
-
-        private static AsyncTask RouteUpdateTask { get; set; }
-
-        private static ExtraBlip CurrentRouteBlip { get; set; }
+                    "bizother", new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                    {
+                        {
+                            "market", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_market&closest1", null },
+                            }
+                        },
+                        {
+                            "gas", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_gas&closest2", null },
+                            }
+                        },
+                        {
+                            "tuning", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_tuning&closest1", null },
+                            }
+                        },
+                        {
+                            "weapon", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_weapon&closest1", null },
+                            }
+                        },
+                        {
+                            "furn", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_furn&closest1", null },
+                            }
+                        },
+                        {
+                            "farm", new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                            {
+                                { "a_farm&closest2", null },
+                            }
+                        },
+                    }
+                },
+            };
 
         public GPS()
         {
-            Events.Add("Phone::ClearRoute", (args) =>
-            {
-                if (CurrentRouteBlip != null)
+            Events.Add("Phone::ClearRoute",
+                (args) =>
                 {
-                    if (RouteUpdateTask != null)
+                    if (CurrentRouteBlip != null)
                     {
-                        RouteUpdateTask.Cancel();
-
-                        RouteUpdateTask = null;
-                    }
-
-                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
-                        Browser.Window.ExecuteJs("Phone.removeCurRoute();");
-
-                    CurrentRouteBlip.Destroy();
-                }
-            });
-
-            Events.Add("Phone::ShowRoute", (args) =>
-            {
-                var routeId = (string)args[0];
-
-                var searchRouteId = $"{routeId}&";
-
-                RAGE.Ui.Cursor.Vector2 route;
-
-                foreach (var x in AllPositions.Values)
-                {
-                    foreach (var y in x.Values)
-                    {
-                        foreach (var t in y)
+                        if (RouteUpdateTask != null)
                         {
-                            if (t.Key.StartsWith(searchRouteId))
+                            RouteUpdateTask.Cancel();
+
+                            RouteUpdateTask = null;
+                        }
+
+                        if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
+                            Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+
+                        CurrentRouteBlip.Destroy();
+                    }
+                }
+            );
+
+            Events.Add("Phone::ShowRoute",
+                (args) =>
+                {
+                    var routeId = (string)args[0];
+
+                    var searchRouteId = $"{routeId}&";
+
+                    RAGE.Ui.Cursor.Vector2 route;
+
+                    foreach (Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>> x in AllPositions.Values)
+                    {
+                        foreach (Dictionary<string, RAGE.Ui.Cursor.Vector2> y in x.Values)
+                        {
+                            foreach (KeyValuePair<string, RAGE.Ui.Cursor.Vector2> t in y)
                             {
-                                routeId = t.Key;
-
-                                route = t.Value;
-
-                                if (route == null)
+                                if (t.Key.StartsWith(searchRouteId))
                                 {
-                                    var tPos = new Vector3(0f, 0f, 0f);
+                                    routeId = t.Key;
 
-                                    var pPos = Player.LocalPlayer.Position;
+                                    route = t.Value;
 
-                                    var minDist = float.MaxValue;
-                                    string closestId = null;
-
-                                    foreach (var z in y)
+                                    if (route == null)
                                     {
-                                        if (z.Value == null)
-                                            continue;
+                                        var tPos = new Vector3(0f, 0f, 0f);
 
-                                        tPos.X = z.Value.X;
-                                        tPos.Y = z.Value.Y;
+                                        Vector3 pPos = Player.LocalPlayer.Position;
 
-                                        var dist = pPos.DistanceIgnoreZ(tPos);
+                                        float minDist = float.MaxValue;
+                                        string closestId = null;
 
-                                        if (dist <= minDist)
+                                        foreach (KeyValuePair<string, RAGE.Ui.Cursor.Vector2> z in y)
                                         {
-                                            route = z.Value;
-                                            closestId = z.Key;
+                                            if (z.Value == null)
+                                                continue;
 
-                                            minDist = dist;
+                                            tPos.X = z.Value.X;
+                                            tPos.Y = z.Value.Y;
+
+                                            float dist = pPos.DistanceIgnoreZ(tPos);
+
+                                            if (dist <= minDist)
+                                            {
+                                                route = z.Value;
+                                                closestId = z.Key;
+
+                                                minDist = dist;
+                                            }
                                         }
+
+                                        if (closestId == null || route == null)
+                                            return;
+
+                                        CurrentRouteBlip?.Destroy();
+
+                                        CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
+
+                                        CurrentRouteBlip.Blip.SetData("GPSRouteId", closestId);
+
+                                        string[] data = closestId.Split('&');
+
+                                        string name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1];
+
+                                        if (data.Length == 3)
+                                            name = $"{name}{data[2]}";
+
+                                        CurrentRouteBlip.Blip.SetData("GPSRouteName", name);
+                                    }
+                                    else
+                                    {
+                                        CurrentRouteBlip?.Destroy();
+
+                                        CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
+
+                                        CurrentRouteBlip.Blip.SetData("GPSRouteId", routeId);
+
+                                        string[] data = routeId.Split('&');
+
+                                        string name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1];
+
+                                        if (data.Length == 3)
+                                            name = $"{name}{data[2]}";
+
+                                        CurrentRouteBlip.Blip.SetData("GPSRouteName", name);
                                     }
 
-                                    if (closestId == null || route == null)
-                                        return;
-
-                                    CurrentRouteBlip?.Destroy();
-
-                                    CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
-
-                                    CurrentRouteBlip.Blip.SetData("GPSRouteId", closestId);
-
-                                    var data = closestId.Split('&');
-
-                                    var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1];
-
-                                    if (data.Length == 3)
-                                        name = $"{name}{data[2]}";
-
-                                    CurrentRouteBlip.Blip.SetData("GPSRouteName", name);
+                                    return;
                                 }
-                                else
-                                {
-                                    CurrentRouteBlip?.Destroy();
-
-                                    CurrentRouteBlip = Core.CreateGPS(new Vector3(route.X, route.Y, 0f), uint.MaxValue, true);
-
-                                    CurrentRouteBlip.Blip.SetData("GPSRouteId", routeId);
-
-                                    var data = routeId.Split('&');
-
-                                    var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1];
-
-                                    if (data.Length == 3)
-                                        name = $"{name}{data[2]}";
-
-                                    CurrentRouteBlip.Blip.SetData("GPSRouteName", name);
-                                }
-
-                                return;
                             }
                         }
                     }
                 }
-            });
+            );
         }
+
+        private static AsyncTask RouteUpdateTask { get; set; }
+
+        private static ExtraBlip CurrentRouteBlip { get; set; }
 
         public static Action<int> CurrentTransactionAction { get; set; }
 
@@ -205,28 +257,68 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             {
                 RouteUpdateTask = null;
 
-                Browser.Window.ExecuteJs("Phone.drawGpsApp", null, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+                Browser.Window.ExecuteJs("Phone.drawGpsApp",
+                    null,
+                    AllPositions.Select(x => new object[]
+                        {
+                            Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key,
+                            x.Value.Select(y => new object[]
+                                {
+                                    y.Key,
+                                    Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key,
+                                }
+                            ),
+                        }
+                    )
+                );
             }
             else
             {
-                Browser.Window.ExecuteJs("Phone.drawGpsApp", new object[] { "asd", "asd1" }, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+                Browser.Window.ExecuteJs("Phone.drawGpsApp",
+                    new object[]
+                    {
+                        "asd",
+                        "asd1",
+                    },
+                    AllPositions.Select(x => new object[]
+                        {
+                            Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key,
+                            x.Value.Select(y => new object[]
+                                {
+                                    y.Key,
+                                    Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key,
+                                }
+                            ),
+                        }
+                    )
+                );
 
                 RouteUpdateTask = new AsyncTask(() =>
-                {
-                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
                     {
-                        if (CurrentRouteBlip?.Exists != true)
+                        if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
                         {
-                            CurrentRouteBlip = null;
+                            if (CurrentRouteBlip?.Exists != true)
+                            {
+                                CurrentRouteBlip = null;
 
-                            Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+                                Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+                            }
+                            else
+                            {
+                                Browser.Window.ExecuteJs("Phone.updateCurRoute",
+                                    new List<object>()
+                                    {
+                                        CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null",
+                                        $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)",
+                                    }
+                                );
+                            }
                         }
-                        else
-                        {
-                            Browser.Window.ExecuteJs("Phone.updateCurRoute", new List<object>() { CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null", $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)" });
-                        }
-                    }
-                }, 1000, true, 0);
+                    },
+                    1000,
+                    true,
+                    0
+                );
 
                 RouteUpdateTask.Run();
             }
@@ -234,7 +326,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowTab(string sectionId)
         {
-            var subSections = AllPositions.Values.Select(x => x.GetValueOrDefault(sectionId)).Where(x => x != null).FirstOrDefault();
+            Dictionary<string, RAGE.Ui.Cursor.Vector2> subSections = AllPositions.Values.Select(x => x.GetValueOrDefault(sectionId)).Where(x => x != null).FirstOrDefault();
 
             if (subSections == null)
                 return;
@@ -248,16 +340,44 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 RouteUpdateTask = null;
             }
 
-            Browser.Window.ExecuteJs("Phone.fillGpsRoutes", new object[] { new object[] { Locale.GPSApp.Names.GetValueOrDefault(sectionId) ?? sectionId, subSections.Select(x => { var data = x.Key.Split('&'); var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1]; return new object[] { data[0], data.Length == 3 ? $"{name}{data[2]}" : name }; }) } }, true);
+            Browser.Window.ExecuteJs("Phone.fillGpsRoutes",
+                new object[]
+                {
+                    new object[]
+                    {
+                        Locale.GPSApp.Names.GetValueOrDefault(sectionId) ?? sectionId,
+                        subSections.Select(x =>
+                            {
+                                string[] data = x.Key.Split('&');
+                                string name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1];
+                                return new object[]
+                                {
+                                    data[0],
+                                    data.Length == 3 ? $"{name}{data[2]}" : name,
+                                };
+                            }
+                        ),
+                    },
+                },
+                true
+            );
         }
 
         public static bool AddPosition(string sectionId, string subSectionId, string routeId, string routeNameId, RAGE.Ui.Cursor.Vector2 pos)
         {
-            var section = AllPositions.GetValueOrDefault(sectionId);
+            Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>> section = AllPositions.GetValueOrDefault(sectionId);
 
             if (section == null)
             {
-                section = new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>() { { subSectionId, new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { $"{routeId}&{routeNameId}", pos } } } };
+                section = new Dictionary<string, Dictionary<string, RAGE.Ui.Cursor.Vector2>>()
+                {
+                    {
+                        subSectionId, new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                        {
+                            { $"{routeId}&{routeNameId}", pos },
+                        }
+                    },
+                };
 
                 AllPositions.Add(sectionId, section);
 
@@ -265,13 +385,16 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             }
             else
             {
-                var subSection = section.GetValueOrDefault(subSectionId);
+                Dictionary<string, RAGE.Ui.Cursor.Vector2> subSection = section.GetValueOrDefault(subSectionId);
 
                 if (subSection == null)
                 {
-                    var routeHashCode = routeId.GetHashCode();
+                    int routeHashCode = routeId.GetHashCode();
 
-                    subSection = new Dictionary<string, RAGE.Ui.Cursor.Vector2>() { { $"{routeId}&{routeNameId}", pos } };
+                    subSection = new Dictionary<string, RAGE.Ui.Cursor.Vector2>()
+                    {
+                        { $"{routeId}&{routeNameId}", pos },
+                    };
 
                     section.Add(subSectionId, subSection);
 
@@ -280,9 +403,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 else
                 {
                     if (subSection.TryAdd($"{routeId}&{routeNameId}", pos))
-                    {
                         return true;
-                    }
 
                     return false;
                 }

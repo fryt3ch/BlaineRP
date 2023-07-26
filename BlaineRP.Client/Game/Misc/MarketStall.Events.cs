@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.UI.CEF;
 
@@ -16,7 +17,7 @@ namespace BlaineRP.Client.Game.Misc
                     {
                         var id = Utils.Convert.ToInt32(args[0]);
 
-                        var cs = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
+                        ExtraColshape cs = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
 
                         if (cs == null)
                             return;
@@ -33,17 +34,18 @@ namespace BlaineRP.Client.Game.Misc
 
                             Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("MARKETSTALL_B_SERROR_6"));
                         }
-                    });
+                    }
+                );
 
                 RAGE.Events.Add("MarketStall::ATBH",
                     (args) =>
                     {
-                        var curRentedStall = GetCurrentRentedMarketStall(out _);
+                        MarketStall curRentedStall = GetCurrentRentedMarketStall(out _);
 
                         if (curRentedStall == null)
                             return;
 
-                        var sellHist = SellHistory;
+                        List<(uint, string, decimal, decimal)> sellHist = SellHistory;
 
                         if (sellHist == null)
                             return;
@@ -54,11 +56,11 @@ namespace BlaineRP.Client.Game.Misc
                         var itemAmount = Utils.Convert.ToUInt32(args[2]);
                         var itemPrice = Utils.Convert.ToDecimal(args[3]);
 
-                        var histItemIdx = -1;
+                        int histItemIdx = -1;
 
                         for (var i = 0; i < sellHist.Count; i++)
                         {
-                            var x = sellHist[i];
+                            (uint, string, decimal, decimal) x = sellHist[i];
 
                             if (x.Item1 == itemUid && x.Item2 == itemId)
                             {
@@ -72,7 +74,8 @@ namespace BlaineRP.Client.Game.Misc
                             sellHist.Add((itemUid, itemId, itemAmount, itemPrice));
                         else
                             sellHist[histItemIdx] = (itemUid, itemId, sellHist[histItemIdx].Item3 + itemAmount, sellHist[histItemIdx].Item4 + itemPrice);
-                    });
+                    }
+                );
             }
         }
     }

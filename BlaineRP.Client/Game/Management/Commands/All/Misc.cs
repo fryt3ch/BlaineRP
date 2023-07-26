@@ -4,7 +4,6 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -16,10 +15,10 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("ping", false, "")]
         public static async void Ping()
         {
-            if (Commands.Core.LastSent.IsSpam(500, false, true))
+            if (LastSent.IsSpam(500, false, true))
                 return;
 
-            Commands.Core.LastSent = World.Core.ServerTime;
+            LastSent = World.Core.ServerTime;
 
             var res = Convert.ToDecimal(await Events.CallRemoteProc("Misc::GetPing"));
 
@@ -34,7 +33,10 @@ namespace BlaineRP.Client.Game.Management.Commands
             else
                 Settings.User.Other.DebugLabels = (bool)state;
 
-            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
+            Notification.Show(Notification.Types.Success,
+                Locale.Notifications.Commands.Header,
+                string.Format(Settings.User.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL")
+            );
         }
 
         [Command("raytrace", false, "Показ дополнительных сведений о всех сущностях")]
@@ -45,7 +47,10 @@ namespace BlaineRP.Client.Game.Management.Commands
             else
                 Settings.User.Other.RaytraceEnabled = (bool)state;
 
-            Notification.Show(Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.User.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
+            Notification.Show(Notification.Types.Success,
+                Locale.Notifications.Commands.Header,
+                string.Format(Settings.User.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace")
+            );
         }
 
         [Command("lock", false, "Блокировка транспорта")]
@@ -57,7 +62,9 @@ namespace BlaineRP.Client.Game.Management.Commands
             }
             else
             {
-                var veh = id > ushort.MaxValue ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => VehicleData.GetData(x)?.VID == id).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault();
+                Vehicle veh = id > ushort.MaxValue
+                    ? Entities.Vehicles.Streamed.Where(x => VehicleData.GetData(x)?.VID == id).FirstOrDefault()
+                    : Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault();
 
                 if (veh == null)
                 {

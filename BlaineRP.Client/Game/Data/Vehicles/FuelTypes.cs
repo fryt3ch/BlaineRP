@@ -4,6 +4,6 @@
     {
         None = -1,
         Petrol = 0,
-        Electricity = 1
+        Electricity = 1,
     }
 }

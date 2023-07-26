@@ -31,6 +31,21 @@ namespace BlaineRP.Client.Game.Management.Misc
             SE_ex_int_office_03c_Radio_01,
         }
 
+        public RadioEmitter(string Id, Vector3 Position, float Range, uint Dimension, EmitterTypes EmitterType, RadioStationTypes RadioStationType)
+        {
+            Colshape = new Sphere(Position, Range, false, Utils.Misc.RedColor, Dimension, null)
+            {
+                ApproveType = ApproveTypes.None,
+                OnEnter = OnEnterColshape,
+                OnExit = OnExitColshape,
+                Name = $"RSE@{Id}",
+                Data = this,
+            };
+
+            this.RadioStationType = RadioStationType;
+            this.EmitterType = EmitterType;
+        }
+
         private MapObject MapObject { get; set; }
 
         public ExtraColshape Colshape { get; set; }
@@ -39,7 +54,10 @@ namespace BlaineRP.Client.Game.Management.Misc
 
         public EmitterTypes EmitterType { get; set; }
 
-        public static RadioEmitter GetById(string Id) => ExtraColshape.All.Where(x => x.Name == Id).FirstOrDefault()?.Data as RadioEmitter;
+        public static RadioEmitter GetById(string Id)
+        {
+            return ExtraColshape.All.Where(x => x.Name == Id).FirstOrDefault()?.Data as RadioEmitter;
+        }
 
         public void Destroy()
         {
@@ -49,31 +67,13 @@ namespace BlaineRP.Client.Game.Management.Misc
             Colshape.Destroy();
         }
 
-        public RadioEmitter(string Id, Vector3 Position, float Range, uint Dimension, EmitterTypes EmitterType, RadioStationTypes RadioStationType)
-        {
-            this.Colshape = new Sphere(Position, Range, false, Utils.Misc.RedColor, Dimension, null)
-            {
-                ApproveType = ApproveTypes.None,
-
-                OnEnter = OnEnterColshape,
-                OnExit = OnExitColshape,
-
-                Name = $"RSE@{Id}",
-
-                Data = this,
-            };
-
-            this.RadioStationType = RadioStationType;
-            this.EmitterType = EmitterType;
-        }
-
-        private void OnEnterColshape(RAGE.Events.CancelEventArgs cancel)
+        private void OnEnterColshape(Events.CancelEventArgs cancel)
         {
             var emitterStr = EmitterType.ToString();
 
             MapObject?.Destroy();
 
-            var pos = Colshape.Position;
+            Vector3 pos = Colshape.Position;
 
             if (pos == null)
                 return;
@@ -83,12 +83,12 @@ namespace BlaineRP.Client.Game.Management.Misc
             MapObject.SetVisible(false, false);
             Audio.LinkStaticEmitterToEntity(emitterStr, MapObject.Handle);
 
-            RAGE.Game.Audio.SetEmitterRadioStation(emitterStr, Game.Management.Radio.Core.GetRadioStationName(RadioStationType));
+            RAGE.Game.Audio.SetEmitterRadioStation(emitterStr, Radio.Core.GetRadioStationName(RadioStationType));
 
             RAGE.Game.Audio.SetStaticEmitterEnabled(emitterStr, true);
         }
 
-        private void OnExitColshape(RAGE.Events.CancelEventArgs cancel)
+        private void OnExitColshape(Events.CancelEventArgs cancel)
         {
             MapObject?.Destroy();
 

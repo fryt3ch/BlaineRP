@@ -9,13 +9,17 @@
 
         RagdollElectrocute,
 
-        CarryA, CarryB,
-        PiggyBackA, PiggyBackB,
-        HostageA, HostageB,
+        CarryA,
+        CarryB,
+        PiggyBackA,
+        PiggyBackB,
+        HostageA,
+        HostageB,
 
         LieInTrunk,
 
-        FishingIdle0, FishingProcess0,
+        FishingIdle0,
+        FishingProcess0,
 
         ShovelProcess0,
 

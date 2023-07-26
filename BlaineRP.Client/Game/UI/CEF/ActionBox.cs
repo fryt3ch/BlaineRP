@@ -11,16 +11,22 @@ namespace BlaineRP.Client.Game.UI.CEF
     [Script(int.MaxValue)]
     public class ActionBox
     {
-        public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.ActionBox); }
+        public enum RangeSubTypes
+        {
+            Default = 0,
+            MoneyRange = 1,
+        }
 
         public enum ReplyTypes
         {
             /// <summary>Принять</summary>
             /// <remarks>Для Money - наличные</remarks>
             OK = 0,
+
             /// <summary>Отменить</summary>
             /// <remarks>Для Money - банк</remarks>
             Cancel = 1,
+
             /// <summary>Доп. кнопка (вариативая)</summary>
             /// <remarks>Для Money - отменить</remarks>
             Additional1 = 2,
@@ -37,11 +43,109 @@ namespace BlaineRP.Client.Game.UI.CEF
             InputWithText = 5,
         }
 
-        public enum RangeSubTypes
+        public static DateTime LastSent;
+
+        public ActionBox()
         {
-            Default = 0,
-            MoneyRange = 1,
+            Events.Add("ActionBox::Reply",
+                async (object[] args) =>
+                {
+                    if (CurrentType == Types.None || CurrentContextStr == null)
+                        return;
+
+                    var rType = (ReplyTypes)args[0];
+
+                    if (CurrentType == Types.Range)
+                    {
+                        var amount = Utils.Convert.ToDecimal(args[1]);
+
+                        if (amount < Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue"))
+                        {
+                            Notification.ShowError(string.Format(Locale.Notifications.General.LessThanMinValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue")));
+
+                            return;
+                        }
+                        else if (amount > Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue"))
+                        {
+                            Notification.ShowError(string.Format(Locale.Notifications.General.BiggerThanMaxValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue"))
+                            );
+
+                            return;
+                        }
+
+                        CurrentAction?.Invoke(new object[]
+                            {
+                                rType,
+                                amount,
+                            }
+                        );
+                    }
+                    else if (CurrentType == Types.Select)
+                    {
+                        var id = Utils.Convert.ToDecimal(args[1]);
+
+                        CurrentAction?.Invoke(new object[]
+                            {
+                                rType,
+                                id,
+                            }
+                        );
+                    }
+                    else if (CurrentType == Types.Money)
+                    {
+                        CurrentAction?.Invoke(new object[]
+                            {
+                                rType,
+                            }
+                        );
+                    }
+                    else if (CurrentType == Types.Input)
+                    {
+                        if (args[1] is string str)
+                            CurrentAction?.Invoke(new object[]
+                                {
+                                    rType,
+                                    str,
+                                }
+                            );
+                        else
+                            CurrentAction?.Invoke(new object[]
+                                {
+                                    rType,
+                                    string.Empty,
+                                }
+                            );
+                    }
+                    else if (CurrentType == Types.InputWithText)
+                    {
+                        if (args[1] is string str)
+                            CurrentAction?.Invoke(new object[]
+                                {
+                                    rType,
+                                    str,
+                                }
+                            );
+                        else
+                            CurrentAction?.Invoke(new object[]
+                                {
+                                    rType,
+                                    string.Empty,
+                                }
+                            );
+                    }
+                    else if (CurrentType == Types.Text)
+                    {
+                        CurrentAction?.Invoke(new object[]
+                            {
+                                rType,
+                            }
+                        );
+                    }
+                }
+            );
         }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.ActionBox);
 
         public static Types CurrentType { get; private set; } = Types.None;
 
@@ -52,70 +156,18 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static List<int> TempBinds { get; set; } = new List<int>();
 
-        public static DateTime LastSent;
+        public static Action DefaultBindAction { get; } = () => Bind();
 
-        public ActionBox()
+        public static async System.Threading.Tasks.Task ShowSelect(string context,
+                                                                   string name,
+                                                                   (decimal Id, string Text)[] variants,
+                                                                   string btnTextOk = null,
+                                                                   string btnTextCancel = null,
+                                                                   Action showAction = null,
+                                                                   Action<ReplyTypes, decimal> chooseAction = null,
+                                                                   Action closeAction = null)
         {
-            Events.Add("ActionBox::Reply", async (object[] args) =>
-            {
-                if (CurrentType == Types.None || CurrentContextStr == null)
-                    return;
-
-                var rType = (ReplyTypes)args[0];
-
-                if (CurrentType == Types.Range)
-                {
-                    var amount = Utils.Convert.ToDecimal(args[1]);
-
-                    if (amount < Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue"))
-                    {
-                        CEF.Notification.ShowError(string.Format(Locale.Notifications.General.LessThanMinValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue")));
-
-                        return;
-                    }
-                    else if (amount > Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue"))
-                    {
-                        CEF.Notification.ShowError(string.Format(Locale.Notifications.General.BiggerThanMaxValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue")));
-
-                        return;
-                    }
-
-                    CurrentAction?.Invoke(new object[] { rType, amount });
-                }
-                else if (CurrentType == Types.Select)
-                {
-                    var id = Utils.Convert.ToDecimal(args[1]);
-
-                    CurrentAction?.Invoke(new object[] { rType, id });
-                }
-                else if (CurrentType == Types.Money)
-                {
-                    CurrentAction?.Invoke(new object[] { rType });
-                }
-                else if (CurrentType == Types.Input)
-                {
-                    if (args[1] is string str)
-                        CurrentAction?.Invoke(new object[] { rType, str });
-                    else
-                        CurrentAction?.Invoke(new object[] { rType, string.Empty });
-                }
-                else if (CurrentType == Types.InputWithText)
-                {
-                    if (args[1] is string str)
-                        CurrentAction?.Invoke(new object[] { rType, str });
-                    else
-                        CurrentAction?.Invoke(new object[] { rType, string.Empty });
-                }
-                else if (CurrentType == Types.Text)
-                {
-                    CurrentAction?.Invoke(new object[] { rType });
-                }
-            });
-        }
-
-        public static async System.Threading.Tasks.Task ShowSelect(string context, string name, (decimal Id, string Text)[] variants, string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, decimal> chooseAction = null, Action closeAction = null)
-        {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.Select;
@@ -128,14 +180,38 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (decimal)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, variants.Select(x => new object[] { x.Id, x.Text }), new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                variants.Select(x => new object[]
+                    {
+                        x.Id,
+                        x.Text,
+                    }
+                ),
+                new object[]
+                {
+                    btnTextOk ?? Locale.Actions.SelectOkBtn0,
+                    btnTextCancel ?? Locale.Actions.SelectCancelBtn0,
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowRange(string context, string name, decimal minValue, decimal maxValue, decimal curValue = -1, decimal step = -1, RangeSubTypes rsType = RangeSubTypes.Default, Action showAction = null, Action<ReplyTypes, decimal> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowRange(string context,
+                                                                  string name,
+                                                                  decimal minValue,
+                                                                  decimal maxValue,
+                                                                  decimal curValue = -1,
+                                                                  decimal step = -1,
+                                                                  RangeSubTypes rsType = RangeSubTypes.Default,
+                                                                  Action showAction = null,
+                                                                  Action<ReplyTypes, decimal> chooseAction = null,
+                                                                  Action closeAction = null)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.Range;
@@ -151,14 +227,34 @@ namespace BlaineRP.Client.Game.UI.CEF
             Player.LocalPlayer.SetData("ActionBox::Temp::MinValue", minValue);
             Player.LocalPlayer.SetData("ActionBox::Temp::MaxValue", maxValue);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { minValue, maxValue, curValue == -1 ? maxValue : curValue, step == -1 ? 1 : step, (int)rsType });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                new object[]
+                {
+                    minValue,
+                    maxValue,
+                    curValue == -1 ? maxValue : curValue,
+                    step == -1 ? 1 : step,
+                    (int)rsType,
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowInput(string context, string name, int maxChars = 100, string defText = "", string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowInput(string context,
+                                                                  string name,
+                                                                  int maxChars = 100,
+                                                                  string defText = "",
+                                                                  string btnTextOk = null,
+                                                                  string btnTextCancel = null,
+                                                                  Action showAction = null,
+                                                                  Action<ReplyTypes, string> chooseAction = null,
+                                                                  Action closeAction = null)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.Input;
@@ -171,14 +267,37 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                new object[]
+                {
+                    maxChars,
+                    defText ?? string.Empty,
+                },
+                new object[]
+                {
+                    btnTextOk ?? Locale.Actions.SelectOkBtn0,
+                    btnTextCancel ?? Locale.Actions.SelectCancelBtn0,
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowInputWithText(string context, string name, string text, int maxChars = 100, string defText = "", string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowInputWithText(string context,
+                                                                          string name,
+                                                                          string text,
+                                                                          int maxChars = 100,
+                                                                          string defText = "",
+                                                                          string btnTextOk = null,
+                                                                          string btnTextCancel = null,
+                                                                          Action showAction = null,
+                                                                          Action<ReplyTypes, string> chooseAction = null,
+                                                                          Action closeAction = null)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.InputWithText;
@@ -191,14 +310,36 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                new object[]
+                {
+                    Utils.Misc.ReplaceNewLineHtml(text),
+                    maxChars,
+                    defText ?? string.Empty,
+                },
+                new object[]
+                {
+                    btnTextOk ?? Locale.Actions.SelectOkBtn0,
+                    btnTextCancel ?? Locale.Actions.SelectCancelBtn0,
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowText(string context, string name, string text, string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowText(string context,
+                                                                 string name,
+                                                                 string text,
+                                                                 string btnTextOk = null,
+                                                                 string btnTextCancel = null,
+                                                                 Action showAction = null,
+                                                                 Action<ReplyTypes> chooseAction = null,
+                                                                 Action closeAction = null)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.Text;
@@ -211,14 +352,32 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                new object[]
+                {
+                    Utils.Misc.ReplaceNewLineHtml(text),
+                },
+                new object[]
+                {
+                    btnTextOk ?? Locale.Actions.SelectOkBtn0,
+                    btnTextCancel ?? Locale.Actions.SelectCancelBtn0,
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowMoney(string context, string name, string text, Action showAction = null, Action<ReplyTypes> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowMoney(string context,
+                                                                  string name,
+                                                                  string text,
+                                                                  Action showAction = null,
+                                                                  Action<ReplyTypes> chooseAction = null,
+                                                                  Action closeAction = null)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
 
             CurrentType = Types.Money;
@@ -231,22 +390,32 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.Misc.ReplaceNewLineHtml(text) });
+            Browser.Window.ExecuteJs("ActionBox.fill",
+                false,
+                CurrentType,
+                name,
+                new object[]
+                {
+                    Utils.Misc.ReplaceNewLineHtml(text),
+                }
+            );
 
             Cursor.Show(true, true);
         }
 
         public static async void Close(bool cursor = true)
         {
-            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, false, false))
+            if (!await Browser.Render(Browser.IntTypes.ActionBox, false, false))
                 return;
 
-            for (int i = 0; i < TempBinds.Count; i++)
+            for (var i = 0; i < TempBinds.Count; i++)
+            {
                 Core.Unbind(TempBinds[i]);
+            }
 
             TempBinds.Clear();
 
-            CEF.Browser.Render(Browser.IntTypes.ActionBox, false, false);
+            Browser.Render(Browser.IntTypes.ActionBox, false, false);
 
             if (cursor)
                 Cursor.Show(false, false);
@@ -267,7 +436,5 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
-
-        public static Action DefaultBindAction { get; } = () => Bind();
     }
 }

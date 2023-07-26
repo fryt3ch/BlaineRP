@@ -4,6 +4,10 @@ namespace BlaineRP.Client.Game.Management.Attachments
 {
     public class AttachmentObjectNet
     {
+        public AttachmentObjectNet()
+        {
+        }
+
         [JsonProperty(PropertyName = "M")]
         public uint Model { get; set; }
 
@@ -12,10 +16,6 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
         [JsonProperty(PropertyName = "T")]
         public AttachmentTypes Type { get; set; }
-
-        public AttachmentObjectNet()
-        {
-        }
 
         public override bool Equals(object obj)
         {

@@ -8,62 +8,65 @@ using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Scripts.Sync;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Input.Core;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ATM
     {
-        public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.ATM);
-
         private static DateTime LastSent;
-
-        private static List<int> TempBinds { get; set; }
-
-        private static ExtraColshape CloseColshape { get; set; }
 
         public ATM()
         {
             TempBinds = new List<int>();
 
-            LastSent = Game.World.Core.ServerTime;
+            LastSent = World.Core.ServerTime;
 
-            Events.Add("ATM::Action", (object[] args) =>
-            {
-                if (!IsActive)
-                    return;
+            Events.Add("ATM::Action",
+                (object[] args) =>
+                {
+                    if (!IsActive)
+                        return;
 
-                if (args == null || args.Length != 2 || args[1] == null)
-                    return;
+                    if (args == null || args.Length != 2 || args[1] == null)
+                        return;
 
-                var id = (string)args[0];
+                    var id = (string)args[0];
 
-                if (id == null)
-                    return;
+                    if (id == null)
+                        return;
 
-                int amount;
+                    int amount;
 
-                if (!Utils.Convert.ToDecimal(args[1]).IsNumberValid(1, int.MaxValue, out amount, true))
-                    return;
+                    if (!Utils.Convert.ToDecimal(args[1]).IsNumberValid(1, int.MaxValue, out amount, true))
+                        return;
 
-                if (LastSent.IsSpam(1000, false, false))
-                    return;
+                    if (LastSent.IsSpam(1000, false, false))
+                        return;
 
-                Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
+                    Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
 
-                LastSent = Game.World.Core.ServerTime;
-            });
+                    LastSent = World.Core.ServerTime;
+                }
+            );
 
-            Events.Add("ATM::Show", (object[] args) =>
-            {
-                Players.CloseAll(true);
+            Events.Add("ATM::Show",
+                (object[] args) =>
+                {
+                    Players.CloseAll(true);
 
-                Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
+                    Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
 
-                Show(Utils.Convert.ToDecimal(args[1]));
-            });
+                    Show(Utils.Convert.ToDecimal(args[1]));
+                }
+            );
         }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.ATM);
+
+        private static List<int> TempBinds { get; set; }
+
+        private static ExtraColshape CloseColshape { get; set; }
 
         public static async System.Threading.Tasks.Task Show(decimal fee)
         {
@@ -78,7 +81,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (data == null)
                 return;
 
-            await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
+            await Browser.Render(Browser.IntTypes.ATM, true, true);
 
             CloseColshape = new Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.Misc.RedColor, uint.MaxValue, null)
             {
@@ -86,14 +89,23 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (CloseColshape?.Exists == true)
                         Close();
-                }
+                },
             };
 
-            CEF.Browser.Window.ExecuteJs("ATM.draw", new object[] { new object[] { data.BankBalance, fee * 100 } });
+            Browser.Window.ExecuteJs("ATM.draw",
+                new object[]
+                {
+                    new object[]
+                    {
+                        data.BankBalance,
+                        fee * 100,
+                    },
+                }
+            );
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close()
@@ -105,12 +117,14 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CloseColshape = null;
 
-            CEF.Browser.Render(Browser.IntTypes.ATM, false, false);
+            Browser.Render(Browser.IntTypes.ATM, false, false);
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
 
-            foreach (var x in TempBinds)
-                Core.Unbind(x);
+            foreach (int x in TempBinds)
+            {
+                Input.Core.Unbind(x);
+            }
 
             TempBinds.Clear();
 
@@ -122,7 +136,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("ATM.updateBalance", value);
+            Browser.Window.ExecuteJs("ATM.updateBalance", value);
         }
     }
 }

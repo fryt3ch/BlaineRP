@@ -6,6 +6,29 @@ namespace BlaineRP.Client.Game.Animations
     /// <summary>Класс анимации</summary>
     public class Animation
     {
+        public Animation(string Dict,
+                         string Name,
+                         float BlendInSpeed = 8f,
+                         float BlendOutSpeed = 1f,
+                         int Duration = -1,
+                         int Flag = 0,
+                         float StartOffset = 0f,
+                         bool BlockX = false,
+                         bool BlockY = false,
+                         bool BlockZ = false)
+        {
+            this.Dict = Dict;
+            this.Name = Name;
+            this.BlendInSpeed = BlendInSpeed;
+            this.BlendOutSpeed = BlendOutSpeed;
+            this.Duration = Duration;
+            this.Flag = Flag;
+            this.StartOffset = StartOffset;
+            this.BlockX = BlockX;
+            this.BlockY = BlockY;
+            this.BlockZ = BlockZ;
+        }
+
         /// <summary>Словарь</summary>
         public string Dict { get; private set; }
 
@@ -38,19 +61,5 @@ namespace BlaineRP.Client.Game.Animations
 
         public Action<Entity, Animation> StartAction { get; set; }
         public Action<Entity, Animation> StopAction { get; set; }
-
-        public Animation(string Dict, string Name, float BlendInSpeed = 8f, float BlendOutSpeed = 1f, int Duration = -1, int Flag = 0, float StartOffset = 0f, bool BlockX = false, bool BlockY = false, bool BlockZ = false)
-        {
-            this.Dict = Dict;
-            this.Name = Name;
-            this.BlendInSpeed = BlendInSpeed;
-            this.BlendOutSpeed = BlendOutSpeed;
-            this.Duration = Duration;
-            this.Flag = Flag;
-            this.StartOffset = StartOffset;
-            this.BlockX = BlockX;
-            this.BlockY = BlockY;
-            this.BlockZ = BlockZ;
-        }
     }
 }

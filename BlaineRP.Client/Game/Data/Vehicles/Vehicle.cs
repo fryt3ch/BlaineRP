@@ -4,6 +4,41 @@ namespace BlaineRP.Client.Game.Data.Vehicles
 {
     public partial class Vehicle
     {
+        public Vehicle(string id,
+                       uint model,
+                       string name,
+                       float tank,
+                       FuelTypes fuelType,
+                       Trunk trunkData = null,
+                       bool isModdable = true,
+                       bool hasCruiseControl = false,
+                       bool hasAutoPilot = false,
+                       VehicleTypes type = VehicleTypes.Car,
+                       int govPrice = 0,
+                       ClassTypes @class = ClassTypes.Classic)
+        {
+            ID = id;
+            Name = name;
+            Type = type;
+
+            Model = model;
+
+            Tank = tank;
+
+            FuelType = fuelType;
+
+            TrunkData = trunkData;
+
+            IsModdable = isModdable;
+            HasAutoPilot = hasAutoPilot;
+            HasCruiseControl = hasCruiseControl;
+
+            GovPrice = govPrice;
+            Class = @class;
+
+            Core.All.Add(id, this);
+        }
+
         public string Name { get; set; }
 
         public string ID { get; set; }
@@ -14,7 +49,7 @@ namespace BlaineRP.Client.Game.Data.Vehicles
         {
             get
             {
-                var divIdx = Name.IndexOf(' ');
+                int divIdx = Name.IndexOf(' ');
 
                 if (divIdx < 0)
                     return Name;
@@ -27,7 +62,7 @@ namespace BlaineRP.Client.Game.Data.Vehicles
         {
             get
             {
-                var divIdx = Name.IndexOf(' ');
+                int divIdx = Name.IndexOf(' ');
 
                 if (divIdx < 0)
                     return "";
@@ -55,30 +90,6 @@ namespace BlaineRP.Client.Game.Data.Vehicles
         public ClassTypes Class { get; private set; }
 
         public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault<VehicleTypes, string>(Type) ?? "null";
-
-        public Vehicle(string id, uint model, string name, float tank, FuelTypes fuelType, Trunk trunkData = null, bool isModdable = true, bool hasCruiseControl = false, bool hasAutoPilot = false, VehicleTypes type = VehicleTypes.Car, int govPrice = 0, ClassTypes @class = ClassTypes.Classic)
-        {
-            ID = id;
-            Name = name;
-            Type = type;
-
-            Model = model;
-
-            Tank = tank;
-
-            FuelType = fuelType;
-
-            TrunkData = trunkData;
-
-            IsModdable = isModdable;
-            HasAutoPilot = hasAutoPilot;
-            HasCruiseControl = hasCruiseControl;
-
-            GovPrice = govPrice;
-            Class = @class;
-
-            Core.All.Add(id, this);
-        }
 
         public string GetEstateSvgName()
         {

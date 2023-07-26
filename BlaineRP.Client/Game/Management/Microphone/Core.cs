@@ -5,7 +5,7 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -16,6 +16,11 @@ namespace BlaineRP.Client.Game.Management.Microphone
     [Script(int.MaxValue)]
     public class Core
     {
+        private const string AnimDict = "mp_facial";
+        private const string AnimDictNormal = "facials@gen_male@variations@normal";
+
+        private const string AnimName = "mic_chatter";
+        private const string AnimNameNormal = "mood_normal_1";
         private static bool Use3D = true;
 
         private static List<Player> _listeners = new List<Player>();
@@ -27,70 +32,73 @@ namespace BlaineRP.Client.Game.Management.Microphone
 
         private static AsyncTask _updateListenersTask;
 
-        private const string AnimDict = "mp_facial";
-        private const string AnimDictNormal = "facials@gen_male@variations@normal";
-
-        private const string AnimName = "mic_chatter";
-        private const string AnimNameNormal = "mood_normal_1";
-
         public Core()
         {
             // Changing Volume Of Talkers
             new AsyncTask(() =>
-            {
-                var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                var activeCall = pData.ActiveCall;
-
-                for (var i = 0; i < _talkers.Count; i++)
                 {
-                    var player = _talkers[i];
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
-                    var tData = PlayerData.GetData(player);
+                    if (pData == null)
+                        return;
 
-                    if (tData == null)
-                        continue;
+                    Phone.CallInfo activeCall = pData.ActiveCall;
 
-                    var vRange = tData.VoiceRange;
-
-                    if (vRange <= 0f)
+                    for (var i = 0; i < _talkers.Count; i++)
                     {
-                        player.VoiceVolume = 0f;
+                        Player player = _talkers[i];
 
-                        continue;
-                    }
+                        var tData = PlayerData.GetData(player);
 
-                    if (activeCall?.Player != player)
-                    {
-                        var dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
+                        if (tData == null)
+                            continue;
 
-                        if (dist <= vRange)
-                            player.VoiceVolume = ((Settings.User.Audio.VoiceVolume / 100f) / vRange) * (vRange - dist);
-                        else
+                        float vRange = tData.VoiceRange;
+
+                        if (vRange <= 0f)
+                        {
                             player.VoiceVolume = 0f;
+
+                            continue;
+                        }
+
+                        if (activeCall?.Player != player)
+                        {
+                            float dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
+
+                            if (dist <= vRange)
+                                player.VoiceVolume = Settings.User.Audio.VoiceVolume / 100f / vRange * (vRange - dist);
+                            else
+                                player.VoiceVolume = 0f;
+                        }
                     }
-                }
-            }, 350, true, 0).Run();
+                },
+                350,
+                true,
+                0
+            ).Run();
 
             // Update Facial Anim On Talkers
             new AsyncTask(() =>
-            {
-                var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                if (pData.VoiceRange > 0f)
-                    SetTalkingAnim(Player.LocalPlayer, true);
-
-                _talkers.ForEach(x =>
                 {
-                    SetTalkingAnim(x, true);
-                });
-            }, 5000, true, 0).Run();
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (pData.VoiceRange > 0f)
+                        SetTalkingAnim(Player.LocalPlayer, true);
+
+                    _talkers.ForEach(x =>
+                        {
+                            SetTalkingAnim(x, true);
+                        }
+                    );
+                },
+                5000,
+                true,
+                0
+            ).Run();
         }
 
         public static void Reload()
@@ -106,11 +114,11 @@ namespace BlaineRP.Client.Game.Management.Microphone
             _listeners.Clear();
             _talkers.Clear();
 
-            var streamed = RAGE.Elements.Entities.Players.Streamed;
+            List<Player> streamed = Entities.Players.Streamed;
 
-            for (int i = 0; i < streamed.Count; i++)
+            for (var i = 0; i < streamed.Count; i++)
             {
-                var player = streamed[i];
+                Player player = streamed[i];
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                     continue;
@@ -137,7 +145,7 @@ namespace BlaineRP.Client.Game.Management.Microphone
             if (LastSwitched.IsSpam(500, false, false))
                 return;
 
-            var mute = Punishment.All.Where(x => x.Type == Punishment.Types.Mute).FirstOrDefault();
+            Punishment mute = Punishment.All.Where(x => x.Type == Punishment.Types.Mute).FirstOrDefault();
 
             if (mute != null)
             {
@@ -164,7 +172,7 @@ namespace BlaineRP.Client.Game.Management.Microphone
 
             LastSwitched = World.Core.ServerTime;
         }
-        
+
         public static void StartUpdateListeners()
         {
             _listeners.Clear();
@@ -177,48 +185,48 @@ namespace BlaineRP.Client.Game.Management.Microphone
             _updateListenersTask?.Cancel();
 
             _updateListenersTask = new AsyncTask(() =>
-            {
-                var activeCall = pData.ActiveCall;
-
-                var vRange = pData.VoiceRange;
-
-                if (vRange <= 0f)
-                    return;
-
-                var streamed = RAGE.Elements.Entities.Players.Streamed;
-
-                for (int i = 0; i < streamed.Count; i++)
                 {
-                    var player = streamed[i];
+                    Phone.CallInfo activeCall = pData.ActiveCall;
 
-                    if (player.Handle == Player.LocalPlayer.Handle || activeCall?.Player == player)
-                        continue;
+                    float vRange = pData.VoiceRange;
 
-                    var tData = PlayerData.GetData(player);
+                    if (vRange <= 0f)
+                        return;
 
-                    if (tData == null)
-                        continue;
+                    List<Player> streamed = Entities.Players.Streamed;
 
-                    var dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
-
-                    if (_listeners.Contains(player))
+                    for (var i = 0; i < streamed.Count; i++)
                     {
-                        if (dist > vRange)
+                        Player player = streamed[i];
+
+                        if (player.Handle == Player.LocalPlayer.Handle || activeCall?.Player == player)
+                            continue;
+
+                        var tData = PlayerData.GetData(player);
+
+                        if (tData == null)
+                            continue;
+
+                        float dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
+
+                        if (_listeners.Contains(player))
                         {
-                            if (!RemoveListener(player))
-                                return;
+                            if (dist > vRange)
+                                if (!RemoveListener(player))
+                                    return;
+                        }
+                        else
+                        {
+                            if (dist <= vRange)
+                                if (!AddListener(player))
+                                    return;
                         }
                     }
-                    else
-                    {
-                        if (dist <= vRange)
-                        {
-                            if (!AddListener(player))
-                                return;
-                        }
-                    }
-                }
-            }, 100, true, 0);
+                },
+                100,
+                true,
+                0
+            );
 
             _updateListenersTask.Run();
         }

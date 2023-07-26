@@ -14,100 +14,110 @@ namespace BlaineRP.Client.Game.Scripts
     {
         public Fishing()
         {
-            Events.Add("MG::F::S", (args) =>
-            {
-                var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                CancelAllTasks();
-
-                if (args == null || args.Length == 0)
-                    return;
-
-                if (args.Length == 1 && args[0] is int waitTime)
+            Events.Add("MG::F::S",
+                (args) =>
                 {
-                    AsyncTask task = null;
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
 
-                    task = new AsyncTask(async () =>
+                    if (pData == null)
+                        return;
+
+                    CancelAllTasks();
+
+                    if (args == null || args.Length == 0)
+                        return;
+
+                    if (args.Length == 1 && args[0] is int waitTime)
                     {
-                        var sTime = Game.World.Core.ServerTime;
+                        AsyncTask task = null;
 
-                        while (true)
-                        {
-                            await RAGE.Game.Invoker.WaitAsync(100);
-
-                            if (!AsyncTask.Methods.IsTaskStillPending("MG::F::S::D", task))
-                                break;
-
-                            /*                            var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.15f);
-
-                                                        if (waterPos == null)
-                                                        {
-                                                            CEF.Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
-
-                                                            Events.CallRemote("Player::SUCI");
-
-                                                            return;
-                                                        }*/
-
-                            if (Game.World.Core.ServerTime.Subtract(sTime).TotalMilliseconds >= waitTime)
+                        task = new AsyncTask(async () =>
                             {
-                                Events.CallRemote("MG::F::P", Player.LocalPlayer.GetData<float>("MG::F::T::WZ"));
+                                DateTime sTime = World.Core.ServerTime;
 
-                                break;
-                            }
-                        }
+                                while (true)
+                                {
+                                    await RAGE.Game.Invoker.WaitAsync(100);
 
-                        Player.LocalPlayer.ResetData("MG::F::T::WZ");
-                    }, 0, false, 0);
+                                    if (!AsyncTask.Methods.IsTaskStillPending("MG::F::S::D", task))
+                                        break;
 
-                    AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
-                }
-                else
-                {
-                    var timeToCatch = (int)args[0];
-                    var fSpeed = (float)args[1];
-                    var catchCount = (int)args[2];
+                                    /*                            var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.15f);
+        
+                                                                if (waterPos == null)
+                                                                {
+                                                                    CEF.Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
+        
+                                                                    Events.CallRemote("Player::SUCI");
+        
+                                                                    return;
+                                                                }*/
 
-                    AsyncTask task = null;
+                                    if (World.Core.ServerTime.Subtract(sTime).TotalMilliseconds >= waitTime)
+                                    {
+                                        Events.CallRemote("MG::F::P", Player.LocalPlayer.GetData<float>("MG::F::T::WZ"));
 
-                    task = new AsyncTask(async () =>
+                                        break;
+                                    }
+                                }
+
+                                Player.LocalPlayer.ResetData("MG::F::T::WZ");
+                            },
+                            0,
+                            false,
+                            0
+                        );
+
+                        AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
+                    }
+                    else
                     {
-                        GameEntity fakeFishObj = null;
+                        var timeToCatch = (int)args[0];
+                        var fSpeed = (float)args[1];
+                        var catchCount = (int)args[2];
 
-                        while (task?.IsCancelled == false && fakeFishObj?.Exists != true)
-                        {
-                            await RAGE.Game.Invoker.WaitAsync(25);
+                        AsyncTask task = null;
 
-                            fakeFishObj = pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.ItemFishG).Select(x => x.Object).FirstOrDefault();
-                        }
+                        task = new AsyncTask(async () =>
+                            {
+                                GameEntity fakeFishObj = null;
 
-                        if (task?.IsCancelled != false)
-                            return;
+                                while (task?.IsCancelled == false && fakeFishObj?.Exists != true)
+                                {
+                                    await RAGE.Game.Invoker.WaitAsync(25);
 
-                        var fishCoords = RAGE.Game.Entity.GetEntityCoords(fakeFishObj.Handle, false);
+                                    fakeFishObj = pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.ItemFishG).Select(x => x.Object).FirstOrDefault();
+                                }
 
-                        var pHeading = Player.LocalPlayer.GetHeading();
+                                if (task?.IsCancelled != false)
+                                    return;
 
-                        Player.LocalPlayer.SetData("MG::F::LP", fishCoords.GetFrontOf(pHeading - 90f, 5f));
-                        Player.LocalPlayer.SetData("MG::F::RP", fishCoords.GetFrontOf(pHeading + 90f, 5f));
-                        Player.LocalPlayer.SetData("MG::F::Interp", 0.5f);
+                                Vector3 fishCoords = RAGE.Game.Entity.GetEntityCoords(fakeFishObj.Handle, false);
 
-                        Player.LocalPlayer.SetData("MG::F::E", fakeFishObj);
-                        Player.LocalPlayer.SetData("MG::F::T", Game.World.Core.ServerTime);
-                        Player.LocalPlayer.SetData("MG::F::SP", fSpeed);
-                        Player.LocalPlayer.SetData("MG::F::MSP", fSpeed);
-                        Player.LocalPlayer.SetData("MG::F::CT", timeToCatch);
-                        Player.LocalPlayer.SetData("MG::F::CTC", catchCount);
+                                float pHeading = Player.LocalPlayer.GetHeading();
 
-                        Main.Render += FishingProcessRender;
-                    }, 0, false, 0);
+                                Player.LocalPlayer.SetData("MG::F::LP", fishCoords.GetFrontOf(pHeading - 90f, 5f));
+                                Player.LocalPlayer.SetData("MG::F::RP", fishCoords.GetFrontOf(pHeading + 90f, 5f));
+                                Player.LocalPlayer.SetData("MG::F::Interp", 0.5f);
 
-                    AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
+                                Player.LocalPlayer.SetData("MG::F::E", fakeFishObj);
+                                Player.LocalPlayer.SetData("MG::F::T", World.Core.ServerTime);
+                                Player.LocalPlayer.SetData("MG::F::SP", fSpeed);
+                                Player.LocalPlayer.SetData("MG::F::MSP", fSpeed);
+                                Player.LocalPlayer.SetData("MG::F::CT", timeToCatch);
+                                Player.LocalPlayer.SetData("MG::F::CTC", catchCount);
+
+                                Main.Render += FishingProcessRender;
+                            },
+                            0,
+                            false,
+                            0
+                        );
+
+                        AsyncTask.Methods.SetAsPending(task, "MG::F::S::D");
+                    }
                 }
-            });
+            );
         }
 
         private static void CancelAllTasks()
@@ -125,8 +135,8 @@ namespace BlaineRP.Client.Game.Scripts
 
         private static void FishingProcessRender()
         {
-            var timePassed = Game.World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
-            var timeCatched = Player.LocalPlayer.GetData<int>("MG::F::CTC");
+            double timePassed = World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
+            int timeCatched = Player.LocalPlayer.GetData<int>("MG::F::CTC");
 
             if (timePassed > Player.LocalPlayer.GetData<int>("MG::F::CT"))
             {
@@ -146,7 +156,7 @@ namespace BlaineRP.Client.Game.Scripts
                 return;
             }
 
-            var fakeFishObj = Player.LocalPlayer.GetData<GameEntity>("MG::F::E");
+            GameEntity fakeFishObj = Player.LocalPlayer.GetData<GameEntity>("MG::F::E");
 
             if (fakeFishObj?.Exists != true)
             {
@@ -157,28 +167,27 @@ namespace BlaineRP.Client.Game.Scripts
                 return;
             }
 
-            var fpsCoef = Utils.Misc.GetFpsCoef();
+            float fpsCoef = Utils.Misc.GetFpsCoef();
 
-            var interp = Player.LocalPlayer.GetData<float>("MG::F::Interp");
+            float interp = Player.LocalPlayer.GetData<float>("MG::F::Interp");
 
-            var fSpeed = Player.LocalPlayer.GetData<float>("MG::F::SP");
-            var fMaxSpeed = Player.LocalPlayer.GetData<float>("MG::F::MSP");
+            float fSpeed = Player.LocalPlayer.GetData<float>("MG::F::SP");
+            float fMaxSpeed = Player.LocalPlayer.GetData<float>("MG::F::MSP");
 
             if (timePassed > 500)
             {
-                var leftDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.A);
-                var rightDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.D);
+                bool leftDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.A);
+                bool rightDown = Input.Core.IsDown(RAGE.Ui.VirtualKeys.D);
 
                 var deSpeed = 0.00001f;
 
                 if (leftDown || rightDown)
                 {
-
                     if (fSpeed != 0f)
                     {
                         Player.LocalPlayer.SetData("MG::F::PD", fSpeed > 0f);
 
-                        var newSpeed = leftDown ? fSpeed + deSpeed : fSpeed - deSpeed;
+                        float newSpeed = leftDown ? fSpeed + deSpeed : fSpeed - deSpeed;
 
                         if (fSpeed > 0f && newSpeed < 0f || fSpeed < 0f && newSpeed > 0f)
                             newSpeed = 0f;
@@ -190,7 +199,6 @@ namespace BlaineRP.Client.Game.Scripts
                         timeCatched -= 1;
 
                         if (timeCatched >= 0)
-                        {
                             if (Player.LocalPlayer.HasData("MG::F::PD"))
                             {
                                 if (Player.LocalPlayer.GetData<bool>("MG::F::PD"))
@@ -200,7 +208,6 @@ namespace BlaineRP.Client.Game.Scripts
 
                                 Player.LocalPlayer.ResetData("MG::F::PD");
                             }
-                        }
 
                         Player.LocalPlayer.SetData("MG::F::CTC", timeCatched);
                     }
@@ -246,7 +253,7 @@ namespace BlaineRP.Client.Game.Scripts
 
             var newPos = Vector3.Lerp(Player.LocalPlayer.GetData<Vector3>("MG::F::LP"), Player.LocalPlayer.GetData<Vector3>("MG::F::RP"), interp);
 
-            var waterH = -1f;
+            float waterH = -1f;
 
             RAGE.Game.Water.GetWaterHeight(newPos.X, newPos.Y, newPos.Z, ref waterH);
 

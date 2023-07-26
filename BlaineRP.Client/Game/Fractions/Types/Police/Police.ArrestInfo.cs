@@ -6,16 +6,16 @@ namespace BlaineRP.Client.Game.Fractions
     {
         public class ArrestInfo
         {
+            public ArrestInfo()
+            {
+            }
+
             public uint Id { get; set; }
 
             public DateTime Time { get; set; }
 
             public string TargetName { get; set; }
             public string MemberName { get; set; }
-
-            public ArrestInfo()
-            {
-            }
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Globalization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BlaineRP.Client.Settings.App
 {
@@ -16,6 +16,16 @@ namespace BlaineRP.Client.Settings.App
 
         [JsonProperty(PropertyName = "game")]
         public GameSettings Game { get; private set; }
+
+        public static Profile LoadProfile(JObject jObject)
+        {
+            return jObject.ToObject<Profile>();
+        }
+
+        public static void SetCurrentProfile(Profile profile)
+        {
+            _current = profile;
+        }
 
         [SettingsSection]
         public class GeneralSettings
@@ -36,6 +46,10 @@ namespace BlaineRP.Client.Settings.App
         [SettingsSection]
         public class GameSettings
         {
+            public GameSettings()
+            {
+            }
+
             [ClientSync]
             [JsonProperty(PropertyName = "streamDistance")]
             public float StreamDistance { get; private set; }
@@ -43,32 +57,16 @@ namespace BlaineRP.Client.Settings.App
             [ClientSync]
             [JsonProperty(PropertyName = "inventoryMaxWeight")]
             public float InventoryMaxWeight { get; private set; }
-
-            public GameSettings()
-            {
-
-            }
-        }
-
-        public static Profile LoadProfile(JObject jObject)
-        {
-            return jObject.ToObject<Profile>();
-        }
-
-        public static void SetCurrentProfile(Profile profile)
-        {
-            _current = profile;
         }
 
         [AttributeUsage(AttributeTargets.Property)]
         private class ClientSyncAttribute : Attribute
         {
-            public string PropertyName { get; set; }
-
             public ClientSyncAttribute()
             {
-
             }
+
+            public string PropertyName { get; set; }
         }
 
         [AttributeUsage(AttributeTargets.Class)]
@@ -76,7 +74,6 @@ namespace BlaineRP.Client.Settings.App
         {
             public SettingsSectionAttribute()
             {
-
             }
         }
     }

@@ -11,21 +11,6 @@ namespace BlaineRP.Client.Game.Misc
 {
     public partial class Autoschool
     {
-        public static Dictionary<LicenseTypes, uint> Prices => Settings.App.Static.GetOther<Dictionary<LicenseTypes, uint>>("drivingSchoolLicensePrices");
-
-        public static List<Autoschool> All { get; private set; } = new List<Autoschool>();
-
-        public static Autoschool Get(int id)
-        {
-            return id < 1 || id > All.Count ? null : All[id - 1];
-        }
-
-        public Dictionary<LicenseTypes, Vector3[]> PracticeRoutes { get; set; }
-
-        public Dictionary<LicenseTypes, Vector3> VehiclesPositions { get; set; }
-
-        public int Id => All.IndexOf(this) + 1;
-
         public Autoschool(Vector3 Position, string PracticeRoutesStr, string VehiclesPositionsStr)
         {
             All.Add(this);
@@ -34,11 +19,13 @@ namespace BlaineRP.Client.Game.Misc
 
             VehiclesPositions = RAGE.Util.Json.Deserialize<Dictionary<LicenseTypes, Vector3>>(VehiclesPositionsStr);
 
-            var id = Id;
+            int id = Id;
 
             var cs = new Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 1.5f, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
             {
-                InteractionType = InteractionTypes.DrivingSchoolInteract, ActionType = ActionTypes.DrivingSchoolInteract, Data = id,
+                InteractionType = InteractionTypes.DrivingSchoolInteract,
+                ActionType = ActionTypes.DrivingSchoolInteract,
+                Data = id,
             };
 
             var marker = new Marker(32,
@@ -48,7 +35,8 @@ namespace BlaineRP.Client.Game.Misc
                 Vector3.Zero,
                 new RGBA(255, 255, 255, 255),
                 true,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
 
             var blip = new ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
@@ -60,8 +48,28 @@ namespace BlaineRP.Client.Game.Misc
                     "s_f_y_airhostess_01",
                     new Vector3(214.5508f, -1400.095f, 30.58353f),
                     318.5795f,
-                    Settings.App.Static.MainDimension) { SubName = "NPC_SUBNAME_DRIVINGSCHOOL_WORKER", DefaultDialogueId = "drivingschool_d_0", };
+                    Settings.App.Static.MainDimension
+                )
+                {
+                    SubName = "NPC_SUBNAME_DRIVINGSCHOOL_WORKER",
+                    DefaultDialogueId = "drivingschool_d_0",
+                };
             }
+        }
+
+        public static Dictionary<LicenseTypes, uint> Prices => Settings.App.Static.GetOther<Dictionary<LicenseTypes, uint>>("drivingSchoolLicensePrices");
+
+        public static List<Autoschool> All { get; private set; } = new List<Autoschool>();
+
+        public Dictionary<LicenseTypes, Vector3[]> PracticeRoutes { get; set; }
+
+        public Dictionary<LicenseTypes, Vector3> VehiclesPositions { get; set; }
+
+        public int Id => All.IndexOf(this) + 1;
+
+        public static Autoschool Get(int id)
+        {
+            return id < 1 || id > All.Count ? null : All[id - 1];
         }
 
         public static LicenseTypes GetLicenseTypeForPracticeRoute(LicenseTypes licType)

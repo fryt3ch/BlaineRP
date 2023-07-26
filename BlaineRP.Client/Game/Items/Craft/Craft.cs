@@ -5,27 +5,23 @@ namespace BlaineRP.Client.Game.Items.Craft
 {
     public class Craft
     {
+        public static List<Receipt> AllReceipts { get; private set; } = new List<Receipt>();
+
         public class ItemPrototype
         {
-            public string Id { get; private set; }
-
-            public int Amount { get; private set; }
-
             public ItemPrototype(string Id, int Amount = 1)
             {
                 this.Id = Id;
                 this.Amount = Amount;
             }
+
+            public string Id { get; private set; }
+
+            public int Amount { get; private set; }
         }
 
         public class Receipt
         {
-            public List<ItemPrototype> CraftNeededItems { get; private set; }
-
-            public ResultData CraftResultData { get; private set; }
-
-            public int Index => AllReceipts.IndexOf(this);
-
             public Receipt(ResultData CraftResultData, params ItemPrototype[] CraftNeededItems)
             {
                 this.CraftNeededItems = CraftNeededItems.ToList();
@@ -33,24 +29,33 @@ namespace BlaineRP.Client.Game.Items.Craft
                 this.CraftResultData = CraftResultData;
             }
 
-            public static Receipt GetByResultItemId(string resultItemId) => Craft.AllReceipts.Where(x => x.CraftResultData.ResultItem.Id == resultItemId).FirstOrDefault();
+            public List<ItemPrototype> CraftNeededItems { get; private set; }
+
+            public ResultData CraftResultData { get; private set; }
+
+            public int Index => AllReceipts.IndexOf(this);
+
+            public static Receipt GetByResultItemId(string resultItemId)
+            {
+                return AllReceipts.Where(x => x.CraftResultData.ResultItem.Id == resultItemId).FirstOrDefault();
+            }
 
             public static Receipt GetByIngredients(List<ItemPrototype> items)
             {
                 if (items.Count == 0)
                     return null;
 
-                foreach (var craftReceipt in Craft.AllReceipts)
+                foreach (Receipt craftReceipt in AllReceipts)
                 {
                     if (craftReceipt.CraftNeededItems.Count != items.Count)
                         continue;
 
                     var success = true;
 
-                    for (int i = 0; i < items.Count; i++)
+                    for (var i = 0; i < items.Count; i++)
                     {
-                        var curItem = items[i];
-                        var curReceiptItem = craftReceipt.CraftNeededItems[i];
+                        ItemPrototype curItem = items[i];
+                        ItemPrototype curReceiptItem = craftReceipt.CraftNeededItems[i];
 
                         if (curReceiptItem.Id != curItem.Id || curItem.Amount < curReceiptItem.Amount)
                         {
@@ -72,14 +77,14 @@ namespace BlaineRP.Client.Game.Items.Craft
                 if (items.Count != CraftNeededItems.Count)
                     return 0;
 
-                var coef = int.MaxValue;
+                int coef = int.MaxValue;
 
-                for (int i = 0; i < items.Count; i++)
+                for (var i = 0; i < items.Count; i++)
                 {
                     if (CraftNeededItems[i].Amount <= 0)
                         continue;
 
-                    var newCoef = items[i].Amount / CraftNeededItems[i].Amount;
+                    int newCoef = items[i].Amount / CraftNeededItems[i].Amount;
 
                     if (newCoef < coef)
                         coef = newCoef;
@@ -94,18 +99,16 @@ namespace BlaineRP.Client.Game.Items.Craft
 
         public class ResultData
         {
-            public ItemPrototype ResultItem { get; private set; }
-
-            public int CraftTime { get; private set; }
-
             public ResultData(string Id, int Amount = 1, int CraftTime = 0)
             {
-                this.ResultItem = new ItemPrototype(Id, Amount);
+                ResultItem = new ItemPrototype(Id, Amount);
 
                 this.CraftTime = CraftTime;
             }
-        }
 
-        public static List<Receipt> AllReceipts { get; private set; } = new List<Receipt>();
+            public ItemPrototype ResultItem { get; private set; }
+
+            public int CraftTime { get; private set; }
+        }
     }
 }

@@ -6,7 +6,6 @@ using BlaineRP.Client.Game.Management.Radio.Enums;
 using BlaineRP.Client.Game.Scripts.Sync;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
 namespace BlaineRP.Client.Game.EntitiesData
 {
@@ -76,8 +75,10 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Vehicle.GetData<float>("CLMS");
             set
             {
-                if (value <= 0f) Vehicle.ResetData("CLMS");
-                else Vehicle.SetData("CLMS", value);
+                if (value <= 0f)
+                    Vehicle.ResetData("CLMS");
+                else
+                    Vehicle.SetData("CLMS", value);
             }
         }
 
@@ -87,14 +88,11 @@ namespace BlaineRP.Client.Game.EntitiesData
         {
             get
             {
-                var streamed = Entities.Vehicles.Streamed;
+                List<Vehicle> streamed = Entities.Vehicles.Streamed;
 
                 for (var i = 0; i < streamed.Count; i++)
                 {
-                    var t = streamed[i]
-                           .GetData<List<AttachmentEntity>>(Core.AttachedEntitiesKey)
-                          ?.Where(x => x.RemoteID == Vehicle.RemoteId)
-                           .FirstOrDefault();
+                    AttachmentEntity t = streamed[i].GetData<List<AttachmentEntity>>(Core.AttachedEntitiesKey)?.Where(x => x.RemoteID == Vehicle.RemoteId).FirstOrDefault();
 
                     if (t != null)
                         return t;
@@ -104,10 +102,8 @@ namespace BlaineRP.Client.Game.EntitiesData
             }
         }
 
-        public Vehicle IsAttachedToLocalTrailer => Vehicle.GetData<List<AttachmentObject>>(Core.AttachedObjectsKey)
-                                                         ?.Where(x => x.Type == AttachmentTypes.TrailerObjOnBoat)
-                                                          .FirstOrDefault()
-                                                         ?.Object as Vehicle;
+        public Vehicle IsAttachedToLocalTrailer =>
+            Vehicle.GetData<List<AttachmentObject>>(Core.AttachedObjectsKey)?.Where(x => x.Type == AttachmentTypes.TrailerObjOnBoat).FirstOrDefault()?.Object as Vehicle;
 
         public void Reset()
         {

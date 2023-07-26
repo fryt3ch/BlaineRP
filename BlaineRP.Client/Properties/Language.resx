@@ -1,411 +1,417 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="metadata">
+    <!-- 
+      Microsoft ResX Schema 
+      
+      Version 2.0
+      
+      The primary goals of this format is to allow a simple XML format 
+      that is mostly human readable. The generation and parsing of the 
+      various data types are done through the TypeConverter classes 
+      associated with the data types.
+      
+      Example:
+      
+      ... ado.net/XML headers & schema ...
+      <resheader name="resmimetype">text/microsoft-resx</resheader>
+      <resheader name="version">2.0</resheader>
+      <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+      <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+      <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+      <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+      <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+          <value>[base64 mime encoded serialized .NET Framework object]</value>
+      </data>
+      <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+          <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+          <comment>This is a comment</comment>
+      </data>
+                  
+      There are any number of "resheader" rows that contain simple 
+      name/value pairs.
+      
+      Each data row contains a name, and value. The row also contains a 
+      type or mimetype. Type corresponds to a .NET class that support 
+      text/value conversion through the TypeConverter architecture. 
+      Classes that don't support this are serialized and stored with the 
+      mimetype set.
+      
+      The mimetype is used for serialized objects, and tells the 
+      ResXResourceReader how to depersist the object. This is currently not 
+      extensible. For a given mimetype the value must be set accordingly:
+      
+      Note - application/x-microsoft.net.object.binary.base64 is the format 
+      that the ResXResourceWriter will generate, however the reader can 
+      read any of the formats listed below.
+      
+      mimetype: application/x-microsoft.net.object.binary.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+              : and then encoded with base64 encoding.
+      
+      mimetype: application/x-microsoft.net.object.soap.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+              : and then encoded with base64 encoding.
+  
+      mimetype: application/x-microsoft.net.object.bytearray.base64
+      value   : The object must be serialized into a byte array 
+              : using a System.ComponentModel.TypeConverter
+              : and then encoded with base64 encoding.
+      -->
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                id="root"
+                xmlns="">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+        <xsd:element name="root" msdata:IsDataSet="true">
             <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" />
-              </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute ref="xml:space" />
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string"/>
+                            <xsd:attribute name="type" type="xsd:string"/>
+                            <xsd:attribute name="mimetype" type="xsd:string"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string"/>
+                            <xsd:attribute name="name" type="xsd:string"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
             </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="assembly">
-            <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string" />
-              <xsd:attribute name="name" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <data name="HOUSEMENU_LAMPS_SET" xml:space="preserve">
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <data name="HOUSEMENU_LAMPS_SET" xml:space="preserve">
     <value>Набор ламп #{0}</value>
   </data>
-  <data name="HOUSEMENU_LAMPS_SINGLE" xml:space="preserve">
+    <data name="HOUSEMENU_LAMPS_SINGLE" xml:space="preserve">
     <value>Лампа #{0}</value>
   </data>
-  <data name="HOUSE_DOOR_LOCKED_L" xml:space="preserve">
+    <data name="HOUSE_DOOR_LOCKED_L" xml:space="preserve">
     <value>[Закрыта]</value>
   </data>
-  <data name="HOUSE_DOOR_NOTLOCKED_L" xml:space="preserve">
+    <data name="HOUSE_DOOR_NOTLOCKED_L" xml:space="preserve">
     <value>[Открыта]</value>
   </data>
-  <data name="HOUSE_FURNPLACE_0" xml:space="preserve">
+    <data name="HOUSE_FURNPLACE_0" xml:space="preserve">
     <value>Мебель находится вне интерьера помещения, невозможно установить в текущем месте!</value>
   </data>
-  <data name="HOUSE_STYLE_APPROVE_0" xml:space="preserve">
+    <data name="HOUSE_STYLE_APPROVE_0" xml:space="preserve">
     <value>Вы уверены, что хотите купить этот стиль интерьера? Нажмите еще раз для подтверждения.</value>
   </data>
-  <data name="HOUSE_STYLE_APPROVE_1" xml:space="preserve">
+    <data name="HOUSE_STYLE_APPROVE_1" xml:space="preserve">
     <value>Вы уверены, что хотите купить этот стиль интерьера? Вся размещенная раннее мебель, блокировка дверей, настройка освещения не будут сохранены, Вам придется размещать и настраивать все заново! Нажмите еще раз для подтверждения.</value>
   </data>
-  <data name="HOUSE_STYLE_OVERVIEW_T1" xml:space="preserve">
+    <data name="HOUSE_STYLE_OVERVIEW_T1" xml:space="preserve">
     <value>{0} - завершить просмотр</value>
   </data>
-  <data name="HOUSE_STYLE_OVERVIEW_T2" xml:space="preserve">
+    <data name="HOUSE_STYLE_OVERVIEW_T2" xml:space="preserve">
     <value>{0} - смотреть другие</value>
   </data>
-  <data name="SETTING_USESERVERTIME" xml:space="preserve">
+    <data name="SETTING_USESERVERTIME" xml:space="preserve">
     <value>Время сервера</value>
   </data>
-  <data name="SETTING_HIDEHINTS" xml:space="preserve">
+    <data name="SETTING_HIDEHINTS" xml:space="preserve">
     <value>Скрыть подсказки</value>
   </data>
-  <data name="SETTING_HIDENAMES" xml:space="preserve">
+    <data name="SETTING_HIDENAMES" xml:space="preserve">
     <value>Скрыть имена игроков</value>
   </data>
-  <data name="SETTING_HIDECIDS" xml:space="preserve">
+    <data name="SETTING_HIDECIDS" xml:space="preserve">
     <value>Скрыть CID игроков</value>
   </data>
-  <data name="SETTING_HIDEHUD" xml:space="preserve">
+    <data name="SETTING_HIDEHUD" xml:space="preserve">
     <value>Скрыть HUD</value>
   </data>
-  <data name="SETTING_HIDEQUEST" xml:space="preserve">
+    <data name="SETTING_HIDEQUEST" xml:space="preserve">
     <value>Скрыть задание</value>
   </data>
-  <data name="SETTING_HIDEINTERACT" xml:space="preserve">
+    <data name="SETTING_HIDEINTERACT" xml:space="preserve">
     <value>Скрыть кнопку взаимодействия</value>
   </data>
-  <data name="SETTING_HIDENAMES_ITEMS" xml:space="preserve">
+    <data name="SETTING_HIDENAMES_ITEMS" xml:space="preserve">
     <value>Скрыть названия
 предметов на земле</value>
   </data>
-  <data name="SETTING_AUTORELOAD" xml:space="preserve">
+    <data name="SETTING_AUTORELOAD" xml:space="preserve">
     <value>Автоматическая перезарядка</value>
   </data>
-  <data name="SETTING_FINGERPOINT" xml:space="preserve">
+    <data name="SETTING_FINGERPOINT" xml:space="preserve">
     <value>Включить указание
 пальцем на объекты</value>
   </data>
-  <data name="MAPEDITOR_ROTATION_ANGLE" xml:space="preserve">
+    <data name="MAPEDITOR_ROTATION_ANGLE" xml:space="preserve">
     <value>Угол поворота: {0}</value>
   </data>
-  <data name="AUTH_STARTPLACE_CANNOT" xml:space="preserve">
+    <data name="AUTH_STARTPLACE_CANNOT" xml:space="preserve">
     <value>Вы не можете выбрать это место для появления!</value>
   </data>
-  <data name="AUTH_STARTPLACE_FAULT" xml:space="preserve">
+    <data name="AUTH_STARTPLACE_FAULT" xml:space="preserve">
     <value>Что-то пошло не так, выберите другое место Вашего появления!</value>
   </data>
-  <data name="POLICETABLET_CALL_NOTAKEN" xml:space="preserve">
+    <data name="POLICETABLET_CALL_NOTAKEN" xml:space="preserve">
     <value>Вы не принимались ни за один вызов!</value>
   </data>
-  <data name="POLICETABLET_CALL_FINISH_0" xml:space="preserve">
+    <data name="POLICETABLET_CALL_FINISH_0" xml:space="preserve">
     <value>Для того, чтобы завершить текущий вызов, вы должны находиться не более, чем в {0} метрах от него!</value>
   </data>
-  <data name="POLICETABLET_APB_FINISH" xml:space="preserve">
+    <data name="POLICETABLET_APB_FINISH" xml:space="preserve">
     <value>Ориентировка №{0} исполнена (удалена из базы)!</value>
   </data>
-  <data name="POLICETABLET_APB_ADD" xml:space="preserve">
+    <data name="POLICETABLET_APB_ADD" xml:space="preserve">
     <value>Ориентировка успешно добавлена в базу!
 Она будет активна {0} часа, после чего удалится</value>
   </data>
-  <data name="POLICETABLET_CALL_NOTEXISTS" xml:space="preserve">
+    <data name="POLICETABLET_CALL_NOTEXISTS" xml:space="preserve">
     <value>Такой вызов не существует!</value>
   </data>
-  <data name="POLICETABLET_GPSTR_NOTEXISTS" xml:space="preserve">
+    <data name="POLICETABLET_GPSTR_NOTEXISTS" xml:space="preserve">
     <value>Такой GPS-трекер не существует!</value>
   </data>
-  <data name="POLICETABLET_RFIND_INHOUSENOW" xml:space="preserve">
+    <data name="POLICETABLET_RFIND_INHOUSENOW" xml:space="preserve">
     <value>Вы уже находитесь в этом доме!</value>
   </data>
-  <data name="POLICETABLET_RFIND_INFLATNOW" xml:space="preserve">
+    <data name="POLICETABLET_RFIND_INFLATNOW" xml:space="preserve">
     <value>Вы уже находитесь в этой квартире!</value>
   </data>
-  <data name="POLICETABLET_L_CT_0" xml:space="preserve">
+    <data name="POLICETABLET_L_CT_0" xml:space="preserve">
     <value>КОД-0</value>
   </data>
-  <data name="POLICETABLET_L_CT_1" xml:space="preserve">
+    <data name="POLICETABLET_L_CT_1" xml:space="preserve">
     <value>КОД-1</value>
   </data>
-  <data name="POLICETABLET_L_CT_2" xml:space="preserve">
+    <data name="POLICETABLET_L_CT_2" xml:space="preserve">
     <value>КОД-2</value>
   </data>
-  <data name="POLICETABLET_L_CT_255" xml:space="preserve">
+    <data name="POLICETABLET_L_CT_255" xml:space="preserve">
     <value>Вызов</value>
   </data>
-  <data name="POLICETABLET_L_CM_0" xml:space="preserve">
+    <data name="POLICETABLET_L_CM_0" xml:space="preserve">
     <value>Требуется немедленная поддержка! Всем департаментам!</value>
   </data>
-  <data name="POLICETABLET_L_CM_1" xml:space="preserve">
+    <data name="POLICETABLET_L_CM_1" xml:space="preserve">
     <value>Требуется небольшая помощь!</value>
   </data>
-  <data name="POLICETABLET_L_CM_2" xml:space="preserve">
+    <data name="POLICETABLET_L_CM_2" xml:space="preserve">
     <value>Требуется помощь!</value>
   </data>
-  <data name="POLICE_GPSTR_0" xml:space="preserve">
+    <data name="POLICE_GPSTR_0" xml:space="preserve">
     <value>Кто будет иметь доступ к трекеру?</value>
   </data>
-  <data name="POLICE_GPSTR_1" xml:space="preserve">
+    <data name="POLICE_GPSTR_1" xml:space="preserve">
     <value>Только мой департамент</value>
   </data>
-  <data name="POLICE_GPSTR_2" xml:space="preserve">
+    <data name="POLICE_GPSTR_2" xml:space="preserve">
     <value>Все департаменты</value>
   </data>
-  <data name="POLICE_GPSTR_3" xml:space="preserve">
+    <data name="POLICE_GPSTR_3" xml:space="preserve">
     <value>Вы установили GPS-трекер на данный транспорт, ему присвоен номер {0}!
 Воспользуйтесь служебным планшетом, чтобы определить текущее местоположение или отключить трекер</value>
   </data>
-  <data name="SHOP_SHARED_NOTHINGITEM_L" xml:space="preserve">
+    <data name="SHOP_SHARED_NOTHINGITEM_L" xml:space="preserve">
     <value>Ничего</value>
   </data>
-  <data name="SHOP_WEAPON_SRANGE_L" xml:space="preserve">
+    <data name="SHOP_WEAPON_SRANGE_L" xml:space="preserve">
     <value>Тир</value>
   </data>
-  <data name="SHOP_TUNING_NEONCOL_0" xml:space="preserve">
+    <data name="SHOP_TUNING_NEONCOL_0" xml:space="preserve">
     <value>Цвет неона</value>
   </data>
-  <data name="SHOP_TUNING_FIX_L" xml:space="preserve">
+    <data name="SHOP_TUNING_FIX_L" xml:space="preserve">
     <value>Ремонт</value>
   </data>
-  <data name="SHOP_TUNING_FIX_0" xml:space="preserve">
+    <data name="SHOP_TUNING_FIX_0" xml:space="preserve">
     <value>Полноценный</value>
   </data>
-  <data name="SHOP_TUNING_FIX_1" xml:space="preserve">
+    <data name="SHOP_TUNING_FIX_1" xml:space="preserve">
     <value>Косметический (визуальный)</value>
   </data>
-  <data name="SHOP_TUNING_KEYS_L" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYS_L" xml:space="preserve">
     <value>Ключи</value>
   </data>
-  <data name="SHOP_TUNING_KEYS_0" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYS_0" xml:space="preserve">
     <value>Смена замков</value>
   </data>
-  <data name="SHOP_TUNING_KEYS_1" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYS_1" xml:space="preserve">
     <value>Дубликат ключей</value>
   </data>
-  <data name="SHOP_TUNING_MODDEL_HEADER" xml:space="preserve">
+    <data name="SHOP_TUNING_MODDEL_HEADER" xml:space="preserve">
     <value>Удаление модификации</value>
   </data>
-  <data name="SHOP_TUNING_MODDEL_CONTENT" xml:space="preserve">
+    <data name="SHOP_TUNING_MODDEL_CONTENT" xml:space="preserve">
     <value>Вы собираетесь удалить {0} со своего транспорта.
 
 Данное действие необратимо!
 Выберите способ оплаты, чтобы продолжить.</value>
   </data>
-  <data name="SHOP_TUNING_KEYS_CHANGE_APPROVE" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYS_CHANGE_APPROVE" xml:space="preserve">
     <value>Вы собираетесь сменить замки на своем транспорте. После этой операции все ранее созданные дубликаты ключей перестанут функционировать. Нажмите еще раз, чтобы продолжить.</value>
   </data>
-  <data name="SHOP_TUNING_NEON_L" xml:space="preserve">
+    <data name="SHOP_TUNING_NEON_L" xml:space="preserve">
     <value>Неон</value>
   </data>
-  <data name="SHOP_TUNING_COLOURS_L" xml:space="preserve">
+    <data name="SHOP_TUNING_COLOURS_L" xml:space="preserve">
     <value>Цвета покраски</value>
   </data>
-  <data name="SHOP_TUNING_PEARL_L" xml:space="preserve">
+    <data name="SHOP_TUNING_PEARL_L" xml:space="preserve">
     <value>Перламутр</value>
   </data>
-  <data name="SHOP_TUNING_WHEELC_L" xml:space="preserve">
+    <data name="SHOP_TUNING_WHEELC_L" xml:space="preserve">
     <value>Цвет покрышек</value>
   </data>
-  <data name="SHOP_TUNING_TSMOKEC_L" xml:space="preserve">
+    <data name="SHOP_TUNING_TSMOKEC_L" xml:space="preserve">
     <value>Цвет дыма от колес</value>
   </data>
-  <data name="SHOP_TUNING_KEYDUBL_HEADER" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYDUBL_HEADER" xml:space="preserve">
     <value>Название ключа</value>
   </data>
-  <data name="SHOP_TUNING_KEYDUBL_CONTENT" xml:space="preserve">
+    <data name="SHOP_TUNING_KEYDUBL_CONTENT" xml:space="preserve">
     <value>Введите название вашего ключа
 
 Разрешенные символы: цифры, буквы (рус. и англ.), пробел, -
 
 Кол-во символов: от 1 до 18</value>
   </data>
-  <data name="SHOP_GAS_L_DEFAULT" xml:space="preserve">
+    <data name="SHOP_GAS_L_DEFAULT" xml:space="preserve">
     <value>АЗС</value>
   </data>
-  <data name="SHOP_GAS_L_FRACTON" xml:space="preserve">
+    <data name="SHOP_GAS_L_FRACTON" xml:space="preserve">
     <value>АЗС (за счёт фракции)</value>
   </data>
-  <data name="SHOP_GAS_FRACTION_INFO" xml:space="preserve">
+    <data name="SHOP_GAS_FRACTION_INFO" xml:space="preserve">
     <value>Выбирайте любой способ оплаты, топливо будет оплачено за счёт Вашей фракции!</value>
   </data>
-  <data name="SHOP_TESTDRIVE_HELP_0" xml:space="preserve">
+    <data name="SHOP_TESTDRIVE_HELP_0" xml:space="preserve">
     <value>Нажмите {0}, чтобы закончить тест-драйв</value>
   </data>
-  <data name="SHOP_TESTDRIVE_HELP_1" xml:space="preserve">
+    <data name="SHOP_TESTDRIVE_HELP_1" xml:space="preserve">
     <value>Нажмите {0}, чтобы открыть меню тюнинга</value>
   </data>
-  <data name="SHOP_RET_PREVIEW_HELP_0" xml:space="preserve">
+    <data name="SHOP_RET_PREVIEW_HELP_0" xml:space="preserve">
     <value>{0} - вернуться к ассортименту</value>
   </data>
-  <data name="SHOP_RET_PREVIEW_HELP_1" xml:space="preserve">
+    <data name="SHOP_RET_PREVIEW_HELP_1" xml:space="preserve">
     <value>V - смена вида, Ctrl + колесико - зум</value>
   </data>
-  <data name="SHOP_RET_PREVIEW_HELP_2" xml:space="preserve">
+    <data name="SHOP_RET_PREVIEW_HELP_2" xml:space="preserve">
     <value>ПКМ по предмету - предпросмотр</value>
   </data>
-  <data name="SHOP_RET_DRESS_L" xml:space="preserve">
+    <data name="SHOP_RET_DRESS_L" xml:space="preserve">
     <value>Примерить</value>
   </data>
-  <data name="SHOP_RET_VIEW_L" xml:space="preserve">
+    <data name="SHOP_RET_VIEW_L" xml:space="preserve">
     <value>Посмотреть</value>
   </data>
-  <data name="DOCS_SEX_MALE" xml:space="preserve">
+    <data name="DOCS_SEX_MALE" xml:space="preserve">
     <value>мужской</value>
   </data>
-  <data name="DOCS_SEX_FEMALE" xml:space="preserve">
+    <data name="DOCS_SEX_FEMALE" xml:space="preserve">
     <value>женский</value>
   </data>
-  <data name="DOCS_NOTMARRIED_MALE" xml:space="preserve">
+    <data name="DOCS_NOTMARRIED_MALE" xml:space="preserve">
     <value>не женат</value>
   </data>
-  <data name="DOCS_NOTMARRIED_FEMALE" xml:space="preserve">
+    <data name="DOCS_NOTMARRIED_FEMALE" xml:space="preserve">
     <value>не замужем</value>
   </data>
-  <data name="DOCS_VEHPASS_NOPLATE" xml:space="preserve">
+    <data name="DOCS_VEHPASS_NOPLATE" xml:space="preserve">
     <value>отсутствует</value>
   </data>
-  <data name="FRACTION_LOCKER_0" xml:space="preserve">
+    <data name="FRACTION_LOCKER_0" xml:space="preserve">
     <value>[Завершить рабочий день]</value>
   </data>
-  <data name="FRACTION_LOCKER_1" xml:space="preserve">
+    <data name="FRACTION_LOCKER_1" xml:space="preserve">
     <value>Выбор рабочей формы</value>
   </data>
-  <data name="FRACTION_NIUFE_0" xml:space="preserve">
+    <data name="FRACTION_NIUFE_0" xml:space="preserve">
     <value>Вы не находитесь в рабочей форме!</value>
   </data>
-  <data name="PHONE_ECALL_0" xml:space="preserve">
+    <data name="PHONE_ECALL_0" xml:space="preserve">
     <value>Экстренные службы</value>
   </data>
-  <data name="PHONE_ECALL_1" xml:space="preserve">
+    <data name="PHONE_ECALL_1" xml:space="preserve">
     <value>Полиция</value>
   </data>
-  <data name="PHONE_ECALL_2" xml:space="preserve">
+    <data name="PHONE_ECALL_2" xml:space="preserve">
     <value>Скорая помощь</value>
   </data>
-  <data name="PHONE_ECALL_3" xml:space="preserve">
+    <data name="PHONE_ECALL_3" xml:space="preserve">
     <value>Вызов полиции</value>
   </data>
-  <data name="PHONE_ECALL_4" xml:space="preserve">
+    <data name="PHONE_ECALL_4" xml:space="preserve">
     <value>Вызов скорой помощи</value>
   </data>
-  <data name="PHONE_ECALL_5" xml:space="preserve">
+    <data name="PHONE_ECALL_5" xml:space="preserve">
     <value>Здравствуйте, опишите, что произошло?
 
 (от 1 до 24 символов, только буквы/цифры/знаки препинания/пробелы)</value>
   </data>
-  <data name="PHONE_ECALL_6" xml:space="preserve">
+    <data name="PHONE_ECALL_6" xml:space="preserve">
     <value>Здравствуйте, опишите, что произошло?
 
 (от 1 до 24 символов, только буквы/цифры/знаки препинания/пробелы)</value>
   </data>
-  <data name="PHONE_ECALL_E_0" xml:space="preserve">
+    <data name="PHONE_ECALL_E_0" xml:space="preserve">
     <value>В данный момент невозможно совершить вызов полиции, попробуйте позже!</value>
   </data>
-  <data name="PHONE_ECALL_E_1" xml:space="preserve">
+    <data name="PHONE_ECALL_E_1" xml:space="preserve">
     <value>У Вас уже есть активный вызов этой экстренной службы!</value>
   </data>
-  <data name="PHONE_ECALL_E_2" xml:space="preserve">
+    <data name="PHONE_ECALL_E_2" xml:space="preserve">
     <value>В данный момент невозможно совершить вызов скорой помощи, попробуйте позже!</value>
   </data>
-  <data name="PHONE_ECALL_S_0" xml:space="preserve">
+    <data name="PHONE_ECALL_S_0" xml:space="preserve">
     <value>Ваш вызов был передан сотрудникам полиции, ожидайте их прибытия. Если вы отойдете слишком далеко от места вызова, то он будет отменен!</value>
   </data>
-  <data name="PHONE_ECALL_W_0" xml:space="preserve">
+    <data name="PHONE_ECALL_W_0" xml:space="preserve">
     <value>Если Вы отойдете еще на {0} м., то вызов полиции будет отменен!</value>
   </data>
-  <data name="MARKETSTALL_R_HEADER" xml:space="preserve">
+    <data name="MARKETSTALL_R_HEADER" xml:space="preserve">
     <value>Аренда торговой лавки</value>
   </data>
-  <data name="MARKETSTALL_R_CONTENT" xml:space="preserve">
+    <data name="MARKETSTALL_R_CONTENT" xml:space="preserve">
     <value>Вы действительно хотите арендовать данную торговую лавку?
 Используя её, вы сможете продавать свои предметы другим игрокам без риска быть обманутым.
 
@@ -414,818 +420,818 @@
 
 Стоимость: {0}</value>
   </data>
-  <data name="MARKETSTALL_MG_HEADER" xml:space="preserve">
+    <data name="MARKETSTALL_MG_HEADER" xml:space="preserve">
     <value>Управление торговой лавкой</value>
   </data>
-  <data name="MARKETSTALL_MG_UNLOCK" xml:space="preserve">
+    <data name="MARKETSTALL_MG_UNLOCK" xml:space="preserve">
     <value>Разрешить покупки</value>
   </data>
-  <data name="MARKETSTALL_MG_UNLOCKED" xml:space="preserve">
+    <data name="MARKETSTALL_MG_UNLOCKED" xml:space="preserve">
     <value>Вы разрешили покупки на этой торговой лавке!</value>
   </data>
-  <data name="MARKETSTALL_MG_LOCK" xml:space="preserve">
+    <data name="MARKETSTALL_MG_LOCK" xml:space="preserve">
     <value>Запретить покупки</value>
   </data>
-  <data name="MARKETSTALL_MG_LOCKED" xml:space="preserve">
+    <data name="MARKETSTALL_MG_LOCKED" xml:space="preserve">
     <value>Вы запретили покупки на этой торговой лавке!</value>
   </data>
-  <data name="MARKETSTALL_MG_CHOOSE" xml:space="preserve">
+    <data name="MARKETSTALL_MG_CHOOSE" xml:space="preserve">
     <value>Выбрать предметы для продажи</value>
   </data>
-  <data name="MARKETSTALL_MG_SELLHIST" xml:space="preserve">
+    <data name="MARKETSTALL_MG_SELLHIST" xml:space="preserve">
     <value>История продаж</value>
   </data>
-  <data name="MARKETSTALL_MG_CLOSE" xml:space="preserve">
+    <data name="MARKETSTALL_MG_CLOSE" xml:space="preserve">
     <value>Отказаться от аренды</value>
   </data>
-  <data name="MARKETSTALL_MG_HISTEMPTY" xml:space="preserve">
+    <data name="MARKETSTALL_MG_HISTEMPTY" xml:space="preserve">
     <value>История Ваших продаж на данный момент пуста!</value>
   </data>
-  <data name="MARKETSTALL_NOWNER" xml:space="preserve">
+    <data name="MARKETSTALL_NOWNER" xml:space="preserve">
     <value>Вы не арендуете эту торговую лавку!</value>
   </data>
-  <data name="MARKETSTALL_LOCKED_NOW" xml:space="preserve">
+    <data name="MARKETSTALL_LOCKED_NOW" xml:space="preserve">
     <value>Эта торговая лавка в данный момент закрыта!</value>
   </data>
-  <data name="MARKETSTALL_NOITEMS_SELL" xml:space="preserve">
+    <data name="MARKETSTALL_NOITEMS_SELL" xml:space="preserve">
     <value>У Вас в инвентаре нет ни одного предмета, который можно продать!</value>
   </data>
-  <data name="MARKETSTALL_NOITEMS_BUY" xml:space="preserve">
+    <data name="MARKETSTALL_NOITEMS_BUY" xml:space="preserve">
     <value>В этой торговой лавке не выставлено на продажу ни одного предмета!</value>
   </data>
-  <data name="MARKETSTALL_R_ODIST_0" xml:space="preserve">
+    <data name="MARKETSTALL_R_ODIST_0" xml:space="preserve">
     <value>Если Вы отойдете еще на {0} м. от Вашей торговой лавки, то лишитесь аренды!</value>
   </data>
-  <data name="MARKETSTALL_R_ODIST_1" xml:space="preserve">
+    <data name="MARKETSTALL_R_ODIST_1" xml:space="preserve">
     <value>Вы лишились аренды торговой лавки, т.к. ушли слишком далеко от нее!</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_0" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_0" xml:space="preserve">
     <value>Цена, которую вы указали за 1 ед. предмета для '{0}' не соответствует диапазону (от {1} до {2})</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_1" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_1" xml:space="preserve">
     <value>Произошла ошибка, попробуйте выбрать предметы для продажи еще раз!</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_2" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_2" xml:space="preserve">
     <value>Содержимое Вашего инвентаря было изменено, зайдите в это меню еще раз!</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_3" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_3" xml:space="preserve">
     <value>Вы выставили выбранные предметы на продажу в этой торговой лавке!</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_H_0" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_H_0" xml:space="preserve">
     <value>ЛКМ - выбрать/редактировать предмет</value>
   </data>
-  <data name="MARKETSTALL_MG_ITEMCH_H_1" xml:space="preserve">
+    <data name="MARKETSTALL_MG_ITEMCH_H_1" xml:space="preserve">
     <value>ПКМ - убрать предмет</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_0" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_0" xml:space="preserve">
     <value>В данный момент продавец не может передать Вам этот товар, попробуйте позже!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_1" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_1" xml:space="preserve">
     <value>Этот предмет в данный момент не находится у продавца в инвентаре, свяжитесь с ним или попробуйте позже!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_2" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_2" xml:space="preserve">
     <value>Продавец находится слишком далеко от данной торговой лавки, поэтому он был лишен аренды!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_3" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_3" xml:space="preserve">
     <value>У продавца закончился данный товар!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_4" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_4" xml:space="preserve">
     <value>У продавца осталось только {0} ед. данного товара!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_5" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_5" xml:space="preserve">
     <value>У продавца нет банковского счета, используйте наличные!</value>
   </data>
-  <data name="MARKETSTALL_B_SERROR_6" xml:space="preserve">
+    <data name="MARKETSTALL_B_SERROR_6" xml:space="preserve">
     <value>Ассортимент товаров этого продавца был изменен!</value>
   </data>
-  <data name="MARKETSTALL_TRY_ERROR_0" xml:space="preserve">
+    <data name="MARKETSTALL_TRY_ERROR_0" xml:space="preserve">
     <value>В данный момент примерка товаров не работает!</value>
   </data>
-  <data name="MARKETSTALL_SH_0" xml:space="preserve">
+    <data name="MARKETSTALL_SH_0" xml:space="preserve">
     <value>{0}. {1} | {2} шт. | {3}</value>
   </data>
-  <data name="MARKETSTALL_SH_1" xml:space="preserve">
+    <data name="MARKETSTALL_SH_1" xml:space="preserve">
     <value>Всего заработано: {0}</value>
   </data>
-  <data name="BUSINESSMENU_ORDER_STATE_0" xml:space="preserve">
+    <data name="BUSINESSMENU_ORDER_STATE_0" xml:space="preserve">
     <value>Заказ принят</value>
   </data>
-  <data name="BUSINESSMENU_ORDER_STATE_1" xml:space="preserve">
+    <data name="BUSINESSMENU_ORDER_STATE_1" xml:space="preserve">
     <value>Заказ в пути</value>
   </data>
-  <data name="ARRESTMENU_FREE_HEADER" xml:space="preserve">
+    <data name="ARRESTMENU_FREE_HEADER" xml:space="preserve">
     <value>Вы хотите закрыть дело #{0}?</value>
   </data>
-  <data name="ARRESTMENU_FREE_CONTENT" xml:space="preserve">
+    <data name="ARRESTMENU_FREE_CONTENT" xml:space="preserve">
     <value>Введите причину амнистии</value>
   </data>
-  <data name="ARRESTMENU_CHTIME_HEADER" xml:space="preserve">
+    <data name="ARRESTMENU_CHTIME_HEADER" xml:space="preserve">
     <value>Изменение срока наказания</value>
   </data>
-  <data name="ARRESTMENU_CHTIME_CONTENT" xml:space="preserve">
+    <data name="ARRESTMENU_CHTIME_CONTENT" xml:space="preserve">
     <value>Введите число минут, на которое вы хотите изменить срок по делу #{0} и причину.
 
 Пример: -10, Хорошее поведение</value>
   </data>
-  <data name="ARRESTMENU_E_0" xml:space="preserve">
+    <data name="ARRESTMENU_E_0" xml:space="preserve">
     <value>Неверный вид строки! Пример: -10, Хорошее поведение</value>
   </data>
-  <data name="ARRESTMENU_E_1" xml:space="preserve">
+    <data name="ARRESTMENU_E_1" xml:space="preserve">
     <value>Введенное число не может быть равно 0!</value>
   </data>
-  <data name="ARRESTMENU_E_2" xml:space="preserve">
+    <data name="ARRESTMENU_E_2" xml:space="preserve">
     <value>Текст причины должен содержать не менее 1 и не более 18 букв, цифр или знаков препинания!</value>
   </data>
-  <data name="ARRESTMENU_E_3" xml:space="preserve">
+    <data name="ARRESTMENU_E_3" xml:space="preserve">
     <value>Максимально возможное время сокращения этого наказания: {0} мин.</value>
   </data>
-  <data name="ARRESTMENU_E_4" xml:space="preserve">
+    <data name="ARRESTMENU_E_4" xml:space="preserve">
     <value>Максимально возможное время увеличения этого наказания: {0} мин.</value>
   </data>
-  <data name="POLICE_RMLIC_E_0" xml:space="preserve">
+    <data name="POLICE_RMLIC_E_0" xml:space="preserve">
     <value>Вы не можете лишить человека этой лицензии!</value>
   </data>
-  <data name="POLICE_RMLIC_E_1" xml:space="preserve">
+    <data name="POLICE_RMLIC_E_1" xml:space="preserve">
     <value>У этого человека и так нет этой лицензии!</value>
   </data>
-  <data name="POLICE_RMLIC_E_2" xml:space="preserve">
+    <data name="POLICE_RMLIC_E_2" xml:space="preserve">
     <value>У этого человека нет ни одной лицензии!</value>
   </data>
-  <data name="POLICE_RMLIC_S_0" xml:space="preserve">
+    <data name="POLICE_RMLIC_S_0" xml:space="preserve">
     <value>Вы лишили {0} лицензии типа {1}!</value>
   </data>
-  <data name="POLICE_CUFFS_E_0" xml:space="preserve">
+    <data name="POLICE_CUFFS_E_0" xml:space="preserve">
     <value>Этот человек уже находится в наручниках!</value>
   </data>
-  <data name="POLICE_CUFFS_E_1" xml:space="preserve">
+    <data name="POLICE_CUFFS_E_1" xml:space="preserve">
     <value>Этот человек не находится в наручниках!</value>
   </data>
-  <data name="POLICE_CUFFS_E_2" xml:space="preserve">
+    <data name="POLICE_CUFFS_E_2" xml:space="preserve">
     <value>Этого человека сейчас нельзя заключить в наручники!</value>
   </data>
-  <data name="POLICE_CUFFS_N_0" xml:space="preserve">
+    <data name="POLICE_CUFFS_N_0" xml:space="preserve">
     <value>Вы надели наручники на руки {0}</value>
   </data>
-  <data name="POLICE_CUFFS_N_1" xml:space="preserve">
+    <data name="POLICE_CUFFS_N_1" xml:space="preserve">
     <value>Вы сняли наручники с рук {0}</value>
   </data>
-  <data name="POLICE_CUFFS_N_2" xml:space="preserve">
+    <data name="POLICE_CUFFS_N_2" xml:space="preserve">
     <value>{0} надел(а) на Ваши руки наручники</value>
   </data>
-  <data name="POLICE_CUFFS_N_3" xml:space="preserve">
+    <data name="POLICE_CUFFS_N_3" xml:space="preserve">
     <value>{0} снял(а) с Ваших рук наручники</value>
   </data>
-  <data name="POLICE_ESCORT_E_0" xml:space="preserve">
+    <data name="POLICE_ESCORT_E_0" xml:space="preserve">
     <value>Этот человек не находится в наручниках/стяжках!</value>
   </data>
-  <data name="POLICE_ESCORT_E_1" xml:space="preserve">
+    <data name="POLICE_ESCORT_E_1" xml:space="preserve">
     <value>Вы и так не ведёте этого человека!</value>
   </data>
-  <data name="POLICE_ESCORT_E_2" xml:space="preserve">
+    <data name="POLICE_ESCORT_E_2" xml:space="preserve">
     <value>Этого человека уже кто-то ведёт!</value>
   </data>
-  <data name="POLICE_ESCORT_E_3" xml:space="preserve">
+    <data name="POLICE_ESCORT_E_3" xml:space="preserve">
     <value>Этого человека сейчас нельзя вести!</value>
   </data>
-  <data name="POLICE_ARREST_TIME_L_0" xml:space="preserve">
+    <data name="POLICE_ARREST_TIME_L_0" xml:space="preserve">
     <value>Время в минутах</value>
   </data>
-  <data name="POLICE_ARREST_TIME_L_1" xml:space="preserve">
+    <data name="POLICE_ARREST_TIME_L_1" xml:space="preserve">
     <value>Время в часах</value>
   </data>
-  <data name="POLICE_ARREST_E_0" xml:space="preserve">
+    <data name="POLICE_ARREST_E_0" xml:space="preserve">
     <value>Вы не находитесь в нужном месте для оформления дела!</value>
   </data>
-  <data name="POLICE_ARREST_E_1" xml:space="preserve">
+    <data name="POLICE_ARREST_E_1" xml:space="preserve">
     <value>Текст статьи должен содержать не менее 1 и не более 18 букв, цифр или знаков препинания!</value>
   </data>
-  <data name="POLICE_ARREST_E_2" xml:space="preserve">
+    <data name="POLICE_ARREST_E_2" xml:space="preserve">
     <value>Текст комментария должен содержать не более 100 букв, цифр или знаков препинания!</value>
   </data>
-  <data name="POLICE_ARREST_E_3" xml:space="preserve">
+    <data name="POLICE_ARREST_E_3" xml:space="preserve">
     <value>Поле 'Срок ареста' заполнено некорректно!</value>
   </data>
-  <data name="POLICE_ARREST_E_4" xml:space="preserve">
+    <data name="POLICE_ARREST_E_4" xml:space="preserve">
     <value>Этого человека сейчас нельзя арестовать!</value>
   </data>
-  <data name="POLICE_ARREST_E_5" xml:space="preserve">
+    <data name="POLICE_ARREST_E_5" xml:space="preserve">
     <value>Вы не можете здесь оформить это дело!</value>
   </data>
-  <data name="POLICE_PSEARCH_L_0" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_0" xml:space="preserve">
     <value>Обыск {0}</value>
   </data>
-  <data name="POLICE_PSEARCH_L_1" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_1" xml:space="preserve">
     <value>Документы {0}</value>
   </data>
-  <data name="POLICE_PSEARCH_L_2" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_2" xml:space="preserve">
     <value>Предметы {0}</value>
   </data>
-  <data name="POLICE_PSEARCH_L_O_0" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_O_0" xml:space="preserve">
     <value>Документы</value>
   </data>
-  <data name="POLICE_PSEARCH_L_O_1" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_O_1" xml:space="preserve">
     <value>Предметы (руки)</value>
   </data>
-  <data name="POLICE_PSEARCH_L_O_2" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_O_2" xml:space="preserve">
     <value>Предметы (карманы)</value>
   </data>
-  <data name="POLICE_PSEARCH_L_O_3" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_O_3" xml:space="preserve">
     <value>Предметы (сумка)</value>
   </data>
-  <data name="POLICE_PSEARCH_L_O_4" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_O_4" xml:space="preserve">
     <value>Предметы (кобура)</value>
   </data>
-  <data name="POLICE_PSEARCH_L_D_0" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_D_0" xml:space="preserve">
     <value>Паспорт</value>
   </data>
-  <data name="POLICE_PSEARCH_L_D_1" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_D_1" xml:space="preserve">
     <value>Лицензии</value>
   </data>
-  <data name="POLICE_PSEARCH_L_D_2" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_D_2" xml:space="preserve">
     <value>Мед. карта</value>
   </data>
-  <data name="POLICE_PSEARCH_L_D_3" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_D_3" xml:space="preserve">
     <value>Трудовая книжка</value>
   </data>
-  <data name="POLICE_PSEARCH_L_D_4" xml:space="preserve">
+    <data name="POLICE_PSEARCH_L_D_4" xml:space="preserve">
     <value>Удостоверение</value>
   </data>
-  <data name="POLICE_PSEARCH_E_0" xml:space="preserve">
+    <data name="POLICE_PSEARCH_E_0" xml:space="preserve">
     <value>У этого человека нет такого документа!</value>
   </data>
-  <data name="POLICE_PSEARCH_E_1" xml:space="preserve">
+    <data name="POLICE_PSEARCH_E_1" xml:space="preserve">
     <value>Не найдено ни одного потенциально нелегального предмета!</value>
   </data>
-  <data name="POLICE_PSEARCH_E_2" xml:space="preserve">
+    <data name="POLICE_PSEARCH_E_2" xml:space="preserve">
     <value>У этого человека нет сумки!</value>
   </data>
-  <data name="POLICE_PSEARCH_E_3" xml:space="preserve">
+    <data name="POLICE_PSEARCH_E_3" xml:space="preserve">
     <value>У этого человека нет кобуры!</value>
   </data>
-  <data name="POLICE_PSEARCH_C_0" xml:space="preserve">
+    <data name="POLICE_PSEARCH_C_0" xml:space="preserve">
     <value>{0} конфисковал у Вас {1}!</value>
   </data>
-  <data name="FRACTION_INV_E_0" xml:space="preserve">
+    <data name="FRACTION_INV_E_0" xml:space="preserve">
     <value>Этот человек уже состоит в какой-то фракции!</value>
   </data>
-  <data name="FRACTION_INV_E_1" xml:space="preserve">
+    <data name="FRACTION_INV_E_1" xml:space="preserve">
     <value>Этот человек уже состоит в Вашей фракции!</value>
   </data>
-  <data name="INTERACTION_L_GEN_0" xml:space="preserve">
+    <data name="INTERACTION_L_GEN_0" xml:space="preserve">
     <value>для взаимодействия</value>
   </data>
-  <data name="INTERACTION_L_MARKETSTALL_0" xml:space="preserve">
+    <data name="INTERACTION_L_MARKETSTALL_0" xml:space="preserve">
     <value>чтобы начать торговать</value>
   </data>
-  <data name="INTERACTION_L_MARKETSTALL_1" xml:space="preserve">
+    <data name="INTERACTION_L_MARKETSTALL_1" xml:space="preserve">
     <value>чтобы управлять лавкой</value>
   </data>
-  <data name="INTERACTION_L_MARKETSTALL_2" xml:space="preserve">
+    <data name="INTERACTION_L_MARKETSTALL_2" xml:space="preserve">
     <value>чтобы посмотреть товары {0} ({1})</value>
   </data>
-  <data name="NPC_NOTFAM_MALE" xml:space="preserve">
+    <data name="NPC_NOTFAM_MALE" xml:space="preserve">
     <value>Незнакомец</value>
   </data>
-  <data name="NPC_NOTFAM_FEMALE" xml:space="preserve">
+    <data name="NPC_NOTFAM_FEMALE" xml:space="preserve">
     <value>Незнакомка</value>
   </data>
-  <data name="NPC_SUBNAME_QUEST" xml:space="preserve">
+    <data name="NPC_SUBNAME_QUEST" xml:space="preserve">
     <value>Квестодатель</value>
   </data>
-  <data name="NPC_SUBNAME_SELLER" xml:space="preserve">
+    <data name="NPC_SUBNAME_SELLER" xml:space="preserve">
     <value>Продавец</value>
   </data>
-  <data name="NPC_SUBNAME_VENDOR" xml:space="preserve">
+    <data name="NPC_SUBNAME_VENDOR" xml:space="preserve">
     <value>Торговец</value>
   </data>
-  <data name="NPC_SUBNAME_SELLER_TATTOO" xml:space="preserve">
+    <data name="NPC_SUBNAME_SELLER_TATTOO" xml:space="preserve">
     <value>Тату-мастер</value>
   </data>
-  <data name="NPC_SUBNAME_SELLER_BARBER" xml:space="preserve">
+    <data name="NPC_SUBNAME_SELLER_BARBER" xml:space="preserve">
     <value>Стилист</value>
   </data>
-  <data name="NPC_SUBNAME_FISH_BUYER" xml:space="preserve">
+    <data name="NPC_SUBNAME_FISH_BUYER" xml:space="preserve">
     <value>Скупщик рыбы</value>
   </data>
-  <data name="NPC_SUBNAME_BANK_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_BANK_WORKER" xml:space="preserve">
     <value>Работник банка</value>
   </data>
-  <data name="NPC_SUBNAME_VEH_POUND_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_VEH_POUND_WORKER" xml:space="preserve">
     <value>Работник штрафстоянки</value>
   </data>
-  <data name="NPC_SUBNAME_VEH_RENT_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_VEH_RENT_WORKER" xml:space="preserve">
     <value>Арендодатель транспорта</value>
   </data>
-  <data name="NPC_SUBNAME_JOB_TRUCK_BOSS" xml:space="preserve">
+    <data name="NPC_SUBNAME_JOB_TRUCK_BOSS" xml:space="preserve">
     <value>Глава дальнобойщиков</value>
   </data>
-  <data name="NPC_SUBNAME_JOB_FARM_BOSS" xml:space="preserve">
+    <data name="NPC_SUBNAME_JOB_FARM_BOSS" xml:space="preserve">
     <value>Фермер</value>
   </data>
-  <data name="NPC_SUBNAME_PRIEST" xml:space="preserve">
+    <data name="NPC_SUBNAME_PRIEST" xml:space="preserve">
     <value>Священник</value>
   </data>
-  <data name="NPC_SUBNAME_COP_WORKER_0" xml:space="preserve">
+    <data name="NPC_SUBNAME_COP_WORKER_0" xml:space="preserve">
     <value>Дежурный полиции</value>
   </data>
-  <data name="NPC_SUBNAME_DRIVINGSCHOOL_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_DRIVINGSCHOOL_WORKER" xml:space="preserve">
     <value>Менеджер автошколы</value>
   </data>
-  <data name="NPC_SUBNAME_BOATVM_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_BOATVM_WORKER" xml:space="preserve">
     <value>Менеджер доков</value>
   </data>
-  <data name="NPC_SUBNAME_AIRVM_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_AIRVM_WORKER" xml:space="preserve">
     <value>Менеджер аэродрома</value>
   </data>
-  <data name="NPC_SUBNAME_GROUNDVM_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_GROUNDVM_WORKER" xml:space="preserve">
     <value>Менеджер наземного транспорта</value>
   </data>
-  <data name="NPC_SUBNAME_CASINO_ROULETTE_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_CASINO_ROULETTE_WORKER" xml:space="preserve">
     <value>Крупье</value>
   </data>
-  <data name="NPC_SUBNAME_CASINO_BLACKJACK_WORKER" xml:space="preserve">
+    <data name="NPC_SUBNAME_CASINO_BLACKJACK_WORKER" xml:space="preserve">
     <value>Крупье</value>
   </data>
-  <data name="NPC_SUBNAME_CASINO_CASHIER" xml:space="preserve">
+    <data name="NPC_SUBNAME_CASINO_CASHIER" xml:space="preserve">
     <value>Кассир</value>
   </data>
-  <data name="PLAYER_DEFNAME_MALE" xml:space="preserve">
+    <data name="PLAYER_DEFNAME_MALE" xml:space="preserve">
     <value>Гражданин</value>
   </data>
-  <data name="PLAYER_DEFNAME_FEMALE" xml:space="preserve">
+    <data name="PLAYER_DEFNAME_FEMALE" xml:space="preserve">
     <value>Гражданка</value>
   </data>
-  <data name="PLAYER_ADMIN_L" xml:space="preserve">
+    <data name="PLAYER_ADMIN_L" xml:space="preserve">
     <value>Администратор</value>
   </data>
-  <data name="PLAYER_QUIT_TEXT" xml:space="preserve">
+    <data name="PLAYER_QUIT_TEXT" xml:space="preserve">
     <value>Игрок вышел {0} в {1}
 CID: #{2} | ID: {3}</value>
   </data>
-  <data name="GEN_PAUSEMENU_MONEY_T" xml:space="preserve">
+    <data name="GEN_PAUSEMENU_MONEY_T" xml:space="preserve">
     <value>Наличные: {0} | Банк: {1}</value>
   </data>
-  <data name="GEN_PAUSEMENU_HUDM_T" xml:space="preserve">
+    <data name="GEN_PAUSEMENU_HUDM_T" xml:space="preserve">
     <value>Blaine RP</value>
   </data>
-  <data name="GEN_ACTION_RESTRICTED_NOW" xml:space="preserve">
+    <data name="GEN_ACTION_RESTRICTED_NOW" xml:space="preserve">
     <value>Сейчас вы не можете сделать это!</value>
   </data>
-  <data name="GEN_ACTION_NO_SELF" xml:space="preserve">
+    <data name="GEN_ACTION_NO_SELF" xml:space="preserve">
     <value>Вы не можете делать это с самим собой!</value>
   </data>
-  <data name="GEN_TEXT_NOTMATCH_0" xml:space="preserve">
+    <data name="GEN_TEXT_NOTMATCH_0" xml:space="preserve">
     <value>Введенное Вами значение не соответствует правилу!</value>
   </data>
-  <data name="GEN_DIST_METERS_0" xml:space="preserve">
+    <data name="GEN_DIST_METERS_0" xml:space="preserve">
     <value>{0} м.</value>
   </data>
-  <data name="NOTIFICATION_HEADER_DEF" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_DEF" xml:space="preserve">
     <value>Уведомление</value>
   </data>
-  <data name="NOTIFICATION_HEADER_ERROR" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_ERROR" xml:space="preserve">
     <value>Ошибка</value>
   </data>
-  <data name="NOTIFICATION_HEADER_WARN" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_WARN" xml:space="preserve">
     <value>Предупреждение</value>
   </data>
-  <data name="NOTIFICATION_HEADER_APPROVE" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_APPROVE" xml:space="preserve">
     <value>Подтверждение</value>
   </data>
-  <data name="NOTIFICATION_HEADER_ASPAM" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_ASPAM" xml:space="preserve">
     <value>Анти-спам</value>
   </data>
-  <data name="PUNISHMENT_F0_DEF" xml:space="preserve">
+    <data name="PUNISHMENT_F0_DEF" xml:space="preserve">
     <value>Срок наказания истёк, старайтесь больше не нарушать правила нашего сервера!</value>
   </data>
-  <data name="PUNISHMENT_F0_LAW" xml:space="preserve">
+    <data name="PUNISHMENT_F0_LAW" xml:space="preserve">
     <value>Срок наказания истёк, старайтесь больше не нарушать закон!</value>
   </data>
-  <data name="PUNISHMENT_F0_FRAC" xml:space="preserve">
+    <data name="PUNISHMENT_F0_FRAC" xml:space="preserve">
     <value>Срок наказания истёк, старайтесь больше не нарушать правила Вашей фракции!</value>
   </data>
-  <data name="PUNISHMENT_F0_ORG" xml:space="preserve">
+    <data name="PUNISHMENT_F0_ORG" xml:space="preserve">
     <value>Срок наказания истёк, старайтесь больше не нарушать правила Вашей организации!</value>
   </data>
-  <data name="PUNISHMENT_F1_DEF" xml:space="preserve">
+    <data name="PUNISHMENT_F1_DEF" xml:space="preserve">
     <value>{0} амнистировал Вас!
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_L_R1_DEF" xml:space="preserve">
+    <data name="PUNISHMENT_L_R1_DEF" xml:space="preserve">
     <value>ОСТАЛОСЬ ВРЕМЕНИ: {0}</value>
   </data>
-  <data name="PUNISHMENT_L_MUTE" xml:space="preserve">
+    <data name="PUNISHMENT_L_MUTE" xml:space="preserve">
     <value>Мут</value>
   </data>
-  <data name="PUNISHMENT_S0_MUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S0_MUTE" xml:space="preserve">
     <value>Вам был выдан мут (запрет на использование текстового и голосового чатов) на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_MUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S1_MUTE" xml:space="preserve">
     <value>Администратор {0} выдал Вам мут (запрет на использование текстового и голосового чатов) на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_FMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_L_FMUTE" xml:space="preserve">
     <value>Мут (фракция)</value>
   </data>
-  <data name="PUNISHMENT_S0_FMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S0_FMUTE" xml:space="preserve">
     <value>Вам был выдан мут (запрет на использование чата фракции) на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_FMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S1_FMUTE" xml:space="preserve">
     <value>Сотрудник {0} выдал Вам мут (запрет на использование чата фракции) на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_OMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_L_OMUTE" xml:space="preserve">
     <value>Мут (организация)</value>
   </data>
-  <data name="PUNISHMENT_S0_OMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S0_OMUTE" xml:space="preserve">
     <value>Вам был выдан мут (запрет на использование чата организации) на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_OMUTE" xml:space="preserve">
+    <data name="PUNISHMENT_S1_OMUTE" xml:space="preserve">
     <value>Сотрудник {0} выдал Вам мут (запрет на использование чата организации) на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_WARN" xml:space="preserve">
+    <data name="PUNISHMENT_L_WARN" xml:space="preserve">
     <value>Предупреждение</value>
   </data>
-  <data name="PUNISHMENT_S0_WARN" xml:space="preserve">
+    <data name="PUNISHMENT_S0_WARN" xml:space="preserve">
     <value>Вам было выдано предупреждение!
 
 Причина: {0}</value>
   </data>
-  <data name="PUNISHMENT_S1_WARN" xml:space="preserve">
+    <data name="PUNISHMENT_S1_WARN" xml:space="preserve">
     <value>Администратор {0} выдал Вам предупреждение
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_L_NRPP" xml:space="preserve">
+    <data name="PUNISHMENT_L_NRPP" xml:space="preserve">
     <value>NonRP-тюрьма</value>
   </data>
-  <data name="PUNISHMENT_S0_NRPP" xml:space="preserve">
+    <data name="PUNISHMENT_S0_NRPP" xml:space="preserve">
     <value>Вы были посажены в NonRP-тюрьму на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_NRPP" xml:space="preserve">
+    <data name="PUNISHMENT_S1_NRPP" xml:space="preserve">
     <value>Администратор {0} посадил Вас в NonRP-тюрьму на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_R0_NRPP" xml:space="preserve">
+    <data name="PUNISHMENT_L_R0_NRPP" xml:space="preserve">
     <value>ВЫ НАХОДИТЕСЬ В NONRP-ТЮРЬМЕ</value>
   </data>
-  <data name="PUNISHMENT_L_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_L_RPP1" xml:space="preserve">
     <value>Арест (СИЗО)</value>
   </data>
-  <data name="PUNISHMENT_S0_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_S0_RPP1" xml:space="preserve">
     <value>Вы были арестованы и посажены в СИЗО на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_S1_RPP1" xml:space="preserve">
     <value>Сотрудник {0} посадил Вас в СИЗО на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_U0_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_U0_RPP1" xml:space="preserve">
     <value>Срок Вашего пребывания в СИЗО был увеличен на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_U1_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_U1_RPP1" xml:space="preserve">
     <value>Сотрудник {0} увеличил срок Вашего пребывания в СИЗО на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_D0_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_D0_RPP1" xml:space="preserve">
     <value>Срок Вашего пребывания в СИЗО был уменьшен на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_D1_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_D1_RPP1" xml:space="preserve">
     <value>Сотрудник {0} уменьшил срок Вашего пребывания в СИЗО на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_R0_RPP1" xml:space="preserve">
+    <data name="PUNISHMENT_L_R0_RPP1" xml:space="preserve">
     <value>ВЫ НАХОДИТЕСЬ В СИЗО</value>
   </data>
-  <data name="PUNISHMENT_L_RPP2" xml:space="preserve">
+    <data name="PUNISHMENT_L_RPP2" xml:space="preserve">
     <value>Арест (Федеральная тюрьма)</value>
   </data>
-  <data name="PUNISHMENT_S0_RPP2" xml:space="preserve">
+    <data name="PUNISHMENT_S0_RPP2" xml:space="preserve">
     <value>Вы были арестованы и посажены в Федеральную тюрьму на {0}
 
 Причина: {1}</value>
   </data>
-  <data name="PUNISHMENT_S1_RPP2" xml:space="preserve">
+    <data name="PUNISHMENT_S1_RPP2" xml:space="preserve">
     <value>Сотрудник {0} посадил Вас в Федеральную тюрьму на {1}
 
 Причина: {2}</value>
   </data>
-  <data name="PUNISHMENT_L_R0_RPP2" xml:space="preserve">
+    <data name="PUNISHMENT_L_R0_RPP2" xml:space="preserve">
     <value>ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ</value>
   </data>
-  <data name="SCALEFORM_WASTED_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_WASTED_HEADER" xml:space="preserve">
     <value>~r~Вы при смерти</value>
   </data>
-  <data name="SCALEFORM_WASTED_ATTACKER_P" xml:space="preserve">
+    <data name="SCALEFORM_WASTED_ATTACKER_P" xml:space="preserve">
     <value>Атакующий: {0} | CID: #{1}</value>
   </data>
-  <data name="SCALEFORM_WASTED_ATTACKER_S" xml:space="preserve">
+    <data name="SCALEFORM_WASTED_ATTACKER_S" xml:space="preserve">
     <value>Несчастный случай</value>
   </data>
-  <data name="SCALEFORM_SRANGE_CDOWN_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_SRANGE_CDOWN_HEADER" xml:space="preserve">
     <value>~g~Приготовьтесь!</value>
   </data>
-  <data name="SCALEFORM_SRANGE_CDOWN_CONTENT" xml:space="preserve">
+    <data name="SCALEFORM_SRANGE_CDOWN_CONTENT" xml:space="preserve">
     <value>Начало через: {0}</value>
   </data>
-  <data name="SCALEFORM_SRANGE_SCORE_T" xml:space="preserve">
+    <data name="SCALEFORM_SRANGE_SCORE_T" xml:space="preserve">
     <value>Счёт: {0} / {1}</value>
   </data>
-  <data name="SCALEFORM_SRANGE_ACC_T" xml:space="preserve">
+    <data name="SCALEFORM_SRANGE_ACC_T" xml:space="preserve">
     <value>Точность: {0}%</value>
   </data>
-  <data name="SCALEFORM_SRANGE_H_EXIT" xml:space="preserve">
+    <data name="SCALEFORM_SRANGE_H_EXIT" xml:space="preserve">
     <value>{0} - покинуть тир</value>
   </data>
-  <data name="SCALEFORM_JOB_BUSDRIVER_WAIT_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_JOB_BUSDRIVER_WAIT_HEADER" xml:space="preserve">
     <value>~g~Ожидание пассажиров</value>
   </data>
-  <data name="SCALEFORM_JOB_COLLECTOR_WAIT_0_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_JOB_COLLECTOR_WAIT_0_HEADER" xml:space="preserve">
     <value>~g~Загрузка денег</value>
   </data>
-  <data name="SCALEFORM_JOB_COLLECTOR_WAIT_1_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_JOB_COLLECTOR_WAIT_1_HEADER" xml:space="preserve">
     <value>~g~Выгрузка денег</value>
   </data>
-  <data name="SCALEFORM_JOB_TRUCKER_WAIT_0_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_JOB_TRUCKER_WAIT_0_HEADER" xml:space="preserve">
     <value>~g~Загрузка материалов</value>
   </data>
-  <data name="SCALEFORM_JOB_TRUCKER_WAIT_1_HEADER" xml:space="preserve">
+    <data name="SCALEFORM_JOB_TRUCKER_WAIT_1_HEADER" xml:space="preserve">
     <value>~g~Выгрузка материалов</value>
   </data>
-  <data name="SCALEFORM_JOB_TRUCKER_WAIT_CONTENT" xml:space="preserve">
+    <data name="SCALEFORM_JOB_TRUCKER_WAIT_CONTENT" xml:space="preserve">
     <value>Подождите еще {0} сек.</value>
   </data>
-  <data name="BLIP_MARKETSTALLS" xml:space="preserve">
+    <data name="BLIP_MARKETSTALLS" xml:space="preserve">
     <value>Рынок</value>
   </data>
-  <data name="POLICE_PMASKOFF_S_0" xml:space="preserve">
+    <data name="POLICE_PMASKOFF_S_0" xml:space="preserve">
     <value>Вы сорвали маску с {0}!</value>
   </data>
-  <data name="POLICE_PMASKOFF_S_1" xml:space="preserve">
+    <data name="POLICE_PMASKOFF_S_1" xml:space="preserve">
     <value>{0} сорвал(а) с Вас маску!</value>
   </data>
-  <data name="POLICE_PMASKOFF_E_0" xml:space="preserve">
+    <data name="POLICE_PMASKOFF_E_0" xml:space="preserve">
     <value>Этот человек не находится в маске!</value>
   </data>
-  <data name="POLICE_PTOVEH_L_0" xml:space="preserve">
+    <data name="POLICE_PTOVEH_L_0" xml:space="preserve">
     <value>Место #{0}</value>
   </data>
-  <data name="POLICE_PTOVEH_L_1" xml:space="preserve">
+    <data name="POLICE_PTOVEH_L_1" xml:space="preserve">
     <value>Багажник</value>
   </data>
-  <data name="POLICE_PTOVEH_L_2" xml:space="preserve">
+    <data name="POLICE_PTOVEH_L_2" xml:space="preserve">
     <value>Выбор места в транспорте</value>
   </data>
-  <data name="POLICE_PTOVEH_E_0" xml:space="preserve">
+    <data name="POLICE_PTOVEH_E_0" xml:space="preserve">
     <value>В данном транспорте нет свободных мест, куда можно посадить человека!</value>
   </data>
-  <data name="POLICE_PTOVEH_E_1" xml:space="preserve">
+    <data name="POLICE_PTOVEH_E_1" xml:space="preserve">
     <value>Вы должны вести/нести какого-либо человека!</value>
   </data>
-  <data name="VEHICLE_DOORS_LOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_DOORS_LOCKED_S_0" xml:space="preserve">
     <value>Вы заблокировали двери!</value>
   </data>
-  <data name="VEHICLE_DOORS_UNLOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_DOORS_UNLOCKED_S_0" xml:space="preserve">
     <value>Вы разблокировали двери!</value>
   </data>
-  <data name="VEHICLE_DOORS_LOCKED_E_0" xml:space="preserve">
+    <data name="VEHICLE_DOORS_LOCKED_E_0" xml:space="preserve">
     <value>Двери заблокированы!</value>
   </data>
-  <data name="VEHICLE_TRUNK_LOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_LOCKED_S_0" xml:space="preserve">
     <value>Вы закрыли багажник!</value>
   </data>
-  <data name="VEHICLE_TRUNK_UNLOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_UNLOCKED_S_0" xml:space="preserve">
     <value>Вы открыли багажник!</value>
   </data>
-  <data name="VEHICLE_HOOD_LOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_HOOD_LOCKED_S_0" xml:space="preserve">
     <value>Вы закрыли капот!</value>
   </data>
-  <data name="VEHICLE_HOOD_UNLOCKED_S_0" xml:space="preserve">
+    <data name="VEHICLE_HOOD_UNLOCKED_S_0" xml:space="preserve">
     <value>Вы открыли капот!</value>
   </data>
-  <data name="VEHICLE_LGEAR_ON_S_0" xml:space="preserve">
+    <data name="VEHICLE_LGEAR_ON_S_0" xml:space="preserve">
     <value>Вы выпустили шасси!</value>
   </data>
-  <data name="VEHICLE_LGEAR_OFF_S_0" xml:space="preserve">
+    <data name="VEHICLE_LGEAR_OFF_S_0" xml:space="preserve">
     <value>Вы убрали шасси!</value>
   </data>
-  <data name="VEHICLE_ENGINE_ON_S_0" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_ON_S_0" xml:space="preserve">
     <value>Вы запустили двигатель!</value>
   </data>
-  <data name="VEHICLE_ENGINE_OFF_S_0" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_OFF_S_0" xml:space="preserve">
     <value>Вы заглушили двигатель!</value>
   </data>
-  <data name="VEHICLE_FUEL_OUTOF_S_0" xml:space="preserve">
+    <data name="VEHICLE_FUEL_OUTOF_S_0" xml:space="preserve">
     <value>В транспорте закончилось топливо!</value>
   </data>
-  <data name="VEHICLE_ENGINE_BROKEN_S_0" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_BROKEN_S_0" xml:space="preserve">
     <value>Не удалось запустить двигатель!</value>
   </data>
-  <data name="VEHICLE_ENGINE_BROKEN_S_1" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_BROKEN_S_1" xml:space="preserve">
     <value>Двигатель заглох!</value>
   </data>
-  <data name="POLICE_PFROMVEH_E_0" xml:space="preserve">
+    <data name="POLICE_PFROMVEH_E_0" xml:space="preserve">
     <value>В этом транспорте нет ни одного человека, которого можно было бы вытащить!</value>
   </data>
-  <data name="POLICE_PFROMVEH_L_0" xml:space="preserve">
+    <data name="POLICE_PFROMVEH_L_0" xml:space="preserve">
     <value>Вытащить человека</value>
   </data>
-  <data name="VEHICLE_TRUNK_LOCKED_E_0" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_LOCKED_E_0" xml:space="preserve">
     <value>Багажник закрыт!</value>
   </data>
-  <data name="VEHICLE_TRUNK_LOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_LOCKED_E_1" xml:space="preserve">
     <value>Багажник уже закрыт!</value>
   </data>
-  <data name="VEHICLE_TRUNK_UNLOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_UNLOCKED_E_1" xml:space="preserve">
     <value>Багажник уже открыт!</value>
   </data>
-  <data name="VEHICLE_ENGINE_ON_E_1" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_ON_E_1" xml:space="preserve">
     <value>Двигатель уже запущен!</value>
   </data>
-  <data name="VEHICLE_ENGINE_OFF_E_1" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_OFF_E_1" xml:space="preserve">
     <value>Двигатель уже заглушен!</value>
   </data>
-  <data name="VEHICLE_DOORS_LOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_DOORS_LOCKED_E_1" xml:space="preserve">
     <value>Двери уже заблокированы!</value>
   </data>
-  <data name="VEHICLE_DOORS_UNLOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_DOORS_UNLOCKED_E_1" xml:space="preserve">
     <value>Двери уже разблокированы!</value>
   </data>
-  <data name="VEHICLE_HOOD_LOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_HOOD_LOCKED_E_1" xml:space="preserve">
     <value>Капот уже закрыт!</value>
   </data>
-  <data name="VEHICLE_HOOD_UNLOCKED_E_1" xml:space="preserve">
+    <data name="VEHICLE_HOOD_UNLOCKED_E_1" xml:space="preserve">
     <value>Капот уже открыт!</value>
   </data>
-  <data name="VEHICLE_TRUNK_E_0" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_E_0" xml:space="preserve">
     <value>В этом транспорте нет багажника!</value>
   </data>
-  <data name="VEHICLE_TRUNK_E_1" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_E_1" xml:space="preserve">
     <value>В этом транспорте нет физического багажника!</value>
   </data>
-  <data name="VEHICLE_ENGINE_ON_E_2" xml:space="preserve">
+    <data name="VEHICLE_ENGINE_ON_E_2" xml:space="preserve">
     <value>Двигатель не заглушен!</value>
   </data>
-  <data name="VEHICLE_TRUNK_E_2" xml:space="preserve">
+    <data name="VEHICLE_TRUNK_E_2" xml:space="preserve">
     <value>Кто-то уже находится в багажнике!</value>
   </data>
-  <data name="VEHICLE_SEAT_E_0" xml:space="preserve">
+    <data name="VEHICLE_SEAT_E_0" xml:space="preserve">
     <value>Нет ни одного свободного места!</value>
   </data>
-  <data name="VEHICLE_SEAT_E_1" xml:space="preserve">
+    <data name="VEHICLE_SEAT_E_1" xml:space="preserve">
     <value>Нет ни одного пассажира!</value>
   </data>
-  <data name="VEHICLE_SEAT_E_2" xml:space="preserve">
+    <data name="VEHICLE_SEAT_E_2" xml:space="preserve">
     <value>Кто-то уже сидит в этом месте!</value>
   </data>
-  <data name="VEHICLE_SEAT_E_3" xml:space="preserve">
+    <data name="VEHICLE_SEAT_E_3" xml:space="preserve">
     <value>Пересаживаться могут только пассажиры!</value>
   </data>
-  <data name="VEHICLE_BELT_E_0" xml:space="preserve">
+    <data name="VEHICLE_BELT_E_0" xml:space="preserve">
     <value>Вы пристегнуты!
 Отстегните ремень, чтобы выйти</value>
   </data>
-  <data name="VEHICLE_BELT_E_1" xml:space="preserve">
+    <data name="VEHICLE_BELT_E_1" xml:space="preserve">
     <value>Вы пристегнуты!
 Отстегните ремень, чтобы пересесть</value>
   </data>
-  <data name="POLICE_VSEARCH_L_0" xml:space="preserve">
+    <data name="POLICE_VSEARCH_L_0" xml:space="preserve">
     <value>Обыск {0}</value>
   </data>
-  <data name="POLICE_VSEARCH_L_O_0" xml:space="preserve">
+    <data name="POLICE_VSEARCH_L_O_0" xml:space="preserve">
     <value>Предметы (багажник)</value>
   </data>
-  <data name="VEHICLE_NP_NONE" xml:space="preserve">
+    <data name="VEHICLE_NP_NONE" xml:space="preserve">
     <value>без номерного знака</value>
   </data>
-  <data name="POLICE_VSEARCH_L_1" xml:space="preserve">
+    <data name="POLICE_VSEARCH_L_1" xml:space="preserve">
     <value>Предметы {0}</value>
   </data>
-  <data name="ACTIONBOX_BTN_CONFISCATE_0" xml:space="preserve">
+    <data name="ACTIONBOX_BTN_CONFISCATE_0" xml:space="preserve">
     <value>Изъять</value>
   </data>
-  <data name="ACTIONBOX_BTN_BACK_0" xml:space="preserve">
+    <data name="ACTIONBOX_BTN_BACK_0" xml:space="preserve">
     <value>Назад</value>
   </data>
-  <data name="ACTIONBOX_BTN_DOCSLOOK_0" xml:space="preserve">
+    <data name="ACTIONBOX_BTN_DOCSLOOK_0" xml:space="preserve">
     <value>Посмотреть</value>
   </data>
-  <data name="CHAT_MSG_TODO_E_0" xml:space="preserve">
+    <data name="CHAT_MSG_TODO_E_0" xml:space="preserve">
     <value>Сообщение должно быть в следующем виде:
 /todo Фраза*Действие</value>
   </data>
-  <data name="AUTH_CHARCREATE_E_0" xml:space="preserve">
+    <data name="AUTH_CHARCREATE_E_0" xml:space="preserve">
     <value>Такая комбинация имени и фамилии уже используется кем-то!</value>
   </data>
-  <data name="DISCORD_L_HEADER_0" xml:space="preserve">
+    <data name="DISCORD_L_HEADER_0" xml:space="preserve">
     <value>Играет на Blaine RP</value>
   </data>
-  <data name="DISCORD_L_LOGIN_0" xml:space="preserve">
+    <data name="DISCORD_L_LOGIN_0" xml:space="preserve">
     <value>Входит в аккаунт</value>
   </data>
-  <data name="DISCORD_L_REG_0" xml:space="preserve">
+    <data name="DISCORD_L_REG_0" xml:space="preserve">
     <value>Проходит регистрацию</value>
   </data>
-  <data name="DISCORD_L_CHARSEL_0" xml:space="preserve">
+    <data name="DISCORD_L_CHARSEL_0" xml:space="preserve">
     <value>Выбирает персонажа</value>
   </data>
-  <data name="POLICE_CUFFS_LOCKPICK_0" xml:space="preserve">
+    <data name="POLICE_CUFFS_LOCKPICK_0" xml:space="preserve">
     <value>Вы взломали замок наручников!</value>
   </data>
-  <data name="POLICE_CUFFS_LOCKPICK_1" xml:space="preserve">
+    <data name="POLICE_CUFFS_LOCKPICK_1" xml:space="preserve">
     <value>Отмычка сломалась! Попробуйте еще раз
 
 Отмычек осталось: {0}</value>
   </data>
-  <data name="GEN_TIMESPAN_YEARS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_YEARS_0" xml:space="preserve">
     <value>{0} год(а)</value>
   </data>
-  <data name="GEN_TIMESPAN_YEARS_1" xml:space="preserve">
+    <data name="GEN_TIMESPAN_YEARS_1" xml:space="preserve">
     <value>долгие годы</value>
   </data>
-  <data name="GEN_TIMESPAN_HOURS_MINS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_HOURS_MINS_0" xml:space="preserve">
     <value>{0} ч. и {1} мин.</value>
   </data>
-  <data name="GEN_TIMESPAN_HOURS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_HOURS_0" xml:space="preserve">
     <value>{0} ч.</value>
   </data>
-  <data name="GEN_TIMESPAN_DAYS_HOURS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_DAYS_HOURS_0" xml:space="preserve">
     <value>{0} дн. и {1} ч.</value>
   </data>
-  <data name="GEN_TIMESPAN_DAYS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_DAYS_0" xml:space="preserve">
     <value>{0} дн.</value>
   </data>
-  <data name="GEN_TIMESPAN_MINS_SECS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_MINS_SECS_0" xml:space="preserve">
     <value>{0} мин. и {1} сек.</value>
   </data>
-  <data name="GEN_TIMESPAN_SECS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_SECS_0" xml:space="preserve">
     <value>{0} сек.</value>
   </data>
-  <data name="GEN_TIMESPAN_MINS_0" xml:space="preserve">
+    <data name="GEN_TIMESPAN_MINS_0" xml:space="preserve">
     <value>{0} мин.</value>
   </data>
-  <data name="GEN_MONEY_0" xml:space="preserve">
+    <data name="GEN_MONEY_0" xml:space="preserve">
     <value>${0:n0}</value>
   </data>
-  <data name="GEN_CHIPS_0" xml:space="preserve">
+    <data name="GEN_CHIPS_0" xml:space="preserve">
     <value>{0:n0} фишек</value>
   </data>
-  <data name="GEN_MONEY_1" xml:space="preserve">
+    <data name="GEN_MONEY_1" xml:space="preserve">
     <value>{0:n0}</value>
   </data>
-  <data name="GEN_CHIPS_1" xml:space="preserve">
+    <data name="GEN_CHIPS_1" xml:space="preserve">
     <value>{0:n0}</value>
   </data>
-  <data name="CASINO_BET_E_0" xml:space="preserve">
+    <data name="CASINO_BET_E_0" xml:space="preserve">
     <value>Здесь разрешены ставки от {0} до {1} фишек</value>
   </data>
-  <data name="GEN_MONEY_ADD_0" xml:space="preserve">
+    <data name="GEN_MONEY_ADD_0" xml:space="preserve">
     <value>+${0:n0}</value>
   </data>
-  <data name="GEN_MONEY_REMOVE_0" xml:space="preserve">
+    <data name="GEN_MONEY_REMOVE_0" xml:space="preserve">
     <value>-${0:n0}</value>
   </data>
-  <data name="NTFC_MONEY_CASH_0" xml:space="preserve">
+    <data name="NTFC_MONEY_CASH_0" xml:space="preserve">
     <value>Всего наличных: {0}</value>
   </data>
-  <data name="NTFC_MONEY_BANK_0" xml:space="preserve">
+    <data name="NTFC_MONEY_BANK_0" xml:space="preserve">
     <value>Всего на счёте: {0}</value>
   </data>
-  <data name="MEDCARD_DIAGNOSIS_0" xml:space="preserve">
+    <data name="MEDCARD_DIAGNOSIS_0" xml:space="preserve">
     <value>[A] полностью здоров(а)</value>
   </data>
-  <data name="MEDCARD_DIAGNOSIS_1" xml:space="preserve">
+    <data name="MEDCARD_DIAGNOSIS_1" xml:space="preserve">
     <value>[B1] I степень наркотической зависимости</value>
   </data>
-  <data name="MEDCARD_DIAGNOSIS_2" xml:space="preserve">
+    <data name="MEDCARD_DIAGNOSIS_2" xml:space="preserve">
     <value>[B2] II степень наркотической зависимости</value>
   </data>
-  <data name="MEDCARD_DIAGNOSIS_3" xml:space="preserve">
+    <data name="MEDCARD_DIAGNOSIS_3" xml:space="preserve">
     <value>[B3] III степень наркотической зависимости</value>
   </data>
-  <data name="EMS_DIAGNOSTICS_TEXT_0" xml:space="preserve">
+    <data name="EMS_DIAGNOSTICS_TEXT_0" xml:space="preserve">
     <value>Здоровье: {0}%
 Настроение: {1}%
 Сытость: {2}%
@@ -1236,160 +1242,160 @@ CID: #{2} | ID: {3}</value>
 
 Предварительное заключение: {5}</value>
   </data>
-  <data name="GEN_TEXT_YES_0" xml:space="preserve">
+    <data name="GEN_TEXT_YES_0" xml:space="preserve">
     <value>да</value>
   </data>
-  <data name="GEN_TEXT_NO_0" xml:space="preserve">
+    <data name="GEN_TEXT_NO_0" xml:space="preserve">
     <value>нет</value>
   </data>
-  <data name="EMS_DIAGNOSTICS_TEXT_L" xml:space="preserve">
+    <data name="EMS_DIAGNOSTICS_TEXT_L" xml:space="preserve">
     <value>Проверка {0}</value>
   </data>
-  <data name="NTFC_ITEMS_NO_MED_KIT_RESURRECT_0" xml:space="preserve">
+    <data name="NTFC_ITEMS_NO_MED_KIT_RESURRECT_0" xml:space="preserve">
     <value>У Вас в инвентаре нет ни одного предмета, с помощью которого можно реанимировать человека!</value>
   </data>
-  <data name="NTFC_PLAYER_RESURRECT_E_0" xml:space="preserve">
+    <data name="NTFC_PLAYER_RESURRECT_E_0" xml:space="preserve">
     <value>Этот игрок сейчас не нуждается в первой медицинской помощи!</value>
   </data>
-  <data name="WEAPONCOMPONENT_SUPPRESSOR_INV_TAKEOFF_0" xml:space="preserve">
+    <data name="WEAPONCOMPONENT_SUPPRESSOR_INV_TAKEOFF_0" xml:space="preserve">
     <value>Снять глушитель</value>
   </data>
-  <data name="WEAPONCOMPONENT_FLASHLIGHT_INV_TAKEOFF_0" xml:space="preserve">
+    <data name="WEAPONCOMPONENT_FLASHLIGHT_INV_TAKEOFF_0" xml:space="preserve">
     <value>Снять фонарик</value>
   </data>
-  <data name="WEAPONCOMPONENT_GRIP_INV_TAKEOFF_0" xml:space="preserve">
+    <data name="WEAPONCOMPONENT_GRIP_INV_TAKEOFF_0" xml:space="preserve">
     <value>Снять рукоятку</value>
   </data>
-  <data name="WEAPONCOMPONENT_SCOPE_INV_TAKEOFF_0" xml:space="preserve">
+    <data name="WEAPONCOMPONENT_SCOPE_INV_TAKEOFF_0" xml:space="preserve">
     <value>Снять прицел</value>
   </data>
-  <data name="HUD_MENU_I_MENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_MENU_NAME_0" xml:space="preserve">
     <value>Меню</value>
   </data>
-  <data name="HUD_MENU_I_DOCUMENTS_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_DOCUMENTS_NAME_0" xml:space="preserve">
     <value>Документы</value>
   </data>
-  <data name="HUD_MENU_I_INVENTORY_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_INVENTORY_NAME_0" xml:space="preserve">
     <value>Инвентарь</value>
   </data>
-  <data name="HUD_MENU_I_PHONE_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_PHONE_NAME_0" xml:space="preserve">
     <value>Телефон</value>
   </data>
-  <data name="HUD_MENU_I_TABLETPC_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_TABLETPC_NAME_0" xml:space="preserve">
     <value>Служебный планшет</value>
   </data>
-  <data name="HUD_MENU_I_FRACMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_FRACMENU_NAME_0" xml:space="preserve">
     <value>Меню фракции</value>
   </data>
-  <data name="HUD_MENU_I_JOBMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_JOBMENU_NAME_0" xml:space="preserve">
     <value>Меню работы</value>
   </data>
-  <data name="HUD_MENU_I_HOUSEMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_HOUSEMENU_NAME_0" xml:space="preserve">
     <value>Меню дома</value>
   </data>
-  <data name="HUD_MENU_I_APSMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_APSMENU_NAME_0" xml:space="preserve">
     <value>Меню квартиры</value>
   </data>
-  <data name="HUD_MENU_I_ANIMMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_ANIMMENU_NAME_0" xml:space="preserve">
     <value>Меню анимаций</value>
   </data>
-  <data name="HUD_MENU_I_BLIPSMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_BLIPSMENU_NAME_0" xml:space="preserve">
     <value>Меню меток</value>
   </data>
-  <data name="HUD_MENU_I_WSKINSMENU_NAME_0" xml:space="preserve">
+    <data name="HUD_MENU_I_WSKINSMENU_NAME_0" xml:space="preserve">
     <value>Раскраски оружия</value>
   </data>
-  <data name="SKILLS_STRENGTH_NAME_0" xml:space="preserve">
+    <data name="SKILLS_STRENGTH_NAME_0" xml:space="preserve">
     <value>Сила</value>
   </data>
-  <data name="SKILLS_SHOOTING_NAME_0" xml:space="preserve">
+    <data name="SKILLS_SHOOTING_NAME_0" xml:space="preserve">
     <value>Стрельба</value>
   </data>
-  <data name="SKILLS_COOKING_NAME_0" xml:space="preserve">
+    <data name="SKILLS_COOKING_NAME_0" xml:space="preserve">
     <value>Кулинария</value>
   </data>
-  <data name="SKILLS_FISHING_NAME_0" xml:space="preserve">
+    <data name="SKILLS_FISHING_NAME_0" xml:space="preserve">
     <value>Рыболовство</value>
   </data>
-  <data name="SKILLS_STRENGTH_NAME_1" xml:space="preserve">
+    <data name="SKILLS_STRENGTH_NAME_1" xml:space="preserve">
     <value>Силы</value>
   </data>
-  <data name="SKILLS_SHOOTING_NAME_1" xml:space="preserve">
+    <data name="SKILLS_SHOOTING_NAME_1" xml:space="preserve">
     <value>Стрельбы</value>
   </data>
-  <data name="SKILLS_FISHING_NAME_1" xml:space="preserve">
+    <data name="SKILLS_FISHING_NAME_1" xml:space="preserve">
     <value>Рыболовства</value>
   </data>
-  <data name="SKILLS_COOKING_NAME_1" xml:space="preserve">
+    <data name="SKILLS_COOKING_NAME_1" xml:space="preserve">
     <value>Кулинарии</value>
   </data>
-  <data name="LICENSES_M_NAME_0" xml:space="preserve">
+    <data name="LICENSES_M_NAME_0" xml:space="preserve">
     <value>M (мопеды)</value>
   </data>
-  <data name="LICENSES_A_NAME_0" xml:space="preserve">
+    <data name="LICENSES_A_NAME_0" xml:space="preserve">
     <value>A (мотоциклы)</value>
   </data>
-  <data name="LICENSES_B_NAME_0" xml:space="preserve">
+    <data name="LICENSES_B_NAME_0" xml:space="preserve">
     <value>B (легковой транспорт)</value>
   </data>
-  <data name="LICENSES_C_NAME_0" xml:space="preserve">
+    <data name="LICENSES_C_NAME_0" xml:space="preserve">
     <value>C (грузовой транспорт)</value>
   </data>
-  <data name="LICENSES_D_NAME_0" xml:space="preserve">
+    <data name="LICENSES_D_NAME_0" xml:space="preserve">
     <value>D (маршрутный транспорт)</value>
   </data>
-  <data name="LICENSES_FLY_NAME_0" xml:space="preserve">
+    <data name="LICENSES_FLY_NAME_0" xml:space="preserve">
     <value>Fly (воздушный транспорт)</value>
   </data>
-  <data name="LICENSES_SEA_NAME_0" xml:space="preserve">
+    <data name="LICENSES_SEA_NAME_0" xml:space="preserve">
     <value>Sea (водный транспорт)</value>
   </data>
-  <data name="LICENSES_WEAPONS_NAME_0" xml:space="preserve">
+    <data name="LICENSES_WEAPONS_NAME_0" xml:space="preserve">
     <value>Владение оружием</value>
   </data>
-  <data name="LICENSES_HUNTING_NAME_0" xml:space="preserve">
+    <data name="LICENSES_HUNTING_NAME_0" xml:space="preserve">
     <value>Лицензия на охоту</value>
   </data>
-  <data name="LICENSES_BUSINESS_NAME_0" xml:space="preserve">
+    <data name="LICENSES_BUSINESS_NAME_0" xml:space="preserve">
     <value>Владение бизнесом</value>
   </data>
-  <data name="LICENSES_LAWYER_NAME_0" xml:space="preserve">
+    <data name="LICENSES_LAWYER_NAME_0" xml:space="preserve">
     <value>Адвокатская деятельность</value>
   </data>
-  <data name="ACHIEVEMENTS_SR1_NAME_0" xml:space="preserve">
+    <data name="ACHIEVEMENTS_SR1_NAME_0" xml:space="preserve">
     <value>В яблочко!</value>
   </data>
-  <data name="ACHIEVEMENTS_SR1_DESC_0" xml:space="preserve">
+    <data name="ACHIEVEMENTS_SR1_DESC_0" xml:space="preserve">
     <value>Получите навык стрельбы 80 в тире</value>
   </data>
-  <data name="ACHIEVEMENTS_SR2_NAME_0" xml:space="preserve">
+    <data name="ACHIEVEMENTS_SR2_NAME_0" xml:space="preserve">
     <value>Концентрация</value>
   </data>
-  <data name="ACHIEVEMENTS_SR2_DESC_0" xml:space="preserve">
+    <data name="ACHIEVEMENTS_SR2_DESC_0" xml:space="preserve">
     <value>Продержите точность 100% в тире при навыке стрельбы 100</value>
   </data>
-  <data name="BLIPS_DEF_GPS_NAME_0" xml:space="preserve">
+    <data name="BLIPS_DEF_GPS_NAME_0" xml:space="preserve">
     <value>GPS-отметка</value>
   </data>
-  <data name="BLIPS_DEF_FURNITURE_NAME_0" xml:space="preserve">
+    <data name="BLIPS_DEF_FURNITURE_NAME_0" xml:space="preserve">
     <value>Мебель</value>
   </data>
-  <data name="BLIPS_DEF_AUTOPILOT_NAME_0" xml:space="preserve">
+    <data name="BLIPS_DEF_AUTOPILOT_NAME_0" xml:space="preserve">
     <value>Цель автопилота</value>
   </data>
-  <data name="BLIP_GEN_GPS_ADDED_0" xml:space="preserve">
+    <data name="BLIP_GEN_GPS_ADDED_0" xml:space="preserve">
     <value>Местоположение отмечено у вас на карте!</value>
   </data>
-  <data name="NOTIFICATION_HEADER_GPS" xml:space="preserve">
+    <data name="NOTIFICATION_HEADER_GPS" xml:space="preserve">
     <value>GPS</value>
   </data>
-  <data name="BLIP_GEN_GPS_FINISHED_0" xml:space="preserve">
+    <data name="BLIP_GEN_GPS_FINISHED_0" xml:space="preserve">
     <value>Вы достигли точки маршрута!</value>
   </data>
-  <data name="ANTISPAM_TEXT_0" xml:space="preserve">
+    <data name="ANTISPAM_TEXT_0" xml:space="preserve">
     <value>Не так быстро!</value>
   </data>
-  <data name="ANTISPAM_TEXT_1" xml:space="preserve">
+    <data name="ANTISPAM_TEXT_1" xml:space="preserve">
     <value>Прекратите спаммить!\nВ случае продолжения, вы будете кикнуты!\nВаш лимит: {0}/{1}</value>
   </data>
 </root>

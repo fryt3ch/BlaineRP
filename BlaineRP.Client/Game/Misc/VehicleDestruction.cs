@@ -27,13 +27,15 @@ namespace BlaineRP.Client.Game.Misc
                         if (Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                             Notification.ShowHint(
                                 $"Чтобы продать транспорт, выйдите из него, находитесь рядом с ним и смотрите на него, далее нажмите {Input.Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт",
-                                true);
+                                true
+                            );
                     }
                     else
                     {
                         Notification.ShowHint(
                             $"Чтобы продать транспорт, смотрите на него, находясь рядом с ним, и нажмите {Input.Core.Get(BindTypes.Interaction).GetKeyString()} - Прочее - Свалка\n\nВам будет предложена сумма, которую Вы сможете получить за этот транспорт",
-                            true);
+                            true
+                        );
                     }
                 },
                 OnExit = OnColshapeExit,
@@ -46,7 +48,8 @@ namespace BlaineRP.Client.Game.Misc
                 Vector3.Zero,
                 new RGBA(255, 255, 255, 125),
                 true,
-                Settings.App.Static.MainDimension);
+                Settings.App.Static.MainDimension
+            );
         }
 
         private static void OnColshapeExit(Events.CancelEventArgs cancel)
@@ -66,16 +69,16 @@ namespace BlaineRP.Client.Game.Misc
                 return;
             }
 
-            var posId = Player.LocalPlayer.GetData<int>("VehicleDestruction::Id");
+            int posId = Player.LocalPlayer.GetData<int>("VehicleDestruction::Id");
 
             var vData = VehicleData.GetData(veh);
 
             if (vData == null)
                 return;
 
-            var vDataData = vData.Data;
+            Data.Vehicles.Vehicle vDataData = vData.Data;
 
-            var res = await Events.CallRemoteProc("Vehicles::VDGP", veh, posId);
+            object res = await Events.CallRemoteProc("Vehicles::VDGP", veh, posId);
 
             if (res == null)
                 return;
@@ -101,7 +104,8 @@ namespace BlaineRP.Client.Game.Misc
 
                     ActionBox.Close(true);
                 },
-                null);
+                null
+            );
         }
     }
 }

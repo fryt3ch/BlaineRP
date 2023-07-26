@@ -11,12 +11,14 @@ namespace BlaineRP.Client.Game.Management
 
         public RageStorage()
         {
-            Events.Add("Storage::Temp", (object[] args) =>
-            {
-                LastData = (string)args[0];
+            Events.Add("Storage::Temp",
+                (object[] args) =>
+                {
+                    LastData = (string)args[0];
 
-                GotData = true;
-            });
+                    GotData = true;
+                }
+            );
         }
 
         /// <summary>Получить данные из ПК игрока</summary>
@@ -29,7 +31,9 @@ namespace BlaineRP.Client.Game.Management
             Invoker.JsEval($"mp.events.callLocal(\"Storage::Temp\", mp.storage.data.{key.Replace("::", "_")});");
 
             while (!GotData)
+            {
                 RAGE.Game.Invoker.Wait(0);
+            }
 
             return LastData != null ? RAGE.Util.Json.Deserialize<T>(LastData) : default(T);
         }
@@ -38,6 +42,9 @@ namespace BlaineRP.Client.Game.Management
         /// <typeparam name="T"></typeparam>
         /// <param name="key">Ключ (разделитель - ::)</param>
         /// <param name="value">Значение</param>
-        public static void SetData<T>(string key, T value) => Invoker.JsEval($"mp.storage.data.{key.Replace("::", "_")} = '{RAGE.Util.Json.Serialize(value)}';");
+        public static void SetData<T>(string key, T value)
+        {
+            Invoker.JsEval($"mp.storage.data.{key.Replace("::", "_")} = '{RAGE.Util.Json.Serialize(value)}';");
+        }
     }
 }

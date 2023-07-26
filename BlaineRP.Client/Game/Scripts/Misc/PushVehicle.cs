@@ -14,30 +14,31 @@ namespace BlaineRP.Client.Game.Scripts.Misc
     {
         private static DateTime LastSwitchTime;
 
-        public static bool Toggled { get; private set; }
-
         private static readonly PlayerActions.Types[] ActionsToCheck = new[]
         {
             PlayerActions.Types.Knocked,
             PlayerActions.Types.Frozen,
             PlayerActions.Types.Cuffed,
-
             PlayerActions.Types.Finger,
-
             PlayerActions.Types.Animation,
             PlayerActions.Types.FastAnimation,
             PlayerActions.Types.Scenario,
-
             PlayerActions.Types.InVehicle,
             PlayerActions.Types.InWater,
-            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading,
-            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot,
+            PlayerActions.Types.Shooting,
+            PlayerActions.Types.Reloading,
+            PlayerActions.Types.Climbing,
+            PlayerActions.Types.Falling,
+            PlayerActions.Types.Ragdoll,
+            PlayerActions.Types.Jumping,
+            PlayerActions.Types.NotOnFoot,
         };
 
         public PushVehicle()
         {
-
         }
+
+        public static bool Toggled { get; private set; }
 
         public static void Toggle(Vehicle vehicle = null)
         {
@@ -45,13 +46,9 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                 return;
 
             if (!Toggled)
-            {
                 On(false, vehicle);
-            }
             else
-            {
                 Off();
-            }
 
             LastSwitchTime = Core.ServerTime;
         }
@@ -79,9 +76,7 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                 }
 
                 if (data.ForcedSpeed > 0f)
-                {
                     return;
-                }
 
                 Crouch.Off();
                 Crawl.Off();

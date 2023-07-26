@@ -17,8 +17,8 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
     {
         public Bank()
         {
-            new Dialogue("bank_preprocess", null,
-
+            new Dialogue("bank_preprocess",
+                null,
                 async (args) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -29,7 +29,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var hasAccount = (bool?)await Events.CallRemoteProc("Bank::HasAccount") == true;
+                    bool hasAccount = (bool?)await Events.CallRemoteProc("Bank::HasAccount") == true;
 
                     if (NPC.CurrentNPC == null)
                         return;
@@ -37,179 +37,259 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     var btns = new List<Button>();
 
                     if (hasAccount)
-                    {
-                        btns.Add(new Button("[Перейти к управлению счетом]", () =>
-                        {
-                            if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
-                            {
-                                if (NPC.LastSent.IsSpam(1000, false, false))
-                                    return;
+                        btns.Add(new Button("[Перейти к управлению счетом]",
+                                () =>
+                                {
+                                    if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
+                                    {
+                                        if (NPC.LastSent.IsSpam(1000, false, false))
+                                            return;
 
-                                Events.CallRemote("Bank::Show", false, bankData.Id);
-                            }
-                        }));
-                    }
+                                        Events.CallRemote("Bank::Show", false, bankData.Id);
+                                    }
+                                }
+                            )
+                        );
                     else
-                    {
-                        btns.Add(new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }));
-                    }
+                        btns.Add(new Button("Да, хочу стать клиентом вашего банка",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_no_account_1");
+                                }
+                            )
+                        );
 
                     if (pData.OwnedHouses.FirstOrDefault() is House house)
-                        btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }));
+                        btns.Add(new Button("[Счет дома]",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house",
+                                        false,
+                                        new object[]
+                                        {
+                                            house,
+                                        }
+                                    );
+                                }
+                            )
+                        );
 
                     if (pData.OwnedApartments.FirstOrDefault() is Apartments aps)
-                        btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }));
+                        btns.Add(new Button("[Счет квартиры]",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps",
+                                        false,
+                                        new object[]
+                                        {
+                                            aps,
+                                        }
+                                    );
+                                }
+                            )
+                        );
 
                     if (pData.OwnedGarages.FirstOrDefault() is Garage garage)
-                        btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }));
+                        btns.Add(new Button("[Счет гаража]",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage",
+                                        false,
+                                        new object[]
+                                        {
+                                            garage,
+                                        }
+                                    );
+                                }
+                            )
+                        );
 
                     if (pData.OwnedBusinesses.FirstOrDefault() is Business biz)
-                        btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
+                        btns.Add(new Button("[Счет бизнеса]",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business",
+                                        false,
+                                        new object[]
+                                        {
+                                            biz,
+                                        }
+                                    );
+                                }
+                            )
+                        );
 
                     if (pData.CurrentFraction is Game.Fractions.Fraction fraction)
-                        btns.Add(new Button("[Счет фракции]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_fraction", false, new object[] { fraction }); }));
+                        btns.Add(new Button("[Счет фракции]",
+                                () =>
+                                {
+                                    NPC.CurrentNPC?.ShowDialogue("bank_preprocess_fraction",
+                                        false,
+                                        new object[]
+                                        {
+                                            fraction,
+                                        }
+                                    );
+                                }
+                            )
+                        );
 
                     btns.Add(Button.DefaultExitButton);
 
-                    var dg = AllDialogues[hasAccount ? "bank_has_account" : "bank_no_account_0"];
+                    Dialogue dg = AllDialogues[hasAccount ? "bank_has_account" : "bank_no_account_0"];
 
                     dg.Buttons = btns;
 
                     NPC.CurrentNPC.ShowDialogue(dg.Id);
-                });
+                }
+            );
 
-            new Dialogue("bank_preprocess_house", null,
-
+            new Dialogue("bank_preprocess_house",
+                null,
                 async (args) =>
-            {
-                var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                if (NPC.CurrentNPC == null)
-                    return;
-
-                var houseData = (House)args[0];
-
-                var data = ((string)await Events.CallRemoteProc("Bank::GHA", houseData.Id))?.Split('_');
-
-                if (NPC.CurrentNPC == null)
-                    return;
-
-                if (data == null)
-                    CloseCurrentDialogue();
-
-                var balance = ulong.Parse(data[0]);
-                var maxPaidDays = uint.Parse(data[1]);
-                var minPaidDays = uint.Parse(data[2]);
-
-                var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * houseData.Tax;
-                var minBalance = minPaidDays * houseData.Tax;
-
-                var hoursLeft = balance / houseData.Tax;
-
-                var currentDate = World.Core.ServerTime;
-
-                var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
-
-                var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
-
-                var timeLeft = targetDate.Subtract(currentDate);
-
-                var enoughBalance = timeLeft.Hours > 0;
-
-                var btns = new List<Button>();
-
-                btns.Add(new Button("[Пополнить счет]", async () =>
                 {
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    if (balance >= maxBalance)
-                    {
-                        Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                    var houseData = (House)args[0];
 
-                        return;
-                    }
+                    string[] data = ((string)await Events.CallRemoteProc("Bank::GHA", houseData.Id))?.Split('_');
 
-                    var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
-
-                    if (nBalance == 0)
-                    {
-                        Notification.ShowError(Locale.Notifications.Money.NotEnough);
-
-                        return;
-                    }
-
-                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
-
-                    if (bank == null)
+                    if (NPC.CurrentNPC == null)
                         return;
 
-                    NPC.CurrentNPC.SwitchDialogue(false);
+                    if (data == null)
+                        CloseCurrentDialogue();
 
-                    await ActionBox.ShowRange
-                    (
-                        "HouseBalanceChange", Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+                    var balance = ulong.Parse(data[0]);
+                    var maxPaidDays = uint.Parse(data[1]);
+                    var minPaidDays = uint.Parse(data[2]);
 
-                        ActionBox.DefaultBindAction,
+                    ulong maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * houseData.Tax;
+                    uint minBalance = minPaidDays * houseData.Tax;
 
-                        (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, true),
+                    ulong hoursLeft = balance / houseData.Tax;
 
-                        null
+                    DateTime currentDate = World.Core.ServerTime;
+
+                    var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
+
+                    DateTime targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
+
+                    TimeSpan timeLeft = targetDate.Subtract(currentDate);
+
+                    bool enoughBalance = timeLeft.Hours > 0;
+
+                    var btns = new List<Button>();
+
+                    btns.Add(new Button("[Пополнить счет]",
+                            async () =>
+                            {
+                                if (NPC.CurrentNPC == null)
+                                    return;
+
+                                if (balance >= maxBalance)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+
+                                    return;
+                                }
+
+                                ulong nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
+
+                                if (nBalance == 0)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.NotEnough);
+
+                                    return;
+                                }
+
+                                var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+
+                                if (bank == null)
+                                    return;
+
+                                NPC.CurrentNPC.SwitchDialogue(false);
+
+                                await ActionBox.ShowRange("HouseBalanceChange",
+                                    Locale.Actions.HouseBalanceDeposit,
+                                    0,
+                                    nBalance,
+                                    nBalance / 2,
+                                    houseData.Tax,
+                                    ActionBox.RangeSubTypes.MoneyRange,
+                                    ActionBox.DefaultBindAction,
+                                    (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, true),
+                                    null
+                                );
+                            }
+                        )
                     );
-                }));
 
-                if (balance > 0)
-                {
-                    btns.Add(new Button("[Снять со счета]", async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
+                    if (balance > 0)
+                        btns.Add(new Button("[Снять со счета]",
+                                async () =>
+                                {
+                                    if (NPC.CurrentNPC == null)
+                                        return;
 
-                        if (minBalance >= balance)
-                        {
-                            Notification.ShowError(string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Locale.Get("GEN_MONEY_0", minBalance)));
+                                    if (minBalance >= balance)
+                                    {
+                                        Notification.ShowError(string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Locale.Get("GEN_MONEY_0", minBalance)));
 
-                            return;
-                        }
+                                        return;
+                                    }
 
-                        var nBalance = balance - minBalance;
+                                    ulong nBalance = balance - minBalance;
 
-                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                        if (bank == null)
-                            return;
+                                    if (bank == null)
+                                        return;
 
-                        NPC.CurrentNPC.SwitchDialogue(false);
+                                    NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await ActionBox.ShowRange
-                        (
-                            "HouseBalanceChange", Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange,
-
-                            ActionBox.DefaultBindAction,
-
-                            (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, false),
-
-                            null
+                                    await ActionBox.ShowRange("HouseBalanceChange",
+                                        Locale.Actions.HouseBalanceWithdraw,
+                                        0,
+                                        nBalance,
+                                        nBalance,
+                                        houseData.Tax,
+                                        ActionBox.RangeSubTypes.MoneyRange,
+                                        ActionBox.DefaultBindAction,
+                                        (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, false),
+                                        null
+                                    );
+                                }
+                            )
                         );
-                    }));
+
+                    btns.Add(Button.DefaultBackButton);
+                    btns.Add(Button.DefaultExitButton);
+
+                    Dialogue dg = AllDialogues["bank_house_0"];
+
+                    dg.Buttons = btns;
+
+                    NPC.CurrentNPC.ShowDialogue(dg.Id,
+                        true,
+                        null,
+                        Locale.Get("GEN_MONEY_0", balance),
+                        Locale.Get("GEN_MONEY_0", houseData.Tax),
+                        enoughBalance
+                            ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}"
+                            : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваш дом перейдет в собственность государства!"
+                    );
                 }
+            );
 
-                btns.Add(Button.DefaultBackButton);
-                btns.Add(Button.DefaultExitButton);
-
-                var dg = AllDialogues["bank_house_0"];
-
-                dg.Buttons = btns;
-
-                NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", houseData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваш дом перейдет в собственность государства!");
-
-            });
-
-            new Dialogue("bank_preprocess_apartments", null,
-
+            new Dialogue("bank_preprocess_apartments",
+                null,
                 async (args) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -222,7 +302,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var apsData = (Apartments)args[0];
 
-                    var data = ((string)await Events.CallRemoteProc("Bank::GAA", apsData.Id))?.Split('_');
+                    string[] data = ((string)await Events.CallRemoteProc("Bank::GAA", apsData.Id))?.Split('_');
 
                     if (NPC.CurrentNPC == null)
                         return;
@@ -234,112 +314,126 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * apsData.Tax;
-                    var minBalance = minPaidDays * apsData.Tax;
+                    ulong maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * apsData.Tax;
+                    uint minBalance = minPaidDays * apsData.Tax;
 
-                    var hoursLeft = balance / apsData.Tax;
+                    ulong hoursLeft = balance / apsData.Tax;
 
-                    var currentDate = World.Core.ServerTime;
+                    DateTime currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
+                    DateTime targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
-                    var timeLeft = targetDate.Subtract(currentDate);
+                    TimeSpan timeLeft = targetDate.Subtract(currentDate);
 
-                    var enoughBalance = timeLeft.Hours > 0;
+                    bool enoughBalance = timeLeft.Hours > 0;
 
                     var btns = new List<Button>();
 
-                    btns.Add(new Button("[Пополнить счет]", async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
+                    btns.Add(new Button("[Пополнить счет]",
+                            async () =>
+                            {
+                                if (NPC.CurrentNPC == null)
+                                    return;
 
-                        if (balance >= maxBalance)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                if (balance >= maxBalance)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
+                                ulong nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
-                        if (nBalance == 0)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                if (nBalance == 0)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                        if (bank == null)
-                            return;
+                                if (bank == null)
+                                    return;
 
-                        NPC.CurrentNPC.SwitchDialogue(false);
+                                NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await ActionBox.ShowRange
-                        (
-                            "HouseBalanceChange", Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange,
-
-                            ActionBox.DefaultBindAction,
-
-                            (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, true),
-
-                            null
-                        );
-                    }));
+                                await ActionBox.ShowRange("HouseBalanceChange",
+                                    Locale.Actions.ApartmentsBalanceDeposit,
+                                    0,
+                                    nBalance,
+                                    nBalance / 2,
+                                    apsData.Tax,
+                                    ActionBox.RangeSubTypes.MoneyRange,
+                                    ActionBox.DefaultBindAction,
+                                    (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, true),
+                                    null
+                                );
+                            }
+                        )
+                    );
 
                     if (balance > 0)
-                    {
-                        btns.Add(new Button("[Снять со счета]", async () =>
-                        {
-                            if (NPC.CurrentNPC == null)
-                                return;
+                        btns.Add(new Button("[Снять со счета]",
+                                async () =>
+                                {
+                                    if (NPC.CurrentNPC == null)
+                                        return;
 
-                            if (minBalance >= balance)
-                            {
-                                Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
+                                    if (minBalance >= balance)
+                                    {
+                                        Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
 
-                                return;
-                            }
+                                        return;
+                                    }
 
-                            var nBalance = balance - minBalance;
+                                    ulong nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                            if (bank == null)
-                                return;
+                                    if (bank == null)
+                                        return;
 
-                            NPC.CurrentNPC.SwitchDialogue(false);
+                                    NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await ActionBox.ShowRange
-                            (
-                                "HouseBalanceChange", Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange,
-
-                                ActionBox.DefaultBindAction,
-
-                                (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, false),
-
-                                null
-                            );
-                        }));
-                    }
+                                    await ActionBox.ShowRange("HouseBalanceChange",
+                                        Locale.Actions.ApartmentsBalanceWithdraw,
+                                        0,
+                                        nBalance,
+                                        nBalance,
+                                        apsData.Tax,
+                                        ActionBox.RangeSubTypes.MoneyRange,
+                                        ActionBox.DefaultBindAction,
+                                        (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, false),
+                                        null
+                                    );
+                                }
+                            )
+                        );
 
                     btns.Add(Button.DefaultBackButton);
                     btns.Add(Button.DefaultExitButton);
 
-                    var dg = AllDialogues["bank_aps_0"];
+                    Dialogue dg = AllDialogues["bank_aps_0"];
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", apsData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваша квартира перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id,
+                        true,
+                        null,
+                        Locale.Get("GEN_MONEY_0", balance),
+                        Locale.Get("GEN_MONEY_0", apsData.Tax),
+                        enoughBalance
+                            ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}"
+                            : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 ваша квартира перейдет в собственность государства!"
+                    );
+                }
+            );
 
-                });
-
-            new Dialogue("bank_preprocess_garage", null,
-
+            new Dialogue("bank_preprocess_garage",
+                null,
                 async (args) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -352,7 +446,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var garageData = (Garage)args[0];
 
-                    var data = ((string)await Events.CallRemoteProc("Bank::GGA", garageData.Id))?.Split('_');
+                    string[] data = ((string)await Events.CallRemoteProc("Bank::GGA", garageData.Id))?.Split('_');
 
                     if (NPC.CurrentNPC == null)
                         return;
@@ -364,112 +458,126 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * garageData.Tax;
-                    var minBalance = minPaidDays * garageData.Tax;
+                    ulong maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * garageData.Tax;
+                    uint minBalance = minPaidDays * garageData.Tax;
 
-                    var hoursLeft = balance / garageData.Tax;
+                    ulong hoursLeft = balance / garageData.Tax;
 
-                    var currentDate = World.Core.ServerTime;
+                    DateTime currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
+                    DateTime targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
-                    var timeLeft = targetDate.Subtract(currentDate);
+                    TimeSpan timeLeft = targetDate.Subtract(currentDate);
 
-                    var enoughBalance = timeLeft.Hours > 0;
+                    bool enoughBalance = timeLeft.Hours > 0;
 
                     var btns = new List<Button>();
 
-                    btns.Add(new Button("[Пополнить счет]", async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
+                    btns.Add(new Button("[Пополнить счет]",
+                            async () =>
+                            {
+                                if (NPC.CurrentNPC == null)
+                                    return;
 
-                        if (balance >= maxBalance)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                if (balance >= maxBalance)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
+                                ulong nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
-                        if (nBalance == 0)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                if (nBalance == 0)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                        if (bank == null)
-                            return;
+                                if (bank == null)
+                                    return;
 
-                        NPC.CurrentNPC.SwitchDialogue(false);
+                                NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await ActionBox.ShowRange
-                        (
-                            "GarageBalanceChange", Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange,
-
-                            ActionBox.DefaultBindAction,
-
-                            (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, true),
-
-                            null
-                        );
-                    }));
+                                await ActionBox.ShowRange("GarageBalanceChange",
+                                    Locale.Actions.GarageBalanceDeposit,
+                                    0,
+                                    nBalance,
+                                    nBalance / 2,
+                                    garageData.Tax,
+                                    ActionBox.RangeSubTypes.MoneyRange,
+                                    ActionBox.DefaultBindAction,
+                                    (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, true),
+                                    null
+                                );
+                            }
+                        )
+                    );
 
                     if (balance > 0)
-                    {
-                        btns.Add(new Button("[Снять со счета]", async () =>
-                        {
-                            if (NPC.CurrentNPC == null)
-                                return;
+                        btns.Add(new Button("[Снять со счета]",
+                                async () =>
+                                {
+                                    if (NPC.CurrentNPC == null)
+                                        return;
 
-                            if (minBalance >= balance)
-                            {
-                                Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
+                                    if (minBalance >= balance)
+                                    {
+                                        Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
 
-                                return;
-                            }
+                                        return;
+                                    }
 
-                            var nBalance = balance - minBalance;
+                                    ulong nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                            if (bank == null)
-                                return;
+                                    if (bank == null)
+                                        return;
 
-                            NPC.CurrentNPC.SwitchDialogue(false);
+                                    NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await ActionBox.ShowRange
-                            (
-                                "GarageBalanceChange", Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange,
-
-                                ActionBox.DefaultBindAction,
-
-                                (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, false),
-
-                                null
-                            );
-                        }));
-                    }
+                                    await ActionBox.ShowRange("GarageBalanceChange",
+                                        Locale.Actions.GarageBalanceWithdraw,
+                                        0,
+                                        nBalance,
+                                        nBalance,
+                                        garageData.Tax,
+                                        ActionBox.RangeSubTypes.MoneyRange,
+                                        ActionBox.DefaultBindAction,
+                                        (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, false),
+                                        null
+                                    );
+                                }
+                            )
+                        );
 
                     btns.Add(Button.DefaultBackButton);
                     btns.Add(Button.DefaultExitButton);
 
-                    var dg = AllDialogues["bank_garage_0"];
+                    Dialogue dg = AllDialogues["bank_garage_0"];
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", garageData.Tax), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш гараж перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id,
+                        true,
+                        null,
+                        Locale.Get("GEN_MONEY_0", balance),
+                        Locale.Get("GEN_MONEY_0", garageData.Tax),
+                        enoughBalance
+                            ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}"
+                            : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш гараж перейдет в собственность государства!"
+                    );
+                }
+            );
 
-                });
-
-            new Dialogue("bank_preprocess_business", null,
-
+            new Dialogue("bank_preprocess_business",
+                null,
                 async (args) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -482,7 +590,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var businessData = (Business)args[0];
 
-                    var data = ((string)await Events.CallRemoteProc("Bank::GBA", businessData.Id))?.Split('_');
+                    string[] data = ((string)await Events.CallRemoteProc("Bank::GBA", businessData.Id))?.Split('_');
 
                     if (NPC.CurrentNPC == null)
                         return;
@@ -494,112 +602,126 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * businessData.Rent;
-                    var minBalance = minPaidDays * businessData.Rent;
+                    ulong maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * businessData.Rent;
+                    uint minBalance = minPaidDays * businessData.Rent;
 
-                    var hoursLeft = balance / businessData.Rent;
+                    ulong hoursLeft = balance / businessData.Rent;
 
-                    var currentDate = World.Core.ServerTime;
+                    DateTime currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
+                    DateTime targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
-                    var timeLeft = targetDate.Subtract(currentDate);
+                    TimeSpan timeLeft = targetDate.Subtract(currentDate);
 
-                    var enoughBalance = timeLeft.Hours > 0;
+                    bool enoughBalance = timeLeft.Hours > 0;
 
                     var btns = new List<Button>();
 
-                    btns.Add(new Button("[Пополнить счет]", async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
+                    btns.Add(new Button("[Пополнить счет]",
+                            async () =>
+                            {
+                                if (NPC.CurrentNPC == null)
+                                    return;
 
-                        if (balance >= maxBalance)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
+                                if (balance >= maxBalance)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.MaximalBalanceAlready);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
+                                ulong nBalance = maxBalance == ulong.MaxValue ? pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance : maxBalance - balance;
 
-                        if (nBalance == 0)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                if (nBalance == 0)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                        if (bank == null)
-                            return;
+                                if (bank == null)
+                                    return;
 
-                        NPC.CurrentNPC.SwitchDialogue(false);
+                                NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await ActionBox.ShowRange
-                        (
-                            "BusinessBalanceChange", Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange,
-
-                            ActionBox.DefaultBindAction,
-
-                            (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, true),
-
-                            null
-                        );
-                    }));
+                                await ActionBox.ShowRange("BusinessBalanceChange",
+                                    Locale.Actions.BusinessBalanceDeposit,
+                                    0,
+                                    nBalance,
+                                    nBalance / 2,
+                                    businessData.Rent,
+                                    ActionBox.RangeSubTypes.MoneyRange,
+                                    ActionBox.DefaultBindAction,
+                                    (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, true),
+                                    null
+                                );
+                            }
+                        )
+                    );
 
                     if (balance > 0)
-                    {
-                        btns.Add(new Button("[Снять со счета]", async () =>
-                        {
-                            if (NPC.CurrentNPC == null)
-                                return;
+                        btns.Add(new Button("[Снять со счета]",
+                                async () =>
+                                {
+                                    if (NPC.CurrentNPC == null)
+                                        return;
 
-                            if (minBalance >= balance)
-                            {
-                                Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
+                                    if (minBalance >= balance)
+                                    {
+                                        Notification.ShowError(Locale.Notifications.Money.MinimalBalanceHouse);
 
-                                return;
-                            }
+                                        return;
+                                    }
 
-                            var nBalance = balance - minBalance;
+                                    ulong nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                            if (bank == null)
-                                return;
+                                    if (bank == null)
+                                        return;
 
-                            NPC.CurrentNPC.SwitchDialogue(false);
+                                    NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await ActionBox.ShowRange
-                            (
-                                "BusinessBalanceChange", Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange,
-
-                                ActionBox.DefaultBindAction,
-
-                                (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, false),
-
-                                null
-                            );
-                        }));
-                    }
+                                    await ActionBox.ShowRange("BusinessBalanceChange",
+                                        Locale.Actions.BusinessBalanceWithdraw,
+                                        0,
+                                        nBalance,
+                                        nBalance,
+                                        businessData.Rent,
+                                        ActionBox.RangeSubTypes.MoneyRange,
+                                        ActionBox.DefaultBindAction,
+                                        (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, false),
+                                        null
+                                    );
+                                }
+                            )
+                        );
 
                     btns.Add(Button.DefaultBackButton);
                     btns.Add(Button.DefaultExitButton);
 
-                    var dg = AllDialogues["bank_business_0"];
+                    Dialogue dg = AllDialogues["bank_business_0"];
 
                     dg.Buttons = btns;
 
-                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance), Locale.Get("GEN_MONEY_0", businessData.Rent), enoughBalance ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}" : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш бизнес перейдет в собственность государства!");
+                    NPC.CurrentNPC.ShowDialogue(dg.Id,
+                        true,
+                        null,
+                        Locale.Get("GEN_MONEY_0", balance),
+                        Locale.Get("GEN_MONEY_0", businessData.Rent),
+                        enoughBalance
+                            ? $"Вашего баланса хватит еще на {timeLeft.GetBeautyString()}"
+                            : $"Срочно пополните баланс, иначе в {currentDate.Hour + 1}:00 Ваш бизнес перейдет в собственность государства!"
+                    );
+                }
+            );
 
-                });
-
-            new Dialogue("bank_preprocess_fraction", null,
-
+            new Dialogue("bank_preprocess_fraction",
+                null,
                 async (args) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -612,7 +734,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var fData = (Game.Fractions.Fraction)args[0];
 
-                    var data = ((string)await Events.CallRemoteProc("Bank::GFA", (int)fData.Type))?.Split('_');
+                    string[] data = ((string)await Events.CallRemoteProc("Bank::GFA", (int)fData.Type))?.Split('_');
 
                     if (NPC.CurrentNPC == null)
                         return;
@@ -624,107 +746,113 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var btns = new List<Button>();
 
-                    btns.Add(new Button("[Пополнить счет]", async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
+                    btns.Add(new Button("[Пополнить счет]",
+                            async () =>
+                            {
+                                if (NPC.CurrentNPC == null)
+                                    return;
 
-                        var nBalance = pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance;
+                                ulong nBalance = pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance;
 
-                        if (nBalance == 0)
-                        {
-                            Notification.ShowError(Locale.Notifications.Money.NotEnough);
+                                if (nBalance == 0)
+                                {
+                                    Notification.ShowError(Locale.Notifications.Money.NotEnough);
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                        if (bank == null)
-                            return;
+                                if (bank == null)
+                                    return;
 
-                        NPC.CurrentNPC.SwitchDialogue(false);
+                                NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await ActionBox.ShowRange
-                        (
-                            "FractionBalanceChange", Locale.Actions.FractionBalanceDeposit, 0, nBalance, nBalance / 2, 1, ActionBox.RangeSubTypes.MoneyRange,
-
-                            ActionBox.DefaultBindAction,
-
-                            (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, true),
-
-                            null
-                        );
-                    }));
+                                await ActionBox.ShowRange("FractionBalanceChange",
+                                    Locale.Actions.FractionBalanceDeposit,
+                                    0,
+                                    nBalance,
+                                    nBalance / 2,
+                                    1,
+                                    ActionBox.RangeSubTypes.MoneyRange,
+                                    ActionBox.DefaultBindAction,
+                                    (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, true),
+                                    null
+                                );
+                            }
+                        )
+                    );
 
                     if (balance > 0)
-                    {
-                        btns.Add(new Button("[Снять со счета]", async () =>
-                        {
-                            if (NPC.CurrentNPC == null)
-                                return;
+                        btns.Add(new Button("[Снять со счета]",
+                                async () =>
+                                {
+                                    if (NPC.CurrentNPC == null)
+                                        return;
 
-                            if (balance <= 0)
-                            {
-                                Notification.ShowError(Locale.Notifications.Money.NoBalanceHouse);
+                                    if (balance <= 0)
+                                    {
+                                        Notification.ShowError(Locale.Notifications.Money.NoBalanceHouse);
 
-                                return;
-                            }
+                                        return;
+                                    }
 
-                            var nBalance = balance;
+                                    ulong nBalance = balance;
 
-                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
+                                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
-                            if (bank == null)
-                                return;
+                                    if (bank == null)
+                                        return;
 
-                            NPC.CurrentNPC.SwitchDialogue(false);
+                                    NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await ActionBox.ShowRange
-                            (
-                                "FractionBalanceChange", Locale.Actions.FractionBalanceWithdraw, 0, nBalance, nBalance, 1, ActionBox.RangeSubTypes.MoneyRange,
-
-                                ActionBox.DefaultBindAction,
-
-                                (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, false),
-
-                                null
-                            );
-                        }));
-                    }
+                                    await ActionBox.ShowRange("FractionBalanceChange",
+                                        Locale.Actions.FractionBalanceWithdraw,
+                                        0,
+                                        nBalance,
+                                        nBalance,
+                                        1,
+                                        ActionBox.RangeSubTypes.MoneyRange,
+                                        ActionBox.DefaultBindAction,
+                                        (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, false),
+                                        null
+                                    );
+                                }
+                            )
+                        );
 
                     btns.Add(Button.DefaultBackButton);
                     btns.Add(Button.DefaultExitButton);
 
-                    var dg = AllDialogues["bank_fraction_0"];
+                    Dialogue dg = AllDialogues["bank_fraction_0"];
 
                     dg.Buttons = btns;
 
                     NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Locale.Get("GEN_MONEY_0", balance));
-
-                });
+                }
+            );
 
             new Dialogue("bank_has_account", "Здравствуйте, могу ли я Вам чем-нибудь помочь?", null);
 
             new Dialogue("bank_no_account_0", "Здравствуйте, могу ли я Вам чем-нибудь помочь?", null);
 
-            new Dialogue("bank_no_account_1", "Отлично!\nУ нас есть несколько выгодных тарифов, ознакомьтесь с ними и выберите интересующий", null,
-
-                new Button("[Перейти к тарифам]", () =>
-                {
-                    if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
+            new Dialogue("bank_no_account_1",
+                "Отлично!\nУ нас есть несколько выгодных тарифов, ознакомьтесь с ними и выберите интересующий",
+                null,
+                new Button("[Перейти к тарифам]",
+                    () =>
                     {
-                        if (NPC.LastSent.IsSpam(1000, false, false))
-                            return;
+                        if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
+                        {
+                            if (NPC.LastSent.IsSpam(1000, false, false))
+                                return;
 
-                        Events.CallRemote("Bank::Show", false, bankData.Id);
+                            Events.CallRemote("Bank::Show", false, bankData.Id);
+                        }
                     }
-                }),
-
+                ),
                 Button.DefaultBackButton,
-
                 Button.DefaultExitButton
-
             );
 
             new Dialogue("bank_house_0", "Баланс на счете Вашего дома составляет {0}, налог в час - {1}.\n{2}", null);
@@ -750,9 +878,9 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             ActionBox.LastSent = World.Core.ServerTime;
 
-            var useCash = rType == ActionBox.ReplyTypes.OK;
+            bool useCash = rType == ActionBox.ReplyTypes.OK;
 
-            var resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Estates.Core.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
+            object resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Core.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;
@@ -772,9 +900,9 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             ActionBox.LastSent = World.Core.ServerTime;
 
-            var useCash = rType == ActionBox.ReplyTypes.OK;
+            bool useCash = rType == ActionBox.ReplyTypes.OK;
 
-            var resObj = await Events.CallRemoteProc("Bank::GBC", garage.Id, bank.Id, amount, useCash, add);
+            object resObj = await Events.CallRemoteProc("Bank::GBC", garage.Id, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;
@@ -794,9 +922,9 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             ActionBox.LastSent = World.Core.ServerTime;
 
-            var useCash = rType == ActionBox.ReplyTypes.OK;
+            bool useCash = rType == ActionBox.ReplyTypes.OK;
 
-            var resObj = await Events.CallRemoteProc("Bank::BBC", biz.Id, bank.Id, amount, useCash, add);
+            object resObj = await Events.CallRemoteProc("Bank::BBC", biz.Id, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;
@@ -804,7 +932,11 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
             ActionBox.Close(true);
         }
 
-        private static async void FractionBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Game.Fractions.Fraction fData, Game.Misc.Bank bank, bool add)
+        private static async void FractionBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType,
+                                                                            decimal amountD,
+                                                                            Game.Fractions.Fraction fData,
+                                                                            Game.Misc.Bank bank,
+                                                                            bool add)
         {
             if (ActionBox.LastSent.IsSpam(1000, false, true))
                 return;
@@ -816,9 +948,9 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             ActionBox.LastSent = World.Core.ServerTime;
 
-            var useCash = rType == ActionBox.ReplyTypes.OK;
+            bool useCash = rType == ActionBox.ReplyTypes.OK;
 
-            var resObj = await Events.CallRemoteProc("Bank::FBC", (int)fData.Type, bank.Id, amount, useCash, add);
+            object resObj = await Events.CallRemoteProc("Bank::FBC", (int)fData.Type, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;

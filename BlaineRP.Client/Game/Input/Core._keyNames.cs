@@ -2,7 +2,7 @@
 
 namespace BlaineRP.Client.Game.Input
 {
-    partial class Core
+    internal partial class Core
     {
         private static Dictionary<int, string> _keyNames = new Dictionary<int, string>()
         {

@@ -10,19 +10,21 @@ namespace BlaineRP.Client.Game.Misc
     {
         public EstateAgency(int id, string PositionsStr)
         {
-            var poses = RAGE.Util.Json.Deserialize<List<Vector3>>(PositionsStr);
+            List<Vector3> poses = RAGE.Util.Json.Deserialize<List<Vector3>>(PositionsStr);
 
             var centerPos = new Vector3(0f, 0f, 0f);
 
             for (var i = 0; i < poses.Count; i++)
             {
-                var x = poses[i];
+                Vector3 x = poses[i];
 
                 centerPos += x;
 
                 var cs = new Cylinder(new Vector3(x.X, x.Y, x.Z - 1f), 1.5f, 2f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                 {
-                    InteractionType = InteractionTypes.EstateAgencyInteract, Data = $"{id}_{i}", ActionType = ActionTypes.EstateAgencyInteract,
+                    InteractionType = InteractionTypes.EstateAgencyInteract,
+                    Data = $"{id}_{i}",
+                    ActionType = ActionTypes.EstateAgencyInteract,
                 };
 
                 var marker = new RAGE.Elements.Marker(2,
@@ -32,7 +34,8 @@ namespace BlaineRP.Client.Game.Misc
                     Vector3.Zero,
                     new RGBA(255, 255, 255, 125),
                     true,
-                    Settings.App.Static.MainDimension);
+                    Settings.App.Static.MainDimension
+                );
             }
 
             centerPos /= poses.Count;

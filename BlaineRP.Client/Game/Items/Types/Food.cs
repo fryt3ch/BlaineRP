@@ -6,20 +6,19 @@ namespace BlaineRP.Client.Game.Items
 {
     public class Food : StatusChanger, IStackable
     {
+        public static Dictionary<string, Item.ItemData> IdList { get; set; } = new Dictionary<string, Item.ItemData>();
+
         public new class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
         {
-            public int MaxAmount { get; set; }
+            public ItemData(string name, float weight, int satiety, int mood, int health, int maxAmount) : base(name, weight, satiety, mood, health)
+            {
+                MaxAmount = maxAmount;
+            }
 
             public FastTypes Animation { get; set; }
 
             public AttachmentTypes AttachType { get; set; }
-
-            public ItemData(string name, float weight, int satiety, int mood, int health, int maxAmount) : base(name, weight, satiety, mood, health)
-            {
-                this.MaxAmount = maxAmount;
-            }
+            public int MaxAmount { get; set; }
         }
-
-        public static Dictionary<string, Item.ItemData> IdList { get; set; } = new Dictionary<string, Item.ItemData>();
     }
 }

@@ -16,31 +16,13 @@ using BlaineRP.Client.Game.Management.Weapons;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Input.Core;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Inventory
     {
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContextStr == "Inventory"; }
-
-        public const string InUseItemPrefix = "&#9995; ";
-
-        private static int FreezeCounter { get; set; }
-
         public delegate void OnInventoryUpdated(int typeid);
-
-        public static event OnInventoryUpdated InventoryUpdated;
-
-        public enum Types
-        {
-            None = -1,
-            Inventory = 0,
-            Container = 1,
-            Trade = 3,
-            Workbench = 4,
-        }
 
         public enum ContainerTypes
         {
@@ -51,6 +33,15 @@ namespace BlaineRP.Client.Game.UI.CEF
             Crate,
             Fridge,
             Wardrobe,
+        }
+
+        public enum Types
+        {
+            None = -1,
+            Inventory = 0,
+            Container = 1,
+            Trade = 3,
+            Workbench = 4,
         }
 
         public enum WorkbenchTypes
@@ -65,42 +56,1994 @@ namespace BlaineRP.Client.Game.UI.CEF
             CraftTable,
         }
 
+        public const string InUseItemPrefix = "&#9995; ";
+
         private static Dictionary<string, int> Groups = new Dictionary<string, int>()
         {
-            { "pockets", 0 }, { "bag", 1 }, { "weapon", 2 }, { "holster", 3 }, { "clothes", 4 }, { "accessories", 5 }, { "bagItem", 6 }, { "holsterItem", 7 }, { "armour", 8 },
-            { "crate", 9 }, { "give", 10 }, { "craft", 20 }, { "tool", 21 }, { "result", 22 },
+            { "pockets", 0 },
+            { "bag", 1 },
+            { "weapon", 2 },
+            { "holster", 3 },
+            { "clothes", 4 },
+            { "accessories", 5 },
+            { "bagItem", 6 },
+            { "holsterItem", 7 },
+            { "armour", 8 },
+            { "crate", 9 },
+            { "give", 10 },
+            { "craft", 20 },
+            { "tool", 21 },
+            { "result", 22 },
         };
+
+        public Inventory()
+        {
+            FirstOpenInv = true;
+            FirstOpenCrate = true;
+            FirstOpenWorkbench = true;
+
+            ItemSlotsToUpdate = new HashSet<int>();
+            ItemSlotsToUpdateCrate = new HashSet<int>();
+            ItemSlotsToUpdateWorkbench = new HashSet<int>();
+
+            WeaponsSlotsToUpdate = new HashSet<int>();
+            ClothesSlotsToUpdate = new HashSet<int>();
+            AccessoriesSlotsToUpdate = new HashSet<int>();
+            BagSlotsToUpdate = new HashSet<int>();
+            BagSlotsToUpdateCrate = new HashSet<int>();
+            UpdateArmour = false;
+            UpdateBag = false;
+            UpdateBagCrate = false;
+
+            LastShowed = World.Core.ServerTime;
+            LastSent = World.Core.ServerTime;
+
+            CurrentType = Types.None;
+            CurrentContainerType = ContainerTypes.None;
+
+            CurrentEntity = null;
+
+            TempBinds = new List<int>();
+            TempBindEsc = -1;
+
+            #region Events
+
+            Events.Add("Inventory::Note",
+                async (args) =>
+                {
+                    if (!IsActive)
+                        return;
+
+                    if (args.Length == 1)
+                    {
+                        string str = (string)args[0] ?? string.Empty;
+
+                        Note.ShowRead("InventoryNoteRead",
+                            str,
+                            () =>
+                            {
+                                if (!IsActive)
+                                {
+                                    Note.Close(false);
+
+                                    return;
+                                }
+
+                                FreezeInterface(true, false);
+
+                                Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
+                            },
+                            () =>
+                            {
+                                if (IsActive)
+                                {
+                                    FreezeInterface(false, false);
+
+                                    Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
+                                }
+                            }
+                        );
+                    }
+                    else
+                    {
+                        var groupNum = (int)args[0];
+                        var slot = (int)args[1];
+
+                        string str = (string)args[2] ?? string.Empty;
+
+                        Note.ShowWrite("InventoryNoteWrite",
+                            str,
+                            () =>
+                            {
+                                if (!IsActive)
+                                {
+                                    Note.Close(false);
+
+                                    return;
+                                }
+
+                                FreezeInterface(true, false);
+
+                                Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
+                            },
+                            async (text) =>
+                            {
+                                text = text?.Trim();
+
+                                object res = await Events.CallRemoteProc("Player::NoteEdit", groupNum, slot, text);
+
+                                Note.Close(false);
+                            },
+                            () =>
+                            {
+                                if (IsActive)
+                                {
+                                    FreezeInterface(false, false);
+
+                                    Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
+                                }
+                            }
+                        );
+                    }
+                }
+            );
+
+            Events.Add("Workbench::TryCraft",
+                (args) =>
+                {
+                    if (CurrentType != Types.Workbench)
+                        return;
+
+                    if (LastSent.IsSpam(250, false, false))
+                        return;
+
+                    if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
+                    {
+                        var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
+
+                        var receipt = Craft.Receipt.GetByIngredients(notNullItems);
+
+                        if (receipt == null)
+                        {
+                            Notification.ShowError(Locale.Notifications.Inventory.WorkbenchWrongCraft);
+
+                            return;
+                        }
+
+                        if (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null)
+                        {
+                            Notification.ShowError(Locale.Notifications.Inventory.WorkbenchResultItemExists);
+
+                            return;
+                        }
+
+                        Events.CallRemote("Workbench::Craft", receipt.Index);
+
+                        LastSent = World.Core.ServerTime;
+                    }
+                    else
+                    {
+                        Events.CallRemote("Workbench::Craft", -1);
+
+                        LastSent = World.Core.ServerTime;
+                    }
+                }
+            );
+
+            #region Show
+
+            Events.Add("Inventory::Show",
+                async (object[] args) =>
+                {
+                    if (IsActive)
+                        return;
+
+                    CurrentType = (Types)(int)args[0];
+
+                    SetWindowReady();
+
+                    if (CurrentType == Types.Inventory)
+                    {
+                        var ammoUpdated = false;
+                        int activeWeapon = -1;
+
+                        if (WeaponsData != null)
+                        {
+                            for (var i = 0; i < WeaponsData.Length; i++)
+                            {
+                                if ((bool?)WeaponsData[i]?[4] == true)
+                                {
+                                    activeWeapon = i;
+
+                                    break;
+                                }
+                            }
+
+                            if (activeWeapon != -1)
+                            {
+                                uint selectedWeapon = Player.LocalPlayer.GetSelectedWeapon();
+
+                                /*                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
+                                                            {
+                                                                WeaponsData[activeWeapon][4] = false;
+    
+                                                                ammoUpdated = true;
+                                                            }*/
+                                if ((int)WeaponsData[activeWeapon][3] != Management.AntiCheat.Core.LastAllowedAmmo)
+                                {
+                                    WeaponsData[activeWeapon][3] = Management.AntiCheat.Core.LastAllowedAmmo;
+
+                                    ammoUpdated = true;
+                                }
+                            }
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", AccessoriesData[9] != null);
+
+                        if (FirstOpenInv)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.fillPockets",
+                                new object[]
+                                {
+                                    "inv",
+                                    ItemsData.Select(x => x?[GetTooltipGroup()]),
+                                    Settings.App.Profile.Current.Game.InventoryMaxWeight,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillVest",
+                                new object[]
+                                {
+                                    ArmourData,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillBag",
+                                new object[]
+                                {
+                                    "inv",
+                                    BagData == null ? null : BagData.Select(x => x?[GetTooltipGroup()]),
+                                    BagWeight,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillWeapon",
+                                new object[]
+                                {
+                                    WeaponsData,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillClothes",
+                                new object[]
+                                {
+                                    ClothesData,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillAccessories",
+                                new object[]
+                                {
+                                    AccessoriesData,
+                                }
+                            );
+
+                            FirstOpenInv = false;
+                        }
+                        else
+                        {
+                            if (UpdateArmour)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillVest",
+                                    new object[]
+                                    {
+                                        ArmourData,
+                                    }
+                                );
+
+                                UpdateArmour = false;
+                            }
+
+                            foreach (int slot in ItemSlotsToUpdate)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "inv",
+                                        ItemsData[slot]?[GetTooltipGroup()],
+                                    }
+                                );
+                            }
+
+                            ItemSlotsToUpdate.Clear();
+
+                            if (BagData != null)
+                            {
+                                if (UpdateBag)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "inv",
+                                            BagData == null ? null : BagData.Select(x => x?[GetTooltipGroup()]),
+                                            BagWeight,
+                                        }
+                                    );
+
+                                    UpdateBag = false;
+                                }
+                                else
+                                {
+                                    foreach (int slot in BagSlotsToUpdate)
+                                    {
+                                        Browser.Window.ExecuteJs("Inventory.updateBagSlot",
+                                            new object[]
+                                            {
+                                                slot,
+                                                "inv",
+                                                BagData[slot]?[GetTooltipGroup()],
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag",
+                                    new object[]
+                                    {
+                                        "inv",
+                                        null,
+                                        null,
+                                    }
+                                );
+                            }
+
+                            BagSlotsToUpdate.Clear();
+
+                            if (ammoUpdated && !WeaponsSlotsToUpdate.Contains(activeWeapon))
+                                Browser.Window.ExecuteJs("Inventory.updateWeaponSlot",
+                                    new object[]
+                                    {
+                                        activeWeapon,
+                                        WeaponsData[activeWeapon],
+                                    }
+                                );
+
+                            foreach (int slot in WeaponsSlotsToUpdate)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateWeaponSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        WeaponsData[slot],
+                                    }
+                                );
+                            }
+
+                            WeaponsSlotsToUpdate.Clear();
+
+                            foreach (int slot in ClothesSlotsToUpdate)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateClothesSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        ClothesData[slot],
+                                    }
+                                );
+                            }
+
+                            ClothesSlotsToUpdate.Clear();
+
+                            foreach (int slot in AccessoriesSlotsToUpdate)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        AccessoriesData[slot],
+                                    }
+                                );
+                            }
+
+                            AccessoriesSlotsToUpdate.Clear();
+
+                            if (UpdateTooltips)
+                            {
+                                for (var i = 0; i < ItemsData.Length; i++)
+                                {
+                                    if (ItemsData[i] != null)
+                                        Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip",
+                                            new object[]
+                                            {
+                                                i,
+                                                "inv",
+                                                ((object[])ItemsData[i][GetTooltipGroup()])[2],
+                                            }
+                                        );
+                                }
+
+                                UpdateTooltips = false;
+                            }
+                        }
+
+                        UpdateBinds();
+                    }
+                    else if (CurrentType == Types.Container)
+                    {
+                        if (FirstOpenCrate)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.fillPockets",
+                                new object[]
+                                {
+                                    "crate",
+                                    ItemsData.Select(x => x?[0]),
+                                    Settings.App.Profile.Current.Game.InventoryMaxWeight,
+                                }
+                            );
+                            Browser.Window.ExecuteJs("Inventory.fillBag",
+                                new object[]
+                                {
+                                    "crate",
+                                    BagData == null ? null : BagData.Select(x => x?[0]),
+                                    BagWeight,
+                                }
+                            );
+
+                            FirstOpenCrate = false;
+                        }
+                        else
+                        {
+                            foreach (int slot in ItemSlotsToUpdateCrate)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "crate",
+                                        ItemsData[slot]?[0],
+                                    }
+                                );
+                            }
+
+                            ItemSlotsToUpdateCrate.Clear();
+
+                            if (BagData != null)
+                            {
+                                if (UpdateBagCrate)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "crate",
+                                            BagData == null ? null : BagData.Select(x => x?[0]),
+                                            BagWeight,
+                                        }
+                                    );
+
+                                    UpdateBagCrate = false;
+                                }
+                                else
+                                {
+                                    foreach (int slot in BagSlotsToUpdateCrate)
+                                    {
+                                        Browser.Window.ExecuteJs("Inventory.updateBagSlot",
+                                            new object[]
+                                            {
+                                                slot,
+                                                "crate",
+                                                BagData[slot]?[0],
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag",
+                                    new object[]
+                                    {
+                                        "crate",
+                                        null,
+                                        null,
+                                    }
+                                );
+                            }
+
+                            BagSlotsToUpdateCrate.Clear();
+                        }
+
+                        string[] contData = ((string)args[1]).Split('|');
+
+                        string[][] contItems = contData.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+
+                        contData = contData[0].Split('&');
+
+                        CurrentContainerType = (ContainerTypes)int.Parse(contData[0]);
+
+                        ContainerData = new object[contItems.Length][];
+
+                        for (var i = 0; i < ContainerData.Length; i++)
+                        {
+                            if (contItems[i] != null)
+                                ContainerData[i] = FillItem(contItems[i][0], int.Parse(contItems[i][1]), float.Parse(contItems[i][2]), contItems[i][3], false, true, true, false);
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.fillCrate",
+                            new object[]
+                            {
+                                Locale.General.Containers.Names[CurrentContainerType],
+                                ContainerData,
+                                float.Parse(contData[1]),
+                            }
+                        );
+                    }
+                    else if (CurrentType == Types.Trade)
+                    {
+                        var pData = PlayerData.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
+                        GiveItemsData = new object[5][];
+
+                        CurrentGiveProperties = new List<string>();
+                        CurrentGetProperties = new List<string>();
+
+                        Browser.Window.ExecuteCachedJs("Inventory.switchUnderline", 0);
+
+                        Browser.Window.ExecuteCachedJs("Inventory.fillCheckBox", "last", false);
+                        Browser.Window.ExecuteCachedJs("Inventory.switchTradeBtn", false);
+
+                        var properties = new List<string>();
+
+                        var propIds = new List<(PropertyTypes, uint)>();
+
+                        foreach ((uint VID, Data.Vehicles.Vehicle Data) x in pData.OwnedVehicles)
+                        {
+                            properties.Add(string.Format(Locale.Property.VehicleTradeInfoStr, x.Data.TypeName, x.Data.Name, x.VID));
+
+                            propIds.Add((PropertyTypes.Vehicle, x.VID));
+                        }
+
+                        foreach (House x in pData.OwnedHouses)
+                        {
+                            properties.Add(string.Format(Locale.Property.HouseTradeInfoStr, x.Id));
+
+                            propIds.Add((PropertyTypes.House, x.Id));
+                        }
+
+                        foreach (Apartments x in pData.OwnedApartments)
+                        {
+                            properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
+
+                            propIds.Add((PropertyTypes.Apartments, x.Id));
+                        }
+
+                        foreach (Garage x in pData.OwnedGarages)
+                        {
+                            properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
+
+                            propIds.Add((PropertyTypes.Garage, x.Id));
+                        }
+
+                        foreach (Business x in pData.OwnedBusinesses)
+                        {
+                            properties.Add(string.Format(Locale.Property.BusinessTradeInfoStr, x.Name, x.SubId));
+
+                            propIds.Add((PropertyTypes.Business, (uint)x.Id));
+                        }
+
+                        Player.LocalPlayer.SetData("Trade::Temp::PropIds", propIds);
+
+                        Browser.Window.ExecuteJs("Inventory.fillTradeLProperties",
+                            new object[]
+                            {
+                                properties,
+                            }
+                        );
+
+                        Browser.Window.ExecuteJs("Inventory.fillPockets",
+                            new object[]
+                            {
+                                "trade",
+                                ItemsData.Select(x => x?[3]),
+                                Settings.App.Profile.Current.Game.InventoryMaxWeight,
+                            }
+                        );
+
+                        Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", 0);
+                        Browser.Window.ExecuteJs("Inventory.updateGiveMoney", 0);
+
+                        Browser.Window.ExecuteJs("Inventory.fillTradeReceive",
+                            new object[]
+                            {
+                                new object[]
+                                {
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                },
+                            }
+                        );
+                        Browser.Window.ExecuteJs("Inventory.fillTradeGive",
+                            new object[]
+                            {
+                                new object[]
+                                {
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                },
+                            }
+                        );
+
+                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties",
+                            new object[]
+                            {
+                                "give",
+                                new object[]
+                                {
+                                },
+                            }
+                        );
+                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties",
+                            new object[]
+                            {
+                                "receive",
+                                new object[]
+                                {
+                                },
+                            }
+                        );
+                    }
+                    else if (CurrentType == Types.Workbench)
+                    {
+                        if (FirstOpenWorkbench)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.fillPockets",
+                                new object[]
+                                {
+                                    "wb",
+                                    ItemsData.Select(x => x?[0]),
+                                    Settings.App.Profile.Current.Game.InventoryMaxWeight,
+                                }
+                            );
+
+                            FirstOpenWorkbench = false;
+                        }
+                        else
+                        {
+                            foreach (int slot in ItemSlotsToUpdateWorkbench)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "wb",
+                                        ItemsData[slot]?[0],
+                                    }
+                                );
+                            }
+
+                            ItemSlotsToUpdateWorkbench.Clear();
+                        }
+
+                        DateTime currentDate = World.Core.ServerTime;
+
+                        string[] benchData = ((string)args[1]).Split('^');
+
+                        string[][] benchItems = benchData[1].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                        string[][] benchTools = benchData[2].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                        string[] benchResultItem = benchData[3].Length == 0 ? null : benchData[3].Split('&');
+
+                        DateTime benchCraftEndDate = benchData[4].Length == 0 ? currentDate : DateTimeOffset.FromUnixTimeSeconds(long.Parse(benchData[4])).DateTime;
+
+                        double craftTimeLeft = benchData[4].Length == 0 ? 0 : benchCraftEndDate.Subtract(currentDate).TotalMilliseconds;
+
+                        benchData = benchData[0].Split('&');
+
+                        var benchType = (WorkbenchTypes)int.Parse(benchData[0]);
+
+                        CurrentWorkbenchType = benchType;
+
+                        if (craftTimeLeft > 0)
+                            StartPendingCraftTask(benchCraftEndDate);
+
+                        WorkbenchCraftData = new object[benchItems.Length][];
+                        WorkbenchCraftParams = new Craft.ItemPrototype[benchItems.Length];
+
+                        for (var i = 0; i < WorkbenchCraftData.Length; i++)
+                        {
+                            if (benchItems[i] != null)
+                            {
+                                var amount = int.Parse(benchItems[i][1]);
+
+                                WorkbenchCraftData[i] = FillCraftItem(benchItems[i][0], amount, float.Parse(benchItems[i][2]), benchItems[i][3]);
+
+                                WorkbenchCraftParams[i] = new Craft.ItemPrototype(benchItems[i][0], amount);
+                            }
+                        }
+
+                        WorkbenchToolsData = new object[benchTools.Length][];
+                        WorkbenchToolsParams = new Craft.ItemPrototype[WorkbenchToolsData.Length];
+
+                        for (var i = 0; i < WorkbenchToolsData.Length; i++)
+                        {
+                            if (benchTools[i] != null)
+                            {
+                                if (!WorkbenchCraftParams.Where(x => x != null && x.Id == benchTools[i][0]).Any())
+                                    WorkbenchToolsData[i] = FillCraftToolsItem(benchTools[i][0], 1, 0f, null);
+
+                                WorkbenchToolsParams[i] = new Craft.ItemPrototype(benchTools[i][0], 1);
+                            }
+                        }
+
+                        WorkbenchResultData = new object[1][];
+
+                        if (benchResultItem != null)
+                        {
+                            WorkbenchResultData[0] = FillCraftResultItem(benchResultItem[0],
+                                int.Parse(benchResultItem[1]),
+                                float.Parse(benchResultItem[2]),
+                                benchResultItem[3],
+                                true
+                            );
+
+                            Browser.Window.ExecuteJs("Inventory.updateResultSlot",
+                                new object[]
+                                {
+                                    WorkbenchResultData[0],
+                                }
+                            );
+
+                            ResetCraftButton();
+                        }
+                        else
+                        {
+                            UpdateCraftItemVisualization();
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.fillWbCraft",
+                            new object[]
+                            {
+                                Locale.General.Containers.WorkbenchNames[benchType].Name,
+                                WorkbenchCraftData,
+                            }
+                        );
+                        Browser.Window.ExecuteJs("Inventory.fillWbTools",
+                            new object[]
+                            {
+                                WorkbenchToolsData,
+                            }
+                        );
+                    }
+                }
+            );
+
+            #endregion
+
+            #region Update
+
+            // 0 - pockets, 1 - bag, 2 - weapons, 3 - holster, 4 - clothes, 5 - accessories, 6 - bagItem, 7 - holsterItem, 8 - armour, 9 - container, 10 - trade-give (items), 11 - trade-give (properties/money), 12 - trade-get (items), 13 - trade-get (properties/money)
+            Events.Add("Inventory::Update",
+                (object[] args) =>
+                {
+                    var usedGroups = new HashSet<int>();
+
+                    for (var k = 0; k < args.Length / 3; k++)
+                    {
+                        object[] curArgs = args.Skip(k * 3).ToArray();
+
+                        var id = (int)curArgs[0];
+
+                        usedGroups.Add(id);
+
+                        InventoryUpdated?.Invoke(id);
+
+                        if (id == 0)
+                        {
+                            var slot = (int)curArgs[1];
+
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            if (data == null)
+                            {
+                                ItemsData[slot] = null;
+                                ItemsParams[slot] = null;
+                            }
+                            else
+                            {
+                                bool inUse = int.Parse(data[4]) == 1;
+
+                                ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], inUse, false, false, false);
+                                ItemsParams[slot] = new ItemParams(data[0])
+                                {
+                                    InUse = inUse,
+                                };
+                            }
+
+                            if (CurrentType == Types.Inventory)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "inv",
+                                        ItemsData[slot]?[GetTooltipGroup()],
+                                    }
+                                );
+
+                                ItemSlotsToUpdateCrate.Add(slot);
+                                ItemSlotsToUpdateWorkbench.Add(slot);
+                            }
+                            else if (CurrentType == Types.Container)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "crate",
+                                        ItemsData[slot]?[0],
+                                    }
+                                );
+
+                                ItemSlotsToUpdate.Add(slot);
+                                ItemSlotsToUpdateWorkbench.Add(slot);
+                            }
+                            else if (CurrentType == Types.Workbench)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "wb",
+                                        ItemsData[slot]?[0],
+                                    }
+                                );
+
+                                ItemSlotsToUpdate.Add(slot);
+                                ItemSlotsToUpdateCrate.Add(slot);
+                            }
+                            else
+                            {
+                                ItemSlotsToUpdate.Add(slot);
+                                ItemSlotsToUpdateCrate.Add(slot);
+                                ItemSlotsToUpdateWorkbench.Add(slot);
+                            }
+                        }
+                        else if (id == 1)
+                        {
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, false, false);
+
+                            if (CurrentType == Types.Inventory)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateBagSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "inv",
+                                        BagData[slot]?[GetTooltipGroup()],
+                                    }
+                                );
+
+                                BagSlotsToUpdateCrate.Add(slot);
+                            }
+                            else if (CurrentType == Types.Container)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateBagSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        "crate",
+                                        BagData[slot]?[0],
+                                    }
+                                );
+
+                                BagSlotsToUpdate.Add(slot);
+                            }
+                            else
+                            {
+                                BagSlotsToUpdate.Add(slot);
+                                BagSlotsToUpdateCrate.Add(slot);
+                            }
+                        }
+                        else if (id == 2 || id == 3)
+                        {
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            WeaponsData[slot] = data == null ? null : FillWeapon(data[0], int.Parse(data[1]), int.Parse(data[2]) == 1, data[3], data[4]);
+
+                            if (CurrentType == Types.Inventory)
+                                Browser.Window.ExecuteJs("Inventory.updateWeaponSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        WeaponsData[slot],
+                                    }
+                                );
+                            else
+                                WeaponsSlotsToUpdate.Add(slot);
+                        }
+                        else if (id == 4)
+                        {
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            ClothesData[slot] = data == null ? null : FillClothes(data[0]);
+
+                            if (CurrentType == Types.Inventory)
+                                Browser.Window.ExecuteJs("Inventory.updateClothesSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        ClothesData[slot],
+                                    }
+                                );
+                            else
+                                ClothesSlotsToUpdate.Add(slot);
+                        }
+                        else if (id == 5)
+                        {
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            AccessoriesData[slot] = data == null ? null : FillAccessories(data[0]);
+
+                            if (CurrentType == Types.Inventory)
+                                Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot",
+                                    new object[]
+                                    {
+                                        slot,
+                                        AccessoriesData[slot],
+                                    }
+                                );
+                            else
+                                AccessoriesSlotsToUpdate.Add(slot);
+                        }
+                        else if (id == 6)
+                        {
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
+
+                            if (data == null)
+                            {
+                                AccessoriesData[8] = null;
+                                BagData = null;
+
+                                if (CurrentType == Types.Inventory)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "inv",
+                                            null,
+                                            null,
+                                        }
+                                    );
+
+                                    for (var i = 0; i < ItemsData.Length; i++)
+                                    {
+                                        if (ItemsData[i] != null)
+                                            Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip",
+                                                new object[]
+                                                {
+                                                    i,
+                                                    "inv",
+                                                    ((object[])ItemsData[i][2])[2],
+                                                }
+                                            );
+                                    }
+                                }
+                                else if (CurrentType == Types.Container)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "crate",
+                                            null,
+                                            null,
+                                        }
+                                    );
+
+                                    UpdateTooltips = true;
+                                }
+                                else
+                                {
+                                    UpdateTooltips = true;
+                                }
+
+                                UpdateBag = false;
+                                UpdateBagCrate = false;
+                            }
+                            else
+                            {
+                                string[][] items = data.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+
+                                data = data[0].Split('&');
+
+                                AccessoriesData[8] = FillAccessories(data[0]);
+                                BagData = new object[items.Length][];
+
+                                for (var i = 0; i < BagData.Length; i++)
+                                {
+                                    if (items[i] != null)
+                                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
+                                }
+
+                                BagWeight = float.Parse(data[1]);
+
+                                if (CurrentType == Types.Inventory)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "inv",
+                                            BagData.Select(x => x?[1]),
+                                            BagWeight,
+                                        }
+                                    );
+
+                                    for (var i = 0; i < ItemsData.Length; i++)
+                                    {
+                                        if (ItemsData[i] != null)
+                                            Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip",
+                                                new object[]
+                                                {
+                                                    i,
+                                                    "inv",
+                                                    ((object[])ItemsData[i][1])[2],
+                                                }
+                                            );
+                                    }
+
+                                    UpdateTooltips = false;
+                                    UpdateBagCrate = true;
+                                }
+                                else if (CurrentType == Types.Container)
+                                {
+                                    Browser.Window.ExecuteJs("Inventory.fillBag",
+                                        new object[]
+                                        {
+                                            "crate",
+                                            BagData.Select(x => x?[0]),
+                                            BagWeight,
+                                        }
+                                    );
+
+                                    UpdateTooltips = true;
+                                    UpdateBag = true;
+                                }
+                                else
+                                {
+                                    UpdateBag = true;
+                                    UpdateBagCrate = true;
+
+                                    UpdateTooltips = true;
+                                }
+                            }
+
+                            if (CurrentType == Types.Inventory)
+                                Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot",
+                                    new object[]
+                                    {
+                                        8,
+                                        AccessoriesData[8],
+                                    }
+                                );
+                            else
+                                AccessoriesSlotsToUpdate.Add(8);
+                        }
+                        else if (id == 7)
+                        {
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
+
+                            if (data == null)
+                            {
+                                AccessoriesData[9] = null;
+                                WeaponsData[2] = null;
+                            }
+                            else
+                            {
+                                string[] item = data[1].Length == 0 ? null : data[1].Split('&');
+
+                                data = data[0].Split('&');
+
+                                AccessoriesData[9] = FillAccessories(data[0]);
+
+                                if (item != null)
+                                    WeaponsData[2] = FillWeapon(item[0], int.Parse(item[1]), int.Parse(item[2]) == 1, item[3], item[4]);
+                                else
+                                    WeaponsData[2] = null;
+                            }
+
+                            if (CurrentType == Types.Inventory)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot",
+                                    new object[]
+                                    {
+                                        9,
+                                        AccessoriesData[9],
+                                    }
+                                );
+                                Browser.Window.ExecuteJs("Inventory.updateWeaponSlot",
+                                    new object[]
+                                    {
+                                        2,
+                                        WeaponsData[2],
+                                    }
+                                );
+
+                                Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", data != null);
+                            }
+                            else
+                            {
+                                AccessoriesSlotsToUpdate.Add(9);
+                                WeaponsSlotsToUpdate.Add(2);
+                            }
+                        }
+                        else if (id == 8)
+                        {
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            ArmourData = data == null ? null : FillArmour(data[0], int.Parse(data[1]));
+
+                            if (CurrentType == Types.Inventory)
+                                Browser.Window.ExecuteJs("Inventory.fillVest",
+                                    new object[]
+                                    {
+                                        ArmourData,
+                                    }
+                                );
+                            else
+                                UpdateArmour = true;
+                        }
+                        else if (id == 9)
+                        {
+                            if (CurrentType != Types.Container)
+                                return;
+
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, true, false);
+
+                            Browser.Window.ExecuteJs("Inventory.updateCrateSlot",
+                                new object[]
+                                {
+                                    slot,
+                                    ContainerData[slot],
+                                }
+                            );
+                        }
+                        else if (id == 10)
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            var realSlot = (int)curArgs[1];
+                            var slot = (int)curArgs[2];
+
+                            string[] data = ((string)curArgs[3]).Length == 0 ? null : ((string)curArgs[3]).Split('&');
+
+                            object[] item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
+
+                            if (item == null)
+                            {
+                                if (GiveItemsData[slot] != null)
+                                    Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                        new object[]
+                                        {
+                                            (int)GiveItemsData[slot][0],
+                                            "trade",
+                                            ItemsData[(int)GiveItemsData[slot][0]]?[3],
+                                        }
+                                    );
+
+                                GiveItemsData[slot] = null;
+                            }
+                            else
+                            {
+                                if (GiveItemsData[slot] == null)
+                                {
+                                    GiveItemsData[slot] = new object[4];
+                                }
+                                else
+                                {
+                                    if (realSlot == -1)
+                                        realSlot = (int)GiveItemsData[slot][0];
+                                    else
+                                        Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                            new object[]
+                                            {
+                                                (int)GiveItemsData[slot][0],
+                                                "trade",
+                                                ItemsData[(int)GiveItemsData[slot][0]]?[3],
+                                            }
+                                        );
+                                }
+
+                                GiveItemsData[slot][0] = realSlot;
+                                GiveItemsData[slot][1] = item;
+
+                                if (ItemsData[realSlot] != null)
+                                {
+                                    object[] newRealItem = ((object[])ItemsData[realSlot][3]).ToArray();
+
+                                    newRealItem[3] = (int)newRealItem[3] - (int)item[3];
+
+                                    if ((int)newRealItem[3] <= 0)
+                                        newRealItem = null;
+
+                                    Browser.Window.ExecuteJs("Inventory.updatePocketsSlot",
+                                        new object[]
+                                        {
+                                            realSlot,
+                                            "trade",
+                                            newRealItem,
+                                        }
+                                    );
+                                }
+                            }
+
+                            Browser.Window.ExecuteJs("Inventory.updateGiveSlot",
+                                new object[]
+                                {
+                                    slot,
+                                    GiveItemsData[slot]?[1],
+                                }
+                            );
+                        }
+                        else if (id == 11)
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            if ((bool)curArgs[1])
+                            {
+                                CurrentGiveMoney = Utils.Convert.ToUInt32(curArgs[2]);
+
+                                Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+                            }
+                            else
+                            {
+                                var pType = (PropertyTypes)(int)curArgs[3];
+                                var propId = Utils.Convert.ToUInt32(curArgs[4]);
+
+                                string text = null;
+
+                                if (pType == PropertyTypes.Vehicle)
+                                {
+                                    Data.Vehicles.Vehicle vData = Data.Vehicles.Core.GetById((string)curArgs[5]);
+
+                                    text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                                }
+                                else if (pType == PropertyTypes.House)
+                                {
+                                    text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                                }
+                                else if (pType == PropertyTypes.Apartments)
+                                {
+                                    Apartments aps = Apartments.All[propId];
+
+                                    text = string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
+                                }
+                                else if (pType == PropertyTypes.Garage)
+                                {
+                                    Garage garage = Garage.All[propId];
+
+                                    text = string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
+                                }
+                                else if (pType == PropertyTypes.Business)
+                                {
+                                    Business biz = Business.All[(int)propId];
+
+                                    text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                                }
+
+                                if ((bool)curArgs[2])
+                                {
+                                    if (!CurrentGiveProperties.Contains(text))
+                                        CurrentGiveProperties.Add(text);
+                                }
+                                else
+                                {
+                                    CurrentGiveProperties.Remove(text);
+                                }
+
+                                Browser.Window.ExecuteJs("Inventory.fillTradeRProperties",
+                                    new object[]
+                                    {
+                                        "give",
+                                        CurrentGiveProperties,
+                                    }
+                                );
+                            }
+                        }
+                        else if (id == 12)
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            object[] item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
+
+                            Browser.Window.ExecuteJs("Inventory.updateReceiveSlot",
+                                new object[]
+                                {
+                                    slot,
+                                    item,
+                                }
+                            );
+                        }
+                        else if (id == 13)
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            if ((bool)curArgs[1])
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", Utils.Convert.ToDecimal(curArgs[2]));
+                            }
+                            else
+                            {
+                                var pType = (PropertyTypes)(int)curArgs[3];
+                                var propId = Utils.Convert.ToUInt32(curArgs[4]);
+
+                                string text = null;
+
+                                if (pType == PropertyTypes.Vehicle)
+                                {
+                                    Data.Vehicles.Vehicle vData = Data.Vehicles.Core.GetById((string)curArgs[5]);
+
+                                    text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                                }
+                                else if (pType == PropertyTypes.House)
+                                {
+                                    text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                                }
+                                else if (pType == PropertyTypes.Apartments)
+                                {
+                                    Apartments aps = Apartments.All[propId];
+
+                                    text = string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
+                                }
+                                else if (pType == PropertyTypes.Garage)
+                                {
+                                    Garage garage = Garage.All[propId];
+
+                                    text = string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
+                                }
+                                else if (pType == PropertyTypes.Business)
+                                {
+                                    Business biz = Business.All[(int)propId];
+
+                                    text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                                }
+
+                                if ((bool)curArgs[2])
+                                {
+                                    if (!CurrentGetProperties.Contains(text))
+                                        CurrentGetProperties.Add(text);
+                                }
+                                else
+                                {
+                                    CurrentGetProperties.Remove(text);
+                                }
+
+                                Browser.Window.ExecuteJs("Inventory.fillTradeRProperties",
+                                    new object[]
+                                    {
+                                        "receive",
+                                        CurrentGetProperties,
+                                    }
+                                );
+                            }
+                        }
+                        else if (id == 14)
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            if ((bool)curArgs[1])
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", (bool)curArgs[2]);
+                                Browser.Window.ExecuteJs("Inventory.switchTradeBtn", (bool)curArgs[2]);
+
+                                if (!(bool)curArgs[2])
+                                    if ((bool)curArgs[3])
+                                        FreezeInterface(true, false);
+                            }
+                            else
+                            {
+                                if ((bool)curArgs[2])
+                                {
+                                    if (!(bool)curArgs[3])
+                                        FreezeInterface(true, false);
+
+                                    Notification.Show("Trade::PlayerConfirmed");
+                                }
+                                else
+                                {
+                                    if (!(bool)curArgs[3])
+                                        FreezeInterface(false, false);
+
+                                    Notification.Show("Trade::PlayerConfirmedCancel");
+                                }
+                            }
+                        }
+                        else if (id == 20)
+                        {
+                            if (CurrentType != Types.Workbench)
+                                return;
+
+                            var slot = (int)curArgs[1];
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            if (data == null)
+                            {
+                                WorkbenchCraftData[slot] = null;
+                                WorkbenchCraftParams[slot] = null;
+                            }
+                            else
+                            {
+                                var amount = int.Parse(data[1]);
+
+                                WorkbenchCraftData[slot] = FillCraftItem(data[0], amount, float.Parse(data[2]), data[3]);
+                                WorkbenchCraftParams[slot] = new Craft.ItemPrototype(data[0], amount);
+                            }
+
+                            for (var i = 0; i < WorkbenchToolsParams.Length; i++)
+                            {
+                                if (!WorkbenchCraftParams.Where(x => x != null && WorkbenchToolsParams[i] != null && x.Id == WorkbenchToolsParams[i].Id).Any())
+                                {
+                                    if (WorkbenchToolsParams[i] != null)
+                                    {
+                                        object[] newData = FillCraftToolsItem(WorkbenchToolsParams[i].Id, 1, 0f, null);
+
+                                        if (WorkbenchToolsData[i] == null || WorkbenchToolsData[i][0] != newData[0] || WorkbenchToolsData[i][1] != newData[1])
+                                        {
+                                            WorkbenchToolsData[i] = newData;
+
+                                            Browser.Window.ExecuteJs("Inventory.updateToolSlot",
+                                                new object[]
+                                                {
+                                                    i,
+                                                    newData,
+                                                }
+                                            );
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (WorkbenchToolsData[i] != null)
+                                    {
+                                        WorkbenchToolsData[i] = null;
+
+                                        Browser.Window.ExecuteJs("Inventory.updateToolSlot",
+                                            new object[]
+                                            {
+                                                i,
+                                                null,
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+
+                            Browser.Window.ExecuteJs("Inventory.updateCraftSlot",
+                                new object[]
+                                {
+                                    slot,
+                                    WorkbenchCraftData[slot],
+                                }
+                            );
+                        }
+                        else if (id == 22)
+                        {
+                            if (CurrentType != Types.Workbench)
+                                return;
+
+                            string[] data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                            if (data == null || data.Length > 1)
+                            {
+                                CancelPendingCraftTask();
+
+                                ResetCraftButton();
+
+                                WorkbenchResultData[0] = data == null ? null : FillCraftResultItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], true);
+
+                                Browser.Window.ExecuteJs("Inventory.updateResultSlot",
+                                    new object[]
+                                    {
+                                        WorkbenchResultData[0],
+                                    }
+                                );
+
+                                if (data == null)
+                                    UpdateCraftItemVisualization();
+                            }
+                            else
+                            {
+                                var craftEndDate = DateTime.Parse(data[0]);
+
+                                CancelPendingCraftTask();
+
+                                StartPendingCraftTask(craftEndDate);
+                            }
+                        }
+                    }
+
+                    if (CurrentType == Types.Inventory)
+                        UpdateBinds();
+                    else if (CurrentType == Types.Workbench)
+                        if (usedGroups.Contains(20))
+                            UpdateCraftItemVisualization();
+                }
+            );
+
+            #endregion
+
+            Events.Add("Trade::UpdateLocal",
+                async (object[] args) =>
+                {
+                    if (CurrentType != Types.Trade)
+                        return;
+
+                    var pData = PlayerData.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    var type = (int)args[0];
+
+                    // Money
+                    if (type == 0)
+                    {
+                        if (CurrentGiveMoney < 0)
+                            CurrentGiveMoney = 0;
+
+                        var newAmountI = Utils.Convert.ToDecimal(args[1]);
+
+                        int newAmount;
+
+                        if (!newAmountI.IsNumberValid(0, int.MaxValue, out newAmount, false))
+                            newAmount = int.MaxValue;
+
+                        if (pData.Cash < newAmountI)
+                            newAmount = (int)pData.Cash;
+
+                        if (!LastSent.IsSpam(100, false, false))
+                        {
+                            LastSent = World.Core.ServerTime;
+
+                            var res = (bool)await Events.CallRemoteProc("Trade::UpdateMoney", newAmount);
+
+                            if (!res)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+
+                                return;
+                            }
+                            else
+                            {
+                                CurrentGiveMoney = (uint)newAmount;
+
+                                Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+                            }
+                        }
+                        else
+                        {
+                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+                        }
+                    }
+                    // Property
+                    else if (type == 1)
+                    {
+                        if (LastSent.IsSpam(500, false, false))
+                            return;
+
+                        var idx = (int)args[1];
+                        var state = (bool)args[2];
+
+                        List<(PropertyTypes, uint)> propIds = Player.LocalPlayer.GetData<List<(PropertyTypes, uint)>>("Trade::Temp::PropIds");
+
+                        if (propIds == null)
+                            return;
+
+                        if (idx >= propIds.Count)
+                            return;
+
+                        (PropertyTypes, uint) prop = propIds[idx];
+
+                        if ((bool)await Events.CallRemoteProc("Trade::UpdateProperty", prop.Item1, prop.Item2, state))
+                        {
+                            if (CurrentType != Types.Trade)
+                                return;
+
+                            Browser.Window.ExecuteJs("Inventory.fillCheckBox", idx, state);
+                        }
+                    }
+                    // Ready
+                    else if (type == 2)
+                    {
+                        var state = (bool)args[1];
+
+                        if (!LastSent.IsSpam(1000, false, false))
+                        {
+                            Events.CallRemote("Trade::Confirm", state);
+
+                            LastSent = World.Core.ServerTime;
+                        }
+                    }
+                    // Accept
+                    else if (type == 3)
+                    {
+                        if (!LastSent.IsSpam(1000, false, false))
+                        {
+                            Events.CallRemote("Trade::Accept");
+
+                            LastSent = World.Core.ServerTime;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            );
+
+            #region Replace
+
+            Events.Add("Inventory::Replace",
+                (object[] args) =>
+                {
+                    var toStr = (string)args[0];
+                    var toSlot = (int)args[1];
+
+                    var fromStr = (string)args[2];
+                    var fromSlot = (int)args[3];
+
+                    var amount = (int)args[4];
+
+                    Replace(toStr, toSlot, fromStr, fromSlot, amount);
+                }
+            );
+
+            #endregion
+
+            #region Action
+
+            // 0 - action, 1 - slotStrFrom, 2 - slotFrom, 3 slotStrTo, 4 - slotTo, 5 - amount
+            // actions: -1 - cancelAction, 0 - bind, 1 - split, 2 - throw, 3 - takeByGround, 4 - fastUse, 5 - use2
+
+            Events.Add("Inventory::Action",
+                (object[] args) =>
+                {
+                    Action(args);
+                }
+            );
+
+            #endregion
+
+            #region Bind
+
+            Events.Add("Inventory::Bind",
+                (object[] args) =>
+                {
+                    if (!IsActive)
+                        return;
+
+                    var keyCode = (RAGE.Ui.VirtualKeys)(int)args[0];
+
+                    var slotStr = (string)args[1];
+                    var slot = (int)args[2];
+
+                    var type = (Input.Enums.BindTypes)Enum.Parse(typeof(Input.Enums.BindTypes), slotStr + slot.ToString());
+
+                    if (keyCode == RAGE.Ui.VirtualKeys.Escape)
+                        return;
+
+                    if (keyCode == RAGE.Ui.VirtualKeys.Back)
+                    {
+                        Input.Core.Get(type)
+                            ?.ChangeKeys(new RAGE.Ui.VirtualKeys[]
+                                  {
+                                  }
+                              );
+
+                        return;
+                    }
+
+                    if (Input.Core.Get(type) is Input.Core.ExtraBind eBind)
+                    {
+                        eBind.ChangeKeys(new RAGE.Ui.VirtualKeys[]
+                            {
+                                keyCode,
+                            }
+                        );
+
+                        Notification.Show(Notification.Types.Success, Locale.Notifications.Bind.Header, string.Format(Locale.Notifications.Bind.Binded, eBind.GetKeyString()));
+                    }
+                }
+            );
+
+            #endregion
+
+            Events.Add("Inventory::Close", (object[] args) => Close(false));
+
+            #endregion
+        }
+
+        public static bool IsActive => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) ||
+                                       ActionBox.CurrentContextStr == "Inventory";
+
+        private static int FreezeCounter { get; set; }
+
+        public static event OnInventoryUpdated InventoryUpdated;
 
         private static int GetTooltipGroup()
         {
             if (CurrentType == Types.Container)
-            {
                 return 0;
-            }
             else if (CurrentType == Types.Inventory)
-            {
-                return (BagData != null ? 1 : 2);
-            }
+                return BagData != null ? 1 : 2;
             else
                 return 3;
         }
 
+        #region Show
+
+        public static void Show(Types type, params object[] args)
+        {
+            if (IsActive)
+                return;
+
+            if (LastShowed.IsSpam(1000, false, false) || Utils.Misc.IsAnyCefActive())
+                return;
+
+            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading) ||
+                Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) ||
+                Management.Weapons.Core.LastArmourLoss.IsSpam(250, false, false))
+                return;
+
+            CurrentEntity = Game.Management.Interaction.CurrentEntity;
+
+            LastShowed = World.Core.ServerTime;
+
+            if (type == Types.Inventory)
+                Events.CallLocal("Inventory::Show", (int)Types.Inventory);
+            else if (type == Types.Container)
+                Events.CallRemote("Container::Show", (uint)args[0]);
+            else if (type == Types.Workbench)
+                Events.CallRemote("Workbench::Show", (int)args[0], (uint)args[1]);
+        }
+
+        #endregion
+
+        #region Set Window Ready
+
+        private static void SetWindowReady()
+        {
+            if (IsActive)
+                return;
+
+            Main.Update -= OnTickCheck;
+            Main.Update += OnTickCheck;
+
+            World.Core.EnabledItemsOnGround = false;
+            Game.Management.Interaction.EnabledVisual = false;
+
+            if (CurrentType == Types.Inventory)
+            {
+                Browser.Switch(Browser.IntTypes.Inventory, true);
+
+                UpdateStates();
+            }
+            else if (CurrentType == Types.Container)
+            {
+                Browser.Switch(Browser.IntTypes.CratesInventory, true);
+            }
+            else if (CurrentType == Types.Workbench)
+            {
+                Browser.Switch(Browser.IntTypes.Workbench, true);
+            }
+            else if (CurrentType == Types.Trade)
+            {
+                Browser.Switch(Browser.IntTypes.Trade, true);
+            }
+
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
+
+            TempBindEsc = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape,
+                true,
+                () =>
+                {
+                    if (ActionBox.CurrentContextStr == "Inventory")
+                    {
+                        ActionBox.Close(false);
+
+                        CurrentAction = null;
+                        CurrentSlotFrom = null;
+                        CurrentSlotTo = null;
+                    }
+                    else if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
+                    {
+                        Note.Close(false);
+                    }
+                    else
+                    {
+                        Close(true);
+                    }
+                }
+            );
+
+            Main.DisableAllControls(true);
+
+            if (!Settings.User.Interface.HideHUD)
+                HUD.ShowHUD(false);
+
+            if (!Settings.User.Interface.HideNames)
+                NameTags.Enabled = false;
+
+            Chat.Show(false);
+
+            RAGE.Game.Graphics.TransitionToBlurred(0f);
+
+            Cursor.Show(true, true);
+        }
+
+        #endregion
+
+        #region Close
+
+        public static void Close(bool callRemote = true)
+        {
+            if (!IsActive)
+                return;
+
+            Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false);
+
+            ContainerData = null;
+
+            GiveItemsData = null;
+
+            WorkbenchCraftData = null;
+            WorkbenchResultData = null;
+            WorkbenchToolsData = null;
+            WorkbenchCraftParams = null;
+
+            if (ActionBox.CurrentContextStr == "Inventory")
+                ActionBox.Close(true);
+
+            if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
+                Note.Close(true);
+
+            if (CurrentType == Types.Workbench)
+                CancelPendingCraftTask();
+
+            FreezeInterface(false, true);
+
+            CurrentContainerType = ContainerTypes.None;
+
+            if (callRemote && CurrentType == Types.Container)
+                Events.CallRemote("Container::Close");
+            else if (callRemote && CurrentType == Types.Workbench)
+                Events.CallRemote("Workbench::Close");
+            else if (callRemote && CurrentType == Types.Trade)
+                Offers.Reply(Offers.ReplyTypes.AutoCancel);
+
+            Browser.Switch(Browser.IntTypes.Inventory, false);
+            Browser.Switch(Browser.IntTypes.CratesInventory, false);
+            Browser.Switch(Browser.IntTypes.Workbench, false);
+            Browser.Switch(Browser.IntTypes.Trade, false);
+
+            Player.LocalPlayer.ResetData("Trade::Temp::PropIds");
+
+            CurrentEntity = null;
+
+            Browser.Window.ExecuteJs("Inventory.defaultSlot();");
+
+            foreach (int bind in TempBinds.ToList())
+            {
+                Input.Core.Unbind(bind);
+            }
+
+            TempBinds.Clear();
+
+            if (TempBindEsc != -1)
+                Input.Core.Unbind(TempBindEsc);
+
+            TempBindEsc = -1;
+
+            Main.Update -= OnTickCheck;
+
+            World.Core.EnabledItemsOnGround = true;
+            Game.Management.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
+
+            Main.DisableAllControls(false);
+
+            RAGE.Game.Graphics.TransitionFromBlurred(0f);
+
+            if (!Settings.User.Interface.HideHUD)
+                HUD.ShowHUD(true);
+
+            if (!Settings.User.Interface.HideNames)
+                NameTags.Enabled = true;
+
+            Chat.Show(true);
+
+            Cursor.Show(false, false);
+
+            CurrentType = Types.None;
+
+            CurrentSlotFrom = null;
+            CurrentSlotTo = null;
+            CurrentAction = null;
+
+            LastShowed = World.Core.ServerTime;
+        }
+
+        #endregion
+
         public class ItemParams
         {
-            public string Id { get; set; }
-
-            public bool InUse { get; set; }
-
             public ItemParams(string Id)
             {
                 this.Id = Id;
             }
+
+            public string Id { get; set; }
+
+            public bool InUse { get; set; }
         }
 
         #region Variables
-        private static bool FirstOpenInv { get => Player.LocalPlayer.HasData("Inv::Temp::FOI"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOI", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOI"); } }
-        private static bool FirstOpenCrate { get => Player.LocalPlayer.HasData("Inv::Temp::FOC"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOC", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOC"); } }
-        private static bool FirstOpenWorkbench { get => Player.LocalPlayer.HasData("Inv::Temp::FOW"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOW", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOW"); } }
+
+        private static bool FirstOpenInv
+        {
+            get => Player.LocalPlayer.HasData("Inv::Temp::FOI");
+            set
+            {
+                if (value)
+                    Player.LocalPlayer.SetData("Inv::Temp::FOI", true);
+                else
+                    Player.LocalPlayer.ResetData("Inv::Temp::FOI");
+            }
+        }
+
+        private static bool FirstOpenCrate
+        {
+            get => Player.LocalPlayer.HasData("Inv::Temp::FOC");
+            set
+            {
+                if (value)
+                    Player.LocalPlayer.SetData("Inv::Temp::FOC", true);
+                else
+                    Player.LocalPlayer.ResetData("Inv::Temp::FOC");
+            }
+        }
+
+        private static bool FirstOpenWorkbench
+        {
+            get => Player.LocalPlayer.HasData("Inv::Temp::FOW");
+            set
+            {
+                if (value)
+                    Player.LocalPlayer.SetData("Inv::Temp::FOW", true);
+                else
+                    Player.LocalPlayer.ResetData("Inv::Temp::FOW");
+            }
+        }
 
         private static Types CurrentType { get; set; }
         private static ContainerTypes CurrentContainerType { get; set; }
@@ -157,1555 +2100,365 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static List<string> CurrentGiveProperties { get; set; }
         private static List<string> CurrentGetProperties { get; set; }
+
         #endregion
 
         #region Fillers
+
         private static object[] FillWeapon(string id, int ammo, bool inUse, string tag, string wcStr)
         {
-            var iType = Game.Items.Core.GetType(id);
-            var imgId = Game.Items.Core.GetImageId(id, iType);
+            System.Type iType = Items.Core.GetType(id);
+            string imgId = Items.Core.GetImageId(id, iType);
 
-            var name = Game.Items.Core.GetNameWithTag(id, iType, tag, out _);
+            string name = Items.Core.GetNameWithTag(id, iType, tag, out _);
 
             var tooltips = new List<object>();
 
-            tooltips.AddRange(new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 5, inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands }, new object[] { 6, Locale.General.Inventory.Actions.Load }, new object[] { 1, Locale.General.Inventory.Actions.Unload } });
+            tooltips.AddRange(new object[]
+                {
+                    new object[]
+                    {
+                        4,
+                        Locale.General.Inventory.Actions.TakeOff,
+                    },
+                    new object[]
+                    {
+                        5,
+                        inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands,
+                    },
+                    new object[]
+                    {
+                        6,
+                        Locale.General.Inventory.Actions.Load,
+                    },
+                    new object[]
+                    {
+                        1,
+                        Locale.General.Inventory.Actions.Unload,
+                    },
+                }
+            );
 
             if (wcStr.Length > 0)
             {
-                var wcData = wcStr.Split('_');
+                string[] wcData = wcStr.Split('_');
 
-                foreach (var x in wcData.Select(x => (WeaponComponentTypes)int.Parse(x)))
+                foreach (WeaponComponentTypes x in wcData.Select(x => (WeaponComponentTypes)int.Parse(x)))
                 {
-                    tooltips.Add(new object[] { 7 + (int)x, Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(x.GetType(), x.ToString(), "INV_TAKEOFF_0") ?? "null") });
+                    tooltips.Add(new object[]
+                        {
+                            7 + (int)x,
+                            Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(x.GetType(), x.ToString(), "INV_TAKEOFF_0") ?? "null"),
+                        }
+                    );
                 }
             }
 
-            tooltips.Add(new object[] { 2, Locale.General.Inventory.Actions.Drop });
+            tooltips.Add(new object[]
+                {
+                    2,
+                    Locale.General.Inventory.Actions.Drop,
+                }
+            );
 
-            if (inUse && Game.Management.AntiCheat.Core.LastAllowedAmmo < ammo)
-                ammo = Game.Management.AntiCheat.Core.LastAllowedAmmo;
+            if (inUse && Management.AntiCheat.Core.LastAllowedAmmo < ammo)
+                ammo = Management.AntiCheat.Core.LastAllowedAmmo;
 
-            return new object[] { imgId, name, tooltips.ToArray(), ammo, inUse };
+            return new object[]
+            {
+                imgId,
+                name,
+                tooltips.ToArray(),
+                ammo,
+                inUse,
+            };
         }
 
         private static object[] FillArmour(string type, int strength)
         {
-            var iType = Game.Items.Core.GetType(type);
-            var imgId = Game.Items.Core.GetImageId(type, iType);
+            System.Type iType = Items.Core.GetType(type);
+            string imgId = Items.Core.GetImageId(type, iType);
 
-            return new object[] { imgId, Game.Items.Core.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
+            return new object[]
+            {
+                imgId,
+                Items.Core.GetName(type),
+                new object[]
+                {
+                    new object[]
+                    {
+                        4,
+                        Locale.General.Inventory.Actions.TakeOff,
+                    },
+                    new object[]
+                    {
+                        2,
+                        Locale.General.Inventory.Actions.Drop,
+                    },
+                },
+                strength,
+            };
         }
 
         private static object[] FillCraftResultItem(string id, int amount, float weight, string tag, bool isReady)
         {
-            var iType = Game.Items.Core.GetType(id);
-            var imgId = Game.Items.Core.GetImageId(id, iType);
+            System.Type iType = Items.Core.GetType(id);
+            string imgId = Items.Core.GetImageId(id, iType);
 
-            var name = Game.Items.Core.GetNameWithTag(id, iType, tag, out _);
+            string name = Items.Core.GetNameWithTag(id, iType, tag, out _);
 
             if (!isReady)
-                return new object[] { imgId, name, null, amount, weight };
+                return new object[]
+                {
+                    imgId,
+                    name,
+                    null,
+                    amount,
+                    weight,
+                };
 
-            return new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, true, false, true, true, false), amount, weight };
+            return new object[]
+            {
+                imgId,
+                name,
+                Items.Core.GetActions(iType, id, amount, true, false, true, true, false),
+                amount,
+                weight,
+            };
         }
 
         private static object[] FillCraftToolsItem(string id, int amount, float weight, string tag)
         {
-            var iType = Game.Items.Core.GetType(id);
-            var imgId = Game.Items.Core.GetImageId(id, iType);
+            System.Type iType = Items.Core.GetType(id);
+            string imgId = Items.Core.GetImageId(id, iType);
 
-            var name = Game.Items.Core.GetNameWithTag(id, iType, tag, out _);
+            string name = Items.Core.GetNameWithTag(id, iType, tag, out _);
 
-            return new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+            return new object[]
+            {
+                imgId,
+                name,
+                Items.Core.GetActions(iType, id, amount, true, false, true, true, false, false),
+                null,
+                null,
+            };
         }
 
         private static object[] FillCraftItem(string id, int amount, float weight, string tag)
         {
-            var iType = Game.Items.Core.GetType(id);
-            var imgId = Game.Items.Core.GetImageId(id, iType);
+            System.Type iType = Items.Core.GetType(id);
+            string imgId = Items.Core.GetImageId(id, iType);
 
-            var name = Game.Items.Core.GetNameWithTag(id, iType, tag, out _);
+            string name = Items.Core.GetNameWithTag(id, iType, tag, out _);
 
             if (iType == typeof(WorkbenchTool))
-                return new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+                return new object[]
+                {
+                    imgId,
+                    name,
+                    Items.Core.GetActions(iType, id, amount, true, false, true, true, false, false),
+                    null,
+                    null,
+                };
             else
-                return new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, true, false, true, true, false, true), amount, weight };
+                return new object[]
+                {
+                    imgId,
+                    name,
+                    Items.Core.GetActions(iType, id, amount, true, false, true, true, false, true),
+                    amount,
+                    weight,
+                };
         }
 
         private static object[] FillItem(string id, int amount, float weight, string tag, bool inUse, bool inBag, bool inContainer, bool inTrade)
         {
-            var iType = Game.Items.Core.GetType(id);
-            var imgId = Game.Items.Core.GetImageId(id, iType);
+            System.Type iType = Items.Core.GetType(id);
+            string imgId = Items.Core.GetImageId(id, iType);
 
-            var name = Game.Items.Core.GetNameWithTag(id, iType, tag, out _);
+            string name = Items.Core.GetNameWithTag(id, iType, tag, out _);
 
             if (inUse)
                 name = name.Insert(0, InUseItemPrefix);
 
             if (inContainer)
-                return new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
+                return new object[]
+                {
+                    imgId,
+                    name,
+                    Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true),
+                    amount,
+                    weight,
+                };
             else if (inBag)
-                return new object[] { new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight }, new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight } };
+                return new object[]
+                {
+                    new object[]
+                    {
+                        imgId,
+                        name,
+                        Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true),
+                        amount,
+                        weight,
+                    },
+                    new object[]
+                    {
+                        imgId,
+                        name,
+                        Items.Core.GetActions(iType, id, amount, inBag, inUse, true, false),
+                        amount,
+                        weight,
+                    },
+                };
             else if (inTrade)
-                return new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftOutOfTrade }, amount, weight };
+                return new object[]
+                {
+                    imgId,
+                    name,
+                    new object[]
+                    {
+                        4,
+                        Locale.General.Inventory.Actions.ShiftOutOfTrade,
+                    },
+                    amount,
+                    weight,
+                };
 
-            var item1 = new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
-            var item2 = new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight };
-            var item3 = new object[] { imgId, name, Game.Items.Core.GetActions(iType, id, amount, inBag, inUse, false, false), amount, weight };
-            var item4 = new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftTrade }, amount, weight };
+            var item1 = new object[]
+            {
+                imgId,
+                name,
+                Items.Core.GetActions(iType, id, amount, inBag, inUse, true, true),
+                amount,
+                weight,
+            };
+            var item2 = new object[]
+            {
+                imgId,
+                name,
+                Items.Core.GetActions(iType, id, amount, inBag, inUse, true, false),
+                amount,
+                weight,
+            };
+            var item3 = new object[]
+            {
+                imgId,
+                name,
+                Items.Core.GetActions(iType, id, amount, inBag, inUse, false, false),
+                amount,
+                weight,
+            };
+            var item4 = new object[]
+            {
+                imgId,
+                name,
+                new object[]
+                {
+                    4,
+                    Locale.General.Inventory.Actions.ShiftTrade,
+                },
+                amount,
+                weight,
+            };
 
-            return new object[] { item1, item2, item3, item4 };
+            return new object[]
+            {
+                item1,
+                item2,
+                item3,
+                item4,
+            };
         }
+
         private static object[] FillClothes(string type)
         {
-            var iType = Game.Items.Core.GetType(type);
-            var imgId = Game.Items.Core.GetImageId(type, iType);
+            System.Type iType = Items.Core.GetType(type);
+            string imgId = Items.Core.GetImageId(type, iType);
 
-            var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
-
-            if (typeof(Clothes.IToggleable).IsAssignableFrom(iType) && Game.Items.Core.GetData(type, iType) is Clothes.ItemData.IToggleable data && data.ExtraData != null)
+            var actions = new List<object[]>()
             {
-                actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
-            }
+                new object[]
+                {
+                    4,
+                    Locale.General.Inventory.Actions.TakeOff,
+                },
+                new object[]
+                {
+                    2,
+                    Locale.General.Inventory.Actions.Drop,
+                },
+            };
 
-            return new object[] { imgId, Game.Items.Core.GetName(type), actions.ToArray() };
+            if (typeof(Clothes.IToggleable).IsAssignableFrom(iType) && Items.Core.GetData(type, iType) is Clothes.ItemData.IToggleable data && data.ExtraData != null)
+                actions.Insert(1,
+                    new object[]
+                    {
+                        5,
+                        Locale.General.Inventory.Actions.Reset,
+                    }
+                );
+
+            return new object[]
+            {
+                imgId,
+                Items.Core.GetName(type),
+                actions.ToArray(),
+            };
         }
+
         private static object[] FillAccessories(string type)
         {
-            var iType = Game.Items.Core.GetType(type);
-            var imgId = Game.Items.Core.GetImageId(type, iType);
+            System.Type iType = Items.Core.GetType(type);
+            string imgId = Items.Core.GetImageId(type, iType);
 
-            var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
+            var actions = new List<object[]>()
+            {
+                new object[]
+                {
+                    4,
+                    Locale.General.Inventory.Actions.TakeOff,
+                },
+                new object[]
+                {
+                    2,
+                    Locale.General.Inventory.Actions.Drop,
+                },
+            };
 
             if (typeof(Clothes.IToggleable).IsAssignableFrom(iType))
+                actions.Insert(1,
+                    new object[]
+                    {
+                        5,
+                        Locale.General.Inventory.Actions.Reset,
+                    }
+                );
+
+            return new object[]
             {
-                actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
-            }
-
-            return new object[] { imgId, Game.Items.Core.GetName(type), actions.ToArray() };
-        }
-        #endregion
-
-        public Inventory()
-        {
-            FirstOpenInv = true;
-            FirstOpenCrate = true;
-            FirstOpenWorkbench = true;
-
-            ItemSlotsToUpdate = new HashSet<int>();
-            ItemSlotsToUpdateCrate = new HashSet<int>();
-            ItemSlotsToUpdateWorkbench = new HashSet<int>();
-
-            WeaponsSlotsToUpdate = new HashSet<int>();
-            ClothesSlotsToUpdate = new HashSet<int>();
-            AccessoriesSlotsToUpdate = new HashSet<int>();
-            BagSlotsToUpdate = new HashSet<int>();
-            BagSlotsToUpdateCrate = new HashSet<int>();
-            UpdateArmour = false;
-            UpdateBag = false;
-            UpdateBagCrate = false;
-
-            LastShowed = Game.World.Core.ServerTime;
-            LastSent = Game.World.Core.ServerTime;
-
-            CurrentType = Types.None;
-            CurrentContainerType = ContainerTypes.None;
-
-            CurrentEntity = null;
-
-            TempBinds = new List<int>();
-            TempBindEsc = -1;
-
-            #region Events
-
-            Events.Add("Inventory::Note", async (args) =>
-            {
-                if (!IsActive)
-                    return;
-
-                if (args.Length == 1)
-                {
-                    var str = (string)args[0] ?? string.Empty;
-
-                    CEF.Note.ShowRead
-                    (
-                        "InventoryNoteRead", str,
-
-                        () =>
-                        {
-                            if (!IsActive)
-                            {
-                                CEF.Note.Close(false);
-
-                                return;
-                            }
-
-                            FreezeInterface(true, false);
-
-                            CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
-                        },
-
-                        () =>
-                        {
-                            if (IsActive)
-                            {
-                                FreezeInterface(false, false);
-
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
-                            }
-                        }
-                    );
-                }
-                else
-                {
-                    var groupNum = (int)args[0];
-                    var slot = (int)args[1];
-
-                    var str = (string)args[2] ?? string.Empty;
-
-                    CEF.Note.ShowWrite
-                    (
-                        "InventoryNoteWrite", str,
-
-                        () =>
-                        {
-                            if (!IsActive)
-                            {
-                                CEF.Note.Close(false);
-
-                                return;
-                            }
-
-                            FreezeInterface(true, false);
-
-                            CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
-                        },
-
-                        async (text) =>
-                        {
-                            text = text?.Trim();
-
-                            var res = await Events.CallRemoteProc("Player::NoteEdit", groupNum, slot, text);
-
-                            CEF.Note.Close(false);
-                        },
-
-                        () =>
-                        {
-                            if (IsActive)
-                            {
-                                FreezeInterface(false, false);
-
-                                CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
-                            }
-                        }
-                    );
-                }
-            });
-
-            Events.Add("Workbench::TryCraft", (args) =>
-            {
-                if (CurrentType != Types.Workbench)
-                    return;
-
-                if (LastSent.IsSpam(250, false, false))
-                    return;
-
-                if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
-                {
-                    var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
-
-                    var receipt = Craft.Receipt.GetByIngredients(notNullItems);
-
-                    if (receipt == null)
-                    {
-                        CEF.Notification.ShowError(Locale.Notifications.Inventory.WorkbenchWrongCraft);
-
-                        return;
-                    }
-
-                    if (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null)
-                    {
-                        CEF.Notification.ShowError(Locale.Notifications.Inventory.WorkbenchResultItemExists);
-
-                        return;
-                    }
-
-                    Events.CallRemote("Workbench::Craft", receipt.Index);
-
-                    LastSent = Game.World.Core.ServerTime;
-                }
-                else
-                {
-                    Events.CallRemote("Workbench::Craft", -1);
-
-                    LastSent = Game.World.Core.ServerTime;
-                }
-            });
-
-            #region Show
-            Events.Add("Inventory::Show", async (object[] args) =>
-            {
-                if (IsActive)
-                    return;
-
-                CurrentType = (Types)(int)args[0];
-
-                SetWindowReady();
-
-                if (CurrentType == Types.Inventory)
-                {
-                    bool ammoUpdated = false;
-                    int activeWeapon = -1;
-
-                    if (WeaponsData != null)
-                    {
-                        for (int i = 0; i < WeaponsData.Length; i++)
-                            if ((bool?)WeaponsData[i]?[4] == true)
-                            {
-                                activeWeapon = i;
-
-                                break;
-                            }
-
-                        if (activeWeapon != -1)
-                        {
-                            var selectedWeapon = Player.LocalPlayer.GetSelectedWeapon();
-
-                            /*                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
-                                                        {
-                                                            WeaponsData[activeWeapon][4] = false;
-
-                                                            ammoUpdated = true;
-                                                        }*/
-                            if ((int)WeaponsData[activeWeapon][3] != Game.Management.AntiCheat.Core.LastAllowedAmmo)
-                            {
-                                WeaponsData[activeWeapon][3] = Game.Management.AntiCheat.Core.LastAllowedAmmo;
-
-                                ammoUpdated = true;
-                            }
-                        }
-                    }
-
-                    Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", AccessoriesData[9] != null);
-
-                    if (FirstOpenInv)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "inv", ItemsData.Select(x => x?[GetTooltipGroup()]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
-                        Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
-                        Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData == null ? null : BagData.Select(x => x?[GetTooltipGroup()]), BagWeight });
-                        Browser.Window.ExecuteJs("Inventory.fillWeapon", new object[] { WeaponsData });
-                        Browser.Window.ExecuteJs("Inventory.fillClothes", new object[] { ClothesData });
-                        Browser.Window.ExecuteJs("Inventory.fillAccessories", new object[] { AccessoriesData });
-
-                        FirstOpenInv = false;
-                    }
-                    else
-                    {
-                        if (UpdateArmour)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
-
-                            UpdateArmour = false;
-                        }
-
-                        foreach (var slot in ItemSlotsToUpdate)
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "inv", ItemsData[slot]?[GetTooltipGroup()] });
-
-                        ItemSlotsToUpdate.Clear();
-
-                        if (BagData != null)
-                        {
-                            if (UpdateBag)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData == null ? null : BagData.Select(x => x?[GetTooltipGroup()]), BagWeight });
-
-                                UpdateBag = false;
-                            }
-                            else
-                            {
-                                foreach (var slot in BagSlotsToUpdate)
-                                    Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "inv", BagData[slot]?[GetTooltipGroup()] });
-                            }
-                        }
-                        else
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", null, null });
-
-                        BagSlotsToUpdate.Clear();
-
-                        if (ammoUpdated && !WeaponsSlotsToUpdate.Contains(activeWeapon))
-                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { activeWeapon, WeaponsData[activeWeapon] });
-
-                        foreach (var slot in WeaponsSlotsToUpdate)
-                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { slot, WeaponsData[slot] });
-
-                        WeaponsSlotsToUpdate.Clear();
-
-                        foreach (var slot in ClothesSlotsToUpdate)
-                            Browser.Window.ExecuteJs("Inventory.updateClothesSlot", new object[] { slot, ClothesData[slot] });
-
-                        ClothesSlotsToUpdate.Clear();
-
-                        foreach (var slot in AccessoriesSlotsToUpdate)
-                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { slot, AccessoriesData[slot] });
-
-                        AccessoriesSlotsToUpdate.Clear();
-
-                        if (UpdateTooltips)
-                        {
-                            for (int i = 0; i < ItemsData.Length; i++)
-                                if (ItemsData[i] != null)
-                                    Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][GetTooltipGroup()])[2] });
-
-                            UpdateTooltips = false;
-                        }
-                    }
-
-                    UpdateBinds();
-                }
-                else if (CurrentType == Types.Container)
-                {
-                    if (FirstOpenCrate)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "crate", ItemsData.Select(x => x?[0]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
-                        Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData == null ? null : BagData.Select(x => x?[0]), BagWeight });
-
-                        FirstOpenCrate = false;
-                    }
-                    else
-                    {
-                        foreach (var slot in ItemSlotsToUpdateCrate)
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "crate", ItemsData[slot]?[0] });
-
-                        ItemSlotsToUpdateCrate.Clear();
-
-                        if (BagData != null)
-                        {
-                            if (UpdateBagCrate)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData == null ? null : BagData.Select(x => x?[0]), BagWeight });
-
-                                UpdateBagCrate = false;
-                            }
-                            else
-                            {
-                                foreach (var slot in BagSlotsToUpdateCrate)
-                                    Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "crate", BagData[slot]?[0] });
-                            }
-                        }
-                        else
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", null, null });
-
-                        BagSlotsToUpdateCrate.Clear();
-                    }
-
-                    var contData = ((string)args[1]).Split('|');
-
-                    var contItems = contData.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
-
-                    contData = contData[0].Split('&');
-
-                    CurrentContainerType = (ContainerTypes)int.Parse(contData[0]);
-
-                    ContainerData = new object[contItems.Length][];
-
-                    for (int i = 0; i < ContainerData.Length; i++)
-                        if (contItems[i] != null)
-                            ContainerData[i] = FillItem(contItems[i][0], int.Parse(contItems[i][1]), float.Parse(contItems[i][2]), contItems[i][3], false, true, true, false);
-
-                    Browser.Window.ExecuteJs("Inventory.fillCrate", new object[] { Locale.General.Containers.Names[CurrentContainerType], ContainerData, float.Parse(contData[1]) });
-                }
-                else if (CurrentType == Types.Trade)
-                {
-                    var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                    if (pData == null)
-                        return;
-
-                    GiveItemsData = new object[5][];
-
-                    CurrentGiveProperties = new List<string>();
-                    CurrentGetProperties = new List<string>();
-
-                    Browser.Window.ExecuteCachedJs("Inventory.switchUnderline", 0);
-
-                    Browser.Window.ExecuteCachedJs("Inventory.fillCheckBox", "last", false);
-                    Browser.Window.ExecuteCachedJs("Inventory.switchTradeBtn", false);
-
-                    var properties = new List<string>();
-
-                    var propIds = new List<(PropertyTypes, uint)>();
-
-                    foreach (var x in pData.OwnedVehicles)
-                    {
-                        properties.Add(string.Format(Locale.Property.VehicleTradeInfoStr, x.Data.TypeName, x.Data.Name, x.VID));
-
-                        propIds.Add((PropertyTypes.Vehicle, x.VID));
-                    }
-
-                    foreach (var x in pData.OwnedHouses)
-                    {
-                        properties.Add(string.Format(Locale.Property.HouseTradeInfoStr, x.Id));
-
-                        propIds.Add((PropertyTypes.House, x.Id));
-                    }
-
-                    foreach (var x in pData.OwnedApartments)
-                    {
-                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
-
-                        propIds.Add((PropertyTypes.Apartments, x.Id));
-                    }
-
-                    foreach (var x in pData.OwnedGarages)
-                    {
-                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
-
-                        propIds.Add((PropertyTypes.Garage, x.Id));
-                    }
-
-                    foreach (var x in pData.OwnedBusinesses)
-                    {
-                        properties.Add(string.Format(Locale.Property.BusinessTradeInfoStr, x.Name, x.SubId));
-
-                        propIds.Add((PropertyTypes.Business, (uint)x.Id));
-                    }
-
-                    Player.LocalPlayer.SetData("Trade::Temp::PropIds", propIds);
-
-                    Browser.Window.ExecuteJs("Inventory.fillTradeLProperties", new object[] { properties });
-
-                    Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "trade", ItemsData.Select(x => x?[3]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
-
-                    Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", 0);
-                    Browser.Window.ExecuteJs("Inventory.updateGiveMoney", 0);
-
-                    Browser.Window.ExecuteJs("Inventory.fillTradeReceive", new object[] { new object[] { null, null, null, null, null } });
-                    Browser.Window.ExecuteJs("Inventory.fillTradeGive", new object[] { new object[] { null, null, null, null, null } });
-
-                    Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", new object[] { } });
-                    Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", new object[] { } });
-                }
-                else if (CurrentType == Types.Workbench)
-                {
-                    if (FirstOpenWorkbench)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "wb", ItemsData.Select(x => x?[0]), Settings.App.Profile.Current.Game.InventoryMaxWeight });
-
-                        FirstOpenWorkbench = false;
-                    }
-                    else
-                    {
-                        foreach (var slot in ItemSlotsToUpdateWorkbench)
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "wb", ItemsData[slot]?[0] });
-
-                        ItemSlotsToUpdateWorkbench.Clear();
-                    }
-
-                    var currentDate = Game.World.Core.ServerTime;
-
-                    var benchData = ((string)args[1]).Split('^');
-
-                    var benchItems = benchData[1].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
-                    var benchTools = benchData[2].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
-                    var benchResultItem = benchData[3].Length == 0 ? null : benchData[3].Split('&');
-
-                    var benchCraftEndDate = benchData[4].Length == 0 ? currentDate : DateTimeOffset.FromUnixTimeSeconds(long.Parse(benchData[4])).DateTime;
-
-                    var craftTimeLeft = benchData[4].Length == 0 ? 0 : benchCraftEndDate.Subtract(currentDate).TotalMilliseconds;
-
-                    benchData = benchData[0].Split('&');
-
-                    var benchType = (WorkbenchTypes)int.Parse(benchData[0]);
-
-                    CurrentWorkbenchType = benchType;
-
-                    if (craftTimeLeft > 0)
-                    {
-                        StartPendingCraftTask(benchCraftEndDate);
-                    }
-
-                    WorkbenchCraftData = new object[benchItems.Length][];
-                    WorkbenchCraftParams = new Craft.ItemPrototype[benchItems.Length];
-
-                    for (int i = 0; i < WorkbenchCraftData.Length; i++)
-                    {
-                        if (benchItems[i] != null)
-                        {
-                            var amount = int.Parse(benchItems[i][1]);
-
-                            WorkbenchCraftData[i] = FillCraftItem(benchItems[i][0], amount, float.Parse(benchItems[i][2]), benchItems[i][3]);
-
-                            WorkbenchCraftParams[i] = new Craft.ItemPrototype(benchItems[i][0], amount);
-                        }
-                    }
-
-                    WorkbenchToolsData = new object[benchTools.Length][];
-                    WorkbenchToolsParams = new Craft.ItemPrototype[WorkbenchToolsData.Length];
-
-                    for (int i = 0; i < WorkbenchToolsData.Length; i++)
-                    {
-                        if (benchTools[i] != null)
-                        {
-                            if (!WorkbenchCraftParams.Where(x => x != null && x.Id == benchTools[i][0]).Any())
-                                WorkbenchToolsData[i] = FillCraftToolsItem(benchTools[i][0], 1, 0f, null);
-
-                            WorkbenchToolsParams[i] = new Craft.ItemPrototype(benchTools[i][0], 1);
-                        }
-                    }
-
-                    WorkbenchResultData = new object[1][];
-
-                    if (benchResultItem != null)
-                    {
-                        WorkbenchResultData[0] = FillCraftResultItem(benchResultItem[0], int.Parse(benchResultItem[1]), float.Parse(benchResultItem[2]), benchResultItem[3], true);
-
-                        Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { WorkbenchResultData[0] });
-
-                        ResetCraftButton();
-                    }
-                    else
-                    {
-                        UpdateCraftItemVisualization();
-                    }
-
-                    Browser.Window.ExecuteJs("Inventory.fillWbCraft", new object[] { Locale.General.Containers.WorkbenchNames[benchType].Name, WorkbenchCraftData });
-                    Browser.Window.ExecuteJs("Inventory.fillWbTools", new object[] { WorkbenchToolsData });
-                }
-            });
-            #endregion
-
-            #region Update
-            // 0 - pockets, 1 - bag, 2 - weapons, 3 - holster, 4 - clothes, 5 - accessories, 6 - bagItem, 7 - holsterItem, 8 - armour, 9 - container, 10 - trade-give (items), 11 - trade-give (properties/money), 12 - trade-get (items), 13 - trade-get (properties/money)
-            Events.Add("Inventory::Update", (object[] args) =>
-            {
-                var usedGroups = new HashSet<int>();
-
-                for (int k = 0; k < args.Length / 3; k++)
-                {
-                    var curArgs = args.Skip(k * 3).ToArray();
-
-                    int id = (int)curArgs[0];
-
-                    usedGroups.Add(id);
-
-                    InventoryUpdated?.Invoke(id);
-
-                    if (id == 0)
-                    {
-                        int slot = (int)curArgs[1];
-
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        if (data == null)
-                        {
-                            ItemsData[slot] = null;
-                            ItemsParams[slot] = null;
-                        }
-                        else
-                        {
-                            var inUse = int.Parse(data[4]) == 1;
-
-                            ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], inUse, false, false, false);
-                            ItemsParams[slot] = new ItemParams(data[0]) { InUse = inUse };
-                        }
-
-                        if (CurrentType == Types.Inventory)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "inv", ItemsData[slot]?[GetTooltipGroup()] });
-
-                            ItemSlotsToUpdateCrate.Add(slot);
-                            ItemSlotsToUpdateWorkbench.Add(slot);
-                        }
-                        else if (CurrentType == Types.Container)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "crate", ItemsData[slot]?[0] });
-
-                            ItemSlotsToUpdate.Add(slot);
-                            ItemSlotsToUpdateWorkbench.Add(slot);
-                        }
-                        else if (CurrentType == Types.Workbench)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "wb", ItemsData[slot]?[0] });
-
-                            ItemSlotsToUpdate.Add(slot);
-                            ItemSlotsToUpdateCrate.Add(slot);
-                        }
-                        else
-                        {
-                            ItemSlotsToUpdate.Add(slot);
-                            ItemSlotsToUpdateCrate.Add(slot);
-                            ItemSlotsToUpdateWorkbench.Add(slot);
-                        }
-                    }
-                    else if (id == 1)
-                    {
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, false, false);
-
-                        if (CurrentType == Types.Inventory)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "inv", BagData[slot]?[GetTooltipGroup()] });
-
-                            BagSlotsToUpdateCrate.Add(slot);
-                        }
-                        else if (CurrentType == Types.Container)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "crate", BagData[slot]?[0] });
-
-                            BagSlotsToUpdate.Add(slot);
-                        }
-                        else
-                        {
-                            BagSlotsToUpdate.Add(slot);
-                            BagSlotsToUpdateCrate.Add(slot);
-                        }
-                    }
-                    else if (id == 2 || id == 3)
-                    {
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        WeaponsData[slot] = data == null ? null : FillWeapon(data[0], int.Parse(data[1]), int.Parse(data[2]) == 1, data[3], data[4]);
-
-                        if (CurrentType == Types.Inventory)
-                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { slot, WeaponsData[slot] });
-                        else
-                            WeaponsSlotsToUpdate.Add(slot);
-                    }
-                    else if (id == 4)
-                    {
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        ClothesData[slot] = data == null ? null : FillClothes(data[0]);
-
-                        if (CurrentType == Types.Inventory)
-                            Browser.Window.ExecuteJs("Inventory.updateClothesSlot", new object[] { slot, ClothesData[slot] });
-                        else
-                            ClothesSlotsToUpdate.Add(slot);
-                    }
-                    else if (id == 5)
-                    {
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        AccessoriesData[slot] = data == null ? null : FillAccessories(data[0]);
-
-                        if (CurrentType == Types.Inventory)
-                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { slot, AccessoriesData[slot] });
-                        else
-                            AccessoriesSlotsToUpdate.Add(slot);
-                    }
-                    else if (id == 6)
-                    {
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
-
-                        if (data == null)
-                        {
-                            AccessoriesData[8] = null;
-                            BagData = null;
-
-                            if (CurrentType == Types.Inventory)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", null, null });
-
-                                for (int i = 0; i < ItemsData.Length; i++)
-                                    if (ItemsData[i] != null)
-                                        Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][2])[2] });
-                            }
-                            else if (CurrentType == Types.Container)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", null, null });
-
-                                UpdateTooltips = true;
-                            }
-                            else
-                                UpdateTooltips = true;
-
-                            UpdateBag = false;
-                            UpdateBagCrate = false;
-                        }
-                        else
-                        {
-                            var items = data.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
-
-                            data = data[0].Split('&');
-
-                            AccessoriesData[8] = FillAccessories(data[0]);
-                            BagData = new object[items.Length][];
-
-                            for (int i = 0; i < BagData.Length; i++)
-                                if (items[i] != null)
-                                    BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
-
-                            BagWeight = float.Parse(data[1]);
-
-                            if (CurrentType == Types.Inventory)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData.Select(x => x?[1]), BagWeight });
-
-                                for (int i = 0; i < ItemsData.Length; i++)
-                                    if (ItemsData[i] != null)
-                                        Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][1])[2] });
-
-                                UpdateTooltips = false;
-                                UpdateBagCrate = true;
-                            }
-                            else if (CurrentType == Types.Container)
-                            {
-                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData.Select(x => x?[0]), BagWeight });
-
-                                UpdateTooltips = true;
-                                UpdateBag = true;
-                            }
-                            else
-                            {
-                                UpdateBag = true;
-                                UpdateBagCrate = true;
-
-                                UpdateTooltips = true;
-                            }
-                        }
-
-                        if (CurrentType == Types.Inventory)
-                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 8, AccessoriesData[8] });
-                        else
-                            AccessoriesSlotsToUpdate.Add(8);
-                    }
-                    else if (id == 7)
-                    {
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
-
-                        if (data == null)
-                        {
-                            AccessoriesData[9] = null;
-                            WeaponsData[2] = null;
-                        }
-                        else
-                        {
-                            var item = data[1].Length == 0 ? null : data[1].Split('&');
-
-                            data = data[0].Split('&');
-
-                            AccessoriesData[9] = FillAccessories(data[0]);
-
-                            if (item != null)
-                                WeaponsData[2] = FillWeapon(item[0], int.Parse(item[1]), int.Parse(item[2]) == 1, item[3], item[4]);
-                            else
-                                WeaponsData[2] = null;
-                        }
-
-                        if (CurrentType == Types.Inventory)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 9, AccessoriesData[9] });
-                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { 2, WeaponsData[2] });
-
-                            Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", data != null);
-                        }
-                        else
-                        {
-                            AccessoriesSlotsToUpdate.Add(9);
-                            WeaponsSlotsToUpdate.Add(2);
-                        }
-                    }
-                    else if (id == 8)
-                    {
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        ArmourData = data == null ? null : FillArmour(data[0], int.Parse(data[1]));
-
-                        if (CurrentType == Types.Inventory)
-                            Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
-                        else
-                            UpdateArmour = true;
-                    }
-                    else if (id == 9)
-                    {
-                        if (CurrentType != Types.Container)
-                            return;
-
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, true, false);
-
-                        Browser.Window.ExecuteJs("Inventory.updateCrateSlot", new object[] { slot, ContainerData[slot] });
-                    }
-                    else if (id == 10)
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        int realSlot = (int)curArgs[1];
-                        int slot = (int)curArgs[2];
-
-                        var data = ((string)curArgs[3]).Length == 0 ? null : ((string)curArgs[3]).Split('&');
-
-                        var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
-
-                        if (item == null)
-                        {
-                            if (GiveItemsData[slot] != null)
-                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { (int)GiveItemsData[slot][0], "trade", ItemsData[(int)GiveItemsData[slot][0]]?[3] });
-
-                            GiveItemsData[slot] = null;
-                        }
-                        else
-                        {
-                            if (GiveItemsData[slot] == null)
-                                GiveItemsData[slot] = new object[4];
-                            else
-                            {
-                                if (realSlot == -1)
-                                    realSlot = (int)GiveItemsData[slot][0];
-                                else
-                                    Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { (int)GiveItemsData[slot][0], "trade", ItemsData[(int)GiveItemsData[slot][0]]?[3] });
-                            }
-
-                            GiveItemsData[slot][0] = realSlot;
-                            GiveItemsData[slot][1] = item;
-
-                            if (ItemsData[realSlot] != null)
-                            {
-                                var newRealItem = ((object[])ItemsData[realSlot][3]).ToArray();
-
-                                newRealItem[3] = (int)newRealItem[3] - (int)item[3];
-
-                                if ((int)newRealItem[3] <= 0)
-                                    newRealItem = null;
-
-                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { realSlot, "trade", newRealItem });
-                            }
-                        }
-
-                        Browser.Window.ExecuteJs("Inventory.updateGiveSlot", new object[] { slot, GiveItemsData[slot]?[1] });
-
-                    }
-                    else if (id == 11)
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        if ((bool)curArgs[1])
-                        {
-                            CurrentGiveMoney = Utils.Convert.ToUInt32(curArgs[2]);
-
-                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
-                        }
-                        else
-                        {
-                            var pType = (PropertyTypes)(int)curArgs[3];
-                            var propId = Utils.Convert.ToUInt32(curArgs[4]);
-
-                            string text = null;
-
-                            if (pType == PropertyTypes.Vehicle)
-                            {
-                                var vData = Game.Data.Vehicles.Core.GetById((string)curArgs[5]);
-
-                                text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
-                            }
-                            else if (pType == PropertyTypes.House)
-                            {
-                                text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
-                            }
-                            else if (pType == PropertyTypes.Apartments)
-                            {
-                                var aps = Apartments.All[propId];
-
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
-                            }
-                            else if (pType == PropertyTypes.Garage)
-                            {
-                                var garage = Garage.All[propId];
-
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
-                            }
-                            else if (pType == PropertyTypes.Business)
-                            {
-                                var biz = Business.All[(int)propId];
-
-                                text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
-                            }
-
-                            if ((bool)curArgs[2])
-                            {
-                                if (!CurrentGiveProperties.Contains(text))
-                                    CurrentGiveProperties.Add(text);
-                            }
-                            else
-                            {
-                                CurrentGiveProperties.Remove(text);
-                            }
-
-                            Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", CurrentGiveProperties });
-                        }
-
-                    }
-                    else if (id == 12)
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
-
-                        Browser.Window.ExecuteJs("Inventory.updateReceiveSlot", new object[] { slot, item });
-
-                    }
-                    else if (id == 13)
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        if ((bool)curArgs[1])
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", Utils.Convert.ToDecimal(curArgs[2]));
-                        }
-                        else
-                        {
-                            var pType = (PropertyTypes)(int)curArgs[3];
-                            var propId = Utils.Convert.ToUInt32(curArgs[4]);
-
-                            string text = null;
-
-                            if (pType == PropertyTypes.Vehicle)
-                            {
-                                var vData = Game.Data.Vehicles.Core.GetById((string)curArgs[5]);
-
-                                text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
-                            }
-                            else if (pType == PropertyTypes.House)
-                            {
-                                text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
-                            }
-                            else if (pType == PropertyTypes.Apartments)
-                            {
-                                var aps = Apartments.All[propId];
-
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
-                            }
-                            else if (pType == PropertyTypes.Garage)
-                            {
-                                var garage = Garage.All[propId];
-
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
-                            }
-                            else if (pType == PropertyTypes.Business)
-                            {
-                                var biz = Business.All[(int)propId];
-
-                                text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
-                            }
-
-                            if ((bool)curArgs[2])
-                            {
-                                if (!CurrentGetProperties.Contains(text))
-                                    CurrentGetProperties.Add(text);
-                            }
-                            else
-                            {
-                                CurrentGetProperties.Remove(text);
-                            }
-
-                            Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", CurrentGetProperties });
-                        }
-                    }
-                    else if (id == 14)
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        if ((bool)curArgs[1])
-                        {
-                            Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", (bool)curArgs[2]);
-                            Browser.Window.ExecuteJs("Inventory.switchTradeBtn", (bool)curArgs[2]);
-
-                            if (!(bool)curArgs[2])
-                            {
-                                if ((bool)curArgs[3])
-                                    CEF.Inventory.FreezeInterface(true, false);
-                            }
-                        }
-                        else
-                        {
-                            if ((bool)curArgs[2])
-                            {
-                                if (!(bool)curArgs[3])
-                                    CEF.Inventory.FreezeInterface(true, false);
-
-                                CEF.Notification.Show("Trade::PlayerConfirmed");
-                            }
-                            else
-                            {
-                                if (!(bool)curArgs[3])
-                                    CEF.Inventory.FreezeInterface(false, false);
-
-                                CEF.Notification.Show("Trade::PlayerConfirmedCancel");
-                            }
-                        }
-                    }
-                    else if (id == 20)
-                    {
-                        if (CurrentType != Types.Workbench)
-                            return;
-
-                        int slot = (int)curArgs[1];
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        if (data == null)
-                        {
-                            WorkbenchCraftData[slot] = null;
-                            WorkbenchCraftParams[slot] = null;
-                        }
-                        else
-                        {
-                            var amount = int.Parse(data[1]);
-
-                            WorkbenchCraftData[slot] = FillCraftItem(data[0], amount, float.Parse(data[2]), data[3]);
-                            WorkbenchCraftParams[slot] = new Craft.ItemPrototype(data[0], amount);
-                        }
-
-                        for (int i = 0; i < WorkbenchToolsParams.Length; i++)
-                        {
-                            if (!WorkbenchCraftParams.Where(x => x != null && WorkbenchToolsParams[i] != null && x.Id == WorkbenchToolsParams[i].Id).Any())
-                            {
-                                if (WorkbenchToolsParams[i] != null)
-                                {
-                                    var newData = FillCraftToolsItem(WorkbenchToolsParams[i].Id, 1, 0f, null);
-
-                                    if (WorkbenchToolsData[i] == null || WorkbenchToolsData[i][0] != newData[0] || WorkbenchToolsData[i][1] != newData[1])
-                                    {
-                                        WorkbenchToolsData[i] = newData;
-
-                                        Browser.Window.ExecuteJs("Inventory.updateToolSlot", new object[] { i, newData });
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (WorkbenchToolsData[i] != null)
-                                {
-                                    WorkbenchToolsData[i] = null;
-
-                                    Browser.Window.ExecuteJs("Inventory.updateToolSlot", new object[] { i, null });
-                                }
-                            }
-                        }
-
-                        Browser.Window.ExecuteJs("Inventory.updateCraftSlot", new object[] { slot, WorkbenchCraftData[slot] });
-                    }
-                    else if (id == 22)
-                    {
-                        if (CurrentType != Types.Workbench)
-                            return;
-
-                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
-
-                        if (data == null || data.Length > 1)
-                        {
-                            CancelPendingCraftTask();
-
-                            ResetCraftButton();
-
-                            WorkbenchResultData[0] = data == null ? null : FillCraftResultItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], true);
-
-                            Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { WorkbenchResultData[0] });
-
-                            if (data == null)
-                                UpdateCraftItemVisualization();
-                        }
-                        else
-                        {
-                            var craftEndDate = DateTime.Parse(data[0]);
-
-                            CancelPendingCraftTask();
-
-                            StartPendingCraftTask(craftEndDate);
-                        }
-                    }
-                }
-
-                if (CurrentType == Types.Inventory)
-                {
-                    UpdateBinds();
-                }
-                else if (CurrentType == Types.Workbench)
-                {
-                    if (usedGroups.Contains(20))
-                        UpdateCraftItemVisualization();
-                }
-            });
-            #endregion
-
-            Events.Add("Trade::UpdateLocal", async (object[] args) =>
-            {
-                if (CurrentType != Types.Trade)
-                    return;
-
-                var pData = PlayerData.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                int type = (int)args[0];
-
-                // Money
-                if (type == 0)
-                {
-                    if (CurrentGiveMoney < 0)
-                        CurrentGiveMoney = 0;
-
-                    var newAmountI = Utils.Convert.ToDecimal(args[1]);
-
-                    int newAmount;
-
-                    if (!newAmountI.IsNumberValid(0, int.MaxValue, out newAmount, false))
-                        newAmount = int.MaxValue;
-
-                    if (pData.Cash < newAmountI)
-                        newAmount = (int)pData.Cash;
-
-                    if (!LastSent.IsSpam(100, false, false))
-                    {
-                        LastSent = Game.World.Core.ServerTime;
-
-                        var res = (bool)await Events.CallRemoteProc("Trade::UpdateMoney", newAmount);
-
-                        if (!res)
-                        {
-                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
-
-                            return;
-                        }
-                        else
-                        {
-                            CurrentGiveMoney = (uint)newAmount;
-
-                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
-                        }
-                    }
-                    else
-                        Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
-                }
-                // Property
-                else if (type == 1)
-                {
-                    if (LastSent.IsSpam(500, false, false))
-                        return;
-
-                    int idx = (int)args[1];
-                    bool state = (bool)args[2];
-
-                    var propIds = Player.LocalPlayer.GetData<List<(PropertyTypes, uint)>>("Trade::Temp::PropIds");
-
-                    if (propIds == null)
-                        return;
-
-                    if (idx >= propIds.Count)
-                        return;
-
-                    var prop = propIds[idx];
-
-                    if ((bool)await Events.CallRemoteProc("Trade::UpdateProperty", prop.Item1, prop.Item2, state))
-                    {
-                        if (CurrentType != Types.Trade)
-                            return;
-
-                        CEF.Browser.Window.ExecuteJs("Inventory.fillCheckBox", idx, state);
-                    }
-                }
-                // Ready
-                else if (type == 2)
-                {
-                    bool state = (bool)args[1];
-
-                    if (!LastSent.IsSpam(1000, false, false))
-                    {
-                        Events.CallRemote("Trade::Confirm", state);
-
-                        LastSent = Game.World.Core.ServerTime;
-                    }
-                }
-                // Accept
-                else if (type == 3)
-                {
-                    if (!LastSent.IsSpam(1000, false, false))
-                    {
-                        Events.CallRemote("Trade::Accept");
-
-                        LastSent = Game.World.Core.ServerTime;
-                    }
-                }
-                else
-                    return;
-            });
-
-            #region Replace
-            Events.Add("Inventory::Replace", (object[] args) =>
-            {
-                var toStr = (string)args[0];
-                var toSlot = ((int)args[1]);
-
-                var fromStr = (string)args[2];
-                var fromSlot = (int)args[3];
-
-                var amount = ((int)args[4]);
-
-                Replace(toStr, toSlot, fromStr, fromSlot, amount);
-            });
-            #endregion
-
-            #region Action
-            // 0 - action, 1 - slotStrFrom, 2 - slotFrom, 3 slotStrTo, 4 - slotTo, 5 - amount
-            // actions: -1 - cancelAction, 0 - bind, 1 - split, 2 - throw, 3 - takeByGround, 4 - fastUse, 5 - use2
-
-            Events.Add("Inventory::Action", (object[] args) =>
-            {
-                Action(args);
-            });
-            #endregion
-
-            #region Bind
-            Events.Add("Inventory::Bind", (object[] args) =>
-            {
-                if (!IsActive)
-                    return;
-
-                RAGE.Ui.VirtualKeys keyCode = (RAGE.Ui.VirtualKeys)(int)args[0];
-
-                string slotStr = (string)args[1];
-                int slot = (int)args[2];
-
-                Input.Enums.BindTypes type = (Input.Enums.BindTypes)Enum.Parse(typeof(Input.Enums.BindTypes), slotStr + slot.ToString());
-
-                if (keyCode == RAGE.Ui.VirtualKeys.Escape)
-                    return;
-
-                if (keyCode == RAGE.Ui.VirtualKeys.Back)
-                {
-                    Core.Get(type)?.ChangeKeys(new RAGE.Ui.VirtualKeys[] { });
-
-                    return;
-                }
-
-                if (Core.Get(type) is Core.ExtraBind eBind)
-                {
-                    eBind.ChangeKeys(new RAGE.Ui.VirtualKeys[] { keyCode });
-
-                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Bind.Header, string.Format(Locale.Notifications.Bind.Binded, eBind.GetKeyString()));
-                }
-            });
-            #endregion
-
-            Events.Add("Inventory::Close", (object[] args) => Close(false));
-            #endregion
+                imgId,
+                Items.Core.GetName(type),
+                actions.ToArray(),
+            };
         }
 
-        #region Show
-        public static void Show(Types type, params object[] args)
-        {
-            if (IsActive)
-                return;
-
-            if (LastShowed.IsSpam(1000, false, false) || Utils.Misc.IsAnyCefActive())
-                return;
-
-            if (PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Shooting, PlayerActions.Types.Reloading) || Game.Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) || Game.Management.Weapons.Core.LastArmourLoss.IsSpam(250, false, false))
-                return;
-
-            CurrentEntity = Game.Management.Interaction.CurrentEntity;
-
-            LastShowed = Game.World.Core.ServerTime;
-
-            if (type == Types.Inventory)
-            {
-                Events.CallLocal("Inventory::Show", (int)Types.Inventory);
-            }
-            else if (type == Types.Container)
-            {
-                Events.CallRemote("Container::Show", (uint)args[0]);
-            }
-            else if (type == Types.Workbench)
-            {
-                Events.CallRemote("Workbench::Show", (int)args[0], (uint)args[1]);
-            }
-        }
-        #endregion
-
-        #region Set Window Ready
-        private static void SetWindowReady()
-        {
-            if (IsActive)
-                return;
-
-            Main.Update -= OnTickCheck;
-            Main.Update += OnTickCheck;
-
-            Game.World.Core.EnabledItemsOnGround = false;
-            Game.Management.Interaction.EnabledVisual = false;
-
-            if (CurrentType == Types.Inventory)
-            {
-                Browser.Switch(Browser.IntTypes.Inventory, true);
-
-                UpdateStates();
-            }
-            else if (CurrentType == Types.Container)
-            {
-                Browser.Switch(Browser.IntTypes.CratesInventory, true);
-            }
-            else if (CurrentType == Types.Workbench)
-            {
-                Browser.Switch(Browser.IntTypes.Workbench, true);
-            }
-            else if (CurrentType == Types.Trade)
-            {
-                Browser.Switch(Browser.IntTypes.Trade, true);
-            }
-
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
-
-            TempBindEsc = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
-            {
-                if (ActionBox.CurrentContextStr == "Inventory")
-                {
-                    CEF.ActionBox.Close(false);
-
-                    CurrentAction = null;
-                    CurrentSlotFrom = null;
-                    CurrentSlotTo = null;
-                }
-                else if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
-                {
-                    Note.Close(false);
-                }
-                else
-                    Close(true);
-            });
-
-            Main.DisableAllControls(true);
-
-            if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
-
-            if (!Settings.User.Interface.HideNames)
-                NameTags.Enabled = false;
-
-            Chat.Show(false);
-
-            RAGE.Game.Graphics.TransitionToBlurred(0f);
-
-            Cursor.Show(true, true);
-        }
-        #endregion
-
-        #region Close
-        public static void Close(bool callRemote = true)
-        {
-            if (!IsActive)
-                return;
-
-            Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false);
-
-            ContainerData = null;
-
-            GiveItemsData = null;
-
-            WorkbenchCraftData = null;
-            WorkbenchResultData = null;
-            WorkbenchToolsData = null;
-            WorkbenchCraftParams = null;
-
-            if (ActionBox.CurrentContextStr == "Inventory")
-                ActionBox.Close(true);
-
-            if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
-                Note.Close(true);
-
-            if (CurrentType == Types.Workbench)
-            {
-                CancelPendingCraftTask();
-            }
-
-            CEF.Inventory.FreezeInterface(false, true);
-
-            CurrentContainerType = ContainerTypes.None;
-
-            if (callRemote && CurrentType == Types.Container)
-                Events.CallRemote("Container::Close");
-            else if (callRemote && CurrentType == Types.Workbench)
-                Events.CallRemote("Workbench::Close");
-            else if (callRemote && CurrentType == Types.Trade)
-                Offers.Reply(Offers.ReplyTypes.AutoCancel);
-
-            Browser.Switch(Browser.IntTypes.Inventory, false);
-            Browser.Switch(Browser.IntTypes.CratesInventory, false);
-            Browser.Switch(Browser.IntTypes.Workbench, false);
-            Browser.Switch(Browser.IntTypes.Trade, false);
-
-            Player.LocalPlayer.ResetData("Trade::Temp::PropIds");
-
-            CurrentEntity = null;
-
-            Browser.Window.ExecuteJs("Inventory.defaultSlot();");
-
-            foreach (var bind in TempBinds.ToList())
-                Core.Unbind(bind);
-
-            TempBinds.Clear();
-
-            if (TempBindEsc != -1)
-                Core.Unbind(TempBindEsc);
-
-            TempBindEsc = -1;
-
-            Main.Update -= OnTickCheck;
-
-            Game.World.Core.EnabledItemsOnGround = true;
-            Game.Management.Interaction.EnabledVisual = !Settings.User.Interface.HideInteractionBtn;
-
-            Main.DisableAllControls(false);
-
-            RAGE.Game.Graphics.TransitionFromBlurred(0f);
-
-            if (!Settings.User.Interface.HideHUD)
-                CEF.HUD.ShowHUD(true);
-
-            if (!Settings.User.Interface.HideNames)
-                NameTags.Enabled = true;
-
-            Chat.Show(true);
-
-            Cursor.Show(false, false);
-
-            CurrentType = Types.None;
-
-            CurrentSlotFrom = null;
-            CurrentSlotTo = null;
-            CurrentAction = null;
-
-            LastShowed = Game.World.Core.ServerTime;
-        }
         #endregion
 
         #region Stuff
 
-        public static void SwitchHint(bool state) => Browser.Window?.ExecuteJs("Inventory.switchHelp", state);
+        public static void SwitchHint(bool state)
+        {
+            Browser.Window?.ExecuteJs("Inventory.switchHelp", state);
+        }
 
         public static void BindedAction(int action, string slotStr, int slot, params string[] args)
         {
             if (action < 5)
                 return;
 
-            if (Utils.Misc.IsAnyCefActive() || Game.Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) || PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting))
+            if (Utils.Misc.IsAnyCefActive() ||
+                Management.Weapons.Core.LastWeaponShot.IsSpam(250, false, false) ||
+                PlayerActions.IsAnyActionActive(true, PlayerActions.Types.Reloading, PlayerActions.Types.Shooting))
                 return;
 
             Action(action, slotStr, slot, args);
@@ -1713,7 +2466,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static void Action(params object[] args)
         {
-            int id = (int)args[0];
+            var id = (int)args[0];
 
             //Utils.ConsoleOutput(id);
 
@@ -1745,8 +2498,8 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
                 else if (CurrentAction == 2) // drop
                 {
-                    var slotStrToThrow = CurrentSlotFrom.Value.Item1;
-                    var slotToThrow = CurrentSlotFrom.Value.Item2;
+                    string slotStrToThrow = CurrentSlotFrom.Value.Item1;
+                    int slotToThrow = CurrentSlotFrom.Value.Item2;
 
                     GetRealSlot(ref slotStrToThrow, ref slotToThrow);
 
@@ -1784,15 +2537,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 Events.CallRemote("Workbench::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
                         }
 
-                        LastSent = Game.World.Core.ServerTime;
+                        LastSent = World.Core.ServerTime;
                     }
 
                     return;
                 }
             }
 
-            string slotStr = (string)args[1];
-            int slot = (int)args[2];
+            var slotStr = (string)args[1];
+            var slot = (int)args[2];
 
             if (id == 1 || id == 2)
             {
@@ -1818,18 +2571,18 @@ namespace BlaineRP.Client.Game.UI.CEF
             // Bind
             if (id == 0)
             {
-                if (CurrentType != Types.Inventory || slotStr != "pockets" && slotStr != "weapon" || (slotStr == "weapon" && slot == 3))
+                if (CurrentType != Types.Inventory || slotStr != "pockets" && slotStr != "weapon" || slotStr == "weapon" && slot == 3)
                     return;
 
                 Browser.Window.ExecuteJs("Inventory.bindSlot", $"{slot}-inv-{slotStr}");
 
-                CEF.Notification.ShowHint(Locale.Notifications.Bind.Hint, true);
+                Notification.ShowHint(Locale.Notifications.Bind.Hint, true);
 
                 return;
             }
 
             string name = null;
-            int amount = 0;
+            var amount = 0;
 
             if (id < 4)
             {
@@ -1840,17 +2593,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (CurrentType == Types.Trade)
                     {
-                        var actualItem = GiveItemsData.Where(x => x != null && (int)x[0] == slot).FirstOrDefault();
+                        object[] actualItem = GiveItemsData.Where(x => x != null && (int)x[0] == slot).FirstOrDefault();
 
                         if (actualItem != null)
-                        {
                             amount -= (int)(((object[])actualItem[1])[3] ?? 0);
-                        }
                     }
                 }
                 else if (slotStr == "bag")
                 {
-                    name = (string)(((object[])BagData[slot]?[0])[1]);
+                    name = (string)((object[])BagData[slot]?[0])[1];
                     amount = (int)(((object[])BagData[slot]?[0])[3] ?? 0);
                 }
                 else if (slotStr == "weapon")
@@ -1922,7 +2673,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             return;
                         }
                         else
+                        {
                             CurrentSlotTo = ("pockets", slotTo);
+                        }
                     }
                     else if (CurrentSlotFrom.Value.Item1 == "bag")
                     {
@@ -1937,7 +2690,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             return;
                         }
                         else
+                        {
                             CurrentSlotTo = ("bag", slotTo);
+                        }
                     }
                     else if (CurrentSlotFrom.Value.Item1 == "crate")
                     {
@@ -1952,14 +2707,19 @@ namespace BlaineRP.Client.Game.UI.CEF
                             return;
                         }
                         else
+                        {
                             CurrentSlotTo = ("crate", slotTo);
+                        }
                     }
                 }
                 else
                 {
                     if (CurrentType == Types.Workbench)
-                    {
-                        if (CurrentSlotTo.Value.Item1 == "result" || (CurrentSlotTo.Value.Item1 == "tool" && (slotStr == "pockets" || slotStr == "result" || (slotStr == "craft" && !(Game.Items.Core.GetData(WorkbenchCraftParams[slot].Id, null) is WorkbenchTool.ItemData)))))
+                        if (CurrentSlotTo.Value.Item1 == "result" ||
+                            CurrentSlotTo.Value.Item1 == "tool" &&
+                            (slotStr == "pockets" ||
+                             slotStr == "result" ||
+                             slotStr == "craft" && !(Items.Core.GetData(WorkbenchCraftParams[slot].Id, null) is WorkbenchTool.ItemData)))
                         {
                             CurrentAction = null;
                             CurrentSlotFrom = null;
@@ -1967,12 +2727,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             return;
                         }
-                    }
                 }
 
-                if ((slotStr != "weapon" && amount == 1) || (slotStr == "weapon" && amount == 0))
+                if (slotStr != "weapon" && amount == 1 || slotStr == "weapon" && amount == 0)
                 {
-                    if ((slotStr != "weapon" && amount == 1))
+                    if (slotStr != "weapon" && amount == 1)
                         Replace(CurrentSlotTo.Value.Item1, CurrentSlotTo.Value.Item2, CurrentSlotFrom.Value.Item1, CurrentSlotFrom.Value.Item2, -1);
 
                     CurrentAction = null;
@@ -1982,15 +2741,17 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
                 }
 
-                ActionBox.ShowRange
-                (
-                    "Inventory", string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1, ActionBox.RangeSubTypes.Default,
-
+                ActionBox.ShowRange("Inventory",
+                    string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name),
+                    1,
+                    amount,
+                    amount / 2,
+                    -1,
+                    ActionBox.RangeSubTypes.Default,
                     () =>
                     {
-                        CEF.Inventory.FreezeInterface(true, false);
+                        FreezeInterface(true, false);
                     },
-
                     (rType, amountD) =>
                     {
                         int amount;
@@ -1998,21 +2759,16 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                             return;
 
-                        if (rType == CEF.ActionBox.ReplyTypes.OK)
-                        {
-                            CEF.Inventory.Action(amount);
-                        }
-                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
-                        {
-                            CEF.Inventory.Action(-1);
-                        }
+                        if (rType == ActionBox.ReplyTypes.OK)
+                            Action(amount);
+                        else if (rType == ActionBox.ReplyTypes.Cancel)
+                            Action(-1);
                         else
                             return;
                     },
-
                     () =>
                     {
-                        CEF.Inventory.FreezeInterface(false, false);
+                        FreezeInterface(false, false);
                     }
                 );
 
@@ -2024,20 +2780,20 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (id == 2) // throw
             {
                 if (CurrentType == Types.Workbench)
-                {
                     if (slotStr == "tool")
                         return;
-                }
 
-                ActionBox.ShowRange
-                (
-                    "Inventory", string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1, ActionBox.RangeSubTypes.Default,
-
+                ActionBox.ShowRange("Inventory",
+                    string.Format(Locale.Actions.Drop, name),
+                    1,
+                    amount,
+                    amount,
+                    -1,
+                    ActionBox.RangeSubTypes.Default,
                     () =>
                     {
-                        CEF.Inventory.FreezeInterface(true, false);
+                        FreezeInterface(true, false);
                     },
-
                     (rType, amountD) =>
                     {
                         int amount;
@@ -2045,21 +2801,16 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                             return;
 
-                        if (rType == CEF.ActionBox.ReplyTypes.OK)
-                        {
-                            CEF.Inventory.Action(amount);
-                        }
-                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
-                        {
-                            CEF.Inventory.Action(-1);
-                        }
+                        if (rType == ActionBox.ReplyTypes.OK)
+                            Action(amount);
+                        else if (rType == ActionBox.ReplyTypes.Cancel)
+                            Action(-1);
                         else
                             return;
                     },
-
                     () =>
                     {
-                        CEF.Inventory.FreezeInterface(false, false);
+                        FreezeInterface(false, false);
                     }
                 );
 
@@ -2074,7 +2825,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (slotStr == "clothes" || slotStr == "accessories" || slotStr == "weapon" || slotStr == "bag" || slotStr == "crate" || slotStr == "result")
                     {
-                        var idx = GetFreeIdx(slotStr == "bag" ? (string)((object[])BagData[slot][0])[0] : slotStr == "crate" ? (string)ContainerData[slot][0] : slotStr == "result" ? (string)WorkbenchResultData[slot][0] : "", ItemsData);
+                        int idx = GetFreeIdx(slotStr == "bag" ? (string)((object[])BagData[slot][0])[0] :
+                            slotStr == "crate" ? (string)ContainerData[slot][0] :
+                            slotStr == "result" ? (string)WorkbenchResultData[slot][0] : "",
+                            ItemsData
+                        );
 
                         if (idx == -1)
                             return;
@@ -2089,7 +2844,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             if (BagData != null)
                             {
-                                var idx = GetFreeIdx(ItemsParams[slot].Id, BagData);
+                                int idx = GetFreeIdx(ItemsParams[slot].Id, BagData);
 
                                 if (idx == -1)
                                     return;
@@ -2101,7 +2856,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             if (ContainerData != null)
                             {
-                                var idx = GetFreeIdx(ItemsParams[slot].Id, ContainerData);
+                                int idx = GetFreeIdx(ItemsParams[slot].Id, ContainerData);
 
                                 if (idx == -1)
                                     return;
@@ -2113,7 +2868,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             if (WorkbenchCraftData != null)
                             {
-                                var idx = GetFreeIdx(ItemsParams[slot].Id, WorkbenchCraftData);
+                                int idx = GetFreeIdx(ItemsParams[slot].Id, WorkbenchCraftData);
 
                                 if (idx == -1)
                                     return;
@@ -2139,14 +2894,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                     else if (slotStr == "give")
                     {
                         if (CurrentType == Types.Trade)
-                        {
                             Replace("pockets", 0, slotStr, slot, -1);
-                        }
                     }
                     else if (slotStr == "tool")
                     {
                         if (CurrentType == Types.Workbench)
-                        {
                             if (WorkbenchCraftData != null)
                             {
                                 int idx = Array.IndexOf(WorkbenchCraftData, null);
@@ -2156,15 +2908,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                                 Replace("craft", idx, slotStr, slot, -1);
                             }
-                        }
                     }
                     else if (slotStr == "craft")
                     {
                         if (CurrentType == Types.Workbench)
-                        {
                             if (WorkbenchCraftParams != null && WorkbenchCraftParams[slot] != null)
                             {
-                                if (Game.Items.Core.GetData(WorkbenchCraftParams[slot].Id, null) is WorkbenchTool.ItemData)
+                                if (Items.Core.GetData(WorkbenchCraftParams[slot].Id, null) is WorkbenchTool.ItemData)
                                 {
                                     if (WorkbenchToolsParams != null)
                                     {
@@ -2180,7 +2930,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 {
                                     if (ItemsData != null)
                                     {
-                                        var idx = GetFreeIdx(WorkbenchCraftParams[slot].Id, ItemsData);
+                                        int idx = GetFreeIdx(WorkbenchCraftParams[slot].Id, ItemsData);
 
                                         if (idx == -1)
                                             return;
@@ -2189,7 +2939,6 @@ namespace BlaineRP.Client.Game.UI.CEF
                                     }
                                 }
                             }
-                        }
                     }
 
                     return;
@@ -2204,17 +2953,17 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (slotStr == "pockets")
                 {
-                    var iParams = ItemsParams[slot];
+                    ItemParams iParams = ItemsParams[slot];
 
                     if (iParams == null)
                         return;
 
-                    var type = Game.Items.Core.GetType(iParams.Id, false);
+                    System.Type type = Items.Core.GetType(iParams.Id, false);
 
                     if (type == null)
                         return;
 
-                    bool isPreActionNeeded = true;
+                    var isPreActionNeeded = true;
 
                     if (args.Length > 3 && args[3] is string[] strArgs && strArgs.Length > 0)
                     {
@@ -2225,23 +2974,19 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (!iParams.InUse)
                     {
-                        var vAction = Game.Items.Core.GetActionToValidate(type);
+                        Func<List<string>> vAction = Items.Core.GetActionToValidate(type);
 
                         if (vAction != null)
                         {
                             if (vAction.Invoke() is List<string> eDataI)
-                            {
                                 eData.AddRange(eDataI);
-                            }
                             else
-                            {
                                 return;
-                            }
                         }
 
                         if (isPreActionNeeded)
                         {
-                            var preAction = Game.Items.Core.GetActionToPreAction(type);
+                            Action<int, string> preAction = Items.Core.GetActionToPreAction(type);
 
                             if (preAction != null)
                             {
@@ -2256,14 +3001,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (WeaponsData[slot] == null)
                     {
-                        var activeIdx = -1;
+                        int activeIdx = -1;
 
-                        for (int i = 0; i < WeaponsData.Length; i++)
+                        for (var i = 0; i < WeaponsData.Length; i++)
                         {
                             if (slot == i)
                                 continue;
 
-                            if (WeaponsData[i] != null && (WeaponsData[i][4] as bool? == true))
+                            if (WeaponsData[i] != null && WeaponsData[i][4] as bool? == true)
                             {
                                 activeIdx = i;
 
@@ -2294,7 +3039,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id, string.Join('&', eData));
 
-                LastSent = Game.World.Core.ServerTime;
+                LastSent = World.Core.ServerTime;
             }
         }
 
@@ -2316,7 +3061,9 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (CurrentType == Types.Inventory || CurrentType == Types.Container)
             {
                 if (fromStr == "bagItem" && toStr != "pockets")
+                {
                     return;
+                }
                 else if (fromStr == "clothes" || fromStr == "accessories" || fromStr == "armour" || fromStr == "holsterItem")
                 {
                     if (toStr != "pockets" && toStr != "bag")
@@ -2329,7 +3076,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
 
                 if (toStr == "bagItem" && fromStr != "pockets")
+                {
                     return;
+                }
                 else if (toStr == "clothes" || toStr == "accessories" || toStr == "armour" || toStr == "holsterItem")
                 {
                     if (fromStr != "pockets" && fromStr != "bag")
@@ -2357,11 +3106,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                     Events.CallRemote("Container::Replace", Groups[toStr], toSlot, Groups[fromStr], fromSlot, amount);
                 }
                 else
+                {
                     Events.CallRemote("Inventory::Replace", Groups[toStr], toSlot, Groups[fromStr], fromSlot, amount);
+                }
             }
             else if (CurrentType == Types.Workbench)
             {
-                if (toStr == "result" || (toStr == "tool" && (fromStr == "pockets" || fromStr == "result" || (fromStr == "craft" && !(Game.Items.Core.GetData(WorkbenchCraftParams[fromSlot].Id, null) is WorkbenchTool.ItemData)))))
+                if (toStr == "result" ||
+                    toStr == "tool" &&
+                    (fromStr == "pockets" || fromStr == "result" || fromStr == "craft" && !(Items.Core.GetData(WorkbenchCraftParams[fromSlot].Id, null) is WorkbenchTool.ItemData)))
                     return;
 
                 if (toStr == "pockets" && fromStr == "pockets")
@@ -2379,7 +3132,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             //Utils.ConsoleOutput($"{Groups[toStr]}, {toSlot}, {Groups[fromStr]}, {fromSlot}, {amount}");
 
-            LastSent = Game.World.Core.ServerTime;
+            LastSent = World.Core.ServerTime;
         }
 
         public static void UpdateBinds()
@@ -2387,7 +3140,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive || CurrentType != Types.Inventory)
                 return;
 
-            Browser.Window.ExecuteJs("Inventory.fillBind", Core.Binds.Where(x => x.Value.InvOnly).Select(x => x.Value.Keys.Length == 0 ? null : (int?)x.Value.Keys[0]));
+            Browser.Window.ExecuteJs("Inventory.fillBind", Input.Core.Binds.Where(x => x.Value.InvOnly).Select(x => x.Value.Keys.Length == 0 ? null : (int?)x.Value.Keys[0]));
         }
 
         public static void UpdateStates()
@@ -2403,30 +3156,53 @@ namespace BlaineRP.Client.Game.UI.CEF
             // Is needed because of bug ???
             Player.LocalPlayer.GetHealth();
 
-            var statuses = new object[3][] { new object[] { 0, Player.LocalPlayer.GetRealHealth() }, new object[] { 1, data.Satiety }, new object[] { 2, data.Mood } };
+            var statuses = new object[3][]
+            {
+                new object[]
+                {
+                    0,
+                    Player.LocalPlayer.GetRealHealth(),
+                },
+                new object[]
+                {
+                    1,
+                    data.Satiety,
+                },
+                new object[]
+                {
+                    2,
+                    data.Mood,
+                },
+            };
 
-            Browser.Window.ExecuteJs("Inventory.fillAllStatus", new object[] { statuses });
+            Browser.Window.ExecuteJs("Inventory.fillAllStatus",
+                new object[]
+                {
+                    statuses,
+                }
+            );
 
-            var curArm = Player.LocalPlayer.GetArmour();
+            int curArm = Player.LocalPlayer.GetArmour();
 
             if (ArmourData != null && (int)ArmourData[3] != curArm)
             {
                 ArmourData[3] = curArm;
 
-                Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
+                Browser.Window.ExecuteJs("Inventory.fillVest",
+                    new object[]
+                    {
+                        ArmourData,
+                    }
+                );
             }
         }
 
         private static void OnTickCheck()
         {
             if (CurrentType == Types.Container)
-            {
                 if (CurrentContainerType == ContainerTypes.Trunk)
-                {
                     if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.App.Static.EntityInteractionMaxDistance))
                         Close();
-                }
-            }
         }
 
         private static void GetRealSlot(ref string slotStr, ref int slot)
@@ -2449,25 +3225,27 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static void Load(Newtonsoft.Json.Linq.JArray args)
         {
-            var Weapons = RAGE.Util.Json.Deserialize<string[]>((string)args[0]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+            string[][] Weapons = RAGE.Util.Json.Deserialize<string[]>((string)args[0]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
 
-            var Armour = ((string)args[1]).Length == 0 ? null : ((string)args[1]).Split('&');
+            string[] Armour = ((string)args[1]).Length == 0 ? null : ((string)args[1]).Split('&');
 
-            var Items = RAGE.Util.Json.Deserialize<string[]>((string)args[2]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+            string[][] Items = RAGE.Util.Json.Deserialize<string[]>((string)args[2]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
 
-            var Clothes = RAGE.Util.Json.Deserialize<string[]>((string)args[3]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+            string[][] Clothes = RAGE.Util.Json.Deserialize<string[]>((string)args[3]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
 
-            var Accessories = RAGE.Util.Json.Deserialize<string[]>((string)args[4]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+            string[][] Accessories = RAGE.Util.Json.Deserialize<string[]>((string)args[4]).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
 
-            var Bag = ((string)args[5]).Length == 0 ? null : ((string)args[5]).Split('|');
+            string[] Bag = ((string)args[5]).Length == 0 ? null : ((string)args[5]).Split('|');
 
-            var Holster = ((string)args[6]).Length == 0 ? null : ((string)args[6]).Split('|');
+            string[] Holster = ((string)args[6]).Length == 0 ? null : ((string)args[6]).Split('|');
 
             WeaponsData = new object[Weapons.Length + 1][];
 
-            for (int i = 0; i < WeaponsData.Length - 1; i++)
+            for (var i = 0; i < WeaponsData.Length - 1; i++)
+            {
                 if (Weapons[i] != null)
                     WeaponsData[i] = FillWeapon(Weapons[i][0], int.Parse(Weapons[i][1]), int.Parse(Weapons[i][2]) == 1, Weapons[i][3], Weapons[i][4]);
+            }
 
             if (Armour != null)
                 ArmourData = FillArmour(Armour[0], int.Parse(Armour[1]));
@@ -2475,33 +3253,40 @@ namespace BlaineRP.Client.Game.UI.CEF
             ItemsData = new object[Items.Length][];
             ItemsParams = new ItemParams[Items.Length];
 
-            for (int i = 0; i < ItemsData.Length; i++)
+            for (var i = 0; i < ItemsData.Length; i++)
             {
                 if (Items[i] != null)
                 {
-                    var inUse = int.Parse(Items[i][4]) == 1;
+                    bool inUse = int.Parse(Items[i][4]) == 1;
 
                     ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2]), Items[i][3], inUse, false, false, false);
 
-                    ItemsParams[i] = new ItemParams(Items[i][0]) { InUse = inUse };
+                    ItemsParams[i] = new ItemParams(Items[i][0])
+                    {
+                        InUse = inUse,
+                    };
                 }
             }
 
             ClothesData = new object[Clothes.Length][];
 
             for (var i = 0; i < ClothesData.Length; i++)
+            {
                 if (Clothes[i] != null)
                     ClothesData[i] = FillClothes(Clothes[i][0]);
+            }
 
             AccessoriesData = new object[Accessories.Length + 2][];
 
             for (var i = 0; i < AccessoriesData.Length - 2; i++)
+            {
                 if (Accessories[i] != null)
                     AccessoriesData[i] = FillAccessories(Accessories[i][0]);
+            }
 
             if (Bag != null)
             {
-                var items = Bag.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                string[][] items = Bag.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
 
                 Bag = Bag[0].Split('&');
 
@@ -2509,16 +3294,18 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 BagData = new object[items.Length][];
 
-                for (int i = 0; i < BagData.Length; i++)
+                for (var i = 0; i < BagData.Length; i++)
+                {
                     if (items[i] != null)
                         BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
+                }
 
                 BagWeight = float.Parse(Bag[1]);
             }
 
             if (Holster != null)
             {
-                var item = Holster[1].Length == 0 ? null : Holster[1].Split('&');
+                string[] item = Holster[1].Length == 0 ? null : Holster[1].Split('&');
 
                 Holster = Holster[0].Split('&');
 
@@ -2534,7 +3321,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (CurrentType != Types.Workbench)
                 return;
 
-            if (WorkbenchCraftParams == null || (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null))
+            if (WorkbenchCraftParams == null || WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null)
                 return;
 
             var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
@@ -2543,12 +3330,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             if (receipt != null)
             {
-                var itemData = Game.Items.Core.GetData(receipt.CraftResultData.ResultItem.Id, null);
+                Item.ItemData itemData = Items.Core.GetData(receipt.CraftResultData.ResultItem.Id, null);
 
                 if (itemData == null)
                     return;
 
-                int realAmount = 1;
+                var realAmount = 1;
 
                 if (itemData is Item.ItemData.IStackable itemDataStackable)
                 {
@@ -2557,29 +3344,56 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (realAmount <= 0)
                         return;
 
-                    var newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, realAmount, itemData.Weight, null, false);
+                    object[] newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, realAmount, itemData.Weight, null, false);
 
-                    if (WorkbenchResultData[0] == null || (string)WorkbenchResultData[0][0] != (string)newData[0] || (string)WorkbenchResultData[0][1] != (string)newData[1] || (int)WorkbenchResultData[0][3] != (int)newData[3] || (float)WorkbenchResultData[0][4] != (float)newData[4])
+                    if (WorkbenchResultData[0] == null ||
+                        (string)WorkbenchResultData[0][0] != (string)newData[0] ||
+                        (string)WorkbenchResultData[0][1] != (string)newData[1] ||
+                        (int)WorkbenchResultData[0][3] != (int)newData[3] ||
+                        (float)WorkbenchResultData[0][4] != (float)newData[4])
                     {
                         WorkbenchResultData[0] = newData;
 
-                        CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { newData });
+                        Browser.Window.ExecuteJs("Inventory.updateResultSlot",
+                            new object[]
+                            {
+                                newData,
+                            }
+                        );
                     }
                 }
                 else
                 {
-                    var newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, receipt.CraftResultData.ResultItem.Amount, itemData.Weight, null, false);
+                    object[] newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, receipt.CraftResultData.ResultItem.Amount, itemData.Weight, null, false);
 
-                    if (WorkbenchResultData[0] == null || (string)WorkbenchResultData[0][0] != (string)newData[0] || (string)WorkbenchResultData[0][1] != (string)newData[1] || (int)WorkbenchResultData[0][3] != (int)newData[3] || (float)WorkbenchResultData[0][4] != (float)newData[4])
+                    if (WorkbenchResultData[0] == null ||
+                        (string)WorkbenchResultData[0][0] != (string)newData[0] ||
+                        (string)WorkbenchResultData[0][1] != (string)newData[1] ||
+                        (int)WorkbenchResultData[0][3] != (int)newData[3] ||
+                        (float)WorkbenchResultData[0][4] != (float)newData[4])
                     {
                         WorkbenchResultData[0] = newData;
 
-                        CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { newData });
+                        Browser.Window.ExecuteJs("Inventory.updateResultSlot",
+                            new object[]
+                            {
+                                newData,
+                            }
+                        );
                     }
                 }
 
                 if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
-                    CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", new object[] { new object[] { Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText, (new TimeSpan(0, 0, 0, 0, receipt.CraftResultData.CraftTime * (realAmount / receipt.CraftResultData.ResultItem.Amount))).GetBeautyString() } });
+                    Browser.Window.ExecuteJs("Inventory.fillCraftBtn",
+                        new object[]
+                        {
+                            new object[]
+                            {
+                                Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText,
+                                new TimeSpan(0, 0, 0, 0, receipt.CraftResultData.CraftTime * (realAmount / receipt.CraftResultData.ResultItem.Amount)).GetBeautyString(),
+                            },
+                        }
+                    );
             }
             else
             {
@@ -2587,7 +3401,12 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     WorkbenchResultData[0] = null;
 
-                    CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { null });
+                    Browser.Window.ExecuteJs("Inventory.updateResultSlot",
+                        new object[]
+                        {
+                            null,
+                        }
+                    );
                 }
 
                 ResetCraftButton();
@@ -2600,14 +3419,22 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
 
             if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
-                CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", new object[] { new object[] { Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText } });
+                Browser.Window.ExecuteJs("Inventory.fillCraftBtn",
+                    new object[]
+                    {
+                        new object[]
+                        {
+                            Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText,
+                        },
+                    }
+                );
         }
 
         private static void CancelPendingCraftTask()
         {
-            CEF.Inventory.FreezeInterface(false, false);
+            FreezeInterface(false, false);
 
-            var task = Player.LocalPlayer.GetData<AsyncTask>("Inv::Temp::WBCPT");
+            AsyncTask task = Player.LocalPlayer.GetData<AsyncTask>("Inv::Temp::WBCPT");
 
             if (task != null)
             {
@@ -2621,24 +3448,28 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             var timeOffset = new TimeSpan(0, 0, 0, 1, 0);
 
-            CEF.Inventory.FreezeInterface(true, false);
+            FreezeInterface(true, false);
 
             var task = new AsyncTask(() =>
-            {
-                if (CurrentType != Types.Workbench)
-                    return true;
+                {
+                    if (CurrentType != Types.Workbench)
+                        return true;
 
-                var currentDate = Game.World.Core.ServerTime;
+                    DateTime currentDate = World.Core.ServerTime;
 
-                var timeLeft = endDate.Subtract(currentDate).Add(timeOffset);
+                    TimeSpan timeLeft = endDate.Subtract(currentDate).Add(timeOffset);
 
-                CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", timeLeft.GetBeautyString());
+                    Browser.Window.ExecuteJs("Inventory.fillCraftBtn", timeLeft.GetBeautyString());
 
-                if (timeLeft.TotalMilliseconds <= 0)
-                    return true;
+                    if (timeLeft.TotalMilliseconds <= 0)
+                        return true;
 
-                return false;
-            }, 500, true, 0);
+                    return false;
+                },
+                500,
+                true,
+                0
+            );
 
             task.Run();
 
@@ -2671,41 +3502,41 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (CurrentType == Types.Inventory)
             {
                 if (state)
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
                 else
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
             }
             else if (CurrentType == Types.Container)
             {
                 if (state)
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'none';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'none';");
                 else
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'unset';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'unset';");
             }
             else if (CurrentType == Types.Trade)
             {
                 if (state)
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'none';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'none';");
                 else
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'unset';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'unset';");
             }
             else if (CurrentType == Types.Workbench)
             {
                 if (state)
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'none';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'none';");
                 else
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'unset';");
+                    Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'unset';");
             }
         }
 
         private static int GetFreeIdx(string itemId, object[][] arr)
         {
             int eIdx = -1, idx = -1;
-            var minAmount = int.MaxValue;
+            int minAmount = int.MaxValue;
 
-            var iData = itemId.Length == 0 ? null : Game.Items.Core.GetData(itemId, null) as Item.ItemData.IStackable;
+            Item.ItemData.IStackable iData = itemId.Length == 0 ? null : Items.Core.GetData(itemId, null) as Item.ItemData.IStackable;
 
-            for (int i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Length; i++)
             {
                 if (arr[i] == null)
                 {
@@ -2757,6 +3588,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             return idx;
         }
+
         #endregion
     }
 }

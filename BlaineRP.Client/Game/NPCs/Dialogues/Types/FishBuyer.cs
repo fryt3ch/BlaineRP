@@ -10,39 +10,50 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
     {
         public FishBuyer()
         {
-            new Dialogue("fishbuyer_0_g", "Приветствую! Я занимаюсь скупкой рыбы, у тебя есть что-нибудь для меня? Готов предложить неплохие деньги", null,
+            new Dialogue("fishbuyer_0_g",
+                "Приветствую! Я занимаюсь скупкой рыбы, у тебя есть что-нибудь для меня? Готов предложить неплохие деньги",
+                null,
                 new Button("Сейчас посмотрю", () => NPC.CurrentNPC?.ShowDialogue("fishbuyer_a_fs0", false, null)),
+                new Button("Так, а что по ценам?",
+                    () =>
+                    {
+                        NPC npc = NPC.CurrentNPC;
 
-                new Button("Так, а что по ценам?", () =>
-                {
-                    var npc = NPC.CurrentNPC;
+                        if (npc == null)
+                            return;
 
-                    if (npc == null)
-                        return;
-
-                    if (npc.Data is Game.Misc.FishBuyer fb)
-                        npc.ShowDialogue("fishbuyer_a_p", true, null, string.Join("\n", Game.Misc.FishBuyer.BasePrices.Select(x => $"{Items.Core.GetName(x.Key) ?? "null"} - {Locale.Get("GEN_MONEY_0", fb.GetPrice(x.Key))}")));
-                }),
-
+                        if (npc.Data is Game.Misc.FishBuyer fb)
+                            npc.ShowDialogue("fishbuyer_a_p",
+                                true,
+                                null,
+                                string.Join("\n",
+                                    Game.Misc.FishBuyer.BasePrices.Select(x => $"{Items.Core.GetName(x.Key) ?? "null"} - {Locale.Get("GEN_MONEY_0", fb.GetPrice(x.Key))}")
+                                )
+                            );
+                    }
+                ),
                 Button.DefaultExitButton
             );
 
-            new Dialogue("fishbuyer_a_p", "Вот мои расценки:\n\n{0}\n\nУчти, что раз в какое-то время цены могут изменяться в большую или меньшую сторону, все зависит от воли Посейдона *смеётся*", null,
+            new Dialogue("fishbuyer_a_p",
+                "Вот мои расценки:\n\n{0}\n\nУчти, что раз в какое-то время цены могут изменяться в большую или меньшую сторону, все зависит от воли Посейдона *смеётся*",
+                null,
                 Button.DefaultBackButton,
-
                 Button.DefaultExitButton
             );
 
-            new Dialogue("fishbuyer_a_nf", "Где посмотришь? В карманах что-ли? Кхе, и без того вижу, что нет у тебя с собой рыбы, возвращайся, когда наловишь, если сможешь, конечно *посмеивается*", null,
+            new Dialogue("fishbuyer_a_nf",
+                "Где посмотришь? В карманах что-ли? Кхе, и без того вижу, что нет у тебя с собой рыбы, возвращайся, когда наловишь, если сможешь, конечно *посмеивается*",
+                null,
                 Button.DefaultBackButton,
-
                 Button.DefaultExitButton
             );
 
-            new Dialogue("fishbuyer_a_fs0", null,
+            new Dialogue("fishbuyer_a_fs0",
+                null,
                 (args) =>
                 {
-                    var npc = NPC.CurrentNPC;
+                    NPC npc = NPC.CurrentNPC;
 
                     if (npc == null)
                         return;
@@ -54,9 +65,9 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     var dict = new Dictionary<string, int>();
 
-                    foreach (var x in Game.Misc.FishBuyer.BasePrices)
+                    foreach (KeyValuePair<string, uint> x in Game.Misc.FishBuyer.BasePrices)
                     {
-                        for (int i = 0; i < Inventory.ItemsParams.Length; i++)
+                        for (var i = 0; i < Inventory.ItemsParams.Length; i++)
                         {
                             if (Inventory.ItemsParams[i]?.Id == x.Key)
                             {
@@ -70,7 +81,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     if (dict.Count == 0)
                     {
-                        var curDg = npc.LastDialogues.Where(x => x.Dialogue.Id == "fishbuyer_a_fs0").FirstOrDefault();
+                        LastInfo curDg = npc.LastDialogues.Where(x => x.Dialogue.Id == "fishbuyer_a_fs0").FirstOrDefault();
 
                         if (curDg != null)
                             npc.LastDialogues.Remove(curDg);
@@ -82,39 +93,52 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     npc.SetTempDialogueData("all_fish", dict);
 
-                    var dg = AllDialogues["fishbuyer_a_fs1"];
+                    Dialogue dg = AllDialogues["fishbuyer_a_fs1"];
 
                     dg.Buttons.Clear();
 
                     ulong sum = 0;
 
-                    foreach (var x in dict)
+                    foreach (KeyValuePair<string, int> x in dict)
                     {
-                        var id = x.Key;
-                        var amount = x.Value;
+                        string id = x.Key;
+                        int amount = x.Value;
 
-                        var price = fb.GetPrice(id);
+                        uint price = fb.GetPrice(id);
 
-                        var name = Items.Core.GetName(x.Key);
+                        string name = Items.Core.GetName(x.Key);
 
-                        dg.Buttons.Add(new Button($"{name} - {amount} шт.", () =>
-                        {
-                            npc.SetTempDialogueData("fish_id", id);
-                            npc.SetTempDialogueData("fish_amount_s", amount);
+                        dg.Buttons.Add(new Button($"{name} - {amount} шт.",
+                                () =>
+                                {
+                                    npc.SetTempDialogueData("fish_id", id);
+                                    npc.SetTempDialogueData("fish_amount_s", amount);
 
-                            npc.ShowDialogue("fishbuyer_a_fs2", true, null, name, Locale.Get("GEN_MONEY_0", fb.GetPrice(id)), amount, Locale.Get("GEN_MONEY_0", amount * price));
-                        }));
+                                    npc.ShowDialogue("fishbuyer_a_fs2",
+                                        true,
+                                        null,
+                                        name,
+                                        Locale.Get("GEN_MONEY_0", fb.GetPrice(id)),
+                                        amount,
+                                        Locale.Get("GEN_MONEY_0", amount * price)
+                                    );
+                                }
+                            )
+                        );
 
                         sum += (uint)amount;
                     }
 
-                    dg.Buttons.Add(new Button($"Вся рыба - {sum} шт.", () =>
-                    {
-                        npc.ResetTempDialogueData("fish_id");
-                        npc.ResetTempDialogueData("fish_amount_s");
+                    dg.Buttons.Add(new Button($"Вся рыба - {sum} шт.",
+                            () =>
+                            {
+                                npc.ResetTempDialogueData("fish_id");
+                                npc.ResetTempDialogueData("fish_amount_s");
 
-                        SellFishApprove(npc, null, 0);
-                    }));
+                                SellFishApprove(npc, null, 0);
+                            }
+                        )
+                    );
 
                     dg.Buttons.Add(Button.DefaultBackButton);
                     dg.Buttons.Add(Button.DefaultExitButton);
@@ -130,102 +154,110 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             new Dialogue("fishbuyer_a_fs1", "", null);
 
-            new Dialogue("fishbuyer_a_fs3", null, null,
-                new Button("[Продать]", async () =>
-                {
-                    var npc = NPC.CurrentNPC;
+            new Dialogue("fishbuyer_a_fs3",
+                null,
+                null,
+                new Button("[Продать]",
+                    async () =>
+                    {
+                        NPC npc = NPC.CurrentNPC;
 
-                    if (npc == null)
-                        return;
+                        if (npc == null)
+                            return;
 
-                    var fishId = npc.GetTempDialogueData<string>("fish_id");
-                    var amount = npc.GetTempDialogueData<int>("fish_amount");
+                        string fishId = npc.GetTempDialogueData<string>("fish_id");
+                        int amount = npc.GetTempDialogueData<int>("fish_amount");
 
-                    var res = (int)await npc.CallRemoteProc("fishbuyer_s", fishId ?? "", amount);
+                        var res = (int)await npc.CallRemoteProc("fishbuyer_s", fishId ?? "", amount);
 
-                    npc.SwitchDialogue(false);
-                }),
-
+                        npc.SwitchDialogue(false);
+                    }
+                ),
                 Button.DefaultBackButton,
                 Button.DefaultExitButton
             );
 
-            new Dialogue("fishbuyer_a_fs2", "Так, {0}, хорошо, сколько штук? За 1 шт. я дам {1}, следовательно, за всю, что у тебя есть, а это {2} шт. - {3}", null,
-                new Button("[Выбрать кол-во]", async () =>
-                {
-                    var npc = NPC.CurrentNPC;
-
-                    if (npc == null)
-                        return;
-
-                    var fb = npc.Data as Game.Misc.FishBuyer;
-
-                    if (fb == null)
-                        return;
-
-                    var curFishId = npc.GetTempDialogueData<string>("fish_id");
-                    var curFishAmountA = npc.GetTempDialogueData<int>("fish_amount_s");
-
-                    if (curFishAmountA <= 1)
+            new Dialogue("fishbuyer_a_fs2",
+                "Так, {0}, хорошо, сколько штук? За 1 шт. я дам {1}, следовательно, за всю, что у тебя есть, а это {2} шт. - {3}",
+                null,
+                new Button("[Выбрать кол-во]",
+                    async () =>
                     {
-                        SellFishApprove(npc, curFishId, curFishAmountA);
+                        NPC npc = NPC.CurrentNPC;
 
-                        return;
-                    }
+                        if (npc == null)
+                            return;
 
-                    await ActionBox.ShowRange
-                    (
-                        "FishBuyerRange", "Выберите кол-во рыбы для продажи", 1, curFishAmountA, curFishAmountA, 1, ActionBox.RangeSubTypes.Default,
+                        var fb = npc.Data as Game.Misc.FishBuyer;
 
-                        () =>
+                        if (fb == null)
+                            return;
+
+                        string curFishId = npc.GetTempDialogueData<string>("fish_id");
+                        int curFishAmountA = npc.GetTempDialogueData<int>("fish_amount_s");
+
+                        if (curFishAmountA <= 1)
                         {
-                            ActionBox.DefaultBindAction.Invoke();
+                            SellFishApprove(npc, curFishId, curFishAmountA);
 
-                            Browser.SwitchTemp(Browser.IntTypes.NPC, false);
-
-                            NPC.UnbindEsc();
-                        },
-
-                        (rType, amountD) =>
-                        {
-                            var amount = (int)amountD;
-
-                            ActionBox.Close(false);
-
-                            if (NPC.CurrentNPC != npc)
-                                return;
-
-                            if (rType == ActionBox.ReplyTypes.OK)
-                                SellFishApprove(npc, curFishId, amount);
-                        },
-
-                        () =>
-                        {
-                            if (NPC.CurrentNPC == npc)
-                            {
-                                Cursor.Show(true, true);
-
-                                NPC.BindEsc();
-
-                                Browser.SwitchTemp(Browser.IntTypes.NPC, true);
-                            }
+                            return;
                         }
-                    );
-                }),
 
-                new Button("[Продать всю]", () =>
-                {
-                    var npc = NPC.CurrentNPC;
+                        await ActionBox.ShowRange("FishBuyerRange",
+                            "Выберите кол-во рыбы для продажи",
+                            1,
+                            curFishAmountA,
+                            curFishAmountA,
+                            1,
+                            ActionBox.RangeSubTypes.Default,
+                            () =>
+                            {
+                                ActionBox.DefaultBindAction.Invoke();
 
-                    if (npc == null)
-                        return;
+                                Browser.SwitchTemp(Browser.IntTypes.NPC, false);
 
-                    var curFishId = npc.GetTempDialogueData<string>("fish_id");
-                    var curFishAmountA = npc.GetTempDialogueData<int>("fish_amount_s");
+                                NPC.UnbindEsc();
+                            },
+                            (rType, amountD) =>
+                            {
+                                var amount = (int)amountD;
 
-                    SellFishApprove(npc, curFishId, curFishAmountA);
-                }),
+                                ActionBox.Close(false);
 
+                                if (NPC.CurrentNPC != npc)
+                                    return;
+
+                                if (rType == ActionBox.ReplyTypes.OK)
+                                    SellFishApprove(npc, curFishId, amount);
+                            },
+                            () =>
+                            {
+                                if (NPC.CurrentNPC == npc)
+                                {
+                                    Cursor.Show(true, true);
+
+                                    NPC.BindEsc();
+
+                                    Browser.SwitchTemp(Browser.IntTypes.NPC, true);
+                                }
+                            }
+                        );
+                    }
+                ),
+                new Button("[Продать всю]",
+                    () =>
+                    {
+                        NPC npc = NPC.CurrentNPC;
+
+                        if (npc == null)
+                            return;
+
+                        string curFishId = npc.GetTempDialogueData<string>("fish_id");
+                        int curFishAmountA = npc.GetTempDialogueData<int>("fish_amount_s");
+
+                        SellFishApprove(npc, curFishId, curFishAmountA);
+                    }
+                ),
                 Button.DefaultBackButton,
                 Button.DefaultExitButton
             );
@@ -245,22 +277,24 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             if (fishId == null)
             {
-                var allFish = npc.GetTempDialogueData<Dictionary<string, int>>("all_fish");
+                Dictionary<string, int> allFish = npc.GetTempDialogueData<Dictionary<string, int>>("all_fish");
 
                 if (allFish == null)
                     return;
 
-                var t = $"Я правильно понял, что ты хочешь продать всю рыбу, что у тебя есть в кол-ве {allFish.Values.Sum()} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", allFish.Select(x => x.Value * (decimal)fb.GetPrice(x.Key)).Sum())}, согласен?";
+                var t =
+                    $"Я правильно понял, что ты хочешь продать всю рыбу, что у тебя есть в кол-ве {allFish.Values.Sum()} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", allFish.Select(x => x.Value * (decimal)fb.GetPrice(x.Key)).Sum())}, согласен?";
 
-                var dg = AllDialogues["fishbuyer_a_fs3"].Text = t;
+                string dg = AllDialogues["fishbuyer_a_fs3"].Text = t;
 
                 npc.ShowDialogue("fishbuyer_a_fs3", true, null);
             }
             else
             {
-                var t = $"Я правильно понял, что ты хочешь продать мне {Items.Core.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", amount * fb.GetPrice(fishId))}, согласен?";
+                var t =
+                    $"Я правильно понял, что ты хочешь продать мне {Items.Core.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", amount * fb.GetPrice(fishId))}, согласен?";
 
-                var dg = AllDialogues["fishbuyer_a_fs3"].Text = t;
+                string dg = AllDialogues["fishbuyer_a_fs3"].Text = t;
 
                 npc.ShowDialogue("fishbuyer_a_fs3", true, null);
             }

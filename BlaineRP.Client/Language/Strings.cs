@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Language
 
         public static string? Get(string key, string otherwise, object[] formatArgs)
         {
-            var str = Texts.GetValueOrDefault(key) ?? otherwise;
+            string str = Texts.GetValueOrDefault(key) ?? otherwise;
 
             if (str == null || formatArgs.Length == 0)
                 return str;
@@ -23,13 +23,19 @@ namespace BlaineRP.Client.Language
             return string.Format(str, formatArgs);
         }
 
-        public static string Get(string key, params object[] formatArgs) => Get(key, key, formatArgs);
+        public static string Get(string key, params object[] formatArgs)
+        {
+            return Get(key, key, formatArgs);
+        }
 
-        public static string? GetNullOtherwise(string key, params object[] formatArgs) => Get(key, null, formatArgs);
+        public static string? GetNullOtherwise(string key, params object[] formatArgs)
+        {
+            return Get(key, null, formatArgs);
+        }
 
         public static string GetKeyFromTypeByMemberName(System.Type type, string memberName, string localKey = null)
         {
-            var member = type.GetMember(memberName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault();
+            MemberInfo member = type.GetMember(memberName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault();
 
             return member?.GetCustomAttributes<LocalizedAttribute>()?.Where(x => x.LocalKey == localKey).Select(x => x.GlobalKey).FirstOrDefault();
         }

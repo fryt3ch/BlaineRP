@@ -6,10 +6,8 @@ using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.EntitiesData.Components
 {
@@ -26,10 +24,6 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
         private static DateTime LastSent;
 
-        private static Player CurrentTarget { get; set; }
-
-        public static bool IsActive { get => CurrentTarget != null; }
-
         private static PlayerActions.Types[] ActionsToCheck = new PlayerActions.Types[]
         {
             PlayerActions.Types.Knocked,
@@ -40,78 +34,89 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             PlayerActions.Types.Crawl,
             PlayerActions.Types.Finger,
             PlayerActions.Types.PushingVehicle,
-
             PlayerActions.Types.Animation,
             PlayerActions.Types.FastAnimation,
             PlayerActions.Types.Scenario,
 
             //PlayerActions.Types.InVehicle,
             PlayerActions.Types.InWater,
-            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading, //PlayerActions.Types.HasWeapon,
-            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, //PlayerActions.Types.OnFoot,
+            PlayerActions.Types.Shooting,
+            PlayerActions.Types.Reloading, //PlayerActions.Types.HasWeapon,
+            PlayerActions.Types.Climbing,
+            PlayerActions.Types.Falling,
+            PlayerActions.Types.Ragdoll,
+            PlayerActions.Types.Jumping, //PlayerActions.Types.OnFoot,
         };
 
         private static List<int> _tempBinds;
 
         public Offers()
         {
-            Events.Add("Offer::Show", (args) =>
-            {
-                var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[0]));
-
-                if (player == null)
-                    return;
-
-                var type = (OfferTypes)(int)args[1];
-                var text = (string)args[2];
-
-                if (Utils.Misc.IsAnyCefActive(false))
+            Events.Add("Offer::Show",
+                (args) =>
                 {
-                    CurrentTarget = player;
+                    Player player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[0]));
 
-                    Reply(ReplyTypes.Busy);
-
-                    return;
-                }
-
-                Show(player, type, text);
-            });
-
-            Events.Add("Offer::Reply::Server", (args) =>
-            {
-                var reply = (bool)args[0];
-                var justCancelCts = (bool)args[1];
-                var ctsIsNull = (bool)args[2];
-
-                if (!reply)
-                {
-                    if (!ctsIsNull)
-                    {
-                        Notification.ClearAll();
-
-                        if (_tempBinds != null)
-                        {
-                            _tempBinds.ForEach(x => Input.Core.Unbind(x));
-
-                            _tempBinds.Clear();
-                            _tempBinds = null;
-                        }
-                    }
-
-                    if (justCancelCts)
+                    if (player == null)
                         return;
 
-                    CurrentTarget = null;
+                    var type = (OfferTypes)(int)args[1];
+                    var text = (string)args[2];
 
-                    Main.Update -= OfferTick;
+                    if (Utils.Misc.IsAnyCefActive(false))
+                    {
+                        CurrentTarget = player;
+
+                        Reply(ReplyTypes.Busy);
+
+                        return;
+                    }
+
+                    Show(player, type, text);
                 }
-                else
+            );
+
+            Events.Add("Offer::Reply::Server",
+                (args) =>
                 {
-                    Main.Update -= OfferTick;
-                    Main.Update += OfferTick;
+                    var reply = (bool)args[0];
+                    var justCancelCts = (bool)args[1];
+                    var ctsIsNull = (bool)args[2];
+
+                    if (!reply)
+                    {
+                        if (!ctsIsNull)
+                        {
+                            Notification.ClearAll();
+
+                            if (_tempBinds != null)
+                            {
+                                _tempBinds.ForEach(x => Input.Core.Unbind(x));
+
+                                _tempBinds.Clear();
+                                _tempBinds = null;
+                            }
+                        }
+
+                        if (justCancelCts)
+                            return;
+
+                        CurrentTarget = null;
+
+                        Main.Update -= OfferTick;
+                    }
+                    else
+                    {
+                        Main.Update -= OfferTick;
+                        Main.Update += OfferTick;
+                    }
                 }
-            });
+            );
         }
+
+        private static Player CurrentTarget { get; set; }
+
+        public static bool IsActive => CurrentTarget != null;
 
         public static void Show(Player player, OfferTypes type, string text)
         {
@@ -123,7 +128,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             Main.Update -= OfferTick;
             Main.Update += OfferTick;
 
-            var name = player.GetName(true, false, true);
+            string name = player.GetName(true, false, true);
 
             text = string.Format(text, name);
 
@@ -131,15 +136,20 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             _tempBinds = new List<int>()
             {
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
-                {
-                    Reply(ReplyTypes.Accept);
-                }),
-
-                Input.Core.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
-                {
-                    Reply(ReplyTypes.Deny);
-                }),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.Y,
+                    true,
+                    () =>
+                    {
+                        Reply(ReplyTypes.Accept);
+                    }
+                ),
+                Input.Core.Bind(RAGE.Ui.VirtualKeys.N,
+                    true,
+                    () =>
+                    {
+                        Reply(ReplyTypes.Deny);
+                    }
+                ),
             };
         }
 
@@ -155,7 +165,8 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             if (player?.Exists != true)
                 return;
 
-            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
+            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.App.Static.EntityInteractionMaxDistance &&
+                (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
             if (Utils.Misc.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || PlayerActions.IsAnyActionActive(true, ActionsToCheck))
@@ -163,7 +174,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
             LastSent = Core.ServerTime;
 
-            var res = await Events.CallRemoteProc("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data ?? string.Empty));
+            object res = await Events.CallRemoteProc("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data ?? string.Empty));
 
             if (res == null)
                 return;
@@ -188,7 +199,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
             if (CurrentTarget == null)
                 return;
 
-            var isNotManual = rType == ReplyTypes.AutoCancel || rType == ReplyTypes.Busy;
+            bool isNotManual = rType == ReplyTypes.AutoCancel || rType == ReplyTypes.Busy;
 
             if (isNotManual || !LastSent.IsSpam(1_000, false, false))
             {

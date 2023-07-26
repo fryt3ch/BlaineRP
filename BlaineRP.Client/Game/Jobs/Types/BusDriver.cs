@@ -12,8 +12,6 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public class BusDriver : Job
     {
-        public List<(uint Reward, List<Vector3> Positions)> Routes { get; set; }
-
         public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, JobTypes.BusDriver)
         {
             var blip = new ExtraBlip(513, Position.Position, "Автовокзал", 1f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
@@ -21,11 +19,13 @@ namespace BlaineRP.Client.Game.Jobs
             this.Routes = Routes;
         }
 
+        public List<(uint Reward, List<Vector3> Positions)> Routes { get; set; }
+
         public override void OnStartJob(object[] data)
         {
             base.OnStartJob(data);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
+            SetCurrentData("JVEH", Entities.Vehicles.GetAtRemote(Utils.Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()
@@ -42,38 +42,42 @@ namespace BlaineRP.Client.Game.Jobs
 
             var dict = new Dictionary<int, float>();
 
-            for (int i = 0; i < Routes.Count; i++)
+            for (var i = 0; i < Routes.Count; i++)
             {
                 dict.Add(i, 0f);
 
-                for (int j = 0; j < Routes[i].Positions.Count - 1; j++)
+                for (var j = 0; j < Routes[i].Positions.Count - 1; j++)
                 {
                     dict[i] += Routes[i].Positions[j].DistanceTo(Routes[i].Positions[j + 1]);
                 }
             }
 
-            var vehicle = Player.LocalPlayer.Vehicle;
+            Vehicle vehicle = Player.LocalPlayer.Vehicle;
 
-            await ActionBox.ShowSelect
-            (
-                "JobBusDriverRouteSelect", Locale.Actions.JobVehicleRouteSelectTitle, Routes.Select(x => ((decimal)counter, string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Locale.Get("GEN_MONEY_0", x.Reward), System.Math.Round(dict[counter++] / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
-
+            await ActionBox.ShowSelect("JobBusDriverRouteSelect",
+                Locale.Actions.JobVehicleRouteSelectTitle,
+                Routes.Select(x => ((decimal)counter,
+                           string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Locale.Get("GEN_MONEY_0", x.Reward), Math.Round(dict[counter++] / 1000f, 2)))
+                       )
+                      .ToArray(),
+                Locale.Actions.SelectOkBtn2,
+                Locale.Actions.SelectCancelBtn1,
                 () =>
                 {
                     ActionBox.DefaultBindAction.Invoke();
 
                     var checkAction = new Action(() =>
-                    {
-                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
-                            ActionBox.Close(true);
-                    });
+                        {
+                            if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                ActionBox.Close(true);
+                        }
+                    );
 
                     Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
 
                     Main.Update -= checkAction.Invoke;
                     Main.Update += checkAction.Invoke;
                 },
-
                 async (rType, id) =>
                 {
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -88,7 +92,7 @@ namespace BlaineRP.Client.Game.Jobs
                         if (quest == null || quest.Step > 0)
                             return;
 
-                        var routes = (pData.CurrentJob as BusDriver)?.Routes;
+                        List<(uint Reward, List<Vector3> Positions)> routes = (pData.CurrentJob as BusDriver)?.Routes;
 
                         if (routes == null)
                             return;
@@ -96,24 +100,23 @@ namespace BlaineRP.Client.Game.Jobs
                         if (id >= routes.Count)
                             return;
 
-                        var res = await quest.CallProgressUpdateProc(id);
+                        byte res = await quest.CallProgressUpdateProc(id);
 
                         if (res == byte.MaxValue)
-                        {
                             ActionBox.Close(true);
-                        }
                     }
                     else if (rType == ActionBox.ReplyTypes.Cancel)
                     {
                         ActionBox.Close(true);
                     }
                     else
+                    {
                         return;
+                    }
                 },
-
                 () =>
                 {
-                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+                    Action checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
 
                     if (checkAction != null)
                     {

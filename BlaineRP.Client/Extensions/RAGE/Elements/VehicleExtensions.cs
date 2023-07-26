@@ -4,7 +4,10 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
 {
     public static class VehicleExtensions
     {
-        public static float GetSpeedKm(this Vehicle vehicle) => vehicle.GetSpeed() * 3.6f;
+        public static float GetSpeedKm(this Vehicle vehicle)
+        {
+            return vehicle.GetSpeed() * 3.6f;
+        }
 
         public static int GetColourType(this Vehicle veh)
         {
@@ -18,8 +21,10 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
         public static int GetFirstFreeSeatId(this Vehicle veh, int startIdx = 0)
         {
             for (int i = startIdx; i < global::RAGE.Game.Vehicle.GetVehicleModelNumberOfSeats(veh.Model); i++)
+            {
                 if (veh.IsSeatFree(i - 1, 0))
                     return i;
+            }
 
             return -1;
         }
@@ -33,7 +38,10 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
             return new Utils.Colour((byte)r, (byte)g, (byte)b);
         }
 
-        public static string GetNumberplateText(this Vehicle veh) => veh.GetNumberPlateText()?.Replace(" ", "");
+        public static string GetNumberplateText(this Vehicle veh)
+        {
+            return veh.GetNumberPlateText()?.Replace(" ", "");
+        }
 
         public static int? GetPearlColour(this Vehicle veh)
         {
@@ -94,7 +102,7 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
             if (!veh.IsToggleModOn(22))
                 return null;
 
-            var colour = global::RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB, veh.Handle);
+            int colour = global::RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB, veh.Handle);
 
             if (colour == 255)
                 return -1;
@@ -102,7 +110,10 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
             return colour;
         }
 
-        public static bool IsAttachedToTrailer(this Vehicle veh, int trailerHandle) => veh.GetTrailerVehicle() == trailerHandle;
+        public static bool IsAttachedToTrailer(this Vehicle veh, int trailerHandle)
+        {
+            return veh.GetTrailerVehicle() == trailerHandle;
+        }
 
         public static void SetColourType(this Vehicle veh, int type)
         {
@@ -119,11 +130,16 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
 
         public static void SetNeonEnabled(this Vehicle veh, bool state)
         {
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
+            {
                 veh.SetNeonLightEnabled(i, state);
+            }
         }
 
-        public static void SetPearlColour(this Vehicle veh, int colour) => veh.SetExtraColours(colour, veh.GetWheelsColour() ?? 0);
+        public static void SetPearlColour(this Vehicle veh, int colour)
+        {
+            veh.SetExtraColours(colour, veh.GetWheelsColour() ?? 0);
+        }
 
         public static void SetWheels(this Vehicle veh, int type, int num, bool front = true)
         {
@@ -132,7 +148,10 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
             veh.SetMod(front ? 23 : 25, num, false);
         }
 
-        public static void SetWheelsColour(this Vehicle veh, int colour) => veh.SetExtraColours(veh.GetPearlColour() ?? 0, colour);
+        public static void SetWheelsColour(this Vehicle veh, int colour)
+        {
+            veh.SetExtraColours(veh.GetPearlColour() ?? 0, colour);
+        }
 
         public static void SetXenonColour(this Vehicle veh, int? colour)
         {
@@ -150,7 +169,7 @@ namespace BlaineRP.Client.Extensions.RAGE.Elements
 
         public static void TaskTempAction(this Vehicle veh, int action, int time)
         {
-            var driverPed = veh.GetPedInSeat(-1, 0);
+            int driverPed = veh.GetPedInSeat(-1, 0);
 
             if (driverPed < 0)
                 return;

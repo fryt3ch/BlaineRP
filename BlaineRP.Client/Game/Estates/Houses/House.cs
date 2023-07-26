@@ -13,6 +13,42 @@ namespace BlaineRP.Client.Game.Estates
     {
         public static Dictionary<uint, House> All = new Dictionary<uint, House>();
 
+        public House(uint id, Vector3 position, int roomType, int? garageType, Vector3 garagePosition, uint price, int @class, uint tax) : base(Core.HouseTypes.House,
+            id,
+            price,
+            roomType,
+            @class,
+            tax
+        )
+        {
+            Position = position;
+
+            GarageType = garageType is int garageTypeI ? (Garage.Types?)garageTypeI : null;
+
+            GaragePosition = garagePosition;
+
+            Colshape = new Cylinder(new Vector3(position.X, position.Y, position.Z - 1f),
+                1.5f,
+                2f,
+                false,
+                new Utils.Colour(255, 0, 0, 125),
+                Settings.App.Static.MainDimension,
+                null
+            )
+            {
+                InteractionType = InteractionTypes.HouseEnter,
+                ActionType = ActionTypes.HouseEnter,
+                Data = this,
+            };
+
+            InfoText = new ExtraLabel(new Vector3(position.X, position.Y, position.Z - 0.5f), "", Utils.Misc.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension)
+            {
+                Font = 0,
+            };
+
+            All.Add(id, this);
+        }
+
         public override string OwnerName => World.Core.GetSharedData<string>($"House::{Id}::OName");
 
         public Garage.Types? GarageType { get; set; }
@@ -21,31 +57,40 @@ namespace BlaineRP.Client.Game.Estates
 
         public override Vector3 Position { get; }
 
-        public override ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
-
-        public ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
-
-        public ExtraBlip OwnerGarageBlip { get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
-
-        public House(uint id, Vector3 position, int roomType, int? garageType, Vector3 garagePosition, uint price, int @class, uint tax) : base(Core.HouseTypes.House, id, price, roomType, @class, tax)
+        public override ExtraBlip OwnerBlip
         {
-            Position = position;
-
-            GarageType = garageType is int garageTypeI ? (Garage.Types?)garageTypeI : null;
-
-            GaragePosition = garagePosition;
-
-            Colshape = new Cylinder(new Vector3(position.X, position.Y, position.Z - 1f), 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.App.Static.MainDimension, null)
+            get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OBlip");
+            set
             {
-                InteractionType = InteractionTypes.HouseEnter,
-                ActionType = ActionTypes.HouseEnter,
+                if (value == null)
+                    Player.LocalPlayer.ResetData($"House::{Id}::OBlip");
+                else
+                    Player.LocalPlayer.SetData($"House::{Id}::OBlip", value);
+            }
+        }
 
-                Data = this,
-            };
+        public ExtraColshape OwnerGarageColshape
+        {
+            get => Player.LocalPlayer.GetData<ExtraColshape>($"House::{Id}::OGCS");
+            set
+            {
+                if (value == null)
+                    Player.LocalPlayer.ResetData($"House::{Id}::OGCS");
+                else
+                    Player.LocalPlayer.SetData($"House::{Id}::OGCS", value);
+            }
+        }
 
-            InfoText = new ExtraLabel(new Vector3(position.X, position.Y, position.Z - 0.5f), "", Utils.Misc.WhiteColourRGBA, 25f, 0, false, Settings.App.Static.MainDimension) { Font = 0 };
-
-            All.Add(id, this);
+        public ExtraBlip OwnerGarageBlip
+        {
+            get => Player.LocalPlayer.GetData<ExtraBlip>($"House::{Id}::OGBlip");
+            set
+            {
+                if (value == null)
+                    Player.LocalPlayer.ResetData($"House::{Id}::OGBlip");
+                else
+                    Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value);
+            }
         }
 
         public override void UpdateOwnerName(string name)
@@ -55,37 +100,31 @@ namespace BlaineRP.Client.Game.Estates
 
         public override void ToggleOwnerBlip(bool state)
         {
-            var oBlip = OwnerBlip;
+            ExtraBlip oBlip = OwnerBlip;
 
             oBlip?.Destroy();
 
-            var ogCs = OwnerGarageColshape;
+            ExtraColshape ogCs = OwnerGarageColshape;
 
             ogCs?.Destroy();
 
-            var ogBlip = OwnerGarageBlip;
+            ExtraBlip ogBlip = OwnerGarageBlip;
 
             ogBlip?.Destroy();
 
             if (state)
             {
                 if (GarageType == null)
-                {
                     OwnerBlip = new ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
-                }
                 else
-                {
                     OwnerBlip = new ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.App.Static.MainDimension);
-                }
 
                 if (GaragePosition != null)
                 {
                     OwnerGarageColshape = new Sphere(GaragePosition, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
                         ApproveType = ApproveTypes.OnlyServerVehicleDriver,
-
                         ActionType = ActionTypes.HouseEnter,
-
                         Data = this,
                     };
 

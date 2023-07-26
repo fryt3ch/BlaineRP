@@ -14,6 +14,20 @@ namespace BlaineRP.Client.Game.Quests
                 Red,
             }
 
+            public QuestData(QuestTypes Type, string Name, string GiverName, Dictionary<byte, StepData> Steps)
+            {
+                this.Type = Type;
+
+                this.Name = Name;
+                this.GiverName = GiverName;
+
+                this.Steps = Steps;
+
+                ColourType = ColourTypes.Dark;
+
+                All.TryAdd(Type, this);
+            }
+
             public static Dictionary<QuestTypes, QuestData> All { get; private set; } = new Dictionary<QuestTypes, QuestData>();
 
             public QuestTypes Type { get; set; }
@@ -26,22 +40,15 @@ namespace BlaineRP.Client.Game.Quests
 
             public Dictionary<byte, StepData> Steps { get; set; }
 
-            public QuestData(QuestTypes Type, string Name, string GiverName, Dictionary<byte, StepData> Steps)
-            {
-                this.Type = Type;
-
-                this.Name = Name;
-                this.GiverName = GiverName;
-
-                this.Steps = Steps;
-
-                this.ColourType = ColourTypes.Dark;
-
-                All.TryAdd(Type, this);
-            }
-
             public class StepData
             {
+                public StepData(string GoalName, int MaxProgress = 1)
+                {
+                    this.GoalName = GoalName;
+
+                    this.MaxProgress = MaxProgress;
+                }
+
                 public string GoalName { get; set; }
 
                 public int MaxProgress { get; set; }
@@ -49,13 +56,6 @@ namespace BlaineRP.Client.Game.Quests
                 public Action<PlayerData, Quest> StartAction { get; set; }
 
                 public Action<PlayerData, Quest> EndAction { get; set; }
-
-                public StepData(string GoalName, int MaxProgress = 1)
-                {
-                    this.GoalName = GoalName;
-
-                    this.MaxProgress = MaxProgress;
-                }
             }
         }
     }

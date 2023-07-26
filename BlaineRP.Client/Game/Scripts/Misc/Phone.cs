@@ -2,12 +2,11 @@
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Camera = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Camera;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.Scripts.Misc
 {
@@ -18,19 +17,19 @@ namespace BlaineRP.Client.Game.Scripts.Misc
         {
             /// <summary>Телефон не используется</summary>
             Off = 0,
+
             /// <summary>Телефон используется без анимаций</summary>
             JustOn,
+
             /// <summary>Телефон используется c обычной анимацией</summary>
             Idle,
+
             /// <summary>Телефон используется с анимацией разговора</summary>
             Call,
+
             /// <summary>Телефон используется с анимацией камеры 0</summary>
             Camera,
         }
-
-        private static DateTime _lastSwitchTime;
-
-        public static bool Toggled { get; private set; }
 
         private const string AnimDict = "cellphone@str";
         private const string AnimDictSelf = "cellphone@self";
@@ -39,6 +38,8 @@ namespace BlaineRP.Client.Game.Scripts.Misc
         private const string AnimCallBase = "cellphone_call_listen_a";
         private const string AnimCameraSelfieBase = "selfie";
 
+        private static DateTime _lastSwitchTime;
+
         private static AsyncTask _currentTask;
 
         public Phone()
@@ -46,9 +47,25 @@ namespace BlaineRP.Client.Game.Scripts.Misc
             RAGE.Game.Mobile.DestroyMobilePhone();
         }
 
+        public static bool Toggled { get; private set; }
+
+        public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Management.Weapons.Core.MobileHash;
+
         public static bool CanUsePhoneAnim(bool notify = false)
         {
-            return !PlayerActions.IsAnyActionActive(notify, PlayerActions.Types.Crawl, PlayerActions.Types.IsSwimming, PlayerActions.Types.Falling, PlayerActions.Types.Animation, PlayerActions.Types.Reloading, PlayerActions.Types.Climbing, PlayerActions.Types.FastAnimation, PlayerActions.Types.HasItemInHands, PlayerActions.Types.HasWeapon, PlayerActions.Types.IsAttachedTo, PlayerActions.Types.OtherAnimation);
+            return !PlayerActions.IsAnyActionActive(notify,
+                PlayerActions.Types.Crawl,
+                PlayerActions.Types.IsSwimming,
+                PlayerActions.Types.Falling,
+                PlayerActions.Types.Animation,
+                PlayerActions.Types.Reloading,
+                PlayerActions.Types.Climbing,
+                PlayerActions.Types.FastAnimation,
+                PlayerActions.Types.HasItemInHands,
+                PlayerActions.Types.HasWeapon,
+                PlayerActions.Types.IsAttachedTo,
+                PlayerActions.Types.OtherAnimation
+            );
         }
 
         public static void Toggle()
@@ -107,7 +124,7 @@ namespace BlaineRP.Client.Game.Scripts.Misc
 
                         UI.CEF.Phone.Phone.Close();
 
-                        Camera.Close();
+                        UI.CEF.Phone.Apps.Camera.Close();
 
                         if (_currentTask != null)
                         {
@@ -139,7 +156,6 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                     }
                     else if (stateType == PhoneStateTypes.Camera)
                     {
-
                     }
 
                     if (!Toggled)
@@ -152,59 +168,61 @@ namespace BlaineRP.Client.Game.Scripts.Misc
 
                         _currentTask?.Cancel();
 
-                        var lastSyncedType = stateType;
+                        PhoneStateTypes lastSyncedType = stateType;
 
                         _currentTask = new AsyncTask(() =>
-                        {
-                            if (!Toggled)
-                                return;
-
-                            if (CanUsePhoneAnim())
                             {
-                                if (pData.ActiveCall?.Player != null)
-                                {
-                                    if (lastSyncedType != PhoneStateTypes.Call)
-                                    {
-                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Call);
+                                if (!Toggled)
+                                    return;
 
-                                        lastSyncedType = PhoneStateTypes.Call;
+                                if (CanUsePhoneAnim())
+                                {
+                                    if (pData.ActiveCall?.Player != null)
+                                    {
+                                        if (lastSyncedType != PhoneStateTypes.Call)
+                                        {
+                                            Events.CallRemote("Players::SPST", PhoneStateTypes.Call);
+
+                                            lastSyncedType = PhoneStateTypes.Call;
+                                        }
                                     }
-                                }
-                                else if (Camera.IsActive)
-                                {
-                                    if (lastSyncedType != PhoneStateTypes.Camera)
+                                    else if (UI.CEF.Phone.Apps.Camera.IsActive)
                                     {
-                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Camera);
+                                        if (lastSyncedType != PhoneStateTypes.Camera)
+                                        {
+                                            Events.CallRemote("Players::SPST", PhoneStateTypes.Camera);
 
-                                        lastSyncedType = PhoneStateTypes.Camera;
+                                            lastSyncedType = PhoneStateTypes.Camera;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        LocalPhoneMoveFingerRandom();
+
+                                        if (lastSyncedType != PhoneStateTypes.Idle)
+                                        {
+                                            Events.CallRemote("Players::SPST", PhoneStateTypes.Idle);
+
+                                            lastSyncedType = PhoneStateTypes.Idle;
+                                        }
                                     }
                                 }
                                 else
                                 {
+                                    UI.CEF.Phone.Apps.Camera.Close();
 
-                                    LocalPhoneMoveFingerRandom();
-
-                                    if (lastSyncedType != PhoneStateTypes.Idle)
+                                    if (lastSyncedType != PhoneStateTypes.JustOn)
                                     {
-                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Idle);
+                                        Events.CallRemote("Players::SPST", PhoneStateTypes.JustOn);
 
-                                        lastSyncedType = PhoneStateTypes.Idle;
+                                        lastSyncedType = PhoneStateTypes.JustOn;
                                     }
                                 }
-                            }
-                            else
-                            {
-                                Camera.Close();
-
-                                if (lastSyncedType != PhoneStateTypes.JustOn)
-                                {
-                                    Events.CallRemote("Players::SPST", PhoneStateTypes.JustOn);
-
-                                    lastSyncedType = PhoneStateTypes.JustOn;
-                                }
-
-                            }
-                        }, 100, true, 0);
+                            },
+                            100,
+                            true,
+                            0
+                        );
 
                         _currentTask.Run();
                     }
@@ -268,7 +286,5 @@ namespace BlaineRP.Client.Game.Scripts.Misc
         {
             RAGE.Game.Mobile.MoveFinger(Utils.Misc.Random.Next(1, 6));
         }
-
-        public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Game.Management.Weapons.Core.MobileHash;
     }
 }

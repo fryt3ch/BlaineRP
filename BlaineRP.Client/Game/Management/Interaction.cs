@@ -9,22 +9,40 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management
 {
-    class Interaction
+    internal class Interaction
     {
         private static bool _enabled = false;
 
-        public static bool Enabled { get => _enabled; set { if (!_enabled && value) { Main.Render -= Render; Main.Render += Render; _enabled = value; } else if (_enabled && !value) { Main.Render -= Render; _enabled = value; CurrentEntity = null; } } }
+        private static readonly HashSet<Entity> _disabledEntities = new HashSet<Entity>();
+
+        public static bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                if (!_enabled && value)
+                {
+                    Main.Render -= Render;
+                    Main.Render += Render;
+                    _enabled = value;
+                }
+                else if (_enabled && !value)
+                {
+                    Main.Render -= Render;
+                    _enabled = value;
+                    CurrentEntity = null;
+                }
+            }
+        }
 
         public static bool EnabledVisual { get; set; }
 
-        public static RAGE.Elements.Entity CurrentEntity { get; set; }
-
-        private static readonly HashSet<Entity> _disabledEntities = new HashSet<Entity>();
+        public static Entity CurrentEntity { get; set; }
 
 
         private static void Render()
         {
-            var entity = Player.LocalPlayer.Vehicle ?? Raycast.GetEntityPedLookAt(Player.LocalPlayer, Settings.App.Static.EntityInteractionMaxDistance);
+            Entity entity = Player.LocalPlayer.Vehicle ?? Raycast.GetEntityPedLookAt(Player.LocalPlayer, Settings.App.Static.EntityInteractionMaxDistance);
 
             if (entity == null)
             {
@@ -40,7 +58,7 @@ namespace BlaineRP.Client.Game.Management
 
             if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle)
             {
-                if ((entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal) || !entity.GetScreenPosition(ref x, ref y))
+                if (entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal || !entity.GetScreenPosition(ref x, ref y))
                 {
                     CurrentEntity = null;
 
@@ -82,24 +100,20 @@ namespace BlaineRP.Client.Game.Management
 
                     if (entity.HasData("Furniture"))
                     {
-                        var furnData = entity.GetData<Furniture>("Furniture");
+                        Furniture furnData = entity.GetData<Furniture>("Furniture");
 
                         if (furnData != null)
-                        {
                             if (EnabledVisual)
                                 Graphics.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                        }
                     }
                     else if (entity.HasData("CustomText"))
                     {
                         if (EnabledVisual)
                         {
-                            var ctAction = entity.GetData<Action<float, float>>("CustomText");
+                            Action<float, float> ctAction = entity.GetData<Action<float, float>>("CustomText");
 
                             if (ctAction != null)
-                            {
                                 ctAction.Invoke(x, y);
-                            }
                         }
                     }
                 }
@@ -112,10 +126,8 @@ namespace BlaineRP.Client.Game.Management
                         var iogData = ItemOnGround.GetItemOnGroundObject(mObj);
 
                         if (iogData != null)
-                        {
                             if (EnabledVisual)
                                 Graphics.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                        }
                     }
                 }
             }

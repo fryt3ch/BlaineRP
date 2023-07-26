@@ -8,7 +8,25 @@ namespace BlaineRP.Client.Game.UI.CEF
     [Script(int.MaxValue)]
     public class Note
     {
-        public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Note);
+        public Note()
+        {
+            Events.Add("Note::UpdateText",
+                (args) =>
+                {
+                    if (args == null || args.Length == 0)
+                        return;
+
+                    var text = (string)args[0];
+
+                    if (text == null)
+                        return;
+
+                    CurrentSubmitAction?.Invoke(text);
+                }
+            );
+        }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.Note);
 
         private static int EscBind { get; set; } = -1;
 
@@ -19,37 +37,21 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static Action DefaultBindAction { get; } = () => Bind();
 
-        public Note()
-        {
-            Events.Add("Note::UpdateText", (args) =>
-            {
-                if (args == null || args.Length == 0)
-                    return;
-
-                var text = (string)args[0];
-
-                if (text == null)
-                    return;
-
-                CurrentSubmitAction?.Invoke(text);
-            });
-        }
-
         public static async void ShowWrite(string context, string text = "", Action showAction = null, Action<string> submitAction = null, Action closeAction = null)
         {
             if (IsActive)
                 return;
 
-            await CEF.Browser.Render(Browser.IntTypes.Note, true, true);
+            await Browser.Render(Browser.IntTypes.Note, true, true);
 
             CurrentContext = context;
 
             CurrentCloseAction = closeAction;
             CurrentSubmitAction = submitAction;
 
-            CEF.Browser.Window.ExecuteJs("Note.draw", true, text);
+            Browser.Window.ExecuteJs("Note.draw", true, text);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             showAction?.Invoke();
         }
@@ -59,13 +61,13 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (IsActive)
                 return;
 
-            await CEF.Browser.Render(Browser.IntTypes.Note, true, true);
+            await Browser.Render(Browser.IntTypes.Note, true, true);
 
             CurrentContext = context;
 
             CurrentCloseAction = closeAction;
 
-            CEF.Browser.Window.ExecuteJs("Note.draw", false, text);
+            Browser.Window.ExecuteJs("Note.draw", false, text);
 
             showAction?.Invoke();
         }
@@ -89,10 +91,10 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CurrentContext = null;
 
-            CEF.Browser.Render(Browser.IntTypes.Note, false, false);
+            Browser.Render(Browser.IntTypes.Note, false, false);
 
             if (cursor)
-                CEF.Cursor.Show(false, false);
+                Cursor.Show(false, false);
         }
 
         public static void SetText(string text)
@@ -100,15 +102,18 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("Note.setText", text);
+            Browser.Window.ExecuteJs("Note.setText", text);
         }
 
         private static void Bind()
         {
-            EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
-            {
-                Close();
-            });
+            EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape,
+                true,
+                () =>
+                {
+                    Close();
+                }
+            );
         }
     }
 }

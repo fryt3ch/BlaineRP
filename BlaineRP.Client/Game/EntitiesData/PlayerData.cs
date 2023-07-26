@@ -14,18 +14,17 @@ using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
 namespace BlaineRP.Client.Game.EntitiesData
 {
     public class PlayerData
     {
-        public Player Player { get; private set; }
-
         public PlayerData(Player player)
         {
             Player = player;
         }
+
+        public Player Player { get; private set; }
 
         public uint CID => Utils.Convert.ToUInt32(Player.GetSharedData<object>("CID", 0));
 
@@ -80,8 +79,10 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.GetData<Vehicle>("AutoPilot::State");
             set
             {
-                if (value == null) Player.ResetData("AutoPilot::State");
-                else Player.SetData("AutoPilot::State", value);
+                if (value == null)
+                    Player.ResetData("AutoPilot::State");
+                else
+                    Player.SetData("AutoPilot::State", value);
             }
         }
 
@@ -152,8 +153,10 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.LocalPlayer.GetData<HouseBase>("SettledHouseBase");
             set
             {
-                if (value == null) Player.LocalPlayer.ResetData("SettledHouseBase");
-                else Player.LocalPlayer.SetData("SettledHouseBase", value);
+                if (value == null)
+                    Player.LocalPlayer.ResetData("SettledHouseBase");
+                else
+                    Player.LocalPlayer.SetData("SettledHouseBase", value);
             }
         }
 
@@ -192,8 +195,10 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.LocalPlayer.GetData<MedicalCard>("MedicalCard");
             set
             {
-                if (value == null) Player.LocalPlayer.ResetData("MedicalCard");
-                else Player.LocalPlayer.SetData("MedicalCard", value);
+                if (value == null)
+                    Player.LocalPlayer.ResetData("MedicalCard");
+                else
+                    Player.LocalPlayer.SetData("MedicalCard", value);
             }
         }
 
@@ -214,21 +219,22 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.GetData<Entity>("IsAttachedTo::Entity");
             set
             {
-                if (value == null) Player.ResetData("IsAttachedTo::Entity");
-                else Player.SetData("IsAttachedTo::Entity", value);
+                if (value == null)
+                    Player.ResetData("IsAttachedTo::Entity");
+                else
+                    Player.SetData("IsAttachedTo::Entity", value);
             }
         }
 
-        public List<AttachmentObject> AttachedObjects => Core.GetEntityObjectAttachments(Player);
+        public List<AttachmentObject> AttachedObjects => Management.Attachments.Core.GetEntityObjectAttachments(Player);
 
-        public List<AttachmentEntity> AttachedEntities => Core.GetEntityEntityAttachments(Player);
+        public List<AttachmentEntity> AttachedEntities => Management.Attachments.Core.GetEntityEntityAttachments(Player);
 
         public List<int> Decorations => Player.GetSharedData<JArray>("DCR", null)?.ToObject<List<int>>();
 
         public Data.Customization.Customization.HairOverlay HairOverlay => Data.Customization.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
 
-        public AttachmentObject WearedRing =>
-            AttachedObjects.Where(x => x.Type >= AttachmentTypes.PedRingLeft3 && x.Type <= AttachmentTypes.PedRingRight3).FirstOrDefault();
+        public AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= AttachmentTypes.PedRingLeft3 && x.Type <= AttachmentTypes.PedRingRight3).FirstOrDefault();
 
         public Animation ActualAnimation
         {
@@ -236,7 +242,8 @@ namespace BlaineRP.Client.Game.EntitiesData
 
             set
             {
-                if (value == null) Player.ResetData("ActualAnim");
+                if (value == null)
+                    Player.ResetData("ActualAnim");
 
                 Player.SetData("ActualAnim", value);
             }
@@ -271,7 +278,8 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.GetData<Phone.CallInfo>("ActiveCall");
             set
             {
-                if (value == null) Player.ResetData("ActiveCall");
+                if (value == null)
+                    Player.ResetData("ActiveCall");
                 Player.SetData("ActiveCall", value);
             }
         }
@@ -281,7 +289,8 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.GetData<Job>("CJob");
             set
             {
-                if (value == null) Player.ResetData("CJob");
+                if (value == null)
+                    Player.ResetData("CJob");
                 Player.SetData("CJob", value);
             }
         }
@@ -291,7 +300,8 @@ namespace BlaineRP.Client.Game.EntitiesData
             get => Player.GetData<Fraction>("CFraction");
             set
             {
-                if (value == null) Player.ResetData("CFraction");
+                if (value == null)
+                    Player.ResetData("CFraction");
                 Player.SetData("CFraction", value);
             }
         }

@@ -12,36 +12,25 @@ namespace BlaineRP.Client
                 public static Dictionary<Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Dialogue.TimeTypes, Dictionary<int, string>>()
                 {
                     {
-                        Dialogue.TimeTypes.Morning,
-
-                        new Dictionary<int, string>()
+                        Dialogue.TimeTypes.Morning, new Dictionary<int, string>()
                         {
                             { 0, "утро" },
                         }
                     },
-
                     {
-                        Dialogue.TimeTypes.Day,
-
-                        new Dictionary<int, string>()
+                        Dialogue.TimeTypes.Day, new Dictionary<int, string>()
                         {
                             { 0, "день" },
                         }
                     },
-
                     {
-                        Dialogue.TimeTypes.Evening,
-
-                        new Dictionary<int, string>()
+                        Dialogue.TimeTypes.Evening, new Dictionary<int, string>()
                         {
                             { 0, "вечер" },
                         }
                     },
-
                     {
-                        Dialogue.TimeTypes.Night,
-
-                        new Dictionary<int, string>()
+                        Dialogue.TimeTypes.Night, new Dictionary<int, string>()
                         {
                             { 0, "ночь" },
                         }

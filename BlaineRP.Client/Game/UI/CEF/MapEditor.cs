@@ -7,13 +7,44 @@ using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Management.Weapons.Core;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class MapEditor
     {
+        public MapEditor()
+        {
+            TempBinds = new List<int>();
+
+            Events.Add("MapEditor::Update",
+                (object[] args) =>
+                {
+                    if (!IsActive)
+                        return;
+
+                    if ((bool)args[0])
+                    {
+                        if (LastPos == null)
+                            return;
+
+                        LastPos.X = Utils.Convert.ToSingle(args[1]);
+                        LastPos.Y = Utils.Convert.ToSingle(args[2]);
+                        LastPos.Z = Utils.Convert.ToSingle(args[3]);
+                    }
+                    else
+                    {
+                        if (LastRot == null)
+                            return;
+
+                        LastRot.X = Utils.Convert.ToSingle(args[1]);
+                        LastRot.Y = Utils.Convert.ToSingle(args[2]);
+                        LastRot.Z = Utils.Convert.ToSingle(args[3]);
+                    }
+                }
+            );
+        }
+
         public static bool IsActive { get; private set; }
 
         private static GameEntity Entity { get; set; }
@@ -39,67 +70,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static Utils.Vector4 PositionLimit { get; set; }
 
-        public class Mode
-        {
-            public bool EnableX { get; set; }
-
-            public bool EnableY { get; set; }
-
-            public bool EnableZ { get; set; }
-
-            public bool RotationEnableX { get; set; }
-
-            public bool RotationEnableY { get; set; }
-
-            public bool RotationEnableZ { get; set; }
-
-            public bool IsRotationAllowed => RotationEnableX || RotationEnableY || RotationEnableZ;
-
-            public bool IsTranslateAllowed => EnableX || EnableY || EnableZ;
-
-            public Mode(bool EnableX, bool EnableY, bool EnableZ, bool RotationEnableX, bool RotationEnableY, bool RotationEnableZ)
-            {
-                this.EnableX = EnableX;
-                this.EnableY = EnableY;
-                this.EnableZ = EnableZ;
-
-                this.RotationEnableX = RotationEnableX;
-                this.RotationEnableY = RotationEnableY;
-                this.RotationEnableZ = RotationEnableZ;
-            }
-        }
-
-        public MapEditor()
-        {
-            TempBinds = new List<int>();
-
-            Events.Add("MapEditor::Update", (object[] args) =>
-            {
-                if (!IsActive)
-                    return;
-
-                if ((bool)args[0])
-                {
-                    if (LastPos == null)
-                        return;
-
-                    LastPos.X = Utils.Convert.ToSingle(args[1]);
-                    LastPos.Y = Utils.Convert.ToSingle(args[2]);
-                    LastPos.Z = Utils.Convert.ToSingle(args[3]);
-                }
-                else
-                {
-                    if (LastRot == null)
-                        return;
-
-                    LastRot.X = Utils.Convert.ToSingle(args[1]);
-                    LastRot.Y = Utils.Convert.ToSingle(args[2]);
-                    LastRot.Z = Utils.Convert.ToSingle(args[3]);
-                }
-            });
-        }
-
-        public static void Show(object gEntity, string context, Mode mode, Action startAction = null, Action renderAction = null, Action closeAction = null, Action<Vector3, Vector3> finishAction = null)
+        public static void Show(object gEntity,
+                                string context,
+                                Mode mode,
+                                Action startAction = null,
+                                Action renderAction = null,
+                                Action closeAction = null,
+                                Action<Vector3, Vector3> finishAction = null)
         {
             if (IsActive)
                 return;
@@ -109,7 +86,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CurrentMode = mode ?? new Mode(true, true, true, true, true, true);
 
-            CEF.Browser.Window.ExecuteJs("mapEditor_init", false, CurrentMode.EnableX, CurrentMode.EnableZ, CurrentMode.EnableY); // rot mode on: CEF.Browser.Window.ExecuteJs("mapEditor_init", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
+            Browser.Window.ExecuteJs("mapEditor_init",
+                false,
+                CurrentMode.EnableX,
+                CurrentMode.EnableZ,
+                CurrentMode.EnableY
+            ); // rot mode on: CEF.Browser.Window.ExecuteJs("mapEditor_init", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
 
             CurrentContext = context;
 
@@ -119,7 +101,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             IsActive = true;
 
-            Core.DisabledFiring = true;
+            Management.Weapons.Core.DisabledFiring = true;
 
             startAction?.Invoke();
 
@@ -144,7 +126,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
             TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
-            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Return, true, () => finishAction?.Invoke(LastPos == null ? null : new Vector3(LastPos.X, LastPos.Y, LastPos.Z), LastRot == null ? null : new Vector3(LastRot.X, LastRot.Y, LastRot.Z))));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Return,
+                    true,
+                    () => finishAction?.Invoke(LastPos == null ? null : new Vector3(LastPos.X, LastPos.Y, LastPos.Z),
+                        LastRot == null ? null : new Vector3(LastRot.X, LastRot.Y, LastRot.Z)
+                    )
+                )
+            );
         }
 
         public static void Close(bool invokeCurrentCloseAction = true)
@@ -157,7 +145,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Main.Render -= CurrentRenderAction.Invoke;
 
-            CEF.Browser.Window.ExecuteCachedJs("mapEditor_destroy();");
+            Browser.Window.ExecuteCachedJs("mapEditor_destroy();");
 
             CurrentMode = null;
             CurrentContext = null;
@@ -172,12 +160,14 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             LastPos = null;
 
-            foreach (var x in TempBinds)
+            foreach (int x in TempBinds)
+            {
                 Input.Core.Unbind(x);
+            }
 
             TempBinds.Clear();
 
-            Core.DisabledFiring = false;
+            Management.Weapons.Core.DisabledFiring = false;
 
             PositionLimit = null;
         }
@@ -194,14 +184,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (!mode.IsRotationAllowed)
                         return;
 
-                    CEF.Browser.Window.ExecuteJs("mapEditor_toggleMode", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
+                    Browser.Window.ExecuteJs("mapEditor_toggleMode", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
                 }
                 else
                 {
                     if (!mode.IsTranslateAllowed)
                         return;
 
-                    CEF.Browser.Window.ExecuteJs("mapEditor_toggleMode", false, mode.EnableX, mode.EnableY, mode.EnableZ);
+                    Browser.Window.ExecuteJs("mapEditor_toggleMode", false, mode.EnableX, mode.EnableY, mode.EnableZ);
                 }
 
                 RotationModeOn = state;
@@ -217,12 +207,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            var playerPos = Player.LocalPlayer.GetCoords(false);
+            Vector3 playerPos = Player.LocalPlayer.GetCoords(false);
 
-            var curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
+            Vector3 curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
 
             if (PositionLimit != null)
-            {
                 if (LastPos.DistanceTo(PositionLimit.Position) > PositionLimit.RotationZ)
                 {
                     if (curPos.DistanceTo(playerPos) > 10f)
@@ -230,25 +219,37 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     LastPos = curPos;
                 }
-            }
 
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Game.World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
-                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+                Vector3 camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                Vector3 lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                Browser.Window.ExecuteJs("mapEditor_update",
+                    LastPos.X,
+                    LastPos.Y,
+                    LastPos.Z,
+                    LastRot.X,
+                    LastRot.Y,
+                    LastRot.Z,
+                    camPos.X,
+                    camPos.Y,
+                    camPos.Z,
+                    lookAtPos.X,
+                    lookAtPos.Y,
+                    lookAtPos.Z
+                );
 
-                LastUpdatedJs = Game.World.Core.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
 
-            var diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            float diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -269,27 +270,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                var diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                float diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Up))
-                {
                     LastPos.Z += diffPos;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Down))
-                {
                     LastPos.Z -= diffPos;
-                }
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Left))
-                {
                     LastRot.Z -= diffRot;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Right))
-                {
                     LastRot.Z += diffRot;
-                }
             }
 
             if (RotationModeOn || showRotZ)
@@ -298,7 +291,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+                    string text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
                     Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
@@ -314,7 +307,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            var curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
+            Vector3 curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
 
             if (Player.LocalPlayer.Position.DistanceTo(LastPos) > 7.5f)
             {
@@ -332,20 +325,33 @@ namespace BlaineRP.Client.Game.UI.CEF
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Game.World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
-                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+                Vector3 camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                Vector3 lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                Browser.Window.ExecuteJs("mapEditor_update",
+                    LastPos.X,
+                    LastPos.Y,
+                    LastPos.Z,
+                    LastRot.X,
+                    LastRot.Y,
+                    LastRot.Z,
+                    camPos.X,
+                    camPos.Y,
+                    camPos.Z,
+                    lookAtPos.X,
+                    lookAtPos.Y,
+                    lookAtPos.Z
+                );
 
-                LastUpdatedJs = Game.World.Core.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
 
-            var diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            float diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -366,27 +372,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                var diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                float diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Up))
-                {
                     LastPos.Z += diffPos;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Down))
-                {
                     LastPos.Z -= diffPos;
-                }
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Left))
-                {
                     LastRot.Z -= diffRot;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Right))
-                {
                     LastRot.Z += diffRot;
-                }
             }
 
             if (RotationModeOn || showRotZ)
@@ -395,7 +393,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+                    string text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
                     Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
@@ -414,20 +412,33 @@ namespace BlaineRP.Client.Game.UI.CEF
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
             RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Game.World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
-                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+                Vector3 camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                Vector3 lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                Browser.Window.ExecuteJs("mapEditor_update",
+                    LastPos.X,
+                    LastPos.Y,
+                    LastPos.Z,
+                    LastRot.X,
+                    LastRot.Y,
+                    LastRot.Z,
+                    camPos.X,
+                    camPos.Y,
+                    camPos.Z,
+                    lookAtPos.X,
+                    lookAtPos.Y,
+                    lookAtPos.Z
+                );
 
-                LastUpdatedJs = Game.World.Core.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             var showRotZ = false;
 
-            var diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            float diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -448,27 +459,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                var diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                float diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Up))
-                {
                     LastPos.Z += diffPos;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Down))
-                {
                     LastPos.Z -= diffPos;
-                }
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Left))
-                {
                     LastRot.Z -= diffRot;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Right))
-                {
                     LastRot.Z += diffRot;
-                }
             }
 
             if (RotationModeOn || showRotZ)
@@ -477,7 +480,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+                    string text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
                     Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
@@ -493,15 +496,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            if (Game.World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            if (World.Core.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
-                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+                Vector3 camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
-                var lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+                Vector3 lookAtPos = Graphics.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, 0, LastRot.Z, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, 0, LastRot.Z, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = Game.World.Core.ServerTime;
+                LastUpdatedJs = World.Core.ServerTime;
             }
 
             Colshape.SetPosition(new Vector3(LastPos.X, LastPos.Y, LastPos.Z));
@@ -509,7 +512,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             var showRotZ = false;
 
-            var diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            float diffPos = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!Input.Core.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -530,27 +533,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                var diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                float diffRot = Input.Core.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Up))
-                {
                     LastPos.Y += diffPos;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Down))
-                {
                     LastPos.Y -= diffPos;
-                }
 
                 if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Left))
-                {
                     LastRot.Z -= diffRot;
-                }
                 else if (Input.Core.IsDown(RAGE.Ui.VirtualKeys.Right))
-                {
                     LastRot.Z += diffRot;
-                }
             }
 
             if (RotationModeOn || showRotZ)
@@ -559,11 +554,41 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (Graphics.GetScreenCoordFromWorldCoord(LastPos, ref sX, ref sY))
                 {
-                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+                    string text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
 
                     Graphics.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
+        }
+
+        public class Mode
+        {
+            public Mode(bool EnableX, bool EnableY, bool EnableZ, bool RotationEnableX, bool RotationEnableY, bool RotationEnableZ)
+            {
+                this.EnableX = EnableX;
+                this.EnableY = EnableY;
+                this.EnableZ = EnableZ;
+
+                this.RotationEnableX = RotationEnableX;
+                this.RotationEnableY = RotationEnableY;
+                this.RotationEnableZ = RotationEnableZ;
+            }
+
+            public bool EnableX { get; set; }
+
+            public bool EnableY { get; set; }
+
+            public bool EnableZ { get; set; }
+
+            public bool RotationEnableX { get; set; }
+
+            public bool RotationEnableY { get; set; }
+
+            public bool RotationEnableZ { get; set; }
+
+            public bool IsRotationAllowed => RotationEnableX || RotationEnableY || RotationEnableZ;
+
+            public bool IsTranslateAllowed => EnableX || EnableY || EnableZ;
         }
     }
 }

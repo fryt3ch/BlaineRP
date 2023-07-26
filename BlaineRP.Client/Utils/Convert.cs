@@ -44,9 +44,7 @@
             unchecked
             {
                 if (value < 0)
-                {
                     return (uint)(int)value;
-                }
 
                 return (uint)value;
             }
@@ -59,9 +57,7 @@
             unchecked
             {
                 if (value < 0)
-                {
                     return (ulong)(long)value;
-                }
 
                 return (ulong)value;
             }

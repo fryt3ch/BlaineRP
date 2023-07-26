@@ -24,46 +24,50 @@ namespace BlaineRP.Client.Game.Scripts.Misc
             PlayerActions.Types.Knocked,
             PlayerActions.Types.Frozen,
             PlayerActions.Types.Cuffed,
-
             PlayerActions.Types.Crawl,
-
             PlayerActions.Types.Animation,
             PlayerActions.Types.FastAnimation,
             PlayerActions.Types.Scenario,
-
             PlayerActions.Types.InWater,
-            PlayerActions.Types.Shooting, PlayerActions.Types.Reloading,
-            PlayerActions.Types.Climbing, PlayerActions.Types.Falling, PlayerActions.Types.Ragdoll, PlayerActions.Types.Jumping, PlayerActions.Types.NotOnFoot,
+            PlayerActions.Types.Shooting,
+            PlayerActions.Types.Reloading,
+            PlayerActions.Types.Climbing,
+            PlayerActions.Types.Falling,
+            PlayerActions.Types.Ragdoll,
+            PlayerActions.Types.Jumping,
+            PlayerActions.Types.NotOnFoot,
         };
 
         public Finger()
         {
-            Events.Add("Players::FingerPointUpdate", (object[] args) =>
-            {
-                if (!Settings.User.Interface.FingerOn)
-                    return;
-
-                var entity = Raycast.GetEntityPedPointsAt(Player.LocalPlayer, Settings.App.Static.FINGER_POINT_ENTITY_MAX_DISTANCE);
-
-                if (entity == null)
-                    return;
-
-                if (entity != _lastSentEntity && !LastSentEntityTime.IsSpam(2500, false, false))
+            Events.Add("Players::FingerPointUpdate",
+                (object[] args) =>
                 {
-                    if (entity.Type == RAGE.Elements.Type.Vehicle)
-                        Events.CallRemote("Players::FingerPoint::Vehicle", (Vehicle)entity);
-                    else if (entity.Type == RAGE.Elements.Type.Player)
-                        Events.CallRemote("Players::FingerPoint::Player", (Player)entity);
-                    else if (entity.Type == RAGE.Elements.Type.Ped)
-                        Events.CallRemote("Players::FingerPoint::Ped");
+                    if (!Settings.User.Interface.FingerOn)
+                        return;
 
-                    _lastSentEntity = entity;
-                    LastSentEntityTime = Core.ServerTime;
+                    Entity entity = Raycast.GetEntityPedPointsAt(Player.LocalPlayer, Settings.App.Static.FINGER_POINT_ENTITY_MAX_DISTANCE);
+
+                    if (entity == null)
+                        return;
+
+                    if (entity != _lastSentEntity && !LastSentEntityTime.IsSpam(2500, false, false))
+                    {
+                        if (entity.Type == RAGE.Elements.Type.Vehicle)
+                            Events.CallRemote("Players::FingerPoint::Vehicle", (Vehicle)entity);
+                        else if (entity.Type == RAGE.Elements.Type.Player)
+                            Events.CallRemote("Players::FingerPoint::Player", (Player)entity);
+                        else if (entity.Type == RAGE.Elements.Type.Ped)
+                            Events.CallRemote("Players::FingerPoint::Ped");
+
+                        _lastSentEntity = entity;
+                        LastSentEntityTime = Core.ServerTime;
+                    }
+
+                    if (entity != _lastSentEntity)
+                        _lastSentEntity = null;
                 }
-
-                if (entity != _lastSentEntity)
-                    _lastSentEntity = null;
-            });
+            );
         }
 
         public static void Start()

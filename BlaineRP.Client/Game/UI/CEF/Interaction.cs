@@ -17,317 +17,351 @@ using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Input.Core;
-using Vehicle = RAGE.Elements.Vehicle;
 
 namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Interaction
     {
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction, Browser.IntTypes.Interaction_Passengers); }
-
-        private static List<int> TempBinds { get; set; }
-
-        public class InteractionInfo
-        {
-            private static Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>> Actions { get; set; } = new Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>>();
-
-            public string MainType { get; private set; }
-
-            public List<string> MainLabels { get; set; }
-
-            public List<List<string>> ExtraLabels { get; set; }
-
-            public List<List<string>> ExtraLabelsTemp { get; set; }
-
-            public InteractionInfo(string MainType)
-            {
-                this.MainType = MainType;
-            }
-
-            public static void AddAction(string mainType, string subType, string type, Action<Entity> action)
-            {
-                var dict = Actions.GetValueOrDefault(mainType);
-
-                if (dict == null)
-                {
-                    dict = new Dictionary<string, Dictionary<string, Action<Entity>>>();
-
-                    Actions.Add(mainType, dict);
-                }
-
-                var subDict = dict.GetValueOrDefault(subType);
-
-                if (subDict == null)
-                {
-                    subDict = new Dictionary<string, Action<Entity>>();
-
-                    dict.Add(subType, subDict);
-                }
-
-                if (!subDict.TryAdd(type, action))
-                    subDict[type] = action;
-            }
-
-            public void AddAction(string subType, string type, Action<Entity> action) => AddAction(MainType, subType, type, action);
-
-            public static Action<Entity> GetAction(string mainType, string subType, string type) => Actions.GetValueOrDefault(mainType)?.GetValueOrDefault(subType)?.GetValueOrDefault(type);
-
-            public Action<Entity> GetAction(string subType, string type) => GetAction(MainType, subType, type);
-
-            public void ReplaceExtraLabel(string subType, int pIdx, string type)
-            {
-                var mIdx = MainLabels.IndexOf(subType);
-
-                if (mIdx < 0)
-                    return;
-
-                /*                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
-                                    return;*/
-
-                var eLabels = ExtraLabels[mIdx];
-
-                eLabels[pIdx] = type;
-            }
-
-            public void ReplaceExtraLabelTemp(string subType, int pIdx, string type)
-            {
-                var mIdx = MainLabels.IndexOf(subType);
-
-                if (mIdx < 0)
-                    return;
-
-                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
-                    return;
-
-                if (ExtraLabelsTemp == null)
-                {
-                    ExtraLabelsTemp = new List<List<string>>();
-
-                    foreach (var x in ExtraLabels)
-                    {
-                        var t = new List<string>();
-
-                        t.AddRange(x);
-
-                        ExtraLabelsTemp.Add(t);
-                    }
-                }
-
-                var eLabels = ExtraLabelsTemp[mIdx];
-
-                eLabels[pIdx] = type;
-            }
-        }
-
-        public static InteractionInfo CharacterInteractionInfo { get; set; } = new InteractionInfo("char")
-        {
-            MainLabels = new List<string>()
-            {
-                "interact", "trade", "property", "money", "heal", "char_job", "documents",
-            },
-
-            ExtraLabels = new List<List<string>>()
-            {
-                new List<string>() { "carry", "coin", null, null, null, null, null, null, null, null, null, null, null, null, "handshake", "kiss", },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, "sell_house", "sell_car", "sell_buis", "settle", null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, "money_50", "money_150", "money_300", "money_1000", null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, "pulse", "bandage", "cure_0", "cure_1", null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, "char_veh", "medbook", "resume", "license", "passport", },
-            },
-        };
-
-        public static InteractionInfo InVehicleInteractionInfo { get; set; } = new InteractionInfo("in_veh")
-        {
-            MainLabels = new List<string>()
-            {
-                "doors", "seat", "trunk", "hood", "music", "passengers", "park", "vehdoc", "job", "other_down",
-            },
-
-            ExtraLabels = new List<List<string>>()
-            {
-                new List<string>() { "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, "s_one", "s_two", "s_three", "s_four", "s_trunk", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-            },
-        };
-
-        public static InteractionInfo OutVehicleInteractionInfo { get; set; } = new InteractionInfo("out_veh")
-        {
-            MainLabels = new List<string>()
-            {
-                "doors", "seat", "trunk", "hood", "push", "other", "park", "vehdoc", "job", "gas",
-            },
-
-            ExtraLabels = new List<List<string>>()
-            {
-                new List<string>() { "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, "s_one", "s_two", "s_three", "s_four", "s_trunk", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, "look", "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, "look", "open", "close", null, null, null, null, null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, "junkyard", "remove_np", "put_np", "fix", null, null, null, null, null, null, null, },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-
-                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
-            },
-        };
-
         public enum PassengersMenuActions
         {
-            Interact = 0, Kick,
+            Interact = 0,
+            Kick,
         }
 
         public Interaction()
         {
             TempBinds = new List<int>();
 
-            Events.Add("Interaction::Select", (args) =>
-            {
-                if (args == null)
-                    return;
+            Events.Add("Interaction::Select",
+                (args) =>
+                {
+                    if (args == null)
+                        return;
 
-                var mainType = args.Length < 1 ? null : (string)args[0];
+                    string mainType = args.Length < 1 ? null : (string)args[0];
 
-                var subType = args.Length > 1 ? (string)args[1] : null;
+                    string subType = args.Length > 1 ? (string)args[1] : null;
 
-                var type = args.Length > 2 ? (string)args[2] : null;
+                    string type = args.Length > 2 ? (string)args[2] : null;
 
-                if (mainType == null)
-                    return;
+                    if (mainType == null)
+                        return;
 
-                if (subType == null)
-                    return;
+                    if (subType == null)
+                        return;
 
-                var action = InteractionInfo.GetAction(mainType, subType, type ?? string.Empty);
+                    Action<Entity> action = InteractionInfo.GetAction(mainType, subType, type ?? string.Empty);
 
-                if (action == null)
-                    return;
+                    if (action == null)
+                        return;
 
-                CloseMenu();
+                    CloseMenu();
 
-                action.Invoke(Game.Management.Interaction.CurrentEntity);
-            });
+                    action.Invoke(Management.Interaction.CurrentEntity);
+                }
+            );
 
             Events.Add("Interaction::Close", (args) => CloseMenu());
 
-            OutVehicleInteractionInfo.AddAction("doors", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(true, veh); });
-            OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(null, veh); });
+            OutVehicleInteractionInfo.AddAction("doors",
+                "open",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.Lock(false, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("doors",
+                "close",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.Lock(true, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("doors",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.Lock(null, veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("push", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PushVehicle.Toggle(veh); });
+            OutVehicleInteractionInfo.AddAction("push",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    PushVehicle.Toggle(veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("trunk", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ShowContainer(veh); });
-            OutVehicleInteractionInfo.AddAction("trunk", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleTrunkLock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("trunk", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleTrunkLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("trunk",
+                "look",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.ShowContainer(veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("trunk",
+                "open",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.ToggleTrunkLock(false, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("trunk",
+                "close",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.ToggleTrunkLock(true, veh);
+                }
+            );
             OutVehicleInteractionInfo.AddAction("trunk", "", OutVehicleInteractionInfo.GetAction("trunk", "look"));
 
-            OutVehicleInteractionInfo.AddAction("hood", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.LookHood(veh); });
-            OutVehicleInteractionInfo.AddAction("hood", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleHoodLock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("hood", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleHoodLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("hood",
+                "look",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.LookHood(veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("hood",
+                "open",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.ToggleHoodLock(false, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("hood",
+                "close",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.ToggleHoodLock(true, veh);
+                }
+            );
             OutVehicleInteractionInfo.AddAction("hood", "", OutVehicleInteractionInfo.GetAction("hood", "look"));
 
-            OutVehicleInteractionInfo.AddAction("seat", "", (entity) =>
-            {
-                var veh = entity as Vehicle; if (veh == null) return;
-
-                var freeSeats = new List<(decimal, string)>();
-
-                for (int i = -1; i < veh.GetMaxNumberOfPassengers(); i++)
+            OutVehicleInteractionInfo.AddAction("seat",
+                "",
+                (entity) =>
                 {
-                    if (veh.IsSeatFree(i, 0))
-                        freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
-                }
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
 
-                if (Player.LocalPlayer.Vehicle != veh)
-                {
-                    var trunkAttach = Game.Management.Attachments.Core.GetEntityEntityAttachments(veh)?.Where(x => x.Type == AttachmentTypes.VehicleTrunk).FirstOrDefault();
+                    var freeSeats = new List<(decimal, string)>();
 
-                    if (trunkAttach == null && veh.DoesHaveDoor(5) > 0)
-                        freeSeats.Add((int.MaxValue, Locale.Get("POLICE_PTOVEH_L_1")));
-                }
-
-                if (freeSeats.Count == 0)
-                {
-                    CEF.Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_0"));
-                }
-                else if (freeSeats.Count == 1)
-                {
-                    Vehicles.SeatTo((int)freeSeats[0].Item1, veh);
-                }
-                else
-                {
-                    CEF.ActionBox.ShowSelect("PlayerInteractVehicleSeatToSelect", Locale.Get("POLICE_PTOVEH_L_2"), freeSeats.ToArray(), null, null, CEF.ActionBox.DefaultBindAction, (rType, id) =>
+                    for (int i = -1; i < veh.GetMaxNumberOfPassengers(); i++)
                     {
-                        if (rType != CEF.ActionBox.ReplyTypes.OK)
-                        {
-                            CEF.ActionBox.Close(true);
+                        if (veh.IsSeatFree(i, 0))
+                            freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
+                    }
 
-                            return;
-                        }
+                    if (Player.LocalPlayer.Vehicle != veh)
+                    {
+                        AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(veh)
+                                                                ?.Where(x => x.Type == AttachmentTypes.VehicleTrunk)
+                                                                 .FirstOrDefault();
 
-                        var seatIdx = (int)id;
+                        if (trunkAttach == null && veh.DoesHaveDoor(5) > 0)
+                            freeSeats.Add((int.MaxValue, Locale.Get("POLICE_PTOVEH_L_1")));
+                    }
 
-                        CEF.ActionBox.Close(true);
+                    if (freeSeats.Count == 0)
+                        Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_0"));
+                    else if (freeSeats.Count == 1)
+                        Vehicles.SeatTo((int)freeSeats[0].Item1, veh);
+                    else
+                        ActionBox.ShowSelect("PlayerInteractVehicleSeatToSelect",
+                            Locale.Get("POLICE_PTOVEH_L_2"),
+                            freeSeats.ToArray(),
+                            null,
+                            null,
+                            ActionBox.DefaultBindAction,
+                            (rType, id) =>
+                            {
+                                if (rType != ActionBox.ReplyTypes.OK)
+                                {
+                                    ActionBox.Close(true);
 
-                        Vehicles.SeatTo(seatIdx, veh);
-                    }, null);
+                                    return;
+                                }
+
+                                var seatIdx = (int)id;
+
+                                ActionBox.Close(true);
+
+                                Vehicles.SeatTo(seatIdx, veh);
+                            },
+                            null
+                        );
                 }
-            });
+            );
 
-            OutVehicleInteractionInfo.AddAction("seat", "s_one", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(0, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_two", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(1, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_three", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(2, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_four", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(3, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_trunk", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(int.MaxValue, veh); });
+            OutVehicleInteractionInfo.AddAction("seat",
+                "s_one",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SeatTo(0, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("seat",
+                "s_two",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SeatTo(1, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("seat",
+                "s_three",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SeatTo(2, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("seat",
+                "s_four",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SeatTo(3, veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("seat",
+                "s_trunk",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SeatTo(int.MaxValue, veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("gas", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; CEF.Gas.RequestShow(veh); });
+            OutVehicleInteractionInfo.AddAction("gas",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Gas.RequestShow(veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("park", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Park(veh); });
+            OutVehicleInteractionInfo.AddAction("park",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.Park(veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("other", "remove_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.TakePlate(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "put_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SetupPlate(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "fix", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.FixVehicle(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "junkyard", (entity) => { var veh = entity as Vehicle; if (veh == null) return; VehicleDestruction.VehicleDestruct(veh); });
+            OutVehicleInteractionInfo.AddAction("other",
+                "remove_np",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.TakePlate(veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("other",
+                "put_np",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.SetupPlate(veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("other",
+                "fix",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.FixVehicle(veh);
+                }
+            );
+            OutVehicleInteractionInfo.AddAction("other",
+                "junkyard",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    VehicleDestruction.VehicleDestruct(veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("vehdoc", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Events.CallRemote("Vehicles::ShowPass", veh); });
+            OutVehicleInteractionInfo.AddAction("vehdoc",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Events.CallRemote("Vehicles::ShowPass", veh);
+                }
+            );
 
-            OutVehicleInteractionInfo.AddAction("other", "trailer", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.BoatFromTrailerToWater(veh); });
+            OutVehicleInteractionInfo.AddAction("other",
+                "trailer",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    Vehicles.BoatFromTrailerToWater(veh);
+                }
+            );
 
 
             InVehicleInteractionInfo.AddAction("doors", "open", OutVehicleInteractionInfo.GetAction("doors", "open"));
@@ -347,7 +381,16 @@ namespace BlaineRP.Client.Game.UI.CEF
             InVehicleInteractionInfo.AddAction("seat", "s_three", OutVehicleInteractionInfo.GetAction("seat", "s_three"));
             InVehicleInteractionInfo.AddAction("seat", "s_four", OutVehicleInteractionInfo.GetAction("seat", "s_four"));
 
-            InVehicleInteractionInfo.AddAction("passengers", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; ShowPassengers(); });
+            InVehicleInteractionInfo.AddAction("passengers",
+                "",
+                (entity) =>
+                {
+                    var veh = entity as RAGE.Elements.Vehicle;
+                    if (veh == null)
+                        return;
+                    ShowPassengers();
+                }
+            );
 
             InVehicleInteractionInfo.AddAction("vehdoc", "", OutVehicleInteractionInfo.GetAction("vehdoc", ""));
 
@@ -355,77 +398,914 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             //InVehicleInteractionInfo.AddAction("other_down", "", OutVehicleInteractionInfo.GetAction("gas", ""));
 
-            CharacterInteractionInfo.AddAction("interact", "coin", (entity) => { var player = entity as Player; if (player == null) return; Offers.Request(player, OfferTypes.HeadsOrTails, null); });
-            CharacterInteractionInfo.AddAction("interact", "handshake", (entity) => { var player = entity as Player; if (player == null) return; Offers.Request(player, OfferTypes.Handshake, null); });
-            CharacterInteractionInfo.AddAction("interact", "carry", (entity) => { var player = entity as Player; if (player == null) return; Offers.Request(player, OfferTypes.Carry, null); });
-
-            CharacterInteractionInfo.AddAction("money", "money_50", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 50); });
-            CharacterInteractionInfo.AddAction("money", "money_150", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 150); });
-            CharacterInteractionInfo.AddAction("money", "money_300", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 300); });
-            CharacterInteractionInfo.AddAction("money", "money_1000", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 1000); });
-            CharacterInteractionInfo.AddAction("money", "", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 0); });
-
-            CharacterInteractionInfo.AddAction("trade", "", (entity) => { var player = entity as Player; if (player == null) return; Offers.Request(player, OfferTypes.Exchange, null); });
-
-            CharacterInteractionInfo.AddAction("property", "settle", (entity) => { var player = entity as Player; if (player == null) return; PlayerSettleRequest(player); });
-            CharacterInteractionInfo.AddAction("property", "sell_house", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 2); });
-            CharacterInteractionInfo.AddAction("property", "sell_car", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 0); });
-            CharacterInteractionInfo.AddAction("property", "sell_buis", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 1); });
-
-            CharacterInteractionInfo.AddAction("documents", "medbook", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 0); });
-            CharacterInteractionInfo.AddAction("documents", "passport", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 1); });
-            CharacterInteractionInfo.AddAction("documents", "char_veh", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 2); });
-            CharacterInteractionInfo.AddAction("documents", "license", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 3); });
-
-            CharacterInteractionInfo.AddAction("heal", "pulse", (entity) => { var player = entity as Player; if (player == null) return; ResurrectPlayer(player); });
-            CharacterInteractionInfo.AddAction("heal", "bandage", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_b_0"); });
-            CharacterInteractionInfo.AddAction("heal", "cure_0", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_kit_0"); });
-            CharacterInteractionInfo.AddAction("heal", "cure_1", (entity) => { var player = entity as Player; if (player == null) return; GivePlayerHealingItem(player, "med_kit_ems_0"); });
-
-            Events.Add("Interaction::PassengersMenuSelect", (args) =>
-            {
-                var action = (PassengersMenuActions)(int)args[0];
-                var id = Utils.Convert.ToUInt16(args[1]);
-
-                CloseMenu();
-
-                if (action == PassengersMenuActions.Interact)
+            CharacterInteractionInfo.AddAction("interact",
+                "coin",
+                (entity) =>
                 {
-                    PlayerInteraction(id);
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    Offers.Request(player, OfferTypes.HeadsOrTails, null);
                 }
-                else if (action == PassengersMenuActions.Kick)
+            );
+            CharacterInteractionInfo.AddAction("interact",
+                "handshake",
+                (entity) =>
                 {
-                    PlayerKick(id);
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    Offers.Request(player, OfferTypes.Handshake, null);
                 }
-                else
+            );
+            CharacterInteractionInfo.AddAction("interact",
+                "carry",
+                (entity) =>
                 {
-                    return;
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    Offers.Request(player, OfferTypes.Carry, null);
                 }
-            });
+            );
+
+            CharacterInteractionInfo.AddAction("money",
+                "money_50",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerCashRequest(player, 50);
+                }
+            );
+            CharacterInteractionInfo.AddAction("money",
+                "money_150",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerCashRequest(player, 150);
+                }
+            );
+            CharacterInteractionInfo.AddAction("money",
+                "money_300",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerCashRequest(player, 300);
+                }
+            );
+            CharacterInteractionInfo.AddAction("money",
+                "money_1000",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerCashRequest(player, 1000);
+                }
+            );
+            CharacterInteractionInfo.AddAction("money",
+                "",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerCashRequest(player, 0);
+                }
+            );
+
+            CharacterInteractionInfo.AddAction("trade",
+                "",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    Offers.Request(player, OfferTypes.Exchange, null);
+                }
+            );
+
+            CharacterInteractionInfo.AddAction("property",
+                "settle",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerSettleRequest(player);
+                }
+            );
+            CharacterInteractionInfo.AddAction("property",
+                "sell_house",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerSellPropertyRequest(player, 2);
+                }
+            );
+            CharacterInteractionInfo.AddAction("property",
+                "sell_car",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerSellPropertyRequest(player, 0);
+                }
+            );
+            CharacterInteractionInfo.AddAction("property",
+                "sell_buis",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerSellPropertyRequest(player, 1);
+                }
+            );
+
+            CharacterInteractionInfo.AddAction("documents",
+                "medbook",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerShowDocumentsRequest(player, 0);
+                }
+            );
+            CharacterInteractionInfo.AddAction("documents",
+                "passport",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerShowDocumentsRequest(player, 1);
+                }
+            );
+            CharacterInteractionInfo.AddAction("documents",
+                "char_veh",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerShowDocumentsRequest(player, 2);
+                }
+            );
+            CharacterInteractionInfo.AddAction("documents",
+                "license",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerShowDocumentsRequest(player, 3);
+                }
+            );
+
+            CharacterInteractionInfo.AddAction("heal",
+                "pulse",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    ResurrectPlayer(player);
+                }
+            );
+            CharacterInteractionInfo.AddAction("heal",
+                "bandage",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    GivePlayerHealingItem(player, "med_b_0");
+                }
+            );
+            CharacterInteractionInfo.AddAction("heal",
+                "cure_0",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    GivePlayerHealingItem(player, "med_kit_0");
+                }
+            );
+            CharacterInteractionInfo.AddAction("heal",
+                "cure_1",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    GivePlayerHealingItem(player, "med_kit_ems_0");
+                }
+            );
+
+            Events.Add("Interaction::PassengersMenuSelect",
+                (args) =>
+                {
+                    var action = (PassengersMenuActions)(int)args[0];
+                    var id = Utils.Convert.ToUInt16(args[1]);
+
+                    CloseMenu();
+
+                    if (action == PassengersMenuActions.Interact)
+                        PlayerInteraction(id);
+                    else if (action == PassengersMenuActions.Kick)
+                        PlayerKick(id);
+                    else
+                        return;
+                }
+            );
         }
+
+        public static bool IsActive => Browser.IsActiveOr(Browser.IntTypes.Interaction, Browser.IntTypes.Interaction_Passengers);
+
+        private static List<int> TempBinds { get; set; }
+
+        public static InteractionInfo CharacterInteractionInfo { get; set; } = new InteractionInfo("char")
+        {
+            MainLabels = new List<string>()
+            {
+                "interact",
+                "trade",
+                "property",
+                "money",
+                "heal",
+                "char_job",
+                "documents",
+            },
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>()
+                {
+                    "carry",
+                    "coin",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "handshake",
+                    "kiss",
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    "sell_house",
+                    "sell_car",
+                    "sell_buis",
+                    "settle",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "money_50",
+                    "money_150",
+                    "money_300",
+                    "money_1000",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "pulse",
+                    "bandage",
+                    "cure_0",
+                    "cure_1",
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "char_veh",
+                    "medbook",
+                    "resume",
+                    "license",
+                    "passport",
+                },
+            },
+        };
+
+        public static InteractionInfo InVehicleInteractionInfo { get; set; } = new InteractionInfo("in_veh")
+        {
+            MainLabels = new List<string>()
+            {
+                "doors",
+                "seat",
+                "trunk",
+                "hood",
+                "music",
+                "passengers",
+                "park",
+                "vehdoc",
+                "job",
+                "other_down",
+            },
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>()
+                {
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    "s_one",
+                    "s_two",
+                    "s_three",
+                    "s_four",
+                    "s_trunk",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+            },
+        };
+
+        public static InteractionInfo OutVehicleInteractionInfo { get; set; } = new InteractionInfo("out_veh")
+        {
+            MainLabels = new List<string>()
+            {
+                "doors",
+                "seat",
+                "trunk",
+                "hood",
+                "push",
+                "other",
+                "park",
+                "vehdoc",
+                "job",
+                "gas",
+            },
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>()
+                {
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    "s_one",
+                    "s_two",
+                    "s_three",
+                    "s_four",
+                    "s_trunk",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    "look",
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "look",
+                    "open",
+                    "close",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "junkyard",
+                    "remove_np",
+                    "put_np",
+                    "fix",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+                new List<string>()
+                {
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                },
+            },
+        };
 
         public static bool TryShowMenu()
         {
-            if (Game.Management.Interaction.CurrentEntity == null || IsActive)
+            if (Management.Interaction.CurrentEntity == null || IsActive)
                 return false;
 
-            var entity = Game.Management.Interaction.CurrentEntity;
+            Entity entity = Management.Interaction.CurrentEntity;
 
             if (Utils.Misc.IsAnyCefActive())
                 return false;
 
-            Game.Management.Interaction.Enabled = false;
+            Management.Interaction.Enabled = false;
 
-            Game.Management.Interaction.CurrentEntity = entity;
+            Management.Interaction.CurrentEntity = entity;
 
-            if (entity is Vehicle vehicle)
+            if (entity is RAGE.Elements.Vehicle vehicle)
             {
-                if (RAGE.Elements.Player.LocalPlayer.Vehicle == null)
+                if (Player.LocalPlayer.Vehicle == null)
                 {
-                    if (Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type == VehicleTypes.Boat)
-                    {
+                    if (Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type == VehicleTypes.Boat)
                         OutVehicleInteractionInfo.ReplaceExtraLabelTemp("other", 8, "trailer");
-                    }
 
                     ShowMenu(OutVehicleInteractionInfo);
                 }
@@ -459,13 +1339,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (obj.HasData("Furniture"))
                     {
                         if (obj.GetData<Furniture>("Furniture") is Furniture fData)
-                        {
                             fData.InteractionAction?.Invoke(obj);
-                        }
                     }
                     else if (obj.HasData("CustomAction"))
                     {
-                        var cAction = obj.GetData<Action<MapObject>>("CustomAction");
+                        Action<MapObject> cAction = obj.GetData<Action<MapObject>>("CustomAction");
 
                         cAction?.Invoke(obj);
                     }
@@ -477,45 +1355,41 @@ namespace BlaineRP.Client.Game.UI.CEF
                         var iog = ItemOnGround.GetItemOnGroundObject(obj);
 
                         if (iog != null)
-                        {
-                            CEF.ActionBox.ShowSelect
-                            (
-                                "PlacedItemOnGroundSelect", Locale.Actions.PlacedItemOnGroundSelectHeader, new (decimal, string)[] { (0, Locale.Actions.PlacedItemOnGroundSelectInteract), (1, iog.IsLocked ? Locale.Actions.PlacedItemOnGroundSelectUnlock : Locale.Actions.PlacedItemOnGroundSelectLock), (2, Locale.Actions.PlacedItemOnGroundSelectTake) }, null, null,
-
-                                CEF.ActionBox.DefaultBindAction,
-
+                            ActionBox.ShowSelect("PlacedItemOnGroundSelect",
+                                Locale.Actions.PlacedItemOnGroundSelectHeader,
+                                new (decimal, string)[]
+                                {
+                                    (0, Locale.Actions.PlacedItemOnGroundSelectInteract),
+                                    (1, iog.IsLocked ? Locale.Actions.PlacedItemOnGroundSelectUnlock : Locale.Actions.PlacedItemOnGroundSelectLock),
+                                    (2, Locale.Actions.PlacedItemOnGroundSelectTake),
+                                },
+                                null,
+                                null,
+                                ActionBox.DefaultBindAction,
                                 (rType, id) =>
                                 {
-                                    CEF.ActionBox.Close(true);
+                                    ActionBox.Close(true);
 
-                                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                    if (rType == ActionBox.ReplyTypes.OK)
                                     {
                                         if (iog?.Object?.Exists != true)
                                             return;
 
                                         if (id == 0)
-                                        {
-                                            CEF.Inventory.Show(Inventory.Types.Workbench, 0, iog.Uid);
-                                        }
+                                            Inventory.Show(Inventory.Types.Workbench, 0, iog.Uid);
                                         else if (id == 1)
-                                        {
                                             Events.CallRemote("Item::IOGL", iog.Uid, !iog.IsLocked);
-                                        }
                                         else if (id == 2)
-                                        {
                                             iog.TakeItem();
-                                        }
                                     }
                                 },
-
                                 null
                             );
-                        }
                     }
                 }
             }
 
-            Game.Management.Interaction.Enabled = true;
+            Management.Interaction.Enabled = true;
 
             return false;
         }
@@ -524,7 +1398,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             Browser.Switch(Browser.IntTypes.Interaction, true);
 
-            var extraLabels = info.ExtraLabels;
+            List<List<string>> extraLabels = info.ExtraLabels;
 
             if (info.ExtraLabelsTemp != null)
             {
@@ -535,16 +1409,16 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Browser.Window.ExecuteJs("Interaction.draw", info.MainType, info.MainLabels, extraLabels.Select(x => x == null ? x : x.Select(y => y ?? "none").ToList()));
 
-            Core.Get(BindTypes.Interaction).Disable();
+            Input.Core.Get(BindTypes.Interaction).Disable();
 
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Cursor.Show(true, true);
         }
 
         private static async void ShowPassengers()
         {
-            var veh = Player.LocalPlayer.Vehicle;
+            RAGE.Elements.Vehicle veh = Player.LocalPlayer.Vehicle;
 
             if (veh == null)
                 return;
@@ -556,27 +1430,32 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             var players = new List<object>();
 
-            foreach (var x in Vehicles.GetPlayersInVehicle(veh))
+            foreach (Player x in Vehicles.GetPlayersInVehicle(veh))
             {
                 if (x.Handle == Player.LocalPlayer.Handle)
                     continue;
 
                 var data = PlayerData.GetData(x);
 
-                players.Add(new object[] { x.RemoteId, data == null ? "null" : x.GetName(true, false, true) });
+                players.Add(new object[]
+                    {
+                        x.RemoteId,
+                        data == null ? "null" : x.GetName(true, false, true),
+                    }
+                );
             }
 
             // If no Passengers
             if (players.Count == 0)
             {
-                CEF.Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_1"));
+                Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_1"));
 
                 return;
             }
 
             await Browser.Render(Browser.IntTypes.Interaction_Passengers, true, true);
 
-            TempBinds.Add(Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Browser.Window.ExecuteJs($"Passengers.fill", players);
 
@@ -588,16 +1467,16 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
-            var player = Entities.Players.GetAtRemote(id);
+            Player player = Entities.Players.GetAtRemote(id);
 
             if (player?.Exists != true)
                 return;
 
             CloseMenu();
 
-            Game.Management.Interaction.Enabled = false;
+            Management.Interaction.Enabled = false;
 
-            Game.Management.Interaction.CurrentEntity = player;
+            Management.Interaction.CurrentEntity = player;
 
             TryShowMenu();
         }
@@ -607,7 +1486,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
-            var player = Entities.Players.GetAtRemote(id);
+            Player player = Entities.Players.GetAtRemote(id);
 
             if (player?.Exists != true)
                 return;
@@ -627,23 +1506,26 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Main.Render -= CheckEntityDistance;
 
-            Core.Get(BindTypes.Interaction).Enable();
+            Input.Core.Get(BindTypes.Interaction).Enable();
 
-            foreach (var x in TempBinds)
-                Core.Unbind(x);
+            foreach (int x in TempBinds)
+            {
+                Input.Core.Unbind(x);
+            }
 
             TempBinds.Clear();
 
             Cursor.Show(false, false);
 
-            Game.Management.Interaction.Enabled = true;
+            Management.Interaction.Enabled = true;
         }
 
         private static void CheckEntityDistance()
         {
-            if (Game.Management.Interaction.CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, Game.Management.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
+            if (Management.Interaction.CurrentEntity?.IsNull != false ||
+                Vector3.Distance(Player.LocalPlayer.Position, Management.Interaction.CurrentEntity.Position) > Settings.App.Static.EntityInteractionMaxDistance)
             {
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Interaction.Header, Locale.Notifications.Interaction.DistanceTooLarge);
 
                 CloseMenu();
             }
@@ -663,17 +1545,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             {
                 if (pData.Cash <= 0)
                 {
-                    CEF.Notification.Show("Trade::NotEnoughMoney");
+                    Notification.Show("Trade::NotEnoughMoney");
 
                     return;
                 }
 
-                await CEF.ActionBox.ShowRange
-                (
-                    "GiveCash", string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default,
-
-                    CEF.ActionBox.DefaultBindAction,
-
+                await ActionBox.ShowRange("GiveCash",
+                    string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)),
+                    1,
+                    pData.Cash,
+                    pData.Cash / 2,
+                    -1,
+                    ActionBox.RangeSubTypes.Default,
+                    ActionBox.DefaultBindAction,
                     (rType, amountD) =>
                     {
                         int amount;
@@ -681,15 +1565,18 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                             return;
 
-                        CEF.ActionBox.Close(true);
+                        ActionBox.Close(true);
 
-                        if (rType == CEF.ActionBox.ReplyTypes.OK)
-                        {
+                        if (rType == ActionBox.ReplyTypes.OK)
                             if (player is Player targetPlayer)
-                                Offers.Request(targetPlayer, OfferTypes.Cash, new { Amount = amount, });
-                        }
+                                Offers.Request(targetPlayer,
+                                    OfferTypes.Cash,
+                                    new
+                                    {
+                                        Amount = amount,
+                                    }
+                                );
                     },
-
                     null
                 );
             }
@@ -697,12 +1584,18 @@ namespace BlaineRP.Client.Game.UI.CEF
             {
                 if (pData.Cash <= (ulong)amount)
                 {
-                    CEF.Notification.Show("Trade::NotEnoughMoney");
+                    Notification.Show("Trade::NotEnoughMoney");
 
                     return;
                 }
 
-                Offers.Request(player, OfferTypes.Cash, new { Amount = amount, });
+                Offers.Request(player,
+                    OfferTypes.Cash,
+                    new
+                    {
+                        Amount = amount,
+                    }
+                );
             }
         }
 
@@ -713,18 +1606,18 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            var currentHouse = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
+            HouseBase currentHouse = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
 
             if (currentHouse == null)
             {
-                CEF.Notification.ShowError(Locale.Notifications.House.NotInAnyHouseOrApartments);
+                Notification.ShowError(Locale.Notifications.House.NotInAnyHouseOrApartments);
 
                 return;
             }
 
             if (!pData.OwnedHouses.Contains(currentHouse))
             {
-                CEF.Notification.ShowError(Locale.Notifications.House.NotAllowed);
+                Notification.ShowError(Locale.Notifications.House.NotAllowed);
 
                 return;
             }
@@ -743,34 +1636,34 @@ namespace BlaineRP.Client.Game.UI.CEF
             {
                 if (pData.OwnedVehicles.Count == 0)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
+                    Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
 
                     return;
                 }
 
-                CEF.Estate.ShowSellVehicle(player, true);
+                Estate.ShowSellVehicle(player, true);
             }
             else if (type == 1)
             {
                 if (pData.OwnedBusinesses.Count == 0)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedBusiness);
+                    Notification.ShowError(Locale.Notifications.General.NoOwnedBusiness);
 
                     return;
                 }
 
-                CEF.Estate.ShowSellBusiness(player, true);
+                Estate.ShowSellBusiness(player, true);
             }
             else if (type == 2)
             {
                 if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedEstate);
+                    Notification.ShowError(Locale.Notifications.General.NoOwnedEstate);
 
                     return;
                 }
 
-                CEF.Estate.ShowSellEstate(player, true);
+                Estate.ShowSellEstate(player, true);
             }
         }
 
@@ -785,7 +1678,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             {
                 if (pData.MedicalCard == null)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.General.NoMedicalCard);
+                    Notification.ShowError(Locale.Notifications.General.NoMedicalCard);
 
                     return;
                 }
@@ -798,11 +1691,11 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else if (type == 2)
             {
-                var allVehs = pData.OwnedVehicles;
+                List<(uint VID, Data.Vehicles.Vehicle Data)> allVehs = pData.OwnedVehicles;
 
                 if (allVehs.Count == 0)
                 {
-                    CEF.Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
+                    Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
 
                     return;
                 }
@@ -816,44 +1709,51 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 var t = 0;
 
-                CEF.ActionBox.ShowSelect
-                (
-                    "VehiclePassportSelect", Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => ((decimal)t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null,
-
-                    CEF.ActionBox.DefaultBindAction,
-
+                ActionBox.ShowSelect("VehiclePassportSelect",
+                    Locale.Actions.VehiclePassportSelectHeader,
+                    allVehs.Select(x => ((decimal)t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(),
+                    null,
+                    null,
+                    ActionBox.DefaultBindAction,
                     (rType, idD) =>
                     {
                         var id = (int)idD;
 
-                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        if (rType == ActionBox.ReplyTypes.OK)
                         {
                             var pData = PlayerData.GetData(Player.LocalPlayer);
 
                             if (pData == null)
                                 return;
 
-                            var allVehs = pData.OwnedVehicles;
+                            List<(uint VID, Data.Vehicles.Vehicle Data)> allVehs = pData.OwnedVehicles;
 
                             if (allVehs.Count <= id)
                             {
-                                CEF.ActionBox.Close(true);
+                                ActionBox.Close(true);
 
                                 return;
                             }
 
-                            CEF.ActionBox.Close(true);
+                            ActionBox.Close(true);
 
-                            Offers.Request(player, OfferTypes.ShowVehiclePassport, new { VID = allVehs[id].VID, });
+                            Offers.Request(player,
+                                OfferTypes.ShowVehiclePassport,
+                                new
+                                {
+                                    VID = allVehs[id].VID,
+                                }
+                            );
                         }
-                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        else if (rType == ActionBox.ReplyTypes.Cancel)
                         {
-                            CEF.ActionBox.Close(true);
+                            ActionBox.Close(true);
                         }
                         else
+                        {
                             return;
+                        }
                     },
-
                     null
                 );
             }
@@ -872,16 +1772,16 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             if (!pData.IsKnocked)
             {
-                CEF.Notification.ShowError(Locale.Get("NTFC_PLAYER_RESURRECT_E_0"));
+                Notification.ShowError(Locale.Get("NTFC_PLAYER_RESURRECT_E_0"));
 
                 return;
             }
 
             var items = new Dictionary<string, int>();
 
-            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            for (var i = 0; i < Inventory.ItemsParams.Length; i++)
             {
-                var item = CEF.Inventory.ItemsParams[i];
+                Inventory.ItemParams item = Inventory.ItemsParams[i];
 
                 if (item == null)
                     continue;
@@ -892,7 +1792,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             if (items.Count == 0)
             {
-                CEF.Notification.ShowError(Locale.Get("NTFC_ITEMS_NO_MED_KIT_RESURRECT_0"));
+                Notification.ShowError(Locale.Get("NTFC_ITEMS_NO_MED_KIT_RESURRECT_0"));
 
                 return;
             }
@@ -903,17 +1803,21 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            await CEF.ActionBox.ShowSelect("RESURRECT_PLAYER_ITEM", "Реанимировать {0}", items.Select(x => ((decimal)x.Value, Game.Items.Core.GetName(x.Key))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
-            {
-                if (rType == ActionBox.ReplyTypes.Cancel)
+            await ActionBox.ShowSelect("RESURRECT_PLAYER_ITEM",
+                "Реанимировать {0}",
+                items.Select(x => ((decimal)x.Value, Items.Core.GetName(x.Key))).ToArray(),
+                null,
+                null,
+                ActionBox.DefaultBindAction,
+                async (rType, id) =>
                 {
-                    CEF.ActionBox.Close(true);
-                }
-                else
-                {
-                    proceed((int)id);
-                }
-            }, null);
+                    if (rType == ActionBox.ReplyTypes.Cancel)
+                        ActionBox.Close(true);
+                    else
+                        proceed((int)id);
+                },
+                null
+            );
 
             async void proceed(int itemIdx)
             {
@@ -930,9 +1834,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             int itemIdx = -1;
 
-            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            for (var i = 0; i < Inventory.ItemsParams.Length; i++)
             {
-                if (CEF.Inventory.ItemsParams[i]?.Id == itemId)
+                if (Inventory.ItemsParams[i]?.Id == itemId)
                 {
                     itemIdx = i;
 
@@ -942,12 +1846,120 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             if (itemIdx < 0)
             {
-                CEF.Notification.Show("Inventory::NoItem");
+                Notification.Show("Inventory::NoItem");
 
                 return;
             }
 
-            Offers.Request(player, OfferTypes.GiveHealingItem, new { ItemIdx = itemIdx, });
+            Offers.Request(player,
+                OfferTypes.GiveHealingItem,
+                new
+                {
+                    ItemIdx = itemIdx,
+                }
+            );
+        }
+
+        public class InteractionInfo
+        {
+            public InteractionInfo(string MainType)
+            {
+                this.MainType = MainType;
+            }
+
+            private static Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>> Actions { get; set; } =
+                new Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>>();
+
+            public string MainType { get; private set; }
+
+            public List<string> MainLabels { get; set; }
+
+            public List<List<string>> ExtraLabels { get; set; }
+
+            public List<List<string>> ExtraLabelsTemp { get; set; }
+
+            public static void AddAction(string mainType, string subType, string type, Action<Entity> action)
+            {
+                Dictionary<string, Dictionary<string, Action<Entity>>> dict = Actions.GetValueOrDefault(mainType);
+
+                if (dict == null)
+                {
+                    dict = new Dictionary<string, Dictionary<string, Action<Entity>>>();
+
+                    Actions.Add(mainType, dict);
+                }
+
+                Dictionary<string, Action<Entity>> subDict = dict.GetValueOrDefault(subType);
+
+                if (subDict == null)
+                {
+                    subDict = new Dictionary<string, Action<Entity>>();
+
+                    dict.Add(subType, subDict);
+                }
+
+                if (!subDict.TryAdd(type, action))
+                    subDict[type] = action;
+            }
+
+            public void AddAction(string subType, string type, Action<Entity> action)
+            {
+                AddAction(MainType, subType, type, action);
+            }
+
+            public static Action<Entity> GetAction(string mainType, string subType, string type)
+            {
+                return Actions.GetValueOrDefault(mainType)?.GetValueOrDefault(subType)?.GetValueOrDefault(type);
+            }
+
+            public Action<Entity> GetAction(string subType, string type)
+            {
+                return GetAction(MainType, subType, type);
+            }
+
+            public void ReplaceExtraLabel(string subType, int pIdx, string type)
+            {
+                int mIdx = MainLabels.IndexOf(subType);
+
+                if (mIdx < 0)
+                    return;
+
+                /*                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                                    return;*/
+
+                List<string> eLabels = ExtraLabels[mIdx];
+
+                eLabels[pIdx] = type;
+            }
+
+            public void ReplaceExtraLabelTemp(string subType, int pIdx, string type)
+            {
+                int mIdx = MainLabels.IndexOf(subType);
+
+                if (mIdx < 0)
+                    return;
+
+                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                    return;
+
+                if (ExtraLabelsTemp == null)
+                {
+                    ExtraLabelsTemp = new List<List<string>>();
+
+                    foreach (List<string> x in ExtraLabels)
+                    {
+                        var t = new List<string>();
+
+                        t.AddRange(x);
+
+                        ExtraLabelsTemp.Add(t);
+                    }
+                }
+
+                List<string> eLabels = ExtraLabelsTemp[mIdx];
+
+                eLabels[pIdx] = type;
+            }
         }
     }
 }

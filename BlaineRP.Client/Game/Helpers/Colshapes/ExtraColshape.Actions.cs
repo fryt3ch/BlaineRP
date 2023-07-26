@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Casino;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
@@ -9,8 +10,6 @@ using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
-using NPC = BlaineRP.Client.Game.NPCs.NPC;
-using Vehicle = RAGE.Elements.Vehicle;
 
 namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
@@ -26,7 +25,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                         {
                             if (cs.Data is MarketStall marketStall)
                             {
-                                var currentRenterRid = marketStall.CurrentRenterRID;
+                                ushort currentRenterRid = marketStall.CurrentRenterRID;
 
                                 string interactionText = null;
 
@@ -41,7 +40,8 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 {
                                     interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2",
                                         Players.GetPlayerName(Entities.Players.GetAtRemote(currentRenterRid), true, false, false),
-                                        currentRenterRid);
+                                        currentRenterRid
+                                    );
                                 }
 
                                 if (interactionText != null)
@@ -51,7 +51,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                             }
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentMarketStall"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentMarketStall");
+                        }
+                    },
                 }
             },
             {
@@ -62,16 +67,21 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                         {
                             if (cs.Data is string str)
                             {
-                                var d = str.Split('_');
+                                string[] d = str.Split('_');
 
                                 var casino = Casino.Casino.GetById(int.Parse(d[0]));
-                                var roulette = casino.GetRouletteById(int.Parse(d[1]));
+                                Roulette roulette = casino.GetRouletteById(int.Parse(d[1]));
 
                                 Player.LocalPlayer.SetData("CurrentCasinoGameData", str);
                             }
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentCasinoGameData"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentCasinoGameData");
+                        }
+                    },
                 }
             },
             {
@@ -84,7 +94,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("EXED::ElevatorId", id);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("EXED::ElevatorId"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::ElevatorId");
+                        }
+                    },
                 }
             },
             {
@@ -97,7 +112,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("EXED::DriveSchoolId", id);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("EXED::DriveSchoolId"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::DriveSchoolId");
+                        }
+                    },
                 }
             },
             {
@@ -110,7 +130,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("EXED::DriveSchoolId", id);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("EXED::DriveSchoolId"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::DriveSchoolId");
+                        }
+                    },
                 }
             },
             {
@@ -123,7 +148,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("EXED::CFractionId", str);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("EXED::CFractionId"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::CFractionId");
+                        }
+                    },
                 }
             },
             {
@@ -136,7 +166,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("EXED::ContId", contId);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("EXED::ContId"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::ContId");
+                        }
+                    },
                 }
             },
             {
@@ -214,7 +249,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("CurrentBusiness", biz);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentBusiness"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentBusiness");
+                        }
+                    },
                 }
             },
             {
@@ -229,7 +269,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                             Player.LocalPlayer.SetData("CurrentHouse", houseBase);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentHouse"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentHouse");
+                        }
+                    },
                 }
             },
             {
@@ -238,11 +283,16 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     {
                         true, (cs) =>
                         {
-                            if (cs.Data is NPC npc)
+                            if (cs.Data is NPCs.NPC npc)
                                 Player.LocalPlayer.SetData("CurrentNPC", npc);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentNPC"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentNPC");
+                        }
+                    },
                 }
             },
             {
@@ -255,7 +305,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("CurrentATM", atm);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentATM"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentATM");
+                        }
+                    },
                 }
             },
             {
@@ -268,7 +323,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("CurrentTuning", ts);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentTuning"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentTuning");
+                        }
+                    },
                 }
             },
             {
@@ -300,13 +360,19 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                             if (cs.Data is WeaponShop ws)
                             {
                                 Core.OverrideInteractionText = string.Format(Locale.Interaction.Names.GetValueOrDefault(InteractionTypes.ShootingRangeEnter, "null"),
-                                    WeaponShop.ShootingRangePrice);
+                                    WeaponShop.ShootingRangePrice
+                                );
 
                                 Player.LocalPlayer.SetData("CurrentShootingRange", ws);
                             }
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentShootingRange"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentShootingRange");
+                        }
+                    },
                 }
             },
             {
@@ -319,7 +385,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("CurrentApartmentsRoot", aRoot);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentApartmentsRoot"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentApartmentsRoot");
+                        }
+                    },
                 }
             },
             {
@@ -332,7 +403,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                                 Player.LocalPlayer.SetData("CurrentGarageRoot", gRoot);
                         }
                     },
-                    { false, (cs) => { Player.LocalPlayer.ResetData("CurrentGarageRoot"); } },
+                    {
+                        false, (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentGarageRoot");
+                        }
+                    },
                 }
             },
             {

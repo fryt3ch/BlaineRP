@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
@@ -12,80 +13,83 @@ namespace BlaineRP.Client.Game.Quests
 
         public JFRM2()
         {
-            new Quest.QuestData(QuestTypes.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
-            {
+            new Quest.QuestData(QuestTypes.JFRM2,
+                "Орошение полей",
+                "Фермер",
+                new Dictionary<byte, Quest.QuestData.StepData>()
                 {
-                    0,
-
-                    new Quest.QuestData.StepData("Орошайте поля, пролетая по точкам", 1)
                     {
-                        StartAction = (pData, quest) =>
+                        0, new Quest.QuestData.StepData("Орошайте поля, пролетая по точкам", 1)
                         {
-                            var qData = quest.CurrentData?.Split('&');
-
-                            if (qData == null || qData.Length != 1)
-                                return;
-
-                            var job = pData.CurrentJob as Farmer;
-
-                            if (job == null)
-                                return;
-
-                            var businessData = job.FarmBusiness;
-
-                            if (businessData == null)
-                                return;
-
-                            var jobVehicleRId = ushort.Parse(qData[0]);
-
-                            job.SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(jobVehicleRId));
-
-                            businessData.UpdatePlaneIrrigatorData(quest);
-
-                            quest.SetActualData("FARMJOBTEMPFX::PW", new List<int>());
-
-                            var task = new AsyncTask(() =>
+                            StartAction = (pData, quest) =>
                             {
-                                var effects = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+                                string[] qData = quest.CurrentData?.Split('&');
 
-                                if (effects == null || effects.Count == 0)
+                                if (qData == null || qData.Length != 1)
                                     return;
 
-                                if (Core.ServerTimestampMilliseconds - quest.GetActualData<long>("FARMJOBTEMPFXT::PW") >= PLANE_IRRIGATION_WATER_FX_TIME)
-                                {
-                                    for (int i = 0; i < effects.Count; i++)
+                                var job = pData.CurrentJob as Farmer;
+
+                                if (job == null)
+                                    return;
+
+                                Farm businessData = job.FarmBusiness;
+
+                                if (businessData == null)
+                                    return;
+
+                                var jobVehicleRId = ushort.Parse(qData[0]);
+
+                                job.SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(jobVehicleRId));
+
+                                businessData.UpdatePlaneIrrigatorData(quest);
+
+                                quest.SetActualData("FARMJOBTEMPFX::PW", new List<int>());
+
+                                var task = new AsyncTask(() =>
                                     {
-                                        RAGE.Game.Graphics.RemoveParticleFx(effects[i], false);
+                                        List<int> effects = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+
+                                        if (effects == null || effects.Count == 0)
+                                            return;
+
+                                        if (Core.ServerTimestampMilliseconds - quest.GetActualData<long>("FARMJOBTEMPFXT::PW") >= PLANE_IRRIGATION_WATER_FX_TIME)
+                                        {
+                                            for (var i = 0; i < effects.Count; i++)
+                                            {
+                                                RAGE.Game.Graphics.RemoveParticleFx(effects[i], false);
+                                            }
+
+                                            effects.Clear();
+                                        }
+                                    },
+                                    1000,
+                                    true,
+                                    0
+                                );
+
+                                quest.SetActualData("FxTask", task);
+
+                                task.Run();
+                            },
+                            EndAction = (pData, quest) =>
+                            {
+                                quest.GetActualData<AsyncTask>("FxTask")?.Cancel();
+
+                                List<int> tempFxList = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+
+                                if (tempFxList != null)
+                                    for (var i = 0; i < tempFxList.Count; i++)
+                                    {
+                                        RAGE.Game.Graphics.RemoveParticleFx(tempFxList[i], false);
                                     }
 
-                                    effects.Clear();
-                                }
-                            }, 1000, true, 0);
-
-                            quest.SetActualData("FxTask", task);
-
-                            task.Run();
-                        },
-
-                        EndAction = (pData, quest) =>
-                        {
-                            quest.GetActualData<AsyncTask>("FxTask")?.Cancel();
-
-                            var tempFxList = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
-
-                            if (tempFxList != null)
-                            {
-                                for (int i = 0; i < tempFxList.Count; i++)
-                                {
-                                    RAGE.Game.Graphics.RemoveParticleFx(tempFxList[i], false);
-                                }
-                            }
-
-                            quest.ClearAllActualData();
+                                quest.ClearAllActualData();
+                            },
                         }
-                    }
-                },
-            });
+                    },
+                }
+            );
         }
     }
 }

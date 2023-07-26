@@ -4,33 +4,22 @@
     {
         public interface IToggleable
         {
-
         }
 
         public interface IProp
         {
-
         }
 
         public new abstract class ItemData : Item.ItemData
         {
-            public class ExtraData
+            public ItemData(string name, float weight, bool sex, int drawable, int[] textures, string sexAlternativeId = null) : base(name, weight)
             {
-                public int Drawable { get; set; }
+                Drawable = drawable;
+                Textures = textures;
 
-                public int BestTorso { get; set; }
+                Sex = sex;
 
-                public ExtraData(int drawable, int bestTorso)
-                {
-                    this.Drawable = drawable;
-
-                    this.BestTorso = bestTorso;
-                }
-            }
-
-            public interface IToggleable
-            {
-                public ExtraData ExtraData { get; set; }
+                SexAlternativeId = sexAlternativeId;
             }
 
             public bool Sex { get; set; }
@@ -41,14 +30,23 @@
 
             public string SexAlternativeId { get; set; }
 
-            public ItemData(string name, float weight, bool sex, int drawable, int[] textures, string sexAlternativeId = null) : base(name, weight)
+            public class ExtraData
             {
-                this.Drawable = drawable;
-                this.Textures = textures;
+                public ExtraData(int drawable, int bestTorso)
+                {
+                    Drawable = drawable;
 
-                this.Sex = sex;
+                    BestTorso = bestTorso;
+                }
 
-                this.SexAlternativeId = sexAlternativeId;
+                public int Drawable { get; set; }
+
+                public int BestTorso { get; set; }
+            }
+
+            public interface IToggleable
+            {
+                public ExtraData ExtraData { get; set; }
             }
         }
     }

@@ -49,7 +49,7 @@ namespace BlaineRP.Client.Settings.User
 
             Other.FavoriteAnimations = RageStorage.GetData<HashSet<string>>("Settings::Animations::Favorites") ?? Other.Default.FavoriteAnimations;
 
-            var tStr = RageStorage.GetData<string>("Settings::Animations::Emotion") ?? Other.Default.CurrentEmotion.ToString();
+            string tStr = RageStorage.GetData<string>("Settings::Animations::Emotion") ?? Other.Default.CurrentEmotion.ToString();
             EmotionTypes emotion = EmotionTypes.None;
 
             if (!Enum.TryParse<EmotionTypes>(tStr, out emotion))
@@ -67,7 +67,7 @@ namespace BlaineRP.Client.Settings.User
 
             Other.LocalBlips = RageStorage.GetData<List<BlipsMenu.LocalBlip>>("Settings::LocalBlips") ?? Other.Default.LocalBlips;
 
-            foreach (var x in Other.LocalBlips)
+            foreach (BlipsMenu.LocalBlip x in Other.LocalBlips)
             {
                 if (x.Enabled)
                     x.Toggle(true);

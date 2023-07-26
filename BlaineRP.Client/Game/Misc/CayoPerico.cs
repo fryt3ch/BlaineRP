@@ -1,7 +1,6 @@
 ﻿using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.World.Enums;
 using BlaineRP.Client.Utils;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.Misc
 {
@@ -20,7 +19,7 @@ namespace BlaineRP.Client.Game.Misc
             SetToggleMinimapHeistIsland(state);
 
             if (updateCustomWeather)
-                Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
+                World.Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
 
             LoadTask?.Cancel();
 
@@ -35,7 +34,8 @@ namespace BlaineRP.Client.Game.Misc
                     },
                     2000,
                     false,
-                    0);
+                    0
+                );
             else
                 LoadTask = new AsyncTask(() =>
                     {
@@ -48,7 +48,7 @@ namespace BlaineRP.Client.Game.Misc
                         RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_05_slod");
                         RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_06_slod");
 
-                        var intid = RAGE.Game.Interior.GetInteriorAtCoords(4840.571f, -5174.425f, 2f);
+                        int intid = RAGE.Game.Interior.GetInteriorAtCoords(4840.571f, -5174.425f, 2f);
 
                         RAGE.Game.Interior.RefreshInterior(intid);
 
@@ -56,7 +56,8 @@ namespace BlaineRP.Client.Game.Misc
                     },
                     1550,
                     false,
-                    0);
+                    0
+                );
 
             LoadTask.Run();
 

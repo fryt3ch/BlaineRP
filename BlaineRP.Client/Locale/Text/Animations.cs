@@ -25,15 +25,11 @@ namespace BlaineRP.Client
                 public static string TextToHandSmoke = "Нажмите ALT, чтобы взять в руку";
                 public static string CancelTextSmoke = "Нажмите {0}, чтобы перестать курить";
 
-                public static Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)> Anims = new Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)>
-                {
+                public static Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)> Anims =
+                    new Dictionary<Game.UI.CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<OtherTypes, string> Names)>
                     {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Social,
-
-                        (
-                            "Социальные",
-
-                            new Dictionary<OtherTypes, string>()
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Social, ("Социальные", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Busted, "Поднять руки за голову" },
                                 { OtherTypes.Busted2, "Руки за голову на коленях" },
@@ -84,17 +80,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.ShakeHandsFear, "Испуганно трясти руками" },
                                 { OtherTypes.LowWave, "Слабо махать рукой" },
                                 { OtherTypes.CoverFace, "Прикрывать лицо рукой" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Dialogs,
-
-                        (
-                            "Для диалогов",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Dialogs, ("Для диалогов", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Argue, "Спорить, скрестив руки" },
                                 { OtherTypes.Nod, "Кивать, скрестив руки" },
@@ -115,17 +104,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.Goodbye, "Прощаться" },
                                 { OtherTypes.Speak, "Стоять и говорить" },
                                 { OtherTypes.GoodbyeBow, "Откланяться на прощание" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Reactions,
-
-                        (
-                            "Реакции",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Reactions, ("Реакции", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Agree2, "Соглашаться" },
                                 { OtherTypes.Disagree, "Отказываться" },
@@ -148,17 +130,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.IDontKnow2, "Разводить руками" },
                                 { OtherTypes.Surprised, "Удивленно посмотреть вниз" },
                                 { OtherTypes.Surprised2, "Удивленно трясти руками" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.SeatLie,
-
-                        (
-                            "Сидеть/лежать",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.SeatLie, ("Сидеть/лежать", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Lie, "Лежать" },
                                 { OtherTypes.Lie2, "Лежать #2" },
@@ -192,17 +167,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.Seat21, "Сидеть, скучая" },
                                 { OtherTypes.Seat22, "Сидеть на ступенях" },
                                 { OtherTypes.Seat23, "Сидеть в испуге" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Sport,
-
-                        (
-                            "Спортивные",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Sport, ("Спортивные", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Press, "Пресс" },
                                 { OtherTypes.PushUps, "Отжимания" },
@@ -223,17 +191,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.RunMale, "Пробежка на месте [М]" },
                                 { OtherTypes.Karate, "Карате" },
                                 { OtherTypes.Box, "Бокс с тенью" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Indecent,
-
-                        (
-                            "Непристойные",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Indecent, ("Непристойные", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.FuckU2, "Показывать фак [средний палец]" },
                                 { OtherTypes.FuckU3, "Показывать фак #2" },
@@ -262,17 +223,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.SexMale2, "Секс [активная роль] #2" },
                                 { OtherTypes.SexFemale2, "Секс [пассивная роль] #2" },
                                 { OtherTypes.SexMale3, "Секс [активная роль] #3" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.StandPoses,
-
-                        (
-                            "Стойки",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.StandPoses, ("Стойки", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.GuardStand, "Стойка охранника" },
                                 { OtherTypes.GuardStand2, "Стойка охранника #2" },
@@ -318,17 +272,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.Stand40, "Качаться пьяным" },
                                 { OtherTypes.Stand41, "Стоять, засыпая" },
                                 { OtherTypes.Stand42, "Стоять надменно" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Dances,
-
-                        (
-                            "Танцы",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Dances, ("Танцы", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.Dance, "Лезгинка" },
                                 { OtherTypes.Dance2, "Танец руками" },
@@ -434,17 +381,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.Dance102, "Танец активный" },
                                 { OtherTypes.Dance103, "Победный танец" },
                                 { OtherTypes.Dance104, "Танец волна" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.Situative,
-
-                        (
-                            "Ситуативные",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.Situative, ("Ситуативные", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.LookAtSmth, "Разглядывать что-то в руках" },
                                 { OtherTypes.KnockDoor, "Стучать в дверь" },
@@ -459,17 +399,10 @@ namespace BlaineRP.Client
                                 { OtherTypes.PointAtSmth, "Указывать на что-либо" },
                                 { OtherTypes.LookAtSmthGround, "Осматривать что-либо на земле" },
                                 { OtherTypes.DropSig, "Эмоционально выкинуть сигарету" },
-                            }
-                        )
-                    },
-
-                    {
-                        Game.UI.CEF.Animations.AnimSectionTypes.WithWeapon,
-
-                        (
-                            "Для оружия в руках",
-
-                            new Dictionary<OtherTypes, string>()
+                            })
+                        },
+                        {
+                            Game.UI.CEF.Animations.AnimSectionTypes.WithWeapon, ("Для оружия в руках", new Dictionary<OtherTypes, string>()
                             {
                                 { OtherTypes.AimLie, "Целиться лежа с оружием" },
                                 { OtherTypes.AimCrouch, "Целиться на корточках с оружием" },
@@ -478,41 +411,31 @@ namespace BlaineRP.Client
                                 { OtherTypes.LookFromCoverWeapon, "Выглядывать из-за стены с оружием" },
                                 { OtherTypes.CoverWeapon, "Стоять за стеной с оружием" },
                                 { OtherTypes.CoverWeapon2, "Стоять за укрытием" },
-                            }
-                        )
-                    },
-                };
+                            })
+                        },
+                    };
 
                 public static Dictionary<EmotionTypes, string> Emotions = new Dictionary<EmotionTypes, string>()
                 {
                     { EmotionTypes.None, "Обычный" },
-
                     { EmotionTypes.Happy, "Счастливый" },
                     { EmotionTypes.Joyful, "Радостный" },
                     { EmotionTypes.Smug, "Самодовольный" },
-
                     { EmotionTypes.Speculative, "Настороженный" },
                     { EmotionTypes.Mouthbreather, "Удивленный" },
-
                     { EmotionTypes.Sulking, "Грустный" },
-
                     { EmotionTypes.Grumpy, "Сердитый" },
                     { EmotionTypes.Grumpy2, "Сердитый #2" },
                     { EmotionTypes.Grumpy3, "Сердитый #3" },
-
                     { EmotionTypes.Angry, "Злой" },
                     { EmotionTypes.Stressed, "Яростный" },
-
                     { EmotionTypes.Shocked, "Шокированный" },
                     { EmotionTypes.Shocked2, "Шокированный #2" },
-
                     { EmotionTypes.NeverBlink, "Не моргающий" },
                     { EmotionTypes.OneEye, "Прицеливающийся" },
-
                     { EmotionTypes.Sleeping, "Спящий" },
                     { EmotionTypes.Sleeping2, "Спящий #2" },
                     { EmotionTypes.Sleeping3, "Спящий #3" },
-
                     { EmotionTypes.Weird, "Странный" },
                     { EmotionTypes.Weird2, "Странный #2" },
                     { EmotionTypes.Electrocuted, "Эпилепсик" },
@@ -521,59 +444,46 @@ namespace BlaineRP.Client
                 public static Dictionary<WalkstyleTypes, string> Walkstyles = new Dictionary<WalkstyleTypes, string>()
                 {
                     { WalkstyleTypes.None, "Обычный" },
-
                     { WalkstyleTypes.Wide, "Широкий" },
                     { WalkstyleTypes.Confident, "Уверенный" },
                     { WalkstyleTypes.Brave, "Храбрый" },
                     { WalkstyleTypes.Arrogant, "Высокомерный" },
                     { WalkstyleTypes.Posh, "Пафосный" },
                     { WalkstyleTypes.Posh2, "Пафосный #2" },
-
                     { WalkstyleTypes.Sassy, "Дерзкий" },
                     { WalkstyleTypes.Sassy2, "Дерзкий #2" },
-
                     { WalkstyleTypes.Swagger, "Развязный" },
                     { WalkstyleTypes.Shady, "Развязный #2" },
                     { WalkstyleTypes.Tough, "Крутой" },
                     { WalkstyleTypes.Tough2, "Крутой #2" },
-
                     { WalkstyleTypes.Sad, "Грустный" },
                     { WalkstyleTypes.Scared, "Испуганный" },
                     { WalkstyleTypes.Slow, "Медленный" },
-
                     { WalkstyleTypes.Hurry, "Спешащий" },
                     { WalkstyleTypes.Quick, "Спешащий #2" },
-
                     { WalkstyleTypes.Flee, "Парящий" },
-
                     { WalkstyleTypes.Hipster, "Хипстер" },
                     { WalkstyleTypes.Hobo, "Бродяга" },
                     { WalkstyleTypes.Muscle, "Силач" },
-
                     { WalkstyleTypes.Lester, "Храмой" },
                     { WalkstyleTypes.Lester2, "Храмой #2" },
-
                     { WalkstyleTypes.Sexy, "Сексуальный" },
                     { WalkstyleTypes.Chichi, "Манерный" },
                     { WalkstyleTypes.Femme, "Феминный" },
                     { WalkstyleTypes.Heels, "На каблуках" },
                     { WalkstyleTypes.Heels2, "На каблуках #2" },
-
                     { WalkstyleTypes.Cop, "Коп" },
                     { WalkstyleTypes.Cop2, "Коп #2" },
                     { WalkstyleTypes.Cop3, "Коп #3" },
-
                     { WalkstyleTypes.Drunk, "Пьяный" },
                     { WalkstyleTypes.Drunk2, "Пьяный #2" },
                     { WalkstyleTypes.Drunk3, "Пьяный #3" },
                     { WalkstyleTypes.Drunk4, "Пьяный #4" },
-
                     { WalkstyleTypes.Gangster, "Гангстер" },
                     { WalkstyleTypes.Gangster2, "Гангстер #2" },
                     { WalkstyleTypes.Gangster3, "Гангстер #3" },
                     { WalkstyleTypes.Gangster4, "Гангстер #4" },
                     { WalkstyleTypes.Gangster5, "Гангстер #5" },
-
                     { WalkstyleTypes.Guard, "Охранник" },
                 };
             }

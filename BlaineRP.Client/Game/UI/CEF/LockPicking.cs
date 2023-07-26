@@ -10,8 +10,6 @@ namespace BlaineRP.Client.Game.UI.CEF
         public const int MaxDeviationDefault = 10;
         public const int RotationDefault = 0;
 
-        public static string CurrentContext { get; private set; }
-
         private static byte _currentDurability;
         private static int _currentMaxDeviation;
 
@@ -19,71 +17,71 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public LockPicking()
         {
-            Events.Add("MiniGames::LockPick", async (args) =>
-            {
-                var success = (bool)args[0];
-
-                if (CurrentContext == "POLICE_CUFFS_LOCKPICK")
+            Events.Add("MiniGames::LockPick",
+                async (args) =>
                 {
-                    var itemIdx = GetInventoryLockpickItemIdx();
+                    var success = (bool)args[0];
 
-                    if (itemIdx < 0)
+                    if (CurrentContext == "POLICE_CUFFS_LOCKPICK")
                     {
-                        Notification.Show("Inventory::NoItem");
+                        int itemIdx = GetInventoryLockpickItemIdx();
 
-                        Close();
-
-                        return;
-                    }
-
-                    if (success)
-                    {
-                        var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", true, itemIdx);
-
-                        Close();
-
-                        if (res == 255)
+                        if (itemIdx < 0)
                         {
-                            Notification.ShowSuccess(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_0"));
+                            Notification.Show("Inventory::NoItem");
+
+                            Close();
+
+                            return;
+                        }
+
+                        if (success)
+                        {
+                            var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", true, itemIdx);
+
+                            Close();
+
+                            if (res == 255)
+                                Notification.ShowSuccess(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_0"));
+                            else
+                                Notification.ShowErrorDefault();
                         }
                         else
                         {
-                            Notification.ShowErrorDefault();
-                        }
-                    }
-                    else
-                    {
-                        var targetRotation = Utils.Convert.ToInt32(args[1]);
+                            var targetRotation = Utils.Convert.ToInt32(args[1]);
 
-                        var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", false, itemIdx);
+                            var res = (int)await Events.CallRemoteProc("MG::LOCKPICK::Cuffs", false, itemIdx);
 
-                        if (res == 255)
-                        {
-                            var lockpicksLeft = GetLockpickTotalAmount();
-
-                            if (lockpicksLeft <= 0)
+                            if (res == 255)
                             {
-                                Notification.Show("Inventory::NoItem");
+                                decimal lockpicksLeft = GetLockpickTotalAmount();
 
-                                Close();
+                                if (lockpicksLeft <= 0)
+                                {
+                                    Notification.Show("Inventory::NoItem");
 
-                                return;
+                                    Close();
+
+                                    return;
+                                }
+                                else
+                                {
+                                    Notification.ShowError(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_1", lockpicksLeft));
+
+                                    Update(_currentDurability, targetRotation, _currentMaxDeviation, RotationDefault);
+                                }
                             }
                             else
                             {
-                                Notification.ShowError(Language.Strings.Get("POLICE_CUFFS_LOCKPICK_1", lockpicksLeft));
-
-                                Update(_currentDurability, targetRotation, _currentMaxDeviation, RotationDefault);
+                                Close();
                             }
-                        }
-                        else
-                        {
-                            Close();
                         }
                     }
                 }
-            });
+            );
         }
+
+        public static string CurrentContext { get; private set; }
 
         public static async System.Threading.Tasks.Task Show(string context, byte durability, int targetRotation, int maxDeviation, int currentRotation)
         {
@@ -145,7 +143,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             int idx = -1;
 
-            for (int i = 0; i < Inventory.ItemsParams.Length; i++)
+            for (var i = 0; i < Inventory.ItemsParams.Length; i++)
             {
                 if (Inventory.ItemsParams[i]?.Id == "mis_lockpick")
                 {
@@ -160,14 +158,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static decimal GetLockpickTotalAmount()
         {
-            decimal totalAmount = 0m;
+            var totalAmount = 0m;
 
-            for (int i = 0; i < Inventory.ItemsParams.Length; i++)
+            for (var i = 0; i < Inventory.ItemsParams.Length; i++)
             {
                 if (Inventory.ItemsParams[i]?.Id == "mis_lockpick")
-                {
                     totalAmount += (int)((object[])Inventory.ItemsData[i][0])[3];
-                }
             }
 
             return totalAmount;

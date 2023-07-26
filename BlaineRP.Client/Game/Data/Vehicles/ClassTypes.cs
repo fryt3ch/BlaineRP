@@ -6,10 +6,13 @@
     {
         /// <summary>Обычный</summary>
         Classic = 0,
+
         /// <summary>Премиум</summary>
         Premium,
+
         /// <summary>Люкс</summary>
         Luxe,
+
         /// <summary>Элитный</summary>
         Elite,
     }

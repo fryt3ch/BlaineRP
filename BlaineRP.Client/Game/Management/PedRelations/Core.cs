@@ -7,6 +7,12 @@ namespace BlaineRP.Client.Game.Management.PedRelations
     [Script(int.MaxValue)]
     public class Core
     {
+        public enum Groups
+        {
+            Friendly = 0,
+            Enemy,
+        }
+
         public enum Types
         {
             Companion = 0,
@@ -16,12 +22,6 @@ namespace BlaineRP.Client.Game.Management.PedRelations
             Dislike = 4,
             Hate = 5,
             Pedestrians = 255,
-        }
-
-        public enum Groups
-        {
-            Friendly = 0,
-            Enemy,
         }
 
         private static readonly Dictionary<Groups, uint> _groupHashes = new Dictionary<Groups, uint>();
@@ -43,7 +43,14 @@ namespace BlaineRP.Client.Game.Management.PedRelations
             //SetRelationshipGroup(RAGE.Elements.Player.LocalPlayer, Groups.Friendly);
         }
 
-        public static void SetRelationshipGroup(RAGE.Elements.Player player, Groups group) => player.SetRelationshipGroupHash(_groupHashes[group]);
-        public static Groups GetRelationshipGroup(RAGE.Elements.Player player) => _groupHashes.Where(x => x.Value == player.GetRelationshipGroupHash()).Select(x => x.Key).FirstOrDefault();
+        public static void SetRelationshipGroup(RAGE.Elements.Player player, Groups group)
+        {
+            player.SetRelationshipGroupHash(_groupHashes[group]);
+        }
+
+        public static Groups GetRelationshipGroup(RAGE.Elements.Player player)
+        {
+            return _groupHashes.Where(x => x.Value == player.GetRelationshipGroupHash()).Select(x => x.Key).FirstOrDefault();
+        }
     }
 }

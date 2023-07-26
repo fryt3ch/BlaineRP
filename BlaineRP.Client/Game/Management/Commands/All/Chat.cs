@@ -47,7 +47,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
-            Commands.Core.CallRemote("p_mutef", pid, mins, reason);
+            CallRemote("p_mutef", pid, mins, reason);
         }
 
         [Command("unmutef", false, "Скрыть/показать чат")]
@@ -56,7 +56,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
-            Commands.Core.CallRemote("p_unmutef", pid, reason);
+            CallRemote("p_unmutef", pid, reason);
         }
     }
 }

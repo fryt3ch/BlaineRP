@@ -6,6 +6,10 @@ namespace BlaineRP.Client.Game.Fractions
     {
         public class FineInfo
         {
+            public FineInfo()
+            {
+            }
+
             public string Member { get; set; }
 
             public string Target { get; set; }
@@ -15,10 +19,6 @@ namespace BlaineRP.Client.Game.Fractions
             public string Reason { get; set; }
 
             public DateTime Time { get; set; }
-
-            public FineInfo()
-            {
-            }
         }
     }
 }

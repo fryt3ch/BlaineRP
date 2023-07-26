@@ -1,9 +1,8 @@
-﻿using BlaineRP.Client.Utils.Game;
-using RAGE;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using BlaineRP.Client.Game.UI.CEF;
-using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
 
 namespace BlaineRP.Client.Utils
 {
@@ -13,7 +12,12 @@ namespace BlaineRP.Client.Utils
 
         public static RGBA WhiteColourRGBA = new RGBA(255, 255, 255, 255);
 
-        private static Regex MailPattern = new Regex(@"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$", RegexOptions.Compiled);
+        private static Regex MailPattern =
+            new Regex(
+                @"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$",
+                RegexOptions.Compiled
+            );
+
         private static Regex LoginPattern = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,12}$", RegexOptions.Compiled);
         private static Regex NamePattern = new Regex(@"^[A-Z]{1}[a-zA-Z]{1,9}$", RegexOptions.Compiled);
         private static Regex PasswordPattern = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,64}$", RegexOptions.Compiled);
@@ -21,25 +25,64 @@ namespace BlaineRP.Client.Utils
 
         public static Random Random { get; } = new Random();
 
-        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
-        public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
+        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true)
+        {
+            return (checkCursor ? !Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
+        }
 
-        public static float GetFpsCoef() => Settings.App.Static.BaseFps / (Main.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : Main.CurrentFps);
+        public static void DebugServerSaveText(string text)
+        {
+            Events.CallRemote("debug_save", text);
+        }
 
-        public static decimal GetGovSellPrice(decimal price) => System.Math.Floor(price / 2m);
+        public static float GetFpsCoef()
+        {
+            return Settings.App.Static.BaseFps / (Main.CurrentFps > Settings.App.Static.BaseFps ? Settings.App.Static.BaseFps : Main.CurrentFps);
+        }
 
-        public static bool IsAnyCefActive(bool checkChatInput = true) => checkChatInput && Chat.InputVisible || Browser.IsAnyCEFActive;
-        public static bool IsLoginValid(string str) => LoginPattern.IsMatch(str);
+        public static decimal GetGovSellPrice(decimal price)
+        {
+            return System.Math.Floor(price / 2m);
+        }
 
-        public static bool IsMailValid(string str) => MailPattern.IsMatch(str);
-        public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
-        public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
+        public static bool IsAnyCefActive(bool checkChatInput = true)
+        {
+            return checkChatInput && Client.Game.UI.CEF.Chat.InputVisible || Browser.IsAnyCEFActive;
+        }
+
+        public static bool IsLoginValid(string str)
+        {
+            return LoginPattern.IsMatch(str);
+        }
+
+        public static bool IsMailValid(string str)
+        {
+            return MailPattern.IsMatch(str);
+        }
+
+        public static bool IsNameValid(string str)
+        {
+            return NamePattern.IsMatch(str);
+        }
+
+        public static bool IsPasswordValid(string str)
+        {
+            return PasswordPattern.IsMatch(str);
+        }
 
         /// <summary>Метод для перезагрузки голосового чата со стороны RAGE</summary>
-        public static void ReloadVoiceChat() => Invoker.JsEval("try { mp.voiceChat.cleanupAndReload(true, false, false) } catch {} try { mp.voiceChat.cleanupAndReload(false, false, true) } catch {} try { mp.voiceChat.cleanupAndReload(true, true, true) } catch {}");
+        public static void ReloadVoiceChat()
+        {
+            Invoker.JsEval(
+                "try { mp.voiceChat.cleanupAndReload(true, false, false) } catch {} try { mp.voiceChat.cleanupAndReload(false, false, true) } catch {} try { mp.voiceChat.cleanupAndReload(true, true, true) } catch {}"
+            );
+        }
 
         /// <summary>Метод для замены символа \n в строке на тег /br</summary>
         /// <param name="text"></param>
-        public static string ReplaceNewLineHtml(string text) => text.Replace("\n", "</br>");
+        public static string ReplaceNewLineHtml(string text)
+        {
+            return text.Replace("\n", "</br>");
+        }
     }
 }

@@ -7,34 +7,7 @@ namespace BlaineRP.Client.Game.Helpers
 {
     public class ExtraLabel
     {
-        private static List<ExtraLabel> All { get; set; } = new List<ExtraLabel>();
-        private static List<ExtraLabel> Streamed { get; set; } = new List<ExtraLabel>();
-
         private static readonly Utils.UidHandlers.UInt16 _uidHandler = new Utils.UidHandlers.UInt16(0);
-
-        private Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
-
-        public Vector3 Position { get => Label.Position; set => Label.Position = value; }
-
-        public bool LOS { get => Label.LOS; set => Label.LOS = value; }
-
-        public int Font { get => Label.Font; set => Label.Font = value; }
-
-        public bool Center { get; set; }
-
-        public RGBA Color { get => Label.Color; set => Label.Color = value; }
-
-        public uint Dimension { get => Label.Dimension; set => Label.Dimension = value; }
-
-        public string Text { get => Label.Text; set => Label.Text = value; }
-
-        public float DrawDistance { get => Label.DrawDistance; set => Label.DrawDistance = value; }
-
-        public ushort Id { get; private set; }
-
-        public bool Exists => All.Contains(this);
-
-        private TextLabel Label { get; set; }
 
         public ExtraLabel(Vector3 Position, string Text, RGBA Colour, float DrawDistance, int Rotation, bool ShortRange, uint Dimension)
         {
@@ -48,7 +21,7 @@ namespace BlaineRP.Client.Game.Helpers
 
             this.Text = Text;
 
-            this.Color = new RGBA(Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
+            Color = new RGBA(Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
 
             this.DrawDistance = DrawDistance;
             this.Dimension = Dimension;
@@ -56,28 +29,87 @@ namespace BlaineRP.Client.Game.Helpers
             this.Position = Position;
         }
 
+        private static List<ExtraLabel> All { get; set; } = new List<ExtraLabel>();
+        private static List<ExtraLabel> Streamed { get; set; } = new List<ExtraLabel>();
+
+        private Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
+
+        public Vector3 Position
+        {
+            get => Label.Position;
+            set => Label.Position = value;
+        }
+
+        public bool LOS
+        {
+            get => Label.LOS;
+            set => Label.LOS = value;
+        }
+
+        public int Font
+        {
+            get => Label.Font;
+            set => Label.Font = value;
+        }
+
+        public bool Center { get; set; }
+
+        public RGBA Color
+        {
+            get => Label.Color;
+            set => Label.Color = value;
+        }
+
+        public uint Dimension
+        {
+            get => Label.Dimension;
+            set => Label.Dimension = value;
+        }
+
+        public string Text
+        {
+            get => Label.Text;
+            set => Label.Text = value;
+        }
+
+        public float DrawDistance
+        {
+            get => Label.DrawDistance;
+            set => Label.DrawDistance = value;
+        }
+
+        public ushort Id { get; private set; }
+
+        public bool Exists => All.Contains(this);
+
+        private TextLabel Label { get; set; }
+
         public static void Initialize()
         {
             return;
 
-            (new Utils.AsyncTask(() =>
-            {
-                var pos = Player.LocalPlayer.Position;
-                var dim = Player.LocalPlayer.Dimension;
-
-                foreach (var x in All)
+            new Utils.AsyncTask(() =>
                 {
-                    if ((x.Dimension == uint.MaxValue || x.Dimension == dim) && x.Position.DistanceTo(pos) <= Settings.App.Profile.Current.Game.StreamDistance)
+                    Vector3 pos = Player.LocalPlayer.Position;
+                    uint dim = Player.LocalPlayer.Dimension;
+
+                    foreach (ExtraLabel x in All)
                     {
-                        if (!Streamed.Contains(x))
-                            Streamed.Add(x);
+                        if ((x.Dimension == uint.MaxValue || x.Dimension == dim) && x.Position.DistanceTo(pos) <= Settings.App.Profile.Current.Game.StreamDistance)
+                        {
+                            if (!Streamed.Contains(x))
+                                Streamed.Add(x);
+                        }
+                        else
+                        {
+                            Streamed.Remove(x);
+                        }
                     }
-                    else
-                    {
-                        Streamed.Remove(x);
-                    }
-                }
-            }, 1000, true, 1000)).Run();
+                },
+                1000,
+                true,
+                1000
+            ).Run();
 
             Main.Render -= Render;
             Main.Render += Render;
@@ -97,7 +129,10 @@ namespace BlaineRP.Client.Game.Helpers
             return default(T);
         }
 
-        public bool ResetData(string key) => Data.Remove(key);
+        public bool ResetData(string key)
+        {
+            return Data.Remove(key);
+        }
 
         public void Destroy()
         {
@@ -126,18 +161,30 @@ namespace BlaineRP.Client.Game.Helpers
         {
             float posX = 0f, posY = 0f;
 
-            var pos = Player.LocalPlayer.Position;
+            Vector3 pos = Player.LocalPlayer.Position;
 
             Streamed.ForEach(x =>
-            {
-                if (x.Position.DistanceTo(pos) <= x.DrawDistance)
                 {
-                    if (!Graphics.GetScreenCoordFromWorldCoord(x.Position, ref posX, ref posY))
-                        return;
+                    if (x.Position.DistanceTo(pos) <= x.DrawDistance)
+                    {
+                        if (!Graphics.GetScreenCoordFromWorldCoord(x.Position, ref posX, ref posY))
+                            return;
 
-                    Graphics.DrawText(x.Text, posX, posY, (byte)x.Color.Red, (byte)x.Color.Green, (byte)x.Color.Blue, (byte)x.Color.Alpha, 0.4f, (RAGE.Game.Font)x.Font, true, true);
+                        Graphics.DrawText(x.Text,
+                            posX,
+                            posY,
+                            (byte)x.Color.Red,
+                            (byte)x.Color.Green,
+                            (byte)x.Color.Blue,
+                            (byte)x.Color.Alpha,
+                            0.4f,
+                            (RAGE.Game.Font)x.Font,
+                            true,
+                            true
+                        );
+                    }
                 }
-            });
+            );
         }
     }
 }

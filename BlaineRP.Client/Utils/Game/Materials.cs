@@ -1,6 +1,6 @@
-﻿using RAGE;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RAGE;
 
 namespace BlaineRP.Client.Utils.Game
 {
@@ -36,19 +36,29 @@ namespace BlaineRP.Client.Utils.Game
 
         private static readonly HashSet<Types> CanBeDugTypes = new HashSet<Types>()
         {
-            Types.SandLoose, Types.SandCompact, Types.SandWet, Types.SandDryDeep, Types.SandWetDeep,
-            Types.MudHard, Types.MudPothole, Types.MudSoft, Types.MudDeep,
-
+            Types.SandLoose,
+            Types.SandCompact,
+            Types.SandWet,
+            Types.SandDryDeep,
+            Types.SandWetDeep,
+            Types.MudHard,
+            Types.MudPothole,
+            Types.MudSoft,
+            Types.MudDeep,
             Types.Soil,
-
             Types.DirtTrack,
-
-            Types.GrassLong, Types.Grass, Types.GrassShort,
-
-            Types.GravelSmall, Types.GravelLarge, Types.GravelDeep,
+            Types.GrassLong,
+            Types.Grass,
+            Types.GrassShort,
+            Types.GravelSmall,
+            Types.GravelLarge,
+            Types.GravelDeep,
         };
 
-        public static bool CanTypeBeDug(Types type) => CanBeDugTypes.Contains(type);
+        public static bool CanTypeBeDug(Types type)
+        {
+            return CanBeDugTypes.Contains(type);
+        }
 
         public static Types GetTypeByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle, int flags = 31)
         {
@@ -56,7 +66,14 @@ namespace BlaineRP.Client.Utils.Game
 
             var vector = new Vector3();
 
-            var result = RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, vector, vector, ref materialHash, ref hit);
+            int result = RAGE.Game.Shapetest.GetShapeTestResultEx(
+                RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4),
+                ref hit,
+                vector,
+                vector,
+                ref materialHash,
+                ref hit
+            );
 
             if (result != 2 || materialHash == 0)
                 return Types.Unknown;

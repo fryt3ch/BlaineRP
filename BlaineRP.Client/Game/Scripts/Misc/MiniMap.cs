@@ -6,14 +6,14 @@ namespace BlaineRP.Client.Game.Scripts.Misc
     [Script(int.MaxValue)]
     public class MiniMap
     {
-        public static byte ZoomState { get; private set; } = 0;
-
         private static AsyncTask _zoomTask;
 
         public MiniMap()
         {
             ResetZoom();
         }
+
+        public static byte ZoomState { get; private set; } = 0;
 
         public static void ResetZoom()
         {
@@ -36,54 +36,58 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                     _zoomTask?.Cancel();
 
                     _zoomTask = new AsyncTask(() =>
-                    {
-                        RAGE.Game.Ui.SetRadarBigmapEnabled(false, true);
-                        RAGE.Game.Ui.SetRadarZoom(1);
-
-                        ZoomState = 0;
-
-                        if (_zoomTask != null)
                         {
-                            _zoomTask.Cancel();
+                            RAGE.Game.Ui.SetRadarBigmapEnabled(false, true);
+                            RAGE.Game.Ui.SetRadarZoom(1);
 
-                            _zoomTask = null;
-                        }
-                    }, 10_000, false, 0);
+                            ZoomState = 0;
+
+                            if (_zoomTask != null)
+                            {
+                                _zoomTask.Cancel();
+
+                                _zoomTask = null;
+                            }
+                        },
+                        10_000,
+                        false,
+                        0
+                    );
 
                     _zoomTask.Run();
                     break;
                 case 1:
+                {
+                    if (_zoomTask != null)
                     {
-                        if (_zoomTask != null)
-                        {
-                            _zoomTask.Cancel();
+                        _zoomTask.Cancel();
 
-                            _zoomTask = null;
-                        }
-
-                        RAGE.Game.Ui.SetRadarBigmapEnabled(true, false);
-                        RAGE.Game.Ui.Unknown._0x82CEDC33687E1F50(true);
-                        RAGE.Game.Ui.SetRadarZoom(0);
-
-                        ZoomState = 2;
-
-                        HUD.UpdateLeftHUDPos();
-                        break;
+                        _zoomTask = null;
                     }
+
+                    RAGE.Game.Ui.SetRadarBigmapEnabled(true, false);
+                    RAGE.Game.Ui.Unknown._0x82CEDC33687E1F50(true);
+                    RAGE.Game.Ui.SetRadarZoom(0);
+
+                    ZoomState = 2;
+
+                    HUD.UpdateLeftHUDPos();
+                    break;
+                }
                 default:
+                {
+                    if (_zoomTask != null)
                     {
-                        if (_zoomTask != null)
-                        {
-                            _zoomTask.Cancel();
+                        _zoomTask.Cancel();
 
-                            _zoomTask = null;
-                        }
-
-                        ZoomState = 0;
-
-                        ResetZoom();
-                        break;
+                        _zoomTask = null;
                     }
+
+                    ZoomState = 0;
+
+                    ResetZoom();
+                    break;
+                }
             }
         }
     }

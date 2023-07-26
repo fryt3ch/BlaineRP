@@ -18,7 +18,7 @@ namespace BlaineRP.Client.Game.Casino
                 Events.Add("Casino::CB",
                     (args) =>
                     {
-                        var newBalance = Utils.Convert.ToUInt32(args[0]);
+                        var newBalance = Convert.ToUInt32(args[0]);
 
                         if (CasinoMinigames.IsActive)
                         {
@@ -27,7 +27,8 @@ namespace BlaineRP.Client.Game.Casino
                         else
                         {
                         }
-                    });
+                    }
+                );
 
                 Events.Add("Casino::RLTS",
                     (args) =>
@@ -37,7 +38,8 @@ namespace BlaineRP.Client.Game.Casino
                         var stateData = (string)args[2];
 
                         Roulette.OnCurrentStateDataUpdated(casinoId, rouletteId, stateData, false);
-                    });
+                    }
+                );
 
                 Events.Add("Casino::BLJS",
                     (args) =>
@@ -47,24 +49,28 @@ namespace BlaineRP.Client.Game.Casino
                         var stateData = (string)args[2];
 
                         Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, false);
-                    });
+                    }
+                );
 
                 Events.Add("Casino::BLJM",
                     async (args) =>
                     {
-                        var type = Utils.Convert.ToByte(args[0]);
+                        var type = Convert.ToByte(args[0]);
 
                         if (type == 0) // player anim
                         {
-                            var animType = Utils.Convert.ToByte(args[1]);
+                            var animType = Convert.ToByte(args[1]);
 
-                            var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
+                            Player player = Entities.Players.GetAtRemote(Convert.ToUInt16(args[2]));
 
                             if (player?.Exists != true)
                                 return;
 
                             if (animType == 1)
-                                Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                                Core.Play(player,
+                                    new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false),
+                                    -1
+                                );
                             else if (animType == 2)
                                 Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
@@ -73,20 +79,20 @@ namespace BlaineRP.Client.Game.Casino
                             var casinoId = (int)args[1];
                             var tableId = (int)args[2];
 
-                            var casino = Casino.GetById(casinoId);
+                            Casino casino = GetById(casinoId);
 
-                            var table = casino.GetBlackjackById(tableId);
+                            Blackjack table = casino.GetBlackjackById(tableId);
 
-                            var ped = table?.NPC?.Ped;
+                            Ped ped = table?.NPC?.Ped;
 
                             if (ped?.Exists != true || table.TableObject?.Exists != true)
                                 return;
 
-                            var seatIdx = Utils.Convert.ToByte(args[3]);
+                            var seatIdx = Convert.ToByte(args[3]);
 
-                            var amount = Utils.Convert.ToUInt32(args[4]);
+                            var amount = Convert.ToUInt32(args[4]);
 
-                            var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[5]));
+                            Player player = Entities.Players.GetAtRemote(Convert.ToUInt16(args[5]));
 
                             if (player?.Exists == true)
                                 Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
@@ -100,13 +106,16 @@ namespace BlaineRP.Client.Game.Casino
                                     CasinoMinigames.ShowBlackjackButton(2, amount <= 0);
                                 }
 
-                            var oBets = ped.GetData<List<Blackjack.BetData>>("Bets");
+                            List<Blackjack.BetData> oBets = ped.GetData<List<Blackjack.BetData>>("Bets");
 
                             if (oBets == null)
                             {
                                 oBets = new List<Blackjack.BetData>()
                                 {
-                                    new Blackjack.BetData(), new Blackjack.BetData(), new Blackjack.BetData(), new Blackjack.BetData(),
+                                    new Blackjack.BetData(),
+                                    new Blackjack.BetData(),
+                                    new Blackjack.BetData(),
+                                    new Blackjack.BetData(),
                                 };
 
                                 ped.SetData("Bets", oBets);
@@ -117,25 +126,28 @@ namespace BlaineRP.Client.Game.Casino
                             if (amount <= 0)
                                 return;
 
-                            var tableHeading = table.TableObject.GetHeading();
+                            float tableHeading = table.TableObject.GetHeading();
 
-                            var offsetInfo = Blackjack.BetOffsets[seatIdx][0];
+                            Vector4 offsetInfo = Blackjack.BetOffsets[seatIdx][0];
 
-                            var objModelStr = Casino.GetChipPropByAmount(amount);
+                            string objModelStr = GetChipPropByAmount(amount);
 
-                            var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
+                            uint objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
                             Streaming.RequestModelNow(objModelhash);
 
-                            var coords = table.TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
+                            Vector3 coords = table.TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
 
                             oBets[seatIdx].MapObject?.Destroy();
 
-                            oBets[seatIdx].MapObject =
-                                new MapObject(RAGE.Game.Object.CreateObjectNoOffset(objModelhash, coords.X, coords.Y, coords.Z, false, false, false)) { Dimension = uint.MaxValue, };
+                            oBets[seatIdx].MapObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(objModelhash, coords.X, coords.Y, coords.Z, false, false, false))
+                            {
+                                Dimension = uint.MaxValue,
+                            };
 
                             oBets[seatIdx].MapObject.SetRotation(0f, 0f, tableHeading + offsetInfo.RotationZ, 0, false);
                         }
-                    });
+                    }
+                );
 
                 Events.Add("Casino::LCWS",
                     (args) =>
@@ -143,23 +155,24 @@ namespace BlaineRP.Client.Game.Casino
                         var casinoId = (int)args[0];
                         var luckyWheelId = (int)args[1];
 
-                        var casino = Casino.GetById(casinoId);
+                        Casino casino = GetById(casinoId);
 
                         if (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null))
                             return;
 
-                        var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
+                        LuckyWheel luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
-                        var player = Entities.Players.GetAtRemote(Utils.Convert.ToUInt16(args[2]));
+                        Player player = Entities.Players.GetAtRemote(Convert.ToUInt16(args[2]));
 
-                        var targetZoneType = (LuckyWheel.ZoneTypes)Utils.Convert.ToByte(args[3]);
+                        var targetZoneType = (LuckyWheel.ZoneTypes)Convert.ToByte(args[3]);
 
-                        var resultOffset = Utils.Convert.ToSingle(args[4]);
+                        var resultOffset = Convert.ToSingle(args[4]);
 
                         luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
-                    });
+                    }
+                );
 
-                var casinoSlotMachineIdle0Anim = Core.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
+                Animation casinoSlotMachineIdle0Anim = Core.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
 
                 if (casinoSlotMachineIdle0Anim != null)
                 {

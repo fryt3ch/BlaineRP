@@ -6,10 +6,6 @@ namespace BlaineRP.Client.Game.Helpers
 {
     public class Scaleform
     {
-        private static Dictionary<string, Scaleform> AllScaleforms { get; set; } = new Dictionary<string, Scaleform>();
-
-        public static Scaleform Get(string id) => AllScaleforms.GetValueOrDefault(id);
-
         public enum CounterSoundTypes
         {
             None = 0,
@@ -17,20 +13,6 @@ namespace BlaineRP.Client.Game.Helpers
             Default,
             Deep,
         }
-
-        public string Id { get; private set; }
-
-        public int Handle { get; private set; }
-
-        public bool IsLoaded => RAGE.Game.Graphics.HasScaleformMovieLoaded(Handle);
-
-        public bool Exists => Handle > 0;
-
-        private Queue<(string FuncName, object[] Args)> FunctionsQueue { get; set; } = new Queue<(string, object[])>();
-
-        public AsyncTask CurrentTask { get; set; }
-
-        public Main.UpdateHandler OnRender { get; set; }
 
         public Scaleform(string Id, string ScaleformName)
         {
@@ -47,6 +29,27 @@ namespace BlaineRP.Client.Game.Helpers
 
             Main.Render -= OnRender;
             Main.Render += OnRender;
+        }
+
+        private static Dictionary<string, Scaleform> AllScaleforms { get; set; } = new Dictionary<string, Scaleform>();
+
+        public string Id { get; private set; }
+
+        public int Handle { get; private set; }
+
+        public bool IsLoaded => RAGE.Game.Graphics.HasScaleformMovieLoaded(Handle);
+
+        public bool Exists => Handle > 0;
+
+        private Queue<(string FuncName, object[] Args)> FunctionsQueue { get; set; } = new Queue<(string, object[])>();
+
+        public AsyncTask CurrentTask { get; set; }
+
+        public Main.UpdateHandler OnRender { get; set; }
+
+        public static Scaleform Get(string id)
+        {
+            return AllScaleforms.GetValueOrDefault(id);
         }
 
         public static Scaleform CreateShard(string id, string title, string text, int duration = -1)
@@ -74,41 +77,41 @@ namespace BlaineRP.Client.Game.Helpers
             AsyncTask task = null;
 
             task = new AsyncTask(async () =>
-            {
-                for (int i = durationSec; i > 0; i--)
                 {
-                    sc.CallFunction("SHOW_SHARD_CENTERED_MP_MESSAGE", title, string.Format(text, i));
-
-                    if (soundType != CounterSoundTypes.None)
+                    for (int i = durationSec; i > 0; i--)
                     {
-                        if (i > 1)
+                        sc.CallFunction("SHOW_SHARD_CENTERED_MP_MESSAGE", title, string.Format(text, i));
+
+                        if (soundType != CounterSoundTypes.None)
                         {
-                            if (soundType == CounterSoundTypes.Default)
+                            if (i > 1)
                             {
-                                RAGE.Game.Audio.PlaySoundFrontend(-1, "5_SEC_WARNING", "HUD_MINI_GAME_SOUNDSET", true);
+                                if (soundType == CounterSoundTypes.Default)
+                                    RAGE.Game.Audio.PlaySoundFrontend(-1, "5_SEC_WARNING", "HUD_MINI_GAME_SOUNDSET", true);
+                                else if (soundType == CounterSoundTypes.Deep)
+                                    RAGE.Game.Audio.PlaySoundFrontend(-1, "3_2_1", "HUD_MINI_GAME_SOUNDSET", true);
                             }
-                            else if (soundType == CounterSoundTypes.Deep)
+                            else
                             {
-                                RAGE.Game.Audio.PlaySoundFrontend(-1, "3_2_1", "HUD_MINI_GAME_SOUNDSET", true);
+                                if (soundType == CounterSoundTypes.Default)
+                                    RAGE.Game.Audio.PlaySoundFrontend(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET", true);
+                                else if (soundType == CounterSoundTypes.Deep)
+                                    RAGE.Game.Audio.PlaySoundFrontend(-1, "GO", "HUD_MINI_GAME_SOUNDSET", true);
                             }
                         }
-                        else
-                        {
-                            if (soundType == CounterSoundTypes.Default)
-                                RAGE.Game.Audio.PlaySoundFrontend(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET", true);
-                            else if (soundType == CounterSoundTypes.Deep)
-                                RAGE.Game.Audio.PlaySoundFrontend(-1, "GO", "HUD_MINI_GAME_SOUNDSET", true);
-                        }
+
+                        await RAGE.Game.Invoker.WaitAsync(1000);
+
+                        if (task.IsCancelled)
+                            return;
                     }
 
-                    await RAGE.Game.Invoker.WaitAsync(1000);
-
-                    if (task.IsCancelled)
-                        return;
-                }
-
-                sc.Destroy();
-            }, 0, false, 0);
+                    sc.Destroy();
+                },
+                0,
+                false,
+                0
+            );
 
             sc.CurrentTask = task;
 
@@ -145,7 +148,9 @@ namespace BlaineRP.Client.Game.Helpers
                 (string, object[]) nextFunc;
 
                 while (FunctionsQueue.TryDequeue(out nextFunc))
+                {
                     CallFunction(nextFunc.Item1, nextFunc.Item2);
+                }
             }
         }
 
@@ -165,7 +170,7 @@ namespace BlaineRP.Client.Game.Helpers
                 CurrentTask = null;
             }
 
-            var handle = Handle;
+            int handle = Handle;
 
             RAGE.Game.Graphics.SetScaleformMovieAsNoLongerNeeded(ref handle);
 
@@ -185,7 +190,7 @@ namespace BlaineRP.Client.Game.Helpers
 
             RAGE.Game.Graphics.PushScaleformMovieFunction(Handle, funcName);
 
-            foreach (var x in args)
+            foreach (object x in args)
             {
                 if (x is string str)
                     RAGE.Game.Graphics.PushScaleformMovieFunctionParameterString(str);

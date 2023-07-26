@@ -5,7 +5,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Camera
 {
-    partial class Core
+    internal partial class Core
     {
         /// <summary>Минимально возможный FOV</summary>
         private static float MinFov { get; set; }
@@ -17,13 +17,32 @@ namespace BlaineRP.Client.Game.Management.Camera
         private static int Id { get; set; } = -1;
 
         /// <summary>Позиция текущей камеры</summary>
-        public static Vector3 Position { get => RAGE.Game.Cam.GetCamCoord(Id); set { RAGE.Game.Cam.SetCamCoord(Id, value.X, value.Y, value.Z); } }
+        public static Vector3 Position
+        {
+            get => RAGE.Game.Cam.GetCamCoord(Id);
+            set => RAGE.Game.Cam.SetCamCoord(Id, value.X, value.Y, value.Z);
+        }
 
         /// <summary>Поворот текущей камеры</summary>
-        public static Vector3 Rotation { get => RAGE.Game.Cam.GetCamRot(Id, 2); set { RAGE.Game.Cam.SetCamRot(Id, value.X, value.Y, value.Z, 2); } }
+        public static Vector3 Rotation
+        {
+            get => RAGE.Game.Cam.GetCamRot(Id, 2);
+            set => RAGE.Game.Cam.SetCamRot(Id, value.X, value.Y, value.Z, 2);
+        }
 
         /// <summary>Поле обзора</summary>
-        public static float Fov { get => RAGE.Game.Cam.GetCamFov(Id); set { if (value > MaxFov) return; if (value < MinFov) return; RAGE.Game.Cam.SetCamFov(Id, value); } }
+        public static float Fov
+        {
+            get => RAGE.Game.Cam.GetCamFov(Id);
+            set
+            {
+                if (value > MaxFov)
+                    return;
+                if (value < MinFov)
+                    return;
+                RAGE.Game.Cam.SetCamFov(Id, value);
+            }
+        }
 
         /// <summary>Активна ли камера?</summary>
         public static bool IsActive { get; private set; }
@@ -46,12 +65,16 @@ namespace BlaineRP.Client.Game.Management.Camera
         /// <summary>Текущий StateType</summary>
         private static StateTypes? CurrentState { get; set; }
 
-        public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
+        public static void Enable(StateTypes startType,
+                                  Entity sourceEntity = null,
+                                  Entity targetEntity = null,
+                                  int transitionTime = 0,
+                                  object sourceParams = null,
+                                  object targetParams = null,
+                                  Vector3 sourcePos = null)
         {
             if (IsActive)
-            {
                 Disable();
-            }
 
             IsActive = true;
 
@@ -67,7 +90,7 @@ namespace BlaineRP.Client.Game.Management.Camera
 
             CurrentState = startType;
 
-            var state = States[startType];
+            CameraState state = States[startType];
 
             if (transitionTime < 0)
                 transitionTime = state.TransitionTime;
@@ -77,13 +100,9 @@ namespace BlaineRP.Client.Game.Management.Camera
             RAGE.Game.Cam.SetCamActive(Id, true);
 
             if (transitionTime <= 0)
-            {
                 RAGE.Game.Cam.RenderScriptCams(true, false, 0, true, false, 0);
-            }
             else
-            {
                 RAGE.Game.Cam.RenderScriptCams(true, true, transitionTime, true, false, 0);
-            }
         }
 
         public static void Disable(int transitionTime = 0)
@@ -108,7 +127,13 @@ namespace BlaineRP.Client.Game.Management.Camera
             SourceEntity = null;
         }
 
-        public static void FromState(StateTypes sType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
+        public static void FromState(StateTypes sType,
+                                     Entity sourceEntity = null,
+                                     Entity targetEntity = null,
+                                     int transitionTime = 0,
+                                     object sourceParams = null,
+                                     object targetParams = null,
+                                     Vector3 sourcePos = null)
         {
             if (!IsActive)
             {
@@ -119,7 +144,7 @@ namespace BlaineRP.Client.Game.Management.Camera
 
             if (CurrentState != null)
             {
-                var curState = States[(StateTypes)CurrentState];
+                CameraState curState = States[(StateTypes)CurrentState];
 
                 curState.OffAction?.Invoke(null);
             }
@@ -132,19 +157,21 @@ namespace BlaineRP.Client.Game.Management.Camera
 
             RAGE.Game.Cam.SetCamActive(Id, true);
 
-            for (int i = 0; i < UsedCams.Count; i++)
+            for (var i = 0; i < UsedCams.Count; i++)
+            {
                 RAGE.Game.Cam.DestroyCam(UsedCams[i], false);
+            }
 
             UsedCams.Clear();
 
-            var state = States[sType];
+            CameraState state = States[sType];
 
             if (transitionTime < 0)
                 transitionTime = state.TransitionTime;
 
             if (transitionTime > 0)
             {
-                var oldCam = Id;
+                int oldCam = Id;
                 Id = DefaultCamera;
 
                 UsedCams.Add(oldCam);
@@ -161,7 +188,13 @@ namespace BlaineRP.Client.Game.Management.Camera
             }
         }
 
-        private static void ApplyState(CameraState state, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
+        private static void ApplyState(CameraState state,
+                                       Entity sourceEntity = null,
+                                       Entity targetEntity = null,
+                                       int transitionTime = 0,
+                                       object sourceParams = null,
+                                       object targetParams = null,
+                                       Vector3 sourcePos = null)
         {
             SourceEntity = sourceEntity;
 
@@ -183,16 +216,20 @@ namespace BlaineRP.Client.Game.Management.Camera
                 ExecuteTask(false, tEntity, CameraState.RenderTypes.None, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
 
                 ExecuteTasksSchedule = new AsyncTask(() =>
-                {
-                    if (state.SourceRenderType != CameraState.RenderTypes.None)
-                        ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, sourcePos ?? state.Position);
+                    {
+                        if (state.SourceRenderType != CameraState.RenderTypes.None)
+                            ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, sourcePos ?? state.Position);
 
-                    if (state.TargetRenderType != CameraState.RenderTypes.None)
-                        ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
+                        if (state.TargetRenderType != CameraState.RenderTypes.None)
+                            ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
 
-                    if (state.ShakeAmplitude > 0f)
-                        RAGE.Game.Cam.ShakeCam(Id, "HAND_SHAKE", state.ShakeAmplitude);
-                }, transitionTime, false, 0);
+                        if (state.ShakeAmplitude > 0f)
+                            RAGE.Game.Cam.ShakeCam(Id, "HAND_SHAKE", state.ShakeAmplitude);
+                    },
+                    transitionTime,
+                    false,
+                    0
+                );
 
                 ExecuteTasksSchedule.Run();
             }
@@ -210,16 +247,14 @@ namespace BlaineRP.Client.Game.Management.Camera
         {
             if (type == CameraState.RenderTypes.None)
             {
-                var pos = position;
+                Vector3 pos = position;
 
                 if (entity != null)
                 {
                     if (bType == CameraState.BehaviourTypes.FrontOf)
                     {
                         if (args is float[] arr)
-                        {
                             pos = GetFrontOf(RAGE.Game.Entity.GetEntityCoords(entity.Handle, false), RAGE.Game.Entity.GetEntityHeading(entity.Handle) + arr[0], arr[1]) + position;
-                        }
                     }
                     else if (bType == CameraState.BehaviourTypes.PointAt)
                     {
@@ -239,66 +274,65 @@ namespace BlaineRP.Client.Game.Management.Camera
             else
             {
                 Vector3 LastPosition = null;
-                var LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
+                float LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
 
                 var task = new AsyncTask(() =>
-                {
-                    if (!IsActive)
-                        return;
-
-                    if (entity != null)
                     {
-                        if (bType == CameraState.BehaviourTypes.FrontOf)
+                        if (!IsActive)
+                            return;
+
+                        if (entity != null)
                         {
-                            Vector3 pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
-
-                            var heading = LastHeading;
-                            var dist = 0f;
-                            var headingDiff = 0f;
-
-                            if (args is float[] arr)
+                            if (bType == CameraState.BehaviourTypes.FrontOf)
                             {
-                                headingDiff = arr[0];
-                                dist = arr[1];
+                                Vector3 pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
+
+                                float heading = LastHeading;
+                                var dist = 0f;
+                                var headingDiff = 0f;
+
+                                if (args is float[] arr)
+                                {
+                                    headingDiff = arr[0];
+                                    dist = arr[1];
+                                }
+
+                                if (type == CameraState.RenderTypes.Both)
+                                {
+                                    heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle) + headingDiff;
+
+                                    LastPosition = GetFrontOf(pos, heading, dist) + position;
+                                    LastHeading = heading;
+                                }
+                                else if (type == CameraState.RenderTypes.Position)
+                                {
+                                    LastPosition = GetFrontOf(pos, LastHeading + headingDiff, dist) + position;
+                                }
+                            }
+                            else if (bType == CameraState.BehaviourTypes.PointAt)
+                            {
+                                LastPosition = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false) + position;
+                            }
+                            else if (bType == CameraState.BehaviourTypes.PointBone)
+                            {
+                                LastPosition = (Utils.Game.Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                             }
 
-                            if (type == CameraState.RenderTypes.Both)
+                            if (LastPosition != null)
                             {
-                                heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle) + headingDiff;
+                                //Utils.ConsoleOutputLimited(RAGE.Util.Json.Serialize(LastPosition) + $" - {isSource}");
 
-                                LastPosition = GetFrontOf(pos, heading, dist) + position;
-                                LastHeading = heading;
-                            }
-                            else if (type == CameraState.RenderTypes.Position)
-                            {
-                                LastPosition = GetFrontOf(pos, LastHeading + headingDiff, dist) + position;
+                                if (isSource)
+                                    Position = LastPosition;
+                                else
+                                    PointAtPos(LastPosition);
                             }
                         }
-                        else if (bType == CameraState.BehaviourTypes.PointAt)
-                        {
-                            LastPosition = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false) + position;
-                        }
-                        else if (bType == CameraState.BehaviourTypes.PointBone)
-                        {
-                            LastPosition = (Utils.Game.Misc.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
-                        }
-
-                        if (LastPosition != null)
-                        {
-                            //Utils.ConsoleOutputLimited(RAGE.Util.Json.Serialize(LastPosition) + $" - {isSource}");
-
-                            if (isSource)
-                            {
-                                Position = LastPosition;
-                            }
-                            else
-                            {
-                                PointAtPos(LastPosition);
-                            }
-                        }
-                    }
-
-                }, 0, true, 0);
+                    },
+                    0,
+                    true,
+                    0
+                );
 
                 if (isSource)
                     SourceTask = task;
@@ -308,15 +342,18 @@ namespace BlaineRP.Client.Game.Management.Camera
                 task.Run();
             }
         }
-        
-        public static void PointAtPos(Vector3 pos) => RAGE.Game.Cam.PointCamAtCoord(Id, pos.X, pos.Y, pos.Z);
+
+        public static void PointAtPos(Vector3 pos)
+        {
+            RAGE.Game.Cam.PointCamAtCoord(Id, pos.X, pos.Y, pos.Z);
+        }
 
         public static Vector3 GetFrontOf(Vector3 pos, float angle, float distance = 1.2f)
         {
-            var radians = -angle * System.Math.PI / 180;
+            double radians = -angle * System.Math.PI / 180;
 
-            var nX = (float)(pos.X + (distance * System.Math.Sin(radians)));
-            var nY = (float)(pos.Y + (distance * System.Math.Cos(radians)));
+            var nX = (float)(pos.X + distance * System.Math.Sin(radians));
+            var nY = (float)(pos.Y + distance * System.Math.Cos(radians));
 
             return new Vector3(nX, nY, pos.Z);
         }

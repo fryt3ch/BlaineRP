@@ -9,12 +9,12 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 {
     public class Cylinder : ExtraColshape
     {
-        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}, Height: {Height}";
-
-        public float Radius { get; set; }
-        public float Height { get; set; }
-
-        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(ColshapeTypes.Cylinder, IsVisible, Colour, Dimension, Colshape)
+        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.Colour Colour, uint Dimension, Colshape Colshape = null) : base(ColshapeTypes.Cylinder,
+            IsVisible,
+            Colour,
+            Dimension,
+            Colshape
+        )
         {
             this.Radius = Radius;
             this.Height = Height;
@@ -25,11 +25,40 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
                 Streamed.Add(this);
         }
 
+        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}, Height: {Height}";
+
+        public float Radius { get; set; }
+        public float Height { get; set; }
+
         public override void Draw()
         {
-            var diameter = Radius * 2f;
+            float diameter = Radius * 2f;
 
-            RAGE.Game.Graphics.DrawMarker(1, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
+            RAGE.Game.Graphics.DrawMarker(1,
+                Position.X,
+                Position.Y,
+                Position.Z,
+                0f,
+                0f,
+                0f,
+                1f,
+                1f,
+                1f,
+                diameter,
+                diameter,
+                Height,
+                Colour.Red,
+                Colour.Green,
+                Colour.Blue,
+                Colour.Alpha,
+                false,
+                false,
+                2,
+                false,
+                null,
+                null,
+                false
+            );
 
             if (Settings.User.Other.DebugLabels)
             {
@@ -38,9 +67,39 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
                 if (!Graphics.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
                     return;
 
-                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Graphics.DrawText($"Radius: {Radius} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                Graphics.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}",
+                    screenX,
+                    screenY,
+                    255,
+                    255,
+                    255,
+                    255,
+                    0.4f,
+                    RAGE.Game.Font.ChaletComprimeCologne,
+                    true
+                );
+                Graphics.DrawText($"Radius: {Radius} | Height: {Height}",
+                    screenX,
+                    screenY += NameTags.Interval / 2,
+                    255,
+                    255,
+                    255,
+                    255,
+                    0.4f,
+                    RAGE.Game.Font.ChaletComprimeCologne,
+                    true
+                );
+                Graphics.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}",
+                    screenX,
+                    screenY += NameTags.Interval / 2,
+                    255,
+                    255,
+                    255,
+                    255,
+                    0.4f,
+                    RAGE.Game.Font.ChaletComprimeCologne,
+                    true
+                );
             }
         }
 

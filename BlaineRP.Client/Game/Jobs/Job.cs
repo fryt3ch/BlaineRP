@@ -6,18 +6,20 @@ using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
 using RAGE.Elements;
-using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
 namespace BlaineRP.Client.Game.Jobs
 {
     public abstract partial class Job
     {
-        public static Dictionary<int, Job> AllJobs { get; private set; } = new Dictionary<int, Job>();
-
-        public static Job Get(int id)
+        public Job(int Id, JobTypes Type)
         {
-            return AllJobs.GetValueOrDefault(id);
+            this.Type = Type;
+            this.Id = Id;
+
+            AllJobs.Add(Id, this);
         }
+
+        public static Dictionary<int, Job> AllJobs { get; private set; } = new Dictionary<int, Job>();
 
         private static Dictionary<JobTypes, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<JobTypes, Action<PlayerData, Job>>()
         {
@@ -33,7 +35,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+                    Vehicle jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
                     if (jobVehicle == null)
                         return;
@@ -45,7 +47,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var activeOrders = job.GetCurrentData<List<Trucker.OrderInfo>>("AOL");
+                    List<Trucker.OrderInfo> activeOrders = job.GetCurrentData<List<Trucker.OrderInfo>>("AOL");
 
                     if (activeOrders == null)
                         return;
@@ -65,7 +67,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+                    Vehicle jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
                     if (jobVehicle == null)
                         return;
@@ -77,7 +79,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var activeOrders = job.GetCurrentData<List<Collector.OrderInfo>>("AOL");
+                    List<Collector.OrderInfo> activeOrders = job.GetCurrentData<List<Collector.OrderInfo>>("AOL");
 
                     if (activeOrders == null)
                         return;
@@ -97,7 +99,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+                    Vehicle jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
                     if (jobVehicle == null)
                         return;
@@ -109,7 +111,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var activeOrders = job.GetCurrentData<List<Cabbie.OrderInfo>>("AOL");
+                    List<Cabbie.OrderInfo> activeOrders = job.GetCurrentData<List<Cabbie.OrderInfo>>("AOL");
 
                     if (activeOrders == null)
                         return;
@@ -129,7 +131,7 @@ namespace BlaineRP.Client.Game.Jobs
                         return;
                     }
 
-                    var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+                    Vehicle jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
                     if (jobVehicle == null)
                         return;
@@ -146,26 +148,6 @@ namespace BlaineRP.Client.Game.Jobs
             },
         };
 
-        public static void ShowJobMenu()
-        {
-            var pData = PlayerData.GetData(Player.LocalPlayer);
-
-            if (pData == null)
-                return;
-
-            var job = pData.CurrentJob;
-
-            if (job == null)
-                return;
-
-            var showAction = ShowJobMenuActions.GetValueOrDefault(job.Type);
-
-            if (showAction == null)
-                return;
-
-            showAction.Invoke(pData, job);
-        }
-
         public int Id { get; set; }
 
         public int SubId => AllJobs.Values.Where(x => x.Type == Type).ToList().IndexOf(this);
@@ -176,16 +158,33 @@ namespace BlaineRP.Client.Game.Jobs
 
         public ExtraBlip Blip { get; set; }
 
-        public NPC JobGiver { get; set; }
+        public NPCs.NPC JobGiver { get; set; }
 
         private Dictionary<string, object> CurrentData { get; set; }
 
-        public Job(int Id, JobTypes Type)
+        public static Job Get(int id)
         {
-            this.Type = Type;
-            this.Id = Id;
+            return AllJobs.GetValueOrDefault(id);
+        }
 
-            AllJobs.Add(Id, this);
+        public static void ShowJobMenu()
+        {
+            var pData = PlayerData.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            Job job = pData.CurrentJob;
+
+            if (job == null)
+                return;
+
+            Action<PlayerData, Job> showAction = ShowJobMenuActions.GetValueOrDefault(job.Type);
+
+            if (showAction == null)
+                return;
+
+            showAction.Invoke(pData, job);
         }
 
         public void SetCurrentData(string key, object data)
@@ -199,7 +198,7 @@ namespace BlaineRP.Client.Game.Jobs
 
         public T GetCurrentData<T>(string key)
         {
-            var data = CurrentData.GetValueOrDefault(key);
+            object data = CurrentData.GetValueOrDefault(key);
 
             if (data is T dataT)
                 return dataT;

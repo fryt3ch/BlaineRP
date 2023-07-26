@@ -9,242 +9,50 @@ namespace BlaineRP.Client.Game.Data.Customization
 {
     public class Customization
     {
-        public class TattooData
-        {
-            public enum ZoneTypes
-            {
-                Face = 0,
-                Temple,
-                Neck,
-                Mouth,
-
-                Chest,
-                Stomath,
-                Back,
-
-                LeftArm,
-                RightArm,
-
-                LeftLeg,
-                RightLeg,
-            }
-
-            private static Dictionary<ZoneTypes, (string Id, string Name)> ZoneTypesData = new Dictionary<ZoneTypes, (string Id, string Name)>()
-            {
-                { ZoneTypes.Face, ("face", "Лицо") },
-                { ZoneTypes.Temple, ("temple", "Виски") },
-                { ZoneTypes.Neck, ("neck", "Шея") },
-                { ZoneTypes.Mouth, ("mouth", "Губы") },
-
-                { ZoneTypes.Chest, ("chest", "Грудь") },
-                { ZoneTypes.Stomath, ("stomath", "Живот") },
-                { ZoneTypes.Back, ("back", "Спина") },
-
-                { ZoneTypes.LeftArm, ("larm", "Левая рука") },
-                { ZoneTypes.RightArm, ("rarm", "Правая рука") },
-
-                { ZoneTypes.LeftLeg, ("lleg", "Левая нога") },
-                { ZoneTypes.RightLeg, ("rleg", "Правая нога") },
-            };
-
-            public static ZoneTypes? GetZoneTypeById(string id) => ZoneTypesData.Where(x => x.Value.Id == id).Select(x => (ZoneTypes?)x.Key).FirstOrDefault();
-
-            public static string GetZoneTypeName(ZoneTypes zType) => ZoneTypesData.GetValueOrDefault(zType).Name ?? "null";
-
-            public static string GetZoneTypeId(ZoneTypes zType) => ZoneTypesData.GetValueOrDefault(zType).Id ?? "null";
-
-            public ZoneTypes ZoneType { get; set; }
-
-            public uint CollectionHash { get; set; }
-
-            public uint? HashMale { get; set; }
-
-            public uint? HashFemale { get; set; }
-
-            public bool? Sex => (HashMale != null && HashFemale != null) ? null : (bool?)(HashMale != null);
-
-            public string Name { get; set; }
-
-            public TattooData(string collectionString, string name, string hashMaleString, string hashFemaleString, ZoneTypes zoneType)
-            {
-                Name = RAGE.Game.Ui.GetLabelText(name);
-
-                if (Name == "NULL")
-                    Name = name;
-
-                ZoneType = zoneType;
-
-                CollectionHash = RAGE.Util.Joaat.Hash(collectionString);
-
-                if (hashMaleString != null)
-                    HashMale = RAGE.Util.Joaat.Hash(hashMaleString);
-
-                if (hashFemaleString != null)
-                    HashFemale = RAGE.Util.Joaat.Hash(hashFemaleString);
-            }
-
-            public bool TryApply(Player player)
-            {
-                var sex = player.GetSex();
-
-                if (sex)
-                {
-                    if (HashMale is uint hmu)
-                        player.SetDecoration(CollectionHash, hmu);
-                    else
-                        return false;
-                }
-                else
-                {
-                    if (HashFemale is uint hmu)
-                        player.SetDecoration(CollectionHash, hmu);
-                    else
-                        return false;
-                }
-
-                return true;
-            }
-
-            public static void ClearAll(Player player)
-            {
-                player.ClearDecorations();
-
-                if (PlayerData.GetData(player) is PlayerData pData)
-                    pData.HairOverlay?.Apply(player);
-            }
-        }
-
-        public class HeadBlend
-        {
-            [JsonProperty(PropertyName = "SF")]
-            public byte ShapeFirst { get; set; }
-
-            [JsonProperty(PropertyName = "SS")]
-            public byte ShapeSecond { get; set; }
-
-            [JsonProperty(PropertyName = "ST")]
-            public byte ShapeThird { get; set; }
-
-            [JsonProperty(PropertyName = "SNF")]
-            public byte SkinFirst { get; set; }
-
-            [JsonProperty(PropertyName = "SNS")]
-            public byte SkinSecond { get; set; }
-
-            [JsonProperty(PropertyName = "SNT")]
-            public byte SkinThird { get; set; }
-
-            [JsonProperty(PropertyName = "SM")]
-            public float ShapeMix { get; set; }
-
-            [JsonProperty(PropertyName = "SNM")]
-            public float SkinMix { get; set; }
-
-            [JsonProperty(PropertyName = "TM")]
-            public float ThirdMix { get; set; }
-
-            public void SetFather(byte value)
-            {
-                ShapeSecond = value;
-                SkinSecond = value;
-            }
-
-            public void SetMother(byte value)
-            {
-                ShapeFirst = value;
-                SkinFirst = value;
-            }
-
-            public byte GetFather() => ShapeSecond;
-            public byte GetMother() => ShapeFirst;
-
-            public HeadBlend()
-            {
-                ShapeThird = 0;
-                SkinThird = 0;
-                ThirdMix = 0f;
-            }
-        }
-
-        public class HeadOverlay
-        {
-            [JsonProperty(PropertyName = "I")]
-            public byte Index { get; set; }
-
-            [JsonProperty(PropertyName = "C")]
-            public byte Color { get; set; }
-
-            [JsonProperty(PropertyName = "C2")]
-            public byte SecondaryColor { get; set; }
-
-            [JsonProperty(PropertyName = "O")]
-            public float Opacity { get; set; }
-
-            public HeadOverlay() { }
-        }
-
-        public class Decoration
-        {
-            public uint Collection, Overlay;
-
-            public Decoration() { }
-        }
-
-        public class HairStyle
-        {
-            [JsonProperty(PropertyName = "I")]
-            public int Id { get; set; }
-
-            [JsonProperty(PropertyName = "O")]
-            public byte Overlay { get; set; }
-
-            [JsonProperty(PropertyName = "C")]
-            public byte Color { get; set; }
-
-            [JsonProperty(PropertyName = "C2")]
-            public byte Color2 { get; set; }
-
-            public HairStyle(int Id, byte Overlay, byte Color, byte Color2)
-            {
-                this.Id = Id;
-                this.Overlay = Overlay;
-                this.Color = Color;
-                this.Color2 = Color2;
-            }
-
-            public HairStyle() { }
-        }
-
-        public class HairOverlay
-        {
-            public uint Collection { get; set; }
-
-            public uint Overlay { get; set; }
-
-            public HairOverlay(string Collection, string Overlay)
-            {
-                this.Collection = RAGE.Util.Joaat.Hash(Collection);
-                this.Overlay = RAGE.Util.Joaat.Hash(Overlay);
-            }
-
-            public void Apply(Player player) => player.SetFacialDecoration(Collection, Overlay);
-
-            public static void ClearAll(Player player)
-            {
-                player.ClearFacialDecorations();
-
-                if (PlayerData.GetData(player) is PlayerData pData && pData.Decorations is List<int> decors)
-                {
-                    foreach (var x in decors)
-                        GetTattooData(x)?.TryApply(player);
-                }
-            }
-        }
-
         private static Dictionary<int, int> MaleHairs = new Dictionary<int, int>()
         {
             // GTA Default
-            { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 }, { 5, 5 }, { 6, 6 }, { 7, 7 }, { 8, 8 }, { 9, 9 }, { 10, 10 }, { 11, 11 }, { 12, 12 }, { 13, 13 }, { 14, 14 }, { 15, 15 }, { 16, 16 }, { 17, 17 },{ 18, 18 }, { 19, 19 }, { 20, 20 }, { 21, 21 }, { 22, 22 }, { 23, 24 }, { 24, 25 }, { 25, 26 }, { 26, 27 }, { 27, 28}, { 28, 29 }, { 29, 30 }, { 30, 31 }, { 31, 32 }, { 32,33 }, { 33, 34 }, { 34, 35 }, { 35, 36 }, { 36, 72}, { 37, 73}, { 38, 74 }, { 39, 75 }, { 40, 76 },
+            { 0, 0 },
+            { 1, 1 },
+            { 2, 2 },
+            { 3, 3 },
+            { 4, 4 },
+            { 5, 5 },
+            { 6, 6 },
+            { 7, 7 },
+            { 8, 8 },
+            { 9, 9 },
+            { 10, 10 },
+            { 11, 11 },
+            { 12, 12 },
+            { 13, 13 },
+            { 14, 14 },
+            { 15, 15 },
+            { 16, 16 },
+            { 17, 17 },
+            { 18, 18 },
+            { 19, 19 },
+            { 20, 20 },
+            { 21, 21 },
+            { 22, 22 },
+            { 23, 24 },
+            { 24, 25 },
+            { 25, 26 },
+            { 26, 27 },
+            { 27, 28 },
+            { 28, 29 },
+            { 29, 30 },
+            { 30, 31 },
+            { 31, 32 },
+            { 32, 33 },
+            { 33, 34 },
+            { 34, 35 },
+            { 35, 36 },
+            { 36, 72 },
+            { 37, 73 },
+            { 38, 74 },
+            { 39, 75 },
+            { 40, 76 },
 
             // Modded
         };
@@ -252,7 +60,49 @@ namespace BlaineRP.Client.Game.Data.Customization
         private static Dictionary<int, int> FemaleHairs = new Dictionary<int, int>()
         {
             // GTA Default
-            { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 }, { 5, 5 }, { 6, 6 }, { 7, 7 }, { 8, 8 }, { 9, 9 }, { 10, 10 }, { 11, 11 }, { 12, 12 }, { 13, 13 }, { 14, 14 }, { 15, 15 }, { 16, 16 }, { 17, 17 },{ 18, 18 }, { 19, 19 }, { 20, 20 }, { 21, 21 }, { 22, 22 }, { 23, 23 }, { 24, 25 }, { 25, 26 }, { 26, 27 }, { 27, 28}, { 28, 29 }, { 29, 30 }, { 30, 31 }, { 31, 32 }, { 32,33 }, { 33, 34 }, { 34, 35 }, { 35, 36 }, { 36, 37 }, { 37, 38 }, { 38, 76}, { 39, 77}, { 40, 78 }, { 41, 79 }, { 42, 80 },
+            { 0, 0 },
+            { 1, 1 },
+            { 2, 2 },
+            { 3, 3 },
+            { 4, 4 },
+            { 5, 5 },
+            { 6, 6 },
+            { 7, 7 },
+            { 8, 8 },
+            { 9, 9 },
+            { 10, 10 },
+            { 11, 11 },
+            { 12, 12 },
+            { 13, 13 },
+            { 14, 14 },
+            { 15, 15 },
+            { 16, 16 },
+            { 17, 17 },
+            { 18, 18 },
+            { 19, 19 },
+            { 20, 20 },
+            { 21, 21 },
+            { 22, 22 },
+            { 23, 23 },
+            { 24, 25 },
+            { 25, 26 },
+            { 26, 27 },
+            { 27, 28 },
+            { 28, 29 },
+            { 29, 30 },
+            { 30, 31 },
+            { 31, 32 },
+            { 32, 33 },
+            { 33, 34 },
+            { 34, 35 },
+            { 35, 36 },
+            { 36, 37 },
+            { 37, 38 },
+            { 38, 76 },
+            { 39, 77 },
+            { 40, 78 },
+            { 41, 79 },
+            { 42, 80 },
 
             // Modded
         };
@@ -307,9 +157,7 @@ namespace BlaineRP.Client.Game.Data.Customization
         public static List<HairOverlay> FemaleHairOverlays { get; private set; } = new List<HairOverlay>()
         {
             null,
-
             new HairOverlay("mpbeach_overlays", "FM_Hair_Fuzz"),
-
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_001"),
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_002"),
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_003"),
@@ -325,7 +173,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_013"),
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_014"),
             new HairOverlay("multiplayer_overlays", "NG_F_Hair_015"),
-
             new HairOverlay("multiplayer_overlays", "NGBea_F_Hair_000"),
             new HairOverlay("multiplayer_overlays", "NGBea_F_Hair_001"),
             new HairOverlay("multiplayer_overlays", "NGBus_F_Hair_000"),
@@ -333,12 +180,10 @@ namespace BlaineRP.Client.Game.Data.Customization
             new HairOverlay("multiplayer_overlays", "NGHip_F_Hair_000"),
             new HairOverlay("multiplayer_overlays", "NGHip_F_Hair_001"),
             new HairOverlay("multiplayer_overlays", "NGInd_F_Hair_000"),
-
             new HairOverlay("mplowrider_overlays", "LR_F_Hair_000"),
             new HairOverlay("mplowrider_overlays", "LR_F_Hair_001"),
             new HairOverlay("mplowrider_overlays", "LR_F_Hair_002"),
             new HairOverlay("mplowrider_overlays", "LR_M_Hair_003"),
-
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_000_F"),
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_001_F"),
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_002_F"),
@@ -346,101 +191,100 @@ namespace BlaineRP.Client.Game.Data.Customization
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_004_F"),
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_005_F"),
             new HairOverlay("mpbiker_overlays", "MP_Biker_Hair_006_F"),
-
             new HairOverlay("mpgunrunning_overlays", "MP_Gunrunning_Hair_F_000_F"),
             new HairOverlay("mpgunrunning_overlays", "MP_Gunrunning_Hair_F_001_F"),
         };
 
         public static Dictionary<int, int> MaleDefaultHairOverlays { get; private set; } = new Dictionary<int, int>()
         {
-            {0,  0},
-            {1,  2},
-            {2,  3},
-            {3,  4},
-            {4,  5},
-            {5,  6},
-            {6,  7},
-            {7,  8},
-            {8,  9},
-            {9,  10},
-            {10,  11},
-            {11,  12},
-            {12,  13},
-            {13,  14},
-            {14,  15},
-            {15,  16},
-            {16,  17},
-            {17,  18},
-            {18,  19},
-            {19,  20},
-            {20,  21},
-            {21,  22},
-            {22,  23},
-            {23,  24},
-            {24,  25},
-            {25,  26},
-            {26,  27},
-            {27,  26},
-            {28,  26},
-            {29,  0},
-            {30,  28},
-            {31,  29},
-            {32,  30},
-            {33,  31},
-            {34,  32},
-            {35,  33},
-            {36,  35},
-            {37,  36},
-            {38,  35},
-            {39,  2},
-            {40,  30},
+            { 0, 0 },
+            { 1, 2 },
+            { 2, 3 },
+            { 3, 4 },
+            { 4, 5 },
+            { 5, 6 },
+            { 6, 7 },
+            { 7, 8 },
+            { 8, 9 },
+            { 9, 10 },
+            { 10, 11 },
+            { 11, 12 },
+            { 12, 13 },
+            { 13, 14 },
+            { 14, 15 },
+            { 15, 16 },
+            { 16, 17 },
+            { 17, 18 },
+            { 18, 19 },
+            { 19, 20 },
+            { 20, 21 },
+            { 21, 22 },
+            { 22, 23 },
+            { 23, 24 },
+            { 24, 25 },
+            { 25, 26 },
+            { 26, 27 },
+            { 27, 26 },
+            { 28, 26 },
+            { 29, 0 },
+            { 30, 28 },
+            { 31, 29 },
+            { 32, 30 },
+            { 33, 31 },
+            { 34, 32 },
+            { 35, 33 },
+            { 36, 35 },
+            { 37, 36 },
+            { 38, 35 },
+            { 39, 2 },
+            { 40, 30 },
         };
 
         public static Dictionary<int, int> FemaleDefaultHairOverlays { get; private set; } = new Dictionary<int, int>()
         {
-            {0,  0},
-            {1,  2},
-            {2,  3},
-            {3,  4},
-            {4,  5},
-            {5,  6},
-            {6,  7},
-            {7,  8},
-            {8,  9},
-            {9,  10},
-            {10,  11},
-            {11,  12},
-            {12,  13},
-            {13,  14},
-            {14,  15},
-            {15,  16},
-            {16,  17},
-            {17,  18},
-            {18,  8},
-            {19,  19},
-            {20,  20},
-            {21,  18},
-            {22,  21},
-            {23,  23},
-            {24,  24},
-            {25,  25},
-            {26,  26},
-            {27,  27},
-            {28,  27},
-            {29,  0},
-            {30,  0},
-            {31,  28},
-            {32,  29},
-            {33,  30},
-            {34,  31},
-            {35,  4},
-            {36,  34},
-            {37,  32},
-            {38,  35},
-            {39,  36},
-            {40,  0},
-            {41,  33},
-            {42,  33},
+            { 0, 0 },
+            { 1, 2 },
+            { 2, 3 },
+            { 3, 4 },
+            { 4, 5 },
+            { 5, 6 },
+            { 6, 7 },
+            { 7, 8 },
+            { 8, 9 },
+            { 9, 10 },
+            { 10, 11 },
+            { 11, 12 },
+            { 12, 13 },
+            { 13, 14 },
+            { 14, 15 },
+            { 15, 16 },
+            { 16, 17 },
+            { 17, 18 },
+            { 18, 8 },
+            { 19, 19 },
+            { 20, 20 },
+            { 21, 18 },
+            { 22, 21 },
+            { 23, 23 },
+            { 24, 24 },
+            { 25, 25 },
+            { 26, 26 },
+            { 27, 27 },
+            { 28, 27 },
+            { 29, 0 },
+            { 30, 0 },
+            { 31, 28 },
+            { 32, 29 },
+            { 33, 30 },
+            { 34, 31 },
+            { 35, 4 },
+            { 36, 34 },
+            { 37, 32 },
+            { 38, 35 },
+            { 39, 36 },
+            { 40, 0 },
+            { 41, 33 },
+            { 42, 33 },
         };
 
         public static Dictionary<int, TattooData> AllTattoos { get; private set; } = new Dictionary<int, TattooData>()
@@ -453,7 +297,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 5, new TattooData("mpairraces_overlays", "TAT_AR_005", "MP_Airraces_Tattoo_005_M", "MP_Airraces_Tattoo_005_F", TattooData.ZoneTypes.Back) },
             { 6, new TattooData("mpairraces_overlays", "TAT_AR_006", "MP_Airraces_Tattoo_006_M", "MP_Airraces_Tattoo_006_F", TattooData.ZoneTypes.Stomath) },
             { 7, new TattooData("mpairraces_overlays", "TAT_AR_007", "MP_Airraces_Tattoo_007_M", "MP_Airraces_Tattoo_007_F", TattooData.ZoneTypes.Back) },
-
             { 8, new TattooData("mpbeach_overlays", "TAT_BB_018", "MP_Bea_M_Back_000", null, TattooData.ZoneTypes.Back) },
             { 9, new TattooData("mpbeach_overlays", "TAT_BB_019", "MP_Bea_M_Chest_000", null, TattooData.ZoneTypes.Chest) },
             { 10, new TattooData("mpbeach_overlays", "TAT_BB_020", "MP_Bea_M_Chest_001", null, TattooData.ZoneTypes.Chest) },
@@ -487,7 +330,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 38, new TattooData("mpbeach_overlays", "TAT_BB_010", null, "MP_Bea_F_Stom_002", TattooData.ZoneTypes.Stomath) },
             { 39, new TattooData("mpbeach_overlays", "TAT_BB_002", null, "MP_Bea_F_LArm_000", TattooData.ZoneTypes.LeftArm) },
             { 40, new TattooData("mpbeach_overlays", "TAT_BB_016", null, "MP_Bea_F_LArm_001", TattooData.ZoneTypes.LeftArm) },
-
             { 41, new TattooData("mpbiker_overlays", "TAT_BI_000", "MP_MP_Biker_Tat_000_M", "MP_MP_Biker_Tat_000_F", TattooData.ZoneTypes.Chest) },
             { 42, new TattooData("mpbiker_overlays", "TAT_BI_001", "MP_MP_Biker_Tat_001_M", "MP_MP_Biker_Tat_001_F", TattooData.ZoneTypes.Chest) },
             { 43, new TattooData("mpbiker_overlays", "TAT_BI_002", "MP_MP_Biker_Tat_002_M", "MP_MP_Biker_Tat_002_F", TattooData.ZoneTypes.LeftLeg) },
@@ -549,7 +391,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 99, new TattooData("mpbiker_overlays", "TAT_BI_058", "MP_MP_Biker_Tat_058_M", "MP_MP_Biker_Tat_058_F", TattooData.ZoneTypes.Chest) },
             { 100, new TattooData("mpbiker_overlays", "TAT_BI_059", "MP_MP_Biker_Tat_059_M", "MP_MP_Biker_Tat_059_F", TattooData.ZoneTypes.Chest) },
             { 101, new TattooData("mpbiker_overlays", "TAT_BI_060", "MP_MP_Biker_Tat_060_M", "MP_MP_Biker_Tat_060_F", TattooData.ZoneTypes.Chest) },
-
             { 102, new TattooData("mpbusiness_overlays", "TAT_BUS_005", "MP_Buis_M_Neck_000", null, TattooData.ZoneTypes.Neck) },
             { 103, new TattooData("mpbusiness_overlays", "TAT_BUS_006", "MP_Buis_M_Neck_001", null, TattooData.ZoneTypes.Neck) },
             { 104, new TattooData("mpbusiness_overlays", "TAT_BUS_007", "MP_Buis_M_Neck_002", null, TattooData.ZoneTypes.Neck) },
@@ -576,7 +417,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 125, new TattooData("mpbusiness_overlays", "TAT_BUS_F_005", null, "MP_Buis_F_LArm_000", TattooData.ZoneTypes.LeftArm) },
             { 126, new TattooData("mpbusiness_overlays", "TAT_BUS_F_006", null, "MP_Buis_F_LLeg_000", TattooData.ZoneTypes.LeftLeg) },
             { 127, new TattooData("mpbusiness_overlays", "TAT_BUS_F_010", null, "MP_Buis_F_RLeg_000", TattooData.ZoneTypes.RightLeg) },
-
             { 128, new TattooData("mpchristmas2017_overlays", "TAT_H27_000", "MP_Christmas2017_Tattoo_000_M", "MP_Christmas2017_Tattoo_000_F", TattooData.ZoneTypes.Chest) },
             { 129, new TattooData("mpchristmas2017_overlays", "TAT_H27_001", "MP_Christmas2017_Tattoo_001_M", "MP_Christmas2017_Tattoo_001_F", TattooData.ZoneTypes.LeftArm) },
             { 130, new TattooData("mpchristmas2017_overlays", "TAT_H27_002", "MP_Christmas2017_Tattoo_002_M", "MP_Christmas2017_Tattoo_002_F", TattooData.ZoneTypes.Back) },
@@ -607,7 +447,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 155, new TattooData("mpchristmas2017_overlays", "TAT_H27_027", "MP_Christmas2017_Tattoo_027_M", "MP_Christmas2017_Tattoo_027_F", TattooData.ZoneTypes.Back) },
             { 156, new TattooData("mpchristmas2017_overlays", "TAT_H27_028", "MP_Christmas2017_Tattoo_028_M", "MP_Christmas2017_Tattoo_028_F", TattooData.ZoneTypes.RightArm) },
             { 157, new TattooData("mpchristmas2017_overlays", "TAT_H27_029", "MP_Christmas2017_Tattoo_029_M", "MP_Christmas2017_Tattoo_029_F", TattooData.ZoneTypes.LeftArm) },
-
             { 158, new TattooData("mpchristmas2_overlays", "TAT_X2_000", "MP_Xmas2_M_Tat_000", "MP_Xmas2_F_Tat_000", TattooData.ZoneTypes.LeftArm) },
             { 159, new TattooData("mpchristmas2_overlays", "TAT_X2_001", "MP_Xmas2_M_Tat_001", "MP_Xmas2_F_Tat_001", TattooData.ZoneTypes.LeftLeg) },
             { 160, new TattooData("mpchristmas2_overlays", "TAT_X2_002", "MP_Xmas2_M_Tat_002", "MP_Xmas2_F_Tat_002", TattooData.ZoneTypes.LeftLeg) },
@@ -638,7 +477,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 185, new TattooData("mpchristmas2_overlays", "TAT_X2_027", "MP_Xmas2_M_Tat_027", "MP_Xmas2_F_Tat_027", TattooData.ZoneTypes.RightArm) },
             { 186, new TattooData("mpchristmas2_overlays", "TAT_X2_028", "MP_Xmas2_M_Tat_028", "MP_Xmas2_F_Tat_028", TattooData.ZoneTypes.Stomath) },
             { 187, new TattooData("mpchristmas2_overlays", "TAT_X2_029", "MP_Xmas2_M_Tat_029", "MP_Xmas2_F_Tat_029", TattooData.ZoneTypes.Neck) },
-
             { 188, new TattooData("mpchristmas3_overlays", "TAT_X6_000", "MP_Christmas3_Tat_000_M", "MP_Christmas3_Tat_000_F", TattooData.ZoneTypes.LeftArm) },
             { 189, new TattooData("mpchristmas3_overlays", "TAT_X6_001", "MP_Christmas3_Tat_001_M", "MP_Christmas3_Tat_001_F", TattooData.ZoneTypes.LeftArm) },
             { 190, new TattooData("mpchristmas3_overlays", "TAT_X6_002", "MP_Christmas3_Tat_002_M", "MP_Christmas3_Tat_002_F", TattooData.ZoneTypes.RightArm) },
@@ -691,7 +529,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 237, new TattooData("mpchristmas3_overlays", "TAT_X6_049", "MP_Christmas3_Tat_049_M", "MP_Christmas3_Tat_049_F", TattooData.ZoneTypes.Chest) },
             { 238, new TattooData("mpchristmas3_overlays", "TAT_X6_050", "MP_Christmas3_Tat_050_M", "MP_Christmas3_Tat_050_F", TattooData.ZoneTypes.Chest) },
             { 239, new TattooData("mpchristmas3_overlays", "TAT_X6_051", "MP_Christmas3_Tat_051_M", "MP_Christmas3_Tat_051_F", TattooData.ZoneTypes.Chest) },
-
             { 240, new TattooData("mpgunrunning_overlays", "TAT_GR_000", "MP_Gunrunning_Tattoo_000_M", "MP_Gunrunning_Tattoo_000_F", TattooData.ZoneTypes.Back) },
             { 241, new TattooData("mpgunrunning_overlays", "TAT_GR_001", "MP_Gunrunning_Tattoo_001_M", "MP_Gunrunning_Tattoo_001_F", TattooData.ZoneTypes.Back) },
             { 242, new TattooData("mpgunrunning_overlays", "TAT_GR_002", "MP_Gunrunning_Tattoo_002_M", "MP_Gunrunning_Tattoo_002_F", TattooData.ZoneTypes.RightArm) },
@@ -723,7 +560,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 268, new TattooData("mpgunrunning_overlays", "TAT_GR_028", "MP_Gunrunning_Tattoo_028_M", "MP_Gunrunning_Tattoo_028_F", TattooData.ZoneTypes.Chest) },
             { 269, new TattooData("mpgunrunning_overlays", "TAT_GR_029", "MP_Gunrunning_Tattoo_029_M", "MP_Gunrunning_Tattoo_029_F", TattooData.ZoneTypes.Stomath) },
             { 270, new TattooData("mpgunrunning_overlays", "TAT_GR_030", "MP_Gunrunning_Tattoo_030_M", "MP_Gunrunning_Tattoo_030_F", TattooData.ZoneTypes.RightLeg) },
-
             { 271, new TattooData("mpheist3_overlays", "TAT_H3_000", "mpHeist3_Tat_000_M", "mpHeist3_Tat_000_F", TattooData.ZoneTypes.Face) },
             { 272, new TattooData("mpheist3_overlays", "TAT_H3_001", "mpHeist3_Tat_001_M", "mpHeist3_Tat_001_F", TattooData.ZoneTypes.Face) },
             { 273, new TattooData("mpheist3_overlays", "TAT_H3_002", "mpHeist3_Tat_002_M", "mpHeist3_Tat_002_F", TattooData.ZoneTypes.Neck) },
@@ -769,7 +605,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 313, new TattooData("mpheist3_overlays", "TAT_H3_042", "mpHeist3_Tat_042_M", "mpHeist3_Tat_042_F", TattooData.ZoneTypes.Face) },
             { 314, new TattooData("mpheist3_overlays", "TAT_H3_043", "mpHeist3_Tat_043_M", "mpHeist3_Tat_043_F", TattooData.ZoneTypes.Face) },
             { 315, new TattooData("mpheist3_overlays", "TAT_H3_044", "mpHeist3_Tat_044_M", "mpHeist3_Tat_044_F", TattooData.ZoneTypes.Face) },
-
             { 316, new TattooData("mpheist4_overlays", "TAT_H4_000", "MP_Heist4_Tat_000_M", "MP_Heist4_Tat_000_F", TattooData.ZoneTypes.RightArm) },
             { 317, new TattooData("mpheist4_overlays", "TAT_H4_001", "MP_Heist4_Tat_001_M", "MP_Heist4_Tat_001_F", TattooData.ZoneTypes.RightArm) },
             { 318, new TattooData("mpheist4_overlays", "TAT_H4_002", "MP_Heist4_Tat_002_M", "MP_Heist4_Tat_002_F", TattooData.ZoneTypes.RightArm) },
@@ -803,7 +638,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 346, new TattooData("mpheist4_overlays", "TAT_H4_030", "MP_Heist4_Tat_030_M", "MP_Heist4_Tat_030_F", TattooData.ZoneTypes.Stomath) },
             { 347, new TattooData("mpheist4_overlays", "TAT_H4_031", "MP_Heist4_Tat_031_M", "MP_Heist4_Tat_031_F", TattooData.ZoneTypes.RightArm) },
             { 348, new TattooData("mpheist4_overlays", "TAT_H4_032", "MP_Heist4_Tat_032_M", "MP_Heist4_Tat_032_F", TattooData.ZoneTypes.RightArm) },
-
             { 349, new TattooData("mphipster_overlays", "TAT_HP_000", "FM_Hip_M_Tat_000", "FM_Hip_F_Tat_000", TattooData.ZoneTypes.Back) },
             { 350, new TattooData("mphipster_overlays", "TAT_HP_001", "FM_Hip_M_Tat_001", "FM_Hip_F_Tat_001", TattooData.ZoneTypes.RightArm) },
             { 351, new TattooData("mphipster_overlays", "TAT_HP_002", "FM_Hip_M_Tat_002", "FM_Hip_F_Tat_002", TattooData.ZoneTypes.Chest) },
@@ -853,7 +687,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 395, new TattooData("mphipster_overlays", "TAT_HP_046", "FM_Hip_M_Tat_046", "FM_Hip_F_Tat_046", TattooData.ZoneTypes.Back) },
             { 396, new TattooData("mphipster_overlays", "TAT_HP_047", "FM_Hip_M_Tat_047", "FM_Hip_F_Tat_047", TattooData.ZoneTypes.Chest) },
             { 397, new TattooData("mphipster_overlays", "TAT_HP_048", "FM_Hip_M_Tat_048", "FM_Hip_F_Tat_048", TattooData.ZoneTypes.LeftArm) },
-
             { 398, new TattooData("mpimportexport_overlays", "TAT_IE_000", "MP_MP_ImportExport_Tat_000_M", "MP_MP_ImportExport_Tat_000_F", TattooData.ZoneTypes.Back) },
             { 399, new TattooData("mpimportexport_overlays", "TAT_IE_001", "MP_MP_ImportExport_Tat_001_M", "MP_MP_ImportExport_Tat_001_F", TattooData.ZoneTypes.Back) },
             { 400, new TattooData("mpimportexport_overlays", "TAT_IE_002", "MP_MP_ImportExport_Tat_002_M", "MP_MP_ImportExport_Tat_002_F", TattooData.ZoneTypes.Back) },
@@ -866,7 +699,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 407, new TattooData("mpimportexport_overlays", "TAT_IE_009", "MP_MP_ImportExport_Tat_009_M", "MP_MP_ImportExport_Tat_009_F", TattooData.ZoneTypes.Back) },
             { 408, new TattooData("mpimportexport_overlays", "TAT_IE_010", "MP_MP_ImportExport_Tat_010_M", "MP_MP_ImportExport_Tat_010_F", TattooData.ZoneTypes.Back) },
             { 409, new TattooData("mpimportexport_overlays", "TAT_IE_011", "MP_MP_ImportExport_Tat_011_M", "MP_MP_ImportExport_Tat_011_F", TattooData.ZoneTypes.Back) },
-
             { 410, new TattooData("mplowrider2_overlays", "TAT_S2_000", "MP_LR_Tat_000_M", "MP_LR_Tat_000_F", TattooData.ZoneTypes.Back) },
             { 411, new TattooData("mplowrider2_overlays", "TAT_S2_003", "MP_LR_Tat_003_M", "MP_LR_Tat_003_F", TattooData.ZoneTypes.RightArm) },
             { 412, new TattooData("mplowrider2_overlays", "TAT_S2_006", "MP_LR_Tat_006_M", "MP_LR_Tat_006_F", TattooData.ZoneTypes.LeftArm) },
@@ -883,7 +715,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 423, new TattooData("mplowrider2_overlays", "TAT_S2_031", "MP_LR_Tat_031_M", "MP_LR_Tat_031_F", TattooData.ZoneTypes.Back) },
             { 424, new TattooData("mplowrider2_overlays", "TAT_S2_032", "MP_LR_Tat_032_M", "MP_LR_Tat_032_F", TattooData.ZoneTypes.Back) },
             { 425, new TattooData("mplowrider2_overlays", "TAT_S2_035", "MP_LR_Tat_035_M", "MP_LR_Tat_035_F", TattooData.ZoneTypes.RightArm) },
-
             { 426, new TattooData("mplowrider_overlays", "TAT_S1_001", "MP_LR_Tat_001_M", "MP_LR_Tat_001_F", TattooData.ZoneTypes.Chest) },
             { 427, new TattooData("mplowrider_overlays", "TAT_S1_002", "MP_LR_Tat_002_M", "MP_LR_Tat_002_F", TattooData.ZoneTypes.Chest) },
             { 428, new TattooData("mplowrider_overlays", "TAT_S1_004", "MP_LR_Tat_004_M", "MP_LR_Tat_004_F", TattooData.ZoneTypes.Stomath) },
@@ -901,7 +732,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 440, new TattooData("mplowrider_overlays", "TAT_S1_026", "MP_LR_Tat_026_M", "MP_LR_Tat_026_F", TattooData.ZoneTypes.Chest) },
             { 441, new TattooData("mplowrider_overlays", "TAT_S1_027", "MP_LR_Tat_027_M", "MP_LR_Tat_027_F", TattooData.ZoneTypes.LeftArm) },
             { 442, new TattooData("mplowrider_overlays", "TAT_S1_033", "MP_LR_Tat_033_M", "MP_LR_Tat_033_F", TattooData.ZoneTypes.LeftArm) },
-
             { 443, new TattooData("mpluxe2_overlays", "TAT_L2_002", "MP_LUXE_TAT_002_M", "MP_LUXE_TAT_002_F", TattooData.ZoneTypes.Chest) },
             { 444, new TattooData("mpluxe2_overlays", "TAT_L2_005", "MP_LUXE_TAT_005_M", "MP_LUXE_TAT_005_F", TattooData.ZoneTypes.LeftArm) },
             { 445, new TattooData("mpluxe2_overlays", "TAT_L2_010", "MP_LUXE_TAT_010_M", "MP_LUXE_TAT_010_F", TattooData.ZoneTypes.RightArm) },
@@ -919,7 +749,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 457, new TattooData("mpluxe2_overlays", "TAT_L2_029", "MP_LUXE_TAT_029_M", "MP_LUXE_TAT_029_F", TattooData.ZoneTypes.Back) },
             { 458, new TattooData("mpluxe2_overlays", "TAT_L2_030", "MP_LUXE_TAT_030_M", "MP_LUXE_TAT_030_F", TattooData.ZoneTypes.RightArm) },
             { 459, new TattooData("mpluxe2_overlays", "TAT_L2_031", "MP_LUXE_TAT_031_M", "MP_LUXE_TAT_031_F", TattooData.ZoneTypes.LeftArm) },
-
             { 460, new TattooData("mpluxe_overlays", "TAT_LX_000", "MP_LUXE_TAT_000_M", "MP_LUXE_TAT_000_F", TattooData.ZoneTypes.LeftLeg) },
             { 461, new TattooData("mpluxe_overlays", "TAT_LX_001", "MP_LUXE_TAT_001_M", "MP_LUXE_TAT_001_F", TattooData.ZoneTypes.RightLeg) },
             { 462, new TattooData("mpluxe_overlays", "TAT_LX_003", "MP_LUXE_TAT_003_M", "MP_LUXE_TAT_003_F", TattooData.ZoneTypes.Stomath) },
@@ -935,7 +764,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 472, new TattooData("mpluxe_overlays", "TAT_LX_020", "MP_LUXE_TAT_020_M", "MP_LUXE_TAT_020_F", TattooData.ZoneTypes.LeftArm) },
             { 473, new TattooData("mpluxe_overlays", "TAT_LX_021", "MP_LUXE_TAT_021_M", "MP_LUXE_TAT_021_F", TattooData.ZoneTypes.LeftArm) },
             { 474, new TattooData("mpluxe_overlays", "TAT_LX_024", "MP_LUXE_TAT_024_M", "MP_LUXE_TAT_024_F", TattooData.ZoneTypes.Back) },
-
             { 475, new TattooData("mpsecurity_overlays", "TAT_FX_000", "MP_Security_Tat_000_M", "MP_Security_Tat_000_F", TattooData.ZoneTypes.RightArm) },
             { 476, new TattooData("mpsecurity_overlays", "TAT_FX_001", "MP_Security_Tat_001_M", "MP_Security_Tat_001_F", TattooData.ZoneTypes.Face) },
             { 477, new TattooData("mpsecurity_overlays", "TAT_FX_002", "MP_Security_Tat_002_M", "MP_Security_Tat_002_F", TattooData.ZoneTypes.Face) },
@@ -964,7 +792,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 500, new TattooData("mpsecurity_overlays", "TAT_FX_025", "MP_Security_Tat_025_M", "MP_Security_Tat_025_F", TattooData.ZoneTypes.Stomath) },
             { 501, new TattooData("mpsecurity_overlays", "TAT_FX_026", "MP_Security_Tat_026_M", "MP_Security_Tat_026_F", TattooData.ZoneTypes.Back) },
             { 502, new TattooData("mpsecurity_overlays", "TAT_FX_027", "MP_Security_Tat_027_M", "MP_Security_Tat_027_F", TattooData.ZoneTypes.Neck) },
-
             { 503, new TattooData("mpsmuggler_overlays", "TAT_SM_000", "MP_Smuggler_Tattoo_000_M", "MP_Smuggler_Tattoo_000_F", TattooData.ZoneTypes.Chest) },
             { 504, new TattooData("mpsmuggler_overlays", "TAT_SM_001", "MP_Smuggler_Tattoo_001_M", "MP_Smuggler_Tattoo_001_F", TattooData.ZoneTypes.RightArm) },
             { 505, new TattooData("mpsmuggler_overlays", "TAT_SM_002", "MP_Smuggler_Tattoo_002_M", "MP_Smuggler_Tattoo_002_F", TattooData.ZoneTypes.Stomath) },
@@ -991,7 +818,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 526, new TattooData("mpsmuggler_overlays", "TAT_SM_023", "MP_Smuggler_Tattoo_023_M", "MP_Smuggler_Tattoo_023_F", TattooData.ZoneTypes.RightArm) },
             { 527, new TattooData("mpsmuggler_overlays", "TAT_SM_024", "MP_Smuggler_Tattoo_024_M", "MP_Smuggler_Tattoo_024_F", TattooData.ZoneTypes.Back) },
             { 528, new TattooData("mpsmuggler_overlays", "TAT_SM_025", "MP_Smuggler_Tattoo_025_M", "MP_Smuggler_Tattoo_025_F", TattooData.ZoneTypes.Back) },
-
             { 529, new TattooData("mpstunt_overlays", "TAT_ST_000", "MP_MP_Stunt_Tat_000_M", "MP_MP_Stunt_Tat_000_F", TattooData.ZoneTypes.Neck) },
             { 530, new TattooData("mpstunt_overlays", "TAT_ST_001", "MP_MP_Stunt_tat_001_M", "MP_MP_Stunt_tat_001_F", TattooData.ZoneTypes.LeftArm) },
             { 531, new TattooData("mpstunt_overlays", "TAT_ST_002", "MP_MP_Stunt_tat_002_M", "MP_MP_Stunt_tat_002_F", TattooData.ZoneTypes.LeftArm) },
@@ -1042,7 +868,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 576, new TattooData("mpstunt_overlays", "TAT_ST_047", "MP_MP_Stunt_tat_047_M", "MP_MP_Stunt_tat_047_F", TattooData.ZoneTypes.RightLeg) },
             { 577, new TattooData("mpstunt_overlays", "TAT_ST_048", "MP_MP_Stunt_tat_048_M", "MP_MP_Stunt_tat_048_F", TattooData.ZoneTypes.Back) },
             { 578, new TattooData("mpstunt_overlays", "TAT_ST_049", "MP_MP_Stunt_tat_049_M", "MP_MP_Stunt_tat_049_F", TattooData.ZoneTypes.RightArm) },
-
             { 579, new TattooData("mpsum2_overlays", "TAT_SB_000", "MP_Sum2_Tat_000_M", "MP_Sum2_Tat_000_F", TattooData.ZoneTypes.Face) },
             { 580, new TattooData("mpsum2_overlays", "TAT_SB_001", "MP_Sum2_Tat_001_M", "MP_Sum2_Tat_001_F", TattooData.ZoneTypes.Face) },
             { 581, new TattooData("mpsum2_overlays", "TAT_SB_002", "MP_Sum2_Tat_002_M", "MP_Sum2_Tat_002_F", TattooData.ZoneTypes.LeftLeg) },
@@ -1106,7 +931,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 639, new TattooData("mpsum2_overlays", "TAT_SB_060", "MP_Sum2_Tat_060_M", "MP_Sum2_Tat_060_F", TattooData.ZoneTypes.Stomath) },
             { 640, new TattooData("mpsum2_overlays", "TAT_SB_061", "MP_Sum2_Tat_061_M", "MP_Sum2_Tat_061_F", TattooData.ZoneTypes.Stomath) },
             { 641, new TattooData("mpsum2_overlays", "TAT_SB_062", "MP_Sum2_Tat_062_M", "MP_Sum2_Tat_062_F", TattooData.ZoneTypes.Stomath) },
-
             { 642, new TattooData("mpvinewood_overlays", "TAT_VW_000", "MP_Vinewood_Tat_000_M", "MP_Vinewood_Tat_000_F", TattooData.ZoneTypes.Chest) },
             { 643, new TattooData("mpvinewood_overlays", "TAT_VW_001", "MP_Vinewood_Tat_001_M", "MP_Vinewood_Tat_001_F", TattooData.ZoneTypes.Back) },
             { 644, new TattooData("mpvinewood_overlays", "TAT_VW_002", "MP_Vinewood_Tat_002_M", "MP_Vinewood_Tat_002_F", TattooData.ZoneTypes.LeftArm) },
@@ -1140,7 +964,6 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 672, new TattooData("mpvinewood_overlays", "TAT_VW_030", "MP_Vinewood_Tat_030_M", "MP_Vinewood_Tat_030_F", TattooData.ZoneTypes.Back) },
             { 673, new TattooData("mpvinewood_overlays", "TAT_VW_031", "MP_Vinewood_Tat_031_M", "MP_Vinewood_Tat_031_F", TattooData.ZoneTypes.Stomath) },
             { 674, new TattooData("mpvinewood_overlays", "TAT_VW_032", "MP_Vinewood_Tat_032_M", "MP_Vinewood_Tat_032_F", TattooData.ZoneTypes.Back) },
-
             { 675, new TattooData("multiplayer_overlays", "Зомби", "FM_Tat_Award_M_000", "FM_Tat_Award_F_000", TattooData.ZoneTypes.Face) }, // "TAT_FM_008"
             { 676, new TattooData("multiplayer_overlays", "Черное сердце", "FM_Tat_Award_M_001", "FM_Tat_Award_F_001", TattooData.ZoneTypes.LeftArm) }, // "TAT_FM_009"
             { 677, new TattooData("multiplayer_overlays", "Смерть с косой", "FM_Tat_Award_M_002", "FM_Tat_Award_F_002", TattooData.ZoneTypes.RightArm) }, // "TAT_FM_010"
@@ -1209,9 +1032,12 @@ namespace BlaineRP.Client.Game.Data.Customization
             { 740, new TattooData("multiplayer_overlays", "Адский рай", "FM_Tat_M_045", "FM_Tat_F_045", TattooData.ZoneTypes.Back) }, // "TAT_FM_246"
             { 741, new TattooData("multiplayer_overlays", "Лев", "FM_Tat_M_047", "FM_Tat_F_047", TattooData.ZoneTypes.RightArm) }, // "TAT_FM_247"
         };
-        
-        public static TattooData GetTattooData(int id) => AllTattoos.GetValueOrDefault(id);
-        
+
+        public static TattooData GetTattooData(int id)
+        {
+            return AllTattoos.GetValueOrDefault(id);
+        }
+
         public static int GetHair(bool sex, int id)
         {
             var hair = 0;
@@ -1252,6 +1078,260 @@ namespace BlaineRP.Client.Game.Data.Customization
                 FemaleDefaultHairOverlays.TryGetValue(hairId, out hair);
 
             return hair;
+        }
+
+        public class TattooData
+        {
+            public enum ZoneTypes
+            {
+                Face = 0,
+                Temple,
+                Neck,
+                Mouth,
+
+                Chest,
+                Stomath,
+                Back,
+
+                LeftArm,
+                RightArm,
+
+                LeftLeg,
+                RightLeg,
+            }
+
+            private static Dictionary<ZoneTypes, (string Id, string Name)> ZoneTypesData = new Dictionary<ZoneTypes, (string Id, string Name)>()
+            {
+                { ZoneTypes.Face, ("face", "Лицо") },
+                { ZoneTypes.Temple, ("temple", "Виски") },
+                { ZoneTypes.Neck, ("neck", "Шея") },
+                { ZoneTypes.Mouth, ("mouth", "Губы") },
+                { ZoneTypes.Chest, ("chest", "Грудь") },
+                { ZoneTypes.Stomath, ("stomath", "Живот") },
+                { ZoneTypes.Back, ("back", "Спина") },
+                { ZoneTypes.LeftArm, ("larm", "Левая рука") },
+                { ZoneTypes.RightArm, ("rarm", "Правая рука") },
+                { ZoneTypes.LeftLeg, ("lleg", "Левая нога") },
+                { ZoneTypes.RightLeg, ("rleg", "Правая нога") },
+            };
+
+            public TattooData(string collectionString, string name, string hashMaleString, string hashFemaleString, ZoneTypes zoneType)
+            {
+                Name = RAGE.Game.Ui.GetLabelText(name);
+
+                if (Name == "NULL")
+                    Name = name;
+
+                ZoneType = zoneType;
+
+                CollectionHash = RAGE.Util.Joaat.Hash(collectionString);
+
+                if (hashMaleString != null)
+                    HashMale = RAGE.Util.Joaat.Hash(hashMaleString);
+
+                if (hashFemaleString != null)
+                    HashFemale = RAGE.Util.Joaat.Hash(hashFemaleString);
+            }
+
+            public ZoneTypes ZoneType { get; set; }
+
+            public uint CollectionHash { get; set; }
+
+            public uint? HashMale { get; set; }
+
+            public uint? HashFemale { get; set; }
+
+            public bool? Sex => HashMale != null && HashFemale != null ? null : (bool?)(HashMale != null);
+
+            public string Name { get; set; }
+
+            public static ZoneTypes? GetZoneTypeById(string id)
+            {
+                return ZoneTypesData.Where(x => x.Value.Id == id).Select(x => (ZoneTypes?)x.Key).FirstOrDefault();
+            }
+
+            public static string GetZoneTypeName(ZoneTypes zType)
+            {
+                return ZoneTypesData.GetValueOrDefault(zType).Name ?? "null";
+            }
+
+            public static string GetZoneTypeId(ZoneTypes zType)
+            {
+                return ZoneTypesData.GetValueOrDefault(zType).Id ?? "null";
+            }
+
+            public bool TryApply(Player player)
+            {
+                bool sex = player.GetSex();
+
+                if (sex)
+                {
+                    if (HashMale is uint hmu)
+                        player.SetDecoration(CollectionHash, hmu);
+                    else
+                        return false;
+                }
+                else
+                {
+                    if (HashFemale is uint hmu)
+                        player.SetDecoration(CollectionHash, hmu);
+                    else
+                        return false;
+                }
+
+                return true;
+            }
+
+            public static void ClearAll(Player player)
+            {
+                player.ClearDecorations();
+
+                if (PlayerData.GetData(player) is PlayerData pData)
+                    pData.HairOverlay?.Apply(player);
+            }
+        }
+
+        public class HeadBlend
+        {
+            public HeadBlend()
+            {
+                ShapeThird = 0;
+                SkinThird = 0;
+                ThirdMix = 0f;
+            }
+
+            [JsonProperty(PropertyName = "SF")]
+            public byte ShapeFirst { get; set; }
+
+            [JsonProperty(PropertyName = "SS")]
+            public byte ShapeSecond { get; set; }
+
+            [JsonProperty(PropertyName = "ST")]
+            public byte ShapeThird { get; set; }
+
+            [JsonProperty(PropertyName = "SNF")]
+            public byte SkinFirst { get; set; }
+
+            [JsonProperty(PropertyName = "SNS")]
+            public byte SkinSecond { get; set; }
+
+            [JsonProperty(PropertyName = "SNT")]
+            public byte SkinThird { get; set; }
+
+            [JsonProperty(PropertyName = "SM")]
+            public float ShapeMix { get; set; }
+
+            [JsonProperty(PropertyName = "SNM")]
+            public float SkinMix { get; set; }
+
+            [JsonProperty(PropertyName = "TM")]
+            public float ThirdMix { get; set; }
+
+            public void SetFather(byte value)
+            {
+                ShapeSecond = value;
+                SkinSecond = value;
+            }
+
+            public void SetMother(byte value)
+            {
+                ShapeFirst = value;
+                SkinFirst = value;
+            }
+
+            public byte GetFather()
+            {
+                return ShapeSecond;
+            }
+
+            public byte GetMother()
+            {
+                return ShapeFirst;
+            }
+        }
+
+        public class HeadOverlay
+        {
+            public HeadOverlay()
+            {
+            }
+
+            [JsonProperty(PropertyName = "I")]
+            public byte Index { get; set; }
+
+            [JsonProperty(PropertyName = "C")]
+            public byte Color { get; set; }
+
+            [JsonProperty(PropertyName = "C2")]
+            public byte SecondaryColor { get; set; }
+
+            [JsonProperty(PropertyName = "O")]
+            public float Opacity { get; set; }
+        }
+
+        public class Decoration
+        {
+            public uint Collection, Overlay;
+
+            public Decoration()
+            {
+            }
+        }
+
+        public class HairStyle
+        {
+            public HairStyle(int Id, byte Overlay, byte Color, byte Color2)
+            {
+                this.Id = Id;
+                this.Overlay = Overlay;
+                this.Color = Color;
+                this.Color2 = Color2;
+            }
+
+            public HairStyle()
+            {
+            }
+
+            [JsonProperty(PropertyName = "I")]
+            public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "O")]
+            public byte Overlay { get; set; }
+
+            [JsonProperty(PropertyName = "C")]
+            public byte Color { get; set; }
+
+            [JsonProperty(PropertyName = "C2")]
+            public byte Color2 { get; set; }
+        }
+
+        public class HairOverlay
+        {
+            public HairOverlay(string Collection, string Overlay)
+            {
+                this.Collection = RAGE.Util.Joaat.Hash(Collection);
+                this.Overlay = RAGE.Util.Joaat.Hash(Overlay);
+            }
+
+            public uint Collection { get; set; }
+
+            public uint Overlay { get; set; }
+
+            public void Apply(Player player)
+            {
+                player.SetFacialDecoration(Collection, Overlay);
+            }
+
+            public static void ClearAll(Player player)
+            {
+                player.ClearFacialDecorations();
+
+                if (PlayerData.GetData(player) is PlayerData pData && pData.Decorations is List<int> decors)
+                    foreach (int x in decors)
+                    {
+                        GetTattooData(x)?.TryApply(player);
+                    }
+            }
         }
     }
 }

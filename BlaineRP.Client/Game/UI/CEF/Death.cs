@@ -9,37 +9,41 @@ namespace BlaineRP.Client.Game.UI.CEF
     [Script(int.MaxValue)]
     public class Death
     {
-        public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Death); }
-
         private static AsyncTask Task = null;
 
         private static int SecondsLeft = 0;
 
         public Death()
         {
-            Events.Add("Death::Ressurect", (object[] args) =>
-            {
-                if (!IsActive)
-                    return;
+            Events.Add("Death::Ressurect",
+                (object[] args) =>
+                {
+                    if (!IsActive)
+                        return;
 
-                Player.LocalPlayer.SetHealth(0);
+                    Player.LocalPlayer.SetHealth(0);
 
-                Close();
-            });
+                    Close();
+                }
+            );
 
-            Events.Add("Death::Wait", (object[] args) =>
-            {
-                if (!IsActive)
-                    return;
+            Events.Add("Death::Wait",
+                (object[] args) =>
+                {
+                    if (!IsActive)
+                        return;
 
-                CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.General.Death.Header, Locale.Notifications.General.Death.EMSNotified);
+                    Notification.Show(Notification.Types.Success, Locale.Notifications.General.Death.Header, Locale.Notifications.General.Death.EMSNotified);
 
-                Browser.Window.ExecuteJs("Death.switchButton", "death-die", false);
-                Browser.Window.ExecuteJs("Death.switchButton", "death-er", false);
+                    Browser.Window.ExecuteJs("Death.switchButton", "death-die", false);
+                    Browser.Window.ExecuteJs("Death.switchButton", "death-er", false);
 
-                SecondsLeft += 300;
-            });
+                    SecondsLeft += 300;
+                }
+            );
         }
+
+        public static bool IsActive => Browser.IsActive(Browser.IntTypes.Death);
 
         public static async System.Threading.Tasks.Task Show()
         {
@@ -53,7 +57,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Browser.Switch(Browser.IntTypes.Death, true);
 
-            CEF.Cursor.Show(true, true);
+            Cursor.Show(true, true);
 
             if (Task != null)
                 Task.Cancel();
@@ -61,15 +65,19 @@ namespace BlaineRP.Client.Game.UI.CEF
             SecondsLeft = 30;
 
             Task = new AsyncTask(() =>
-            {
-                if (SecondsLeft > 0)
                 {
-                    Browser.Window.ExecuteJs("Death.updateSecs", --SecondsLeft);
+                    if (SecondsLeft > 0)
+                    {
+                        Browser.Window.ExecuteJs("Death.updateSecs", --SecondsLeft);
 
-                    if (SecondsLeft == 0)
-                        Browser.Window.ExecuteJs("Death.switchButton", "death-die", true);
-                }
-            }, 1000, true, 0);
+                        if (SecondsLeft == 0)
+                            Browser.Window.ExecuteJs("Death.switchButton", "death-die", true);
+                    }
+                },
+                1000,
+                true,
+                0
+            );
 
             Task.Run();
         }
@@ -83,7 +91,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Task?.Cancel();
 
-            CEF.Cursor.Show(false, false);
+            Cursor.Show(false, false);
         }
     }
 }

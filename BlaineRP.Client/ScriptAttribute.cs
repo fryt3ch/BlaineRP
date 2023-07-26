@@ -9,7 +9,7 @@ namespace BlaineRP.Client
 
         public ScriptAttribute(int loadOrder = int.MaxValue)
         {
-            this.LoadOrder = loadOrder;
+            LoadOrder = loadOrder;
         }
     }
 }

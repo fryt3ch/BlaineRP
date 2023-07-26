@@ -2,7 +2,6 @@
 using System.Linq;
 using BlaineRP.Client.Game.Helpers.Blips;
 using RAGE;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.Fractions
 {
@@ -16,9 +15,9 @@ namespace BlaineRP.Client.Game.Fractions
 
             public ExtraBlip Blip { get; set; }
 
-            public FractionTypes OwnerType => (FractionTypes)Core.GetSharedData<int>($"GZONE_{Id}_O", 0);
+            public FractionTypes OwnerType => (FractionTypes)World.Core.GetSharedData<int>($"GZONE_{Id}_O", 0);
 
-            public int BlipFlashInterval => Core.GetSharedData<int>($"GZONE_{Id}_FI", 0);
+            public int BlipFlashInterval => World.Core.GetSharedData<int>($"GZONE_{Id}_FI", 0);
 
             public static void AddZone(ushort id, float posX, float posY)
             {
@@ -29,16 +28,16 @@ namespace BlaineRP.Client.Game.Fractions
 
                 All.Add(gZone);
 
-                Core.AddDataHandler($"GZONE_{id}_O", GangZoneOwnerDataHandler);
+                World.Core.AddDataHandler($"GZONE_{id}_O", GangZoneOwnerDataHandler);
             }
 
             private static void GangZoneOwnerDataHandler(string key, object value, object oldValue)
             {
-                var keyD = key.Split('_');
+                string[] keyD = key.Split('_');
 
                 var id = ushort.Parse(keyD[1]);
 
-                var zoneInfo = GetById(id);
+                GangZone zoneInfo = GetById(id);
 
                 if (zoneInfo == null)
                     return;
@@ -50,11 +49,11 @@ namespace BlaineRP.Client.Game.Fractions
 
             private static void GangZoneBlipFlashDataHandler(string key, object value, object oldValue)
             {
-                var keyD = key.Split('_');
+                string[] keyD = key.Split('_');
 
                 var id = ushort.Parse(keyD[1]);
 
-                var zoneInfo = GetById(id);
+                GangZone zoneInfo = GetById(id);
 
                 if (zoneInfo == null)
                     return;
@@ -66,7 +65,10 @@ namespace BlaineRP.Client.Game.Fractions
 
             public void OnOwnerUpdate(FractionTypes type)
             {
-                var color = type == FractionTypes.GANG_VAGS ? 5 : type == FractionTypes.GANG_BALS ? 27 : type == FractionTypes.GANG_FAMS ? 2 : type == FractionTypes.GANG_MARA ? 3 : 0;
+                int color = type == FractionTypes.GANG_VAGS ? 5 :
+                    type == FractionTypes.GANG_BALS ? 27 :
+                    type == FractionTypes.GANG_FAMS ? 2 :
+                    type == FractionTypes.GANG_MARA ? 3 : 0;
 
                 if (color == 0)
                     Blip.Display = 0;
@@ -83,7 +85,7 @@ namespace BlaineRP.Client.Game.Fractions
 
             public static void PostInitialize()
             {
-                foreach (var x in All)
+                foreach (GangZone x in All)
                 {
                     x.OnOwnerUpdate(x.OwnerType);
 
@@ -91,7 +93,10 @@ namespace BlaineRP.Client.Game.Fractions
                 }
             }
 
-            public static GangZone GetById(ushort id) => All.Where(x => x.Id == id).FirstOrDefault();
+            public static GangZone GetById(ushort id)
+            {
+                return All.Where(x => x.Id == id).FirstOrDefault();
+            }
         }
     }
 }

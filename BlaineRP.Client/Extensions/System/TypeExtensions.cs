@@ -2,6 +2,9 @@
 {
     public static class TypeExtensions
     {
-        public static bool IsTypeOrAssignable(this global::System.Type bType, global::System.Type type) => bType == type || bType.IsAssignableFrom(type);
+        public static bool IsTypeOrAssignable(this global::System.Type bType, global::System.Type type)
+        {
+            return bType == type || bType.IsAssignableFrom(type);
+        }
     }
 }

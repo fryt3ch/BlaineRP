@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.Input.Enums;
@@ -7,10 +8,46 @@ using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Game.Input
 {
-    partial class Core
+    internal partial class Core
     {
         public class ExtraBind
         {
+            public ExtraBind(BindTypes type, Action action, bool isDown, bool changeable, BindTypes familiar = BindTypes.None, bool invOnly = false)
+            {
+                BindIndex = -1;
+
+                Type = type;
+                Action = action;
+                IsDown = isDown;
+
+                Changeable = changeable;
+                Parent = familiar;
+
+                InvOnly = invOnly;
+
+                if (changeable)
+                {
+                    Keys = RageStorage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{type}");
+
+                    if (Keys == null)
+                    {
+                        Keys = _defaultBinds[type];
+
+                        RageStorage.SetData($"KeyBinds::{type}", Keys);
+                    }
+                }
+                else if (familiar == BindTypes.None)
+                {
+                    Keys = _defaultBinds[type];
+                }
+                else
+                {
+                    Keys = Binds.TryGetValue(familiar, out ExtraBind bind) ? bind.Keys : _defaultBinds[type];
+                }
+
+                Description = type.ToString();
+            }
+
             /// <summary>Тип бинда</summary>
             public BindTypes Type { get; private set; }
 
@@ -52,17 +89,21 @@ namespace BlaineRP.Client.Game.Input
 
                     if (IsDown)
                     {
-                        for (int i = 0; i < Keys.Length; i++)
+                        for (var i = 0; i < Keys.Length; i++)
+                        {
                             if (!Core.IsDown(Keys[i]))
                                 return false;
+                        }
 
                         return true;
                     }
                     else
                     {
-                        for (int i = 0; i < Keys.Length; i++)
-                            if (!Core.IsUp(Keys[i]))
+                        for (var i = 0; i < Keys.Length; i++)
+                        {
+                            if (!IsUp(Keys[i]))
                                 return false;
+                        }
 
                         return true;
                     }
@@ -78,53 +119,25 @@ namespace BlaineRP.Client.Game.Input
 
                     if (IsDown)
                     {
-                        for (int i = 0; i < Keys.Length; i++)
-                            if (!Core.IsJustDown(Keys[i]))
+                        for (var i = 0; i < Keys.Length; i++)
+                        {
+                            if (!IsJustDown(Keys[i]))
                                 return false;
+                        }
 
                         return true;
                     }
                     else
                     {
-                        for (int i = 0; i < Keys.Length; i++)
-                            if (!Core.IsJustUp(Keys[i]))
+                        for (var i = 0; i < Keys.Length; i++)
+                        {
+                            if (!IsJustUp(Keys[i]))
                                 return false;
+                        }
 
                         return true;
                     }
                 }
-            }
-
-            public ExtraBind(BindTypes type, Action action, bool isDown, bool changeable, BindTypes familiar = BindTypes.None, bool invOnly = false)
-            {
-                this.BindIndex = -1;
-
-                this.Type = type;
-                this.Action = action;
-                this.IsDown = isDown;
-
-                this.Changeable = changeable;
-                this.Parent = familiar;
-
-                this.InvOnly = invOnly;
-
-                if (changeable)
-                {
-                    this.Keys = RageStorage.GetData<RAGE.Ui.VirtualKeys[]>($"KeyBinds::{type}");
-
-                    if (this.Keys == null)
-                    {
-                        this.Keys = _defaultBinds[type];
-
-                        RageStorage.SetData($"KeyBinds::{type}", this.Keys);
-                    }
-                }
-                else if (familiar == BindTypes.None)
-                    this.Keys = _defaultBinds[type];
-                else
-                    this.Keys = Binds.TryGetValue(familiar, out var bind) ? bind.Keys : _defaultBinds[type];
-
-                Description = type.ToString();
             }
 
             public void Enable()
@@ -145,25 +158,33 @@ namespace BlaineRP.Client.Game.Input
                     case 0:
                         return;
                     case 1:
-                        BindIndex = Core.Bind(Keys[0], IsDown, async () =>
-                        {
-                            Action.Invoke();
-                        });
+                        BindIndex = Bind(Keys[0],
+                            IsDown,
+                            async () =>
+                            {
+                                Action.Invoke();
+                            }
+                        );
                         break;
                     default:
-                        BindIndex = Core.Bind(Keys[Keys.Length - 1], IsDown, async () =>
-                        {
-                            Func<RAGE.Ui.VirtualKeys, bool> checkFunc = Core.IsDown;
+                        BindIndex = Bind(Keys[Keys.Length - 1],
+                            IsDown,
+                            async () =>
+                            {
+                                Func<RAGE.Ui.VirtualKeys, bool> checkFunc = Core.IsDown;
 
-                            if (!IsDown)
-                                checkFunc = Core.IsUp;
+                                if (!IsDown)
+                                    checkFunc = IsUp;
 
-                            for (int i = 0; i < Keys.Length - 1; i++)
-                                if (!checkFunc.Invoke(Keys[i]))
-                                    return;
+                                for (var i = 0; i < Keys.Length - 1; i++)
+                                {
+                                    if (!checkFunc.Invoke(Keys[i]))
+                                        return;
+                                }
 
-                            Action.Invoke();
-                        });
+                                Action.Invoke();
+                            }
+                        );
                         break;
                 }
             }
@@ -175,7 +196,7 @@ namespace BlaineRP.Client.Game.Input
                 if (BindIndex == -1)
                     return;
 
-                Core.Unbind(BindIndex);
+                Unbind(BindIndex);
 
                 BindIndex = -1;
             }
@@ -198,18 +219,16 @@ namespace BlaineRP.Client.Game.Input
                     RageStorage.SetData($"KeyBinds::{Type}", keys);
 
                     if (_helpBinds.ContainsKey(Type))
-                    {
                         Browser.Window.ExecuteJs("Hud.changeHelpKey", _helpBinds[Type], GetKeyString());
-                    }
 
                     if (HudMenuBinds.ContainsKey(Type))
-                    {
                         HUD.Menu.UpdateCurrentTypes(Keys.Length == 0, HudMenuBinds[Type]);
-                    }
                 }
 
-                foreach (var bind in Binds.Where(x => x.Value.Parent == Type))
+                foreach (KeyValuePair<BindTypes, ExtraBind> bind in Binds.Where(x => x.Value.Parent == Type))
+                {
                     bind.Value.ChangeKeys(keys);
+                }
 
                 int lastState = BindIndex;
 
@@ -219,7 +238,10 @@ namespace BlaineRP.Client.Game.Input
                     Enable();
             }
 
-            public string GetKeyString() => Core.GetKeyString(Keys);
+            public string GetKeyString()
+            {
+                return Core.GetKeyString(Keys);
+            }
         }
     }
 }

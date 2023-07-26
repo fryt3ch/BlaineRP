@@ -5,36 +5,41 @@ using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 
 namespace BlaineRP.Client.Game.Scripts
 {
     [Script(int.MaxValue)]
     public class Farm
     {
-        private static AsyncTask TempTask { get; set; }
-
         public Farm()
         {
-            Events.Add("MG::OTC::S", (args) =>
-            {
-                var orangesAmount = (int)args[0];
+            Events.Add("MG::OTC::S",
+                (args) =>
+                {
+                    var orangesAmount = (int)args[0];
 
-                StartOrangeTreeCollect(orangesAmount);
-            });
+                    StartOrangeTreeCollect(orangesAmount);
+                }
+            );
 
-            Events.Add("MG::COWC::S", (args) =>
-            {
-                StartCowMilk();
-            });
+            Events.Add("MG::COWC::S",
+                (args) =>
+                {
+                    StartCowMilk();
+                }
+            );
 
-            Events.Add("MiniGames::OrangesCollected", (args) =>
-            {
-                StopOrangeTreeCollect(false);
+            Events.Add("MiniGames::OrangesCollected",
+                (args) =>
+                {
+                    StopOrangeTreeCollect(false);
 
-                Events.CallRemote("Job::FARM::OTFC");
-            });
+                    Events.CallRemote("Job::FARM::OTFC");
+                }
+            );
         }
+
+        private static AsyncTask TempTask { get; set; }
 
         public static void StartCowMilk()
         {
@@ -46,11 +51,15 @@ namespace BlaineRP.Client.Game.Scripts
             TempTask?.Cancel();
 
             TempTask = new AsyncTask(() =>
-            {
-                StopCowMilk(false);
+                {
+                    StopCowMilk(false);
 
-                Events.CallRemote("Job::FARM::COWFC");
-            }, 5000, false, 0);
+                    Events.CallRemote("Job::FARM::COWFC");
+                },
+                5000,
+                false,
+                0
+            );
 
             TempTask.Run();
         }
@@ -70,9 +79,7 @@ namespace BlaineRP.Client.Game.Scripts
             TempTask = null;
 
             if (callRemote)
-            {
                 Events.CallRemote("Job::FARM::SCOWP");
-            }
         }
 
         private static void RenderCowMilk()
@@ -95,7 +102,7 @@ namespace BlaineRP.Client.Game.Scripts
             if (!Settings.User.Interface.HideHUD)
                 HUD.ShowHUD(false);
 
-            Chat.Show(false);
+            UI.CEF.Chat.Show(false);
 
             Browser.Window.ExecuteJs("MG.OP.draw", orangesAmount);
 
@@ -105,7 +112,7 @@ namespace BlaineRP.Client.Game.Scripts
 
             if (Player.LocalPlayer.HasData("MG::TempData::OrangePicking::EscBind"))
             {
-                var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
+                int bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
                 Input.Core.Unbind(bind);
             }
@@ -122,7 +129,7 @@ namespace BlaineRP.Client.Game.Scripts
             if (!Settings.User.Interface.HideHUD)
                 HUD.ShowHUD(true);
 
-            Chat.Show(true);
+            UI.CEF.Chat.Show(true);
 
             Browser.Render(Browser.IntTypes.MinigameOrangePicking, false, false);
 
@@ -130,7 +137,7 @@ namespace BlaineRP.Client.Game.Scripts
 
             if (Player.LocalPlayer.HasData("MG::TempData::OrangePicking::EscBind"))
             {
-                var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
+                int bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
                 Input.Core.Unbind(bind);
 
@@ -138,9 +145,7 @@ namespace BlaineRP.Client.Game.Scripts
             }
 
             if (callRemote)
-            {
                 Events.CallRemote("Job::FARM::SOTP");
-            }
         }
 
         private static void RenderOrangeTreeCollect()

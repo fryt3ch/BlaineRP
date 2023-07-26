@@ -8,7 +8,6 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
     {
         public Vehicles()
         {
-
         }
 
         public static void Show(object ownedList, object rentedList)
@@ -20,7 +19,16 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
-            Browser.Window.ExecuteJs("Phone.drawVehApp", new object[] { new object[] { ownedList, rentedList } });
+            Browser.Window.ExecuteJs("Phone.drawVehApp",
+                new object[]
+                {
+                    new object[]
+                    {
+                        ownedList,
+                        rentedList,
+                    },
+                }
+            );
         }
     }
 }

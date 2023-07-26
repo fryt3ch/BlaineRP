@@ -7,6 +7,10 @@ namespace BlaineRP.Client.Game.Fractions
     {
         public class NotificationInfo
         {
+            public NotificationInfo()
+            {
+            }
+
             public ushort Id { get; set; }
 
             public string Text { get; set; }
@@ -14,10 +18,6 @@ namespace BlaineRP.Client.Game.Fractions
             public Vector3 Position { get; set; }
 
             public DateTime Time { get; set; }
-
-            public NotificationInfo()
-            {
-            }
         }
     }
 }

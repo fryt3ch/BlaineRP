@@ -4,15 +4,15 @@
     {
         public class GPSTrackerInfo
         {
+            public GPSTrackerInfo()
+            {
+            }
+
             public uint Id { get; set; }
 
             public string VehicleStr { get; set; }
 
             public string InstallerStr { get; set; }
-
-            public GPSTrackerInfo()
-            {
-            }
         }
     }
 }

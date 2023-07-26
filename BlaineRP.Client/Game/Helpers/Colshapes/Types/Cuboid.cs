@@ -7,24 +7,25 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 {
     public class Cuboid : Polygon
     {
+        public Cuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = 7, Colshape Colshape = null) :
+            base(ColshapeTypes.Cuboid, GetBaseVertices(Position, Width, Depth, Height), Height, Heading, IsVisible, Colour, Dimension, Colshape)
+        {
+            this.Width = Width;
+            this.Depth = Depth;
+        }
+
         public override string ShortData => $"Type: {Type}, CenterPos: {RAGE.Util.Json.Serialize(Position)}, Width: {Width}, Depth: {Depth}, Height: {Height}, Heading: {Heading}";
 
         public float Width { get; set; }
 
         public float Depth { get; set; }
 
-        public Cuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = 7, Colshape Colshape = null) : base(ColshapeTypes.Cuboid, GetBaseVertices(Position, Width, Depth, Height), Height, Heading, IsVisible, Colour, Dimension, Colshape)
-        {
-            this.Width = Width;
-            this.Depth = Depth;
-        }
-
         public static List<Vector3> GetBaseVertices(Vector3 centerPos, float width, float depth, float height)
         {
-            var zCoord = centerPos.Z - height / 2;
+            float zCoord = centerPos.Z - height / 2;
 
-            var width2 = width / 2f;
-            var depth2 = depth / 2f;
+            float width2 = width / 2f;
+            float depth2 = depth / 2f;
 
             return new List<Vector3>()
             {
@@ -41,7 +42,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 
             value /= 2f;
 
-            var depth2 = Depth / 2f;
+            float depth2 = Depth / 2f;
 
             Vertices[0].X = Position.X - value;
             Vertices[1].X = Position.X + value;
@@ -55,7 +56,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 
             UpdatePolygonCenterAndMaxRange();
 
-            var heading = Heading;
+            float heading = Heading;
 
             Heading = 0f;
 
@@ -68,7 +69,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 
             value /= 2f;
 
-            var width2 = Width / 2f;
+            float width2 = Width / 2f;
 
             Vertices[0].Y = Position.Y - value;
             Vertices[1].Y = Position.Y - value;
@@ -82,7 +83,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes.Types
 
             UpdatePolygonCenterAndMaxRange();
 
-            var heading = Heading;
+            float heading = Heading;
 
             Heading = 0f;
 

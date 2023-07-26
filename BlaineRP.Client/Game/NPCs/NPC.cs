@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
@@ -22,17 +21,19 @@ namespace BlaineRP.Client.Game.NPCs
     [Script(int.MaxValue)]
     public class NPC
     {
-        public static NPC CurrentNPC { get; set; }
+        public enum PedAnimationTypes
+        {
+            /// <summary>Ничего</summary>
+            None = 0,
 
-        private static Dictionary<Ped, NPC> AllNPCs = new Dictionary<Ped, NPC>();
+            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
+            /// <remarks>Если анимация была запущена во время диалога с игроком, то она будет проигрываться!</remarks>
+            InterruptOnDialogue,
 
-        public static NPC GetData(string id) => AllNPCs.Where(x => x.Value.Id == id).Select(x => x.Value).FirstOrDefault();
-
-        public static NPC GetData(Ped ped) => ped == null ? null : AllNPCs.GetValueOrDefault(ped);
-
-        public static DateTime LastSent;
-
-        private static int EscBindIdx { get; set; } = -1;
+            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
+            /// <remarks>Если анимация была запущена во время диалога с игроком, то она НЕ будет проигрываться!</remarks>
+            DontPlayOnDialogue,
+        }
 
         public enum Types
         {
@@ -42,56 +43,9 @@ namespace BlaineRP.Client.Game.NPCs
             Talkable,
         }
 
-        public enum PedAnimationTypes
-        {
-            /// <summary>Ничего</summary>
-            None = 0,
+        private static Dictionary<Ped, NPC> AllNPCs = new Dictionary<Ped, NPC>();
 
-            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
-            /// <remarks>Если анимация была запущена во время диалога с игроком, то она будет проигрываться!</remarks>
-            InterruptOnDialogue,
-            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
-            ///<remarks>Если анимация была запущена во время диалога с игроком, то она НЕ будет проигрываться!</remarks>
-            DontPlayOnDialogue,
-        }
-
-        public string SubName { get; set; }
-
-        public string Id { get; set; }
-
-        public Types Type { get; set; }
-
-        public Ped Ped { get; private set; }
-
-        private bool _Invincible { get; set; }
-
-        public bool Invincible { get => _Invincible; set { _Invincible = value; Ped.SetInvincible(value); } }
-
-        public PedAnimationTypes AnimationType { get => Ped.GetData<PedAnimationTypes>("AnimType"); set => Ped.SetData("AnimType", value); }
-
-        public Animation DefaultAnimation { get => Ped.GetData<Animation>("DefaultAnim"); set { if (value != null) Ped.SetData("DefaultAnim", value); else { Ped.ResetData("DefaultAnim"); } } }
-
-        public Animation CurrentAnimation { get => Ped.GetData<Animation>("CurrentAnim") ?? DefaultAnimation; set { if (value != null) { Ped.SetData("CurrentAnim", value); if (IsStreamed) Game.Animations.Core.Play(Ped, value, -1); } else { Ped.ResetData("CurrentAnim"); if (IsStreamed) Game.Animations.Core.Stop(Ped); } } }
-
-        public float DefaultHeading { get; set; }
-
-        public string Name { get; set; }
-
-        public string DefaultDialogueId { get; set; }
-
-        public Dialogue CurrentDialogue { get => Ped.GetData<Dialogue>("CurrentDialogue"); set { if (value != null) Ped.SetData("CurrentDialogue", value); else { Ped.ResetData("CurrentDialogue"); } } }
-
-        public List<Dialogue.LastInfo> LastDialogues { get => Ped.GetData<List<Dialogue.LastInfo>>("LastDialogues"); set { if (value != null) Ped.SetData("LastDialogues", value); else { Ped.ResetData("LastDialogues"); } } }
-
-        public Cylinder Colshape { get; set; }
-
-        public bool IsStreamed => Entities.Peds.Streamed.Contains(Ped);
-
-        public ExtraBlip Blip { get => Ped.GetData<ExtraBlip>("Blip"); set { if (value == null) Ped.ResetData("Blip"); else Ped.SetData("Blip", value); } }
-
-        public object Data { get; set; }
-
-        private Dictionary<string, object> TempDialogueData { get => Player.LocalPlayer.GetData<Dictionary<string, object>>($"NPC::{Id}::TDD"); set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::TDD"); else Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value); } }
+        public static DateTime LastSent;
 
         public NPC(string Id, string Name, Types Type, uint Model, Vector3 Position, float Heading = 0f, uint Dimension = 0)
         {
@@ -107,60 +61,25 @@ namespace BlaineRP.Client.Game.NPCs
             _Invincible = true;
 
             if (Type == Types.Talkable)
-            {
                 Colshape = new Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Colour(255, 0, 0, 255), Dimension, null)
                 {
                     ActionType = ActionTypes.NpcDialogue,
                     InteractionType = InteractionTypes.NpcDialogue,
-
                     Data = this,
                 };
-            }
 
             AllNPCs.Add(Ped, this);
         }
 
-        public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0) : this(Id, Name, Type, RAGE.Util.Joaat.Hash(Model), Position, Heading, Dimension) { }
-
-        public bool SellerNpcRequestEnterBusiness()
+        public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0) : this(Id,
+            Name,
+            Type,
+            RAGE.Util.Joaat.Hash(Model),
+            Position,
+            Heading,
+            Dimension
+        )
         {
-            if (CurrentNPC.Data is Business businessData)
-            {
-                Events.CallRemote("Business::Enter", businessData.Id);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static async System.Threading.Tasks.Task OnPedStreamIn(Ped ped)
-        {
-            var data = GetData(ped);
-
-            if (data == null)
-                return;
-
-            ped.FreezePosition(true);
-
-            ped.SetProofs(true, true, true, true, true, true, true, true);
-
-            data.Ped.SetHeading(data.DefaultHeading);
-
-            if (data.CurrentAnimation is Animation curAnim)
-                Game.Animations.Core.Play(ped, curAnim, -1);
-        }
-
-        public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
-        {
-            var data = GetData(ped);
-
-            if (data == null)
-                ped.ClearTasksImmediately();
-            else
-            {
-
-            }
         }
 
         public NPC()
@@ -176,26 +95,44 @@ namespace BlaineRP.Client.Game.NPCs
                 if (pData == null)
                     return;
 
-                foreach (var x in Utils.Game.Misc.GetPedsOnScreen(5))
+                foreach (Ped x in Utils.Game.Misc.GetPedsOnScreen(5))
                 {
-                    var data = GetData(x);
+                    NPC data = GetData(x);
 
                     if (data == null)
                         continue;
 
-                    var pos = x.GetRealPosition();
+                    Vector3 pos = x.GetRealPosition();
 
                     if (Vector3.Distance(pos, Player.LocalPlayer.Position) > 10f)
                         continue;
 
                     if (Settings.User.Other.DebugLabels && pData.AdminLevel > -1)
-                    {
                         if (Graphics.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         {
-                            Graphics.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
-                            Graphics.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Graphics.DrawText($"ID: {data.Id} | Type: {data.Type}",
+                                screenX,
+                                screenY += NameTags.Interval / 2f,
+                                255,
+                                255,
+                                255,
+                                255,
+                                0.4f,
+                                RAGE.Game.Font.ChaletComprimeCologne,
+                                true
+                            );
+                            Graphics.DrawText($"Data: {data.Data}",
+                                screenX,
+                                screenY += NameTags.Interval / 2f,
+                                255,
+                                255,
+                                255,
+                                255,
+                                0.4f,
+                                RAGE.Game.Font.ChaletComprimeCologne,
+                                true
+                            );
                         }
-                    }
 
                     pos.Z += 1.1f;
 
@@ -210,13 +147,192 @@ namespace BlaineRP.Client.Game.NPCs
             };
         }
 
-        public void CallRemote(string actionName, params object[] args) => Events.CallRemote("NPC::Action", Id, actionName, string.Join('&', args));
+        public static NPC CurrentNPC { get; set; }
 
-        public async System.Threading.Tasks.Task<object> CallRemoteProc(string actionName, params object[] args) => await Events.CallRemoteProc("NPC::Proc", Id, actionName, string.Join('&', args));
+        private static int EscBindIdx { get; set; } = -1;
+
+        public string SubName { get; set; }
+
+        public string Id { get; set; }
+
+        public Types Type { get; set; }
+
+        public Ped Ped { get; private set; }
+
+        private bool _Invincible { get; set; }
+
+        public bool Invincible
+        {
+            get => _Invincible;
+            set
+            {
+                _Invincible = value;
+                Ped.SetInvincible(value);
+            }
+        }
+
+        public PedAnimationTypes AnimationType
+        {
+            get => Ped.GetData<PedAnimationTypes>("AnimType");
+            set => Ped.SetData("AnimType", value);
+        }
+
+        public Animation DefaultAnimation
+        {
+            get => Ped.GetData<Animation>("DefaultAnim");
+            set
+            {
+                if (value != null)
+                    Ped.SetData("DefaultAnim", value);
+                else
+                    Ped.ResetData("DefaultAnim");
+            }
+        }
+
+        public Animation CurrentAnimation
+        {
+            get => Ped.GetData<Animation>("CurrentAnim") ?? DefaultAnimation;
+            set
+            {
+                if (value != null)
+                {
+                    Ped.SetData("CurrentAnim", value);
+                    if (IsStreamed)
+                        Animations.Core.Play(Ped, value, -1);
+                }
+                else
+                {
+                    Ped.ResetData("CurrentAnim");
+                    if (IsStreamed)
+                        Animations.Core.Stop(Ped);
+                }
+            }
+        }
+
+        public float DefaultHeading { get; set; }
+
+        public string Name { get; set; }
+
+        public string DefaultDialogueId { get; set; }
+
+        public Dialogue CurrentDialogue
+        {
+            get => Ped.GetData<Dialogue>("CurrentDialogue");
+            set
+            {
+                if (value != null)
+                    Ped.SetData("CurrentDialogue", value);
+                else
+                    Ped.ResetData("CurrentDialogue");
+            }
+        }
+
+        public List<Dialogue.LastInfo> LastDialogues
+        {
+            get => Ped.GetData<List<Dialogue.LastInfo>>("LastDialogues");
+            set
+            {
+                if (value != null)
+                    Ped.SetData("LastDialogues", value);
+                else
+                    Ped.ResetData("LastDialogues");
+            }
+        }
+
+        public Cylinder Colshape { get; set; }
+
+        public bool IsStreamed => Entities.Peds.Streamed.Contains(Ped);
+
+        public ExtraBlip Blip
+        {
+            get => Ped.GetData<ExtraBlip>("Blip");
+            set
+            {
+                if (value == null)
+                    Ped.ResetData("Blip");
+                else
+                    Ped.SetData("Blip", value);
+            }
+        }
+
+        public object Data { get; set; }
+
+        private Dictionary<string, object> TempDialogueData
+        {
+            get => Player.LocalPlayer.GetData<Dictionary<string, object>>($"NPC::{Id}::TDD");
+            set
+            {
+                if (value == null)
+                    Player.LocalPlayer.ResetData($"NPC::{Id}::TDD");
+                else
+                    Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value);
+            }
+        }
+
+        public static NPC GetData(string id)
+        {
+            return AllNPCs.Where(x => x.Value.Id == id).Select(x => x.Value).FirstOrDefault();
+        }
+
+        public static NPC GetData(Ped ped)
+        {
+            return ped == null ? null : AllNPCs.GetValueOrDefault(ped);
+        }
+
+        public bool SellerNpcRequestEnterBusiness()
+        {
+            if (CurrentNPC.Data is Business businessData)
+            {
+                Events.CallRemote("Business::Enter", businessData.Id);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static async System.Threading.Tasks.Task OnPedStreamIn(Ped ped)
+        {
+            NPC data = GetData(ped);
+
+            if (data == null)
+                return;
+
+            ped.FreezePosition(true);
+
+            ped.SetProofs(true, true, true, true, true, true, true, true);
+
+            data.Ped.SetHeading(data.DefaultHeading);
+
+            if (data.CurrentAnimation is Animation curAnim)
+                Animations.Core.Play(ped, curAnim, -1);
+        }
+
+        public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
+        {
+            NPC data = GetData(ped);
+
+            if (data == null)
+            {
+                ped.ClearTasksImmediately();
+            }
+            else
+            {
+            }
+        }
+
+        public void CallRemote(string actionName, params object[] args)
+        {
+            Events.CallRemote("NPC::Action", Id, actionName, string.Join('&', args));
+        }
+
+        public async System.Threading.Tasks.Task<object> CallRemoteProc(string actionName, params object[] args)
+        {
+            return await Events.CallRemoteProc("NPC::Proc", Id, actionName, string.Join('&', args));
+        }
 
         public void Interact(bool state = true)
         {
-
         }
 
         public void SetTempDialogueData(string key, object value)
@@ -228,16 +344,19 @@ namespace BlaineRP.Client.Game.NPCs
                 TempDialogueData[key] = value;
         }
 
-        public bool ResetTempDialogueData(string key) => TempDialogueData?.Remove(key) == true;
+        public bool ResetTempDialogueData(string key)
+        {
+            return TempDialogueData?.Remove(key) == true;
+        }
 
         public T GetTempDialogueData<T>(string key)
         {
-            var data = TempDialogueData?.GetValueOrDefault(key);
+            object data = TempDialogueData?.GetValueOrDefault(key);
 
             if (data is T dataT)
                 return dataT;
 
-            return default;
+            return default(T);
         }
 
         public void SwitchDialogue(bool state = true)
@@ -255,19 +374,26 @@ namespace BlaineRP.Client.Game.NPCs
 
                 CurrentNPC = this;
 
-                var pedPos = Ped.GetRealPosition();
-                var playerPos = Player.LocalPlayer.GetRealPosition();
+                Vector3 pedPos = Ped.GetRealPosition();
+                Vector3 playerPos = Player.LocalPlayer.GetRealPosition();
 
-                var t = Geometry.RadiansToDegrees((float)System.Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
+                float t = Geometry.RadiansToDegrees((float)System.Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
 
                 Player.LocalPlayer.SetHeading(t);
                 Ped.SetHeading(t + 180f);
 
                 Player.LocalPlayer.SetVisible(false, false);
 
-                Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.NpcTalk, Ped, Ped, -1, null, null, new Vector3(0f, 0f, Ped.GetBoneCoords(31086, 0f, 0f, 0f).Z - pedPos.Z));
+                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.NpcTalk,
+                    Ped,
+                    Ped,
+                    -1,
+                    null,
+                    null,
+                    new Vector3(0f, 0f, Ped.GetBoneCoords(31086, 0f, 0f, 0f).Z - pedPos.Z)
+                );
 
-                var playerHeadCoord = Game.Management.Camera.Core.Position;
+                Vector3 playerHeadCoord = Management.Camera.Core.Position;
 
                 playerHeadCoord.Z -= 0.1f;
 
@@ -293,7 +419,7 @@ namespace BlaineRP.Client.Game.NPCs
 
                 UnbindEsc();
 
-                Game.Management.Camera.Core.Disable(750);
+                Management.Camera.Core.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, false);
 
@@ -328,7 +454,10 @@ namespace BlaineRP.Client.Game.NPCs
                 if (LastDialogues is List<Dialogue.LastInfo> lastDialogues)
                     lastDialogues.Add(dgInfo);
                 else
-                    LastDialogues = new List<Dialogue.LastInfo>() { dgInfo };
+                    LastDialogues = new List<Dialogue.LastInfo>()
+                    {
+                        dgInfo,
+                    };
             }
 
             CurrentDialogue = dialogue;

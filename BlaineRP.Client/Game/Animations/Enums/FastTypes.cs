@@ -6,7 +6,8 @@
 
         VehLocking = 0,
         Handshake,
-        Pickup, Putdown,
+        Pickup,
+        Putdown,
         Whistle,
 
         SmokePuffCig,

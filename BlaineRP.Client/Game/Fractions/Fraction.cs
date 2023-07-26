@@ -7,11 +7,11 @@ using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.World.Core;
 
 namespace BlaineRP.Client.Game.Fractions
 {
@@ -30,38 +30,146 @@ namespace BlaineRP.Client.Game.Fractions
             { 6, "Респавнить фракционный транспорт" },
             { 7, "Использовать чат фракции | /f, /r" },
             { 8, "Мут чата фракции сотрудников (ниже своего ранга) | /mutef, /unmutef" },
-
             { 9, "Использовать чат департамента | /d" },
-
             { 10, "Заключать в Следственный изолятор" },
             { 11, "Выпускать из Следственного изолятора" },
             { 12, "Изменять время заключения (только для Следственного изолятора)" },
-
             { 13, "Заключать в Федеральную тюрьму" },
-
             { 14, "Выписывать штрафы" },
             { 15, "Лишать лицензии (кроме адвокатской и на право владения бизнесом)" },
-
             { 16, "Поиск граждан в Базе данных (Служебный планшет)" },
             { 17, "Добавлять и исполнять ориентировки (Служебный планшет)" },
             { 18, "Отправлять экстренные коды (Служебный планшет, коды 0-1-2)" },
             { 19, "Завершать активные вызовы (Служебный планшет, код 3)" },
             { 20, "Устанавливать GPS-трекеры на транспорт" },
             { 21, "Отключать активные GPS-трекеры на транспорте" },
-
             { 22, "Лечить" },
             { 23, "Лечить наркозависимость" },
             { 24, "Выдавать медицинские карты" },
-
             { 25, "Модерировать объявления" },
             { 26, "Выходить в эфир" },
-
             { 100, "Изымать предметы при обыске" },
-
             { 10_000, "Заправка транспорта за счёт фракции" },
         };
 
-        public static string GetFractionPermissionName(uint id) => PermissionNames.GetValueOrDefault(id);
+        public Fraction(FractionTypes type,
+                        string name,
+                        uint storageContainerId,
+                        string containerPositionsStr,
+                        string creationWorkbenchPositionsStr,
+                        byte maxRank,
+                        Dictionary<string, uint> creationWorkbenchPrices,
+                        uint metaFlags)
+        {
+            Type = type;
+
+            Name = name;
+
+            StorageContainerId = storageContainerId;
+
+            MaxRank = maxRank;
+
+            CreationWorkbenchPrices = creationWorkbenchPrices;
+
+            MetaFlags = (MetaFlagTypes)metaFlags;
+
+            Vector4[] contPoses = RAGE.Util.Json.Deserialize<Vector4[]>(containerPositionsStr);
+            Vector4[] wbPoses = RAGE.Util.Json.Deserialize<Vector4[]>(creationWorkbenchPositionsStr);
+
+            var contTextInfos = new List<ExtraLabel>();
+            var wbTextInfos = new List<ExtraLabel>();
+
+            for (var i = 0; i < contPoses.Length; i++)
+            {
+                Vector4 contPos = contPoses[i];
+
+                var containerCs = new Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                {
+                    InteractionType = InteractionTypes.ContainerInteract,
+                    ActionType = ActionTypes.ContainerInteract,
+                    Data = storageContainerId,
+                };
+
+                var containerTextLabel = new ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f),
+                    "Склад",
+                    new RGBA(255, 255, 255, 255),
+                    5f,
+                    0,
+                    false,
+                    Settings.App.Static.MainDimension
+                )
+                {
+                    Font = 0,
+                };
+
+                var containerInfoTextLabel = new ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f),
+                    "",
+                    new RGBA(255, 255, 255, 255),
+                    5f,
+                    0,
+                    false,
+                    Settings.App.Static.MainDimension
+                )
+                {
+                    Font = 0,
+                };
+
+                contTextInfos.Add(containerInfoTextLabel);
+            }
+
+            StorageTextInfos = contTextInfos.ToArray();
+
+            for (var i = 0; i < wbPoses.Length; i++)
+            {
+                Vector4 wbPos = wbPoses[i];
+
+                var creationWorkbenchCs = new Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
+                {
+                    InteractionType = InteractionTypes.FractionCreationWorkbenchInteract,
+                    ActionType = ActionTypes.FractionInteract,
+                    Data = $"{(int)type}_{i}",
+                };
+
+                var creationWorkbenchTextLabel = new ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f),
+                    "Создание предметов",
+                    new RGBA(255, 255, 255, 255),
+                    5f,
+                    0,
+                    false,
+                    Settings.App.Static.MainDimension
+                )
+                {
+                    Font = 0,
+                };
+
+                var wbTextInfoLabel = new ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f),
+                    "",
+                    new RGBA(255, 255, 255, 255),
+                    5f,
+                    0,
+                    false,
+                    Settings.App.Static.MainDimension
+                )
+                {
+                    Font = 0,
+                };
+
+                wbTextInfos.Add(wbTextInfoLabel);
+            }
+
+            CreationWorkbenchTextInfos = wbTextInfos.ToArray();
+
+            All.Add(type, this);
+
+            for (var i = 0; i < maxRank + 1; i++)
+            {
+                Core.AddDataHandler($"FRAC::RN_{(int)type}_{i}", OnRankNameChanged);
+            }
+
+            Core.AddDataHandler($"FRAC::SL_{(int)type}", OnStorageLockedChanged);
+            Core.AddDataHandler($"FRAC::CWL_{(int)type}", OnCreationWorkbenchLockedChanged);
+            Core.AddDataHandler($"FRAC::M_{(int)type}", OnMaterialsChanged);
+        }
 
         public static Dictionary<uint, MemberData> AllMembers { get; set; }
 
@@ -70,8 +178,6 @@ namespace BlaineRP.Client.Game.Fractions
         public static Dictionary<uint, VehicleData> AllVehicles { get; set; }
 
         public static Dictionary<FractionTypes, Fraction> All { get; private set; } = new Dictionary<FractionTypes, Fraction>();
-
-        public static Fraction Get(FractionTypes type) => All.GetValueOrDefault(type);
 
         public byte MaxRank { get; private set; }
 
@@ -95,90 +201,16 @@ namespace BlaineRP.Client.Game.Fractions
 
         public MetaFlagTypes MetaFlags { get; set; }
 
-        public Fraction(FractionTypes type, string name, uint storageContainerId, string containerPositionsStr, string creationWorkbenchPositionsStr, byte maxRank, Dictionary<string, uint> creationWorkbenchPrices, uint metaFlags)
+        private Dictionary<string, object> CurrentData { get; set; }
+
+        public static string GetFractionPermissionName(uint id)
         {
-            Type = type;
+            return PermissionNames.GetValueOrDefault(id);
+        }
 
-            Name = name;
-
-            StorageContainerId = storageContainerId;
-
-            MaxRank = maxRank;
-
-            CreationWorkbenchPrices = creationWorkbenchPrices;
-
-            MetaFlags = (MetaFlagTypes)metaFlags;
-
-            var contPoses = RAGE.Util.Json.Deserialize<Vector4[]>(containerPositionsStr);
-            var wbPoses = RAGE.Util.Json.Deserialize<Vector4[]>(creationWorkbenchPositionsStr);
-
-            var contTextInfos = new List<ExtraLabel>();
-            var wbTextInfos = new List<ExtraLabel>();
-
-            for (int i = 0; i < contPoses.Length; i++)
-            {
-                var contPos = contPoses[i];
-
-                var containerCs = new Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
-                {
-                    InteractionType = InteractionTypes.ContainerInteract,
-
-                    ActionType = ActionTypes.ContainerInteract,
-
-                    Data = storageContainerId,
-                };
-
-                var containerTextLabel = new ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
-                {
-                    Font = 0,
-                };
-
-                var containerInfoTextLabel = new ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
-                {
-                    Font = 0,
-                };
-
-                contTextInfos.Add(containerInfoTextLabel);
-            }
-
-            StorageTextInfos = contTextInfos.ToArray();
-
-            for (int i = 0; i < wbPoses.Length; i++)
-            {
-                var wbPos = wbPoses[i];
-
-                var creationWorkbenchCs = new Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
-                {
-                    InteractionType = InteractionTypes.FractionCreationWorkbenchInteract,
-
-                    ActionType = ActionTypes.FractionInteract,
-
-                    Data = $"{(int)type}_{i}",
-                };
-
-                var creationWorkbenchTextLabel = new ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
-                {
-                    Font = 0,
-                };
-
-                var wbTextInfoLabel = new ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.App.Static.MainDimension)
-                {
-                    Font = 0,
-                };
-
-                wbTextInfos.Add(wbTextInfoLabel);
-            }
-
-            CreationWorkbenchTextInfos = wbTextInfos.ToArray();
-
-            All.Add(type, this);
-
-            for (int i = 0; i < maxRank + 1; i++)
-                Core.AddDataHandler($"FRAC::RN_{(int)type}_{i}", OnRankNameChanged);
-
-            Core.AddDataHandler($"FRAC::SL_{(int)type}", OnStorageLockedChanged);
-            Core.AddDataHandler($"FRAC::CWL_{(int)type}", OnCreationWorkbenchLockedChanged);
-            Core.AddDataHandler($"FRAC::M_{(int)type}", OnMaterialsChanged);
+        public static Fraction Get(FractionTypes type)
+        {
+            return All.GetValueOrDefault(type);
         }
 
         private static void OnMaterialsChanged(string key, object value, object oldValue)
@@ -188,7 +220,7 @@ namespace BlaineRP.Client.Game.Fractions
             if (pData == null)
                 return;
 
-            var kData = key.Split('_');
+            string[] kData = key.Split('_');
 
             var fType = (FractionTypes)int.Parse(kData[1]);
 
@@ -198,43 +230,35 @@ namespace BlaineRP.Client.Game.Fractions
             var amount = Utils.Convert.ToDecimal(value);
 
             if (MaterialWorkbench.CurrentType == MaterialWorkbench.Types.Fraction)
-            {
                 MaterialWorkbench.UpdateMateriaslBalance(amount);
-            }
             else
-            {
                 FractionMenu.UpdateInfoLine(3, amount);
-            }
         }
 
         public static void OnCreationWorkbenchLockedChanged(string key, object value, object oldValue)
         {
-            var state = value as bool? ?? false;
+            bool state = value as bool? ?? false;
 
-            var kData = key.Split('_');
+            string[] kData = key.Split('_');
 
             var fType = (FractionTypes)int.Parse(kData[1]);
 
-            var fData = Get(fType);
+            Fraction fData = Get(fType);
 
             if (state)
-            {
-                foreach (var x in fData.CreationWorkbenchTextInfos)
+                foreach (ExtraLabel x in fData.CreationWorkbenchTextInfos)
                 {
                     x.Text = "[Закрыто]";
 
                     x.Color = new RGBA(255, 0, 0, 255);
                 }
-            }
             else
-            {
-                foreach (var x in fData.CreationWorkbenchTextInfos)
+                foreach (ExtraLabel x in fData.CreationWorkbenchTextInfos)
                 {
                     x.Text = "[Открыто]";
 
                     x.Color = new RGBA(0, 255, 0, 255);
                 }
-            }
 
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -252,32 +276,28 @@ namespace BlaineRP.Client.Game.Fractions
 
         public static void OnStorageLockedChanged(string key, object value, object oldValue)
         {
-            var state = value as bool? ?? false;
+            bool state = value as bool? ?? false;
 
-            var kData = key.Split('_');
+            string[] kData = key.Split('_');
 
             var fType = (FractionTypes)int.Parse(kData[1]);
 
-            var fData = Get(fType);
+            Fraction fData = Get(fType);
 
             if (state)
-            {
-                foreach (var x in fData.StorageTextInfos)
+                foreach (ExtraLabel x in fData.StorageTextInfos)
                 {
                     x.Text = "[Закрыт]";
 
                     x.Color = new RGBA(255, 0, 0, 255);
                 }
-            }
             else
-            {
-                foreach (var x in fData.StorageTextInfos)
+                foreach (ExtraLabel x in fData.StorageTextInfos)
                 {
                     x.Text = "[Открыт]";
 
                     x.Color = new RGBA(0, 255, 0, 255);
                 }
-            }
 
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -297,7 +317,7 @@ namespace BlaineRP.Client.Game.Fractions
             if (pData == null)
                 return;
 
-            var kData = key.Split('_');
+            string[] kData = key.Split('_');
 
             var fType = (FractionTypes)int.Parse(kData[1]);
 
@@ -316,12 +336,12 @@ namespace BlaineRP.Client.Game.Fractions
             if (pData == null)
                 return;
 
-            var curFrac = pData.CurrentFraction;
+            Fraction curFrac = pData.CurrentFraction;
 
             if (curFrac == null)
                 return;
 
-            var fMenuServerData = ((string)await RAGE.Events.CallRemoteProc("Fraction::GMSD"))?.Split('&');
+            string[] fMenuServerData = ((string)await RAGE.Events.CallRemoteProc("Fraction::GMSD"))?.Split('&');
 
             if (fMenuServerData == null)
                 return;
@@ -341,26 +361,59 @@ namespace BlaineRP.Client.Game.Fractions
 
             AllMembers = new Dictionary<uint, MemberData>();
 
-            foreach (var x in ((JArray)args[1]).ToObject<List<string>>())
+            foreach (string x in ((JArray)args[1]).ToObject<List<string>>())
             {
-                var data = x.Split('&');
+                string[] data = x.Split('&');
 
-                AllVehicles.Add(uint.Parse(data[0]), new VehicleData() { Numberplate = data[1], MinRank = byte.Parse(data[2]) });
+                AllVehicles.Add(uint.Parse(data[0]),
+                    new VehicleData()
+                    {
+                        Numberplate = data[1],
+                        MinRank = byte.Parse(data[2]),
+                    }
+                );
             }
 
-            foreach (var x in ((JArray)args[2]).ToObject<List<string>>())
+            foreach (string x in ((JArray)args[2]).ToObject<List<string>>())
             {
-                var data = x.Split('&');
+                string[] data = x.Split('&');
 
-                AllMembers.Add(uint.Parse(data[0]), new MemberData() { Name = data[1], Rank = byte.Parse(data[2]), IsOnline = data[3] == "1", SubStatus = byte.Parse(data[4]), LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data[5])).DateTime });
+                AllMembers.Add(uint.Parse(data[0]),
+                    new MemberData()
+                    {
+                        Name = data[1],
+                        Rank = byte.Parse(data[2]),
+                        IsOnline = data[3] == "1",
+                        SubStatus = byte.Parse(data[4]),
+                        LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data[5])).DateTime,
+                    }
+                );
             }
 
             HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Fraction_Menu);
 
             Menu.SetFraction(Type);
 
-            Interaction.CharacterInteractionInfo.AddAction("char_job", "fraction_invite", (entity) => { var player = entity as Player; if (player == null) return; PlayerInvite(player); });
-            Interaction.CharacterInteractionInfo.AddAction("documents", "fraction_docs", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocs(player); });
+            Interaction.CharacterInteractionInfo.AddAction("char_job",
+                "fraction_invite",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerInvite(player);
+                }
+            );
+            Interaction.CharacterInteractionInfo.AddAction("documents",
+                "fraction_docs",
+                (entity) =>
+                {
+                    var player = entity as Player;
+                    if (player == null)
+                        return;
+                    PlayerShowDocs(player);
+                }
+            );
         }
 
         public virtual void OnEndMembership()
@@ -388,9 +441,10 @@ namespace BlaineRP.Client.Game.Fractions
             AllVehicles = null;
         }
 
-        public string GetRankName(byte rank) => Core.GetSharedData<string>($"FRAC::RN_{(int)Type}_{rank}", "null");
-
-        private Dictionary<string, object> CurrentData { get; set; }
+        public string GetRankName(byte rank)
+        {
+            return Core.GetSharedData<string>($"FRAC::RN_{(int)Type}_{rank}", "null");
+        }
 
         public void SetCurrentData(string key, object data)
         {
@@ -403,15 +457,18 @@ namespace BlaineRP.Client.Game.Fractions
 
         public T GetCurrentData<T>(string key)
         {
-            var data = CurrentData?.GetValueOrDefault(key);
+            object data = CurrentData?.GetValueOrDefault(key);
 
             if (data is T dataT)
                 return dataT;
 
-            return default;
+            return default(T);
         }
 
-        public bool ResetCurrentData(string key) => CurrentData.Remove(key);
+        public bool ResetCurrentData(string key)
+        {
+            return CurrentData.Remove(key);
+        }
 
         public void PlayerInvite(Player player)
         {
@@ -423,13 +480,9 @@ namespace BlaineRP.Client.Game.Fractions
             if (tData.Fraction != FractionTypes.None)
             {
                 if (tData.Fraction == Type)
-                {
                     Notification.ShowError(Locale.Get("FRACTION_INV_E_1"));
-                }
                 else
-                {
                     Notification.ShowError(Locale.Get("FRACTION_INV_E_0"));
-                }
 
                 return;
             }

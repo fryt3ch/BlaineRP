@@ -10,11 +10,6 @@ namespace BlaineRP.Client.Game.Management.Misc
     [Script(int.MaxValue)]
     public class SkyCamera
     {
-        public static bool IsFadedOut { get => RAGE.Game.Cam.IsScreenFadedOut() || RAGE.Game.Cam.IsScreenFadingOut(); }
-        public static bool ShouldBeFadedOut { get; set; }
-
-        public static bool IsCamOnAir { get => RAGE.Game.Streaming.GetPlayerSwitchState() != 12; }
-
         public enum SwitchType
         {
             ToPlayer = 0,
@@ -22,53 +17,61 @@ namespace BlaineRP.Client.Game.Management.Misc
             Move,
         }
 
-        struct EventToCall
-        {
-            public string Name;
-            public object[] Args;
-        }
-
         private static Queue<EventToCall> EventsQueue = new Queue<EventToCall>();
 
         public SkyCamera()
         {
-            Events.Add("SkyCamera::Move", async (args) =>
-            {
-                SwitchType sType = (SwitchType)(int)args[0];
-                bool fade = (bool)args[1];
-
-                string eventName = null;
-                object[] eventArgs = null;
-
-                if (args.Length > 2)
-                    eventName = (string)args[2];
-
-                if (args.Length > 3)
-                    eventArgs = ((JArray)args[3]).ToObject<object[]>();
-
-                if (eventName != null)
-                    EventsQueue.Enqueue(new EventToCall() { Name = eventName, Args = eventArgs });
-
-                await Move(sType, fade);
-            });
-
-            Events.Add("FadeScreen", (object[] args) =>
-            {
-                bool state = (bool)args[0];
-
-                if (args.Length > 1)
+            Events.Add("SkyCamera::Move",
+                async (args) =>
                 {
+                    var sType = (SwitchType)(int)args[0];
+                    var fade = (bool)args[1];
+
+                    string eventName = null;
+                    object[] eventArgs = null;
+
                     if (args.Length > 2)
-                        FadeScreen(state, (int)args[1], (int)args[2]);
-                    else
-                        FadeScreen(state, (int)args[1]);
+                        eventName = (string)args[2];
+
+                    if (args.Length > 3)
+                        eventArgs = ((JArray)args[3]).ToObject<object[]>();
+
+                    if (eventName != null)
+                        EventsQueue.Enqueue(new EventToCall()
+                            {
+                                Name = eventName,
+                                Args = eventArgs,
+                            }
+                        );
+
+                    await Move(sType, fade);
                 }
-                else
+            );
+
+            Events.Add("FadeScreen",
+                (object[] args) =>
                 {
-                    FadeScreen(state, 500);
+                    var state = (bool)args[0];
+
+                    if (args.Length > 1)
+                    {
+                        if (args.Length > 2)
+                            FadeScreen(state, (int)args[1], (int)args[2]);
+                        else
+                            FadeScreen(state, (int)args[1]);
+                    }
+                    else
+                    {
+                        FadeScreen(state, 500);
+                    }
                 }
-            });
+            );
         }
+
+        public static bool IsFadedOut => RAGE.Game.Cam.IsScreenFadedOut() || RAGE.Game.Cam.IsScreenFadingOut();
+        public static bool ShouldBeFadedOut { get; set; }
+
+        public static bool IsCamOnAir => RAGE.Game.Streaming.GetPlayerSwitchState() != 12;
 
         public static void FadeScreen(bool state, int speed, int inTime = -1)
         {
@@ -92,9 +95,7 @@ namespace BlaineRP.Client.Game.Management.Misc
             ShouldBeFadedOut = state;
 
             if (state && inTime >= 0)
-            {
                 AsyncTask.Methods.Run(() => FadeScreen(false, speed, -1), inTime);
-            }
         }
 
         public static async System.Threading.Tasks.Task Move(SwitchType type, bool fade)
@@ -104,45 +105,51 @@ namespace BlaineRP.Client.Game.Management.Misc
             if (fade)
                 FadeScreen(true, 500);
 
-            int counter = 0;
+            var counter = 0;
 
             if (type == SwitchType.ToPlayer)
             {
                 RAGE.Game.Invoker.Invoke(0xD8295AF639FD9CB8, Player.LocalPlayer.Handle);
 
-                (new AsyncTask(() =>
-                {
-                    if (!IsCamOnAir || counter > 50)
+                new AsyncTask(() =>
                     {
-                        RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
+                        if (!IsCamOnAir || counter > 50)
+                        {
+                            RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
 
-                        Finished(true, fade);
+                            Finished(true, fade);
 
-                        return true;
-                    }
+                            return true;
+                        }
 
-                    counter++;
+                        counter++;
 
-                    return false;
-                }, 100, true)).Run();
+                        return false;
+                    },
+                    100,
+                    true
+                ).Run();
             }
             else if (type == SwitchType.OutFromPlayer)
             {
                 RAGE.Game.Invoker.Invoke(RAGE.Game.Natives.SwitchOutPlayer, Player.LocalPlayer.Handle, 513, 2);
 
-                (new AsyncTask(() =>
-                {
-                    if (RAGE.Game.Streaming.GetPlayerSwitchState() == 5 || counter > 50)
+                new AsyncTask(() =>
                     {
-                        Finished(false, fade);
+                        if (RAGE.Game.Streaming.GetPlayerSwitchState() == 5 || counter > 50)
+                        {
+                            Finished(false, fade);
 
-                        return true;
-                    }
+                            return true;
+                        }
 
-                    counter++;
+                        counter++;
 
-                    return false;
-                }, 100, true)).Run();
+                        return false;
+                    },
+                    100,
+                    true
+                ).Run();
             }
             else if (type == SwitchType.Move)
             {
@@ -154,21 +161,24 @@ namespace BlaineRP.Client.Game.Management.Misc
 
                 RAGE.Game.Invoker.Invoke(RAGE.Game.Natives.SwitchOutPlayer, Player.LocalPlayer.Handle, 513, 2);
 
-                (new AsyncTask(() =>
-                {
-                    if (RAGE.Game.Streaming.GetPlayerSwitchState() == 5 || counter > 50)
+                new AsyncTask(() =>
                     {
-                        FadeScreen(false, 300);
+                        if (RAGE.Game.Streaming.GetPlayerSwitchState() == 5 || counter > 50)
+                        {
+                            FadeScreen(false, 300);
 
-                        Finished(false, fade);
+                            Finished(false, fade);
 
-                        return true;
-                    }
+                            return true;
+                        }
 
-                    counter++;
+                        counter++;
 
-                    return false;
-                }, 100, true)).Run();
+                        return false;
+                    },
+                    100,
+                    true
+                ).Run();
             }
         }
 
@@ -182,7 +192,7 @@ namespace BlaineRP.Client.Game.Management.Misc
 
             if (EventsQueue.Count != 0)
             {
-                var eventToCall = EventsQueue.Dequeue();
+                EventToCall eventToCall = EventsQueue.Dequeue();
 
                 Events.CallLocal(eventToCall.Name, eventToCall.Args);
             }
@@ -191,13 +201,15 @@ namespace BlaineRP.Client.Game.Management.Misc
         public static void WrongFadeCheck()
         {
             if (ShouldBeFadedOut && !IsFadedOut)
-            {
                 RAGE.Game.Cam.DoScreenFadeOut(0);
-            }
             else if (!ShouldBeFadedOut && IsFadedOut)
-            {
                 RAGE.Game.Cam.DoScreenFadeIn(0);
-            }
+        }
+
+        private struct EventToCall
+        {
+            public string Name;
+            public object[] Args;
         }
     }
 }

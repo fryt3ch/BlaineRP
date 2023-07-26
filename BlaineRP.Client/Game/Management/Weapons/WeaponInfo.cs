@@ -4,6 +4,24 @@ namespace BlaineRP.Client.Game.Management.Weapons
 {
     public class WeaponInfo
     {
+        public WeaponInfo(string gameName, float baseDamage, float maxDistance, float distanceRatio, float headRatio, float chestRatio, float limbRatio, bool hasAmmo = true)
+        {
+            Hash = RAGE.Util.Joaat.Hash(gameName);
+            GameName = gameName;
+            BaseDamage = baseDamage;
+            MaxDistance = maxDistance;
+            DistanceRatio = distanceRatio;
+
+            BodyRatios = new Dictionary<BodyPartTypes, float>()
+            {
+                { BodyPartTypes.Head, headRatio },
+                { BodyPartTypes.Chest, chestRatio },
+                { BodyPartTypes.Limb, limbRatio },
+            };
+
+            HasAmmo = hasAmmo;
+        }
+
         public uint Hash { get; set; }
 
         public string GameName { get; set; }
@@ -31,25 +49,7 @@ namespace BlaineRP.Client.Game.Management.Weapons
 
         public uint? GetComponentHash(WeaponComponentTypes cType)
         {
-            return ComponentsHashes != null && ComponentsHashes.TryGetValue(cType, out var hash) ? (uint?)hash : (uint?)null;
-        }
-
-        public WeaponInfo(string gameName, float baseDamage, float maxDistance, float distanceRatio, float headRatio, float chestRatio, float limbRatio, bool hasAmmo = true)
-        {
-            Hash = RAGE.Util.Joaat.Hash(gameName);
-            GameName = gameName;
-            BaseDamage = baseDamage;
-            MaxDistance = maxDistance;
-            DistanceRatio = distanceRatio;
-
-            BodyRatios = new Dictionary<BodyPartTypes, float>()
-                {
-                    { BodyPartTypes.Head, headRatio },
-                    { BodyPartTypes.Chest, chestRatio },
-                    { BodyPartTypes.Limb, limbRatio },
-                };
-
-            HasAmmo = hasAmmo;
+            return ComponentsHashes != null && ComponentsHashes.TryGetValue(cType, out uint hash) ? (uint?)hash : (uint?)null;
         }
     }
 }

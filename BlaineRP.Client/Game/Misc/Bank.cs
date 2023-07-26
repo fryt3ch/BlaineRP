@@ -10,12 +10,6 @@ namespace BlaineRP.Client.Game.Misc
     {
         public static Dictionary<int, Bank> All = new Dictionary<int, Bank>();
 
-        public int Id { get; set; }
-
-        public List<NPC> Workers { get; set; }
-
-        public ExtraBlip Blip { get; set; }
-
         public Bank(int Id, Utils.Vector4[] NPCs)
         {
             this.Id = Id;
@@ -30,17 +24,25 @@ namespace BlaineRP.Client.Game.Misc
 
                 var npc = new NPC($"bank_{this.Id}_{i}", "", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.App.Static.MainDimension)
                 {
-                    SubName = "NPC_SUBNAME_BANK_WORKER", DefaultDialogueId = "bank_preprocess", Data = this,
+                    SubName = "NPC_SUBNAME_BANK_WORKER",
+                    DefaultDialogueId = "bank_preprocess",
+                    Data = this,
                 };
 
                 Workers.Add(npc);
             }
 
-            var pos = posBlip / NPCs.Length;
+            Vector3 pos = posBlip / NPCs.Length;
 
             Blip = new ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
             GPS.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
         }
+
+        public int Id { get; set; }
+
+        public List<NPC> Workers { get; set; }
+
+        public ExtraBlip Blip { get; set; }
     }
 }

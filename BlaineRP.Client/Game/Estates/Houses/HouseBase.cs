@@ -20,6 +20,17 @@ namespace BlaineRP.Client.Game.Estates
             FD,
         }
 
+        public HouseBase(Core.HouseTypes type, uint id, uint price, int roomType, int @class, uint tax)
+        {
+            Type = type;
+
+            Id = id;
+            Price = price;
+            RoomType = (Core.Style.RoomTypes)roomType;
+            Class = (ClassTypes)@class;
+            Tax = tax;
+        }
+
         public Core.HouseTypes Type { get; set; }
 
         public uint Id { get; set; }
@@ -41,17 +52,6 @@ namespace BlaineRP.Client.Game.Estates
         public ExtraLabel InfoText { get; set; }
 
         public abstract ExtraBlip OwnerBlip { get; set; }
-
-        public HouseBase(Core.HouseTypes type, uint id, uint price, int roomType, int @class, uint tax)
-        {
-            Type = type;
-
-            Id = id;
-            Price = price;
-            RoomType = (Core.Style.RoomTypes)roomType;
-            Class = (ClassTypes)@class;
-            Tax = tax;
-        }
 
         public abstract void ToggleOwnerBlip(bool state);
 

@@ -4,14 +4,14 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public class Farmer : Job
     {
+        public Farmer(int Id, int BuisnessId) : base(Id, JobTypes.Farmer)
+        {
+            BusinessId = BuisnessId;
+        }
+
         private int BusinessId { get; set; }
 
         public Farm FarmBusiness => Business.All[BusinessId] as Farm;
-
-        public Farmer(int Id, int BuisnessId) : base(Id, JobTypes.Farmer)
-        {
-            this.BusinessId = BuisnessId;
-        }
 
         public override void OnEndJob()
         {
