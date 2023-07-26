@@ -4,7 +4,7 @@ namespace BlaineRP.Client.Game.Fractions
 {
     public partial class Gang : Fraction
     {
-        public Gang(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public Gang(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
 
         }

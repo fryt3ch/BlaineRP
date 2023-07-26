@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.Scripts.Misc;
-using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Camera

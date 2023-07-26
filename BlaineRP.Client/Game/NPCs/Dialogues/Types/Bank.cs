@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Sync;
 using RAGE;
 using RAGE.Elements;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Bank
@@ -41,7 +40,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     {
                         btns.Add(new Button("[Перейти к управлению счетом]", () =>
                         {
-                            if (NPC.CurrentNPC?.Data is Locations.Bank bankData)
+                            if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
                             {
                                 if (NPC.LastSent.IsSpam(1000, false, false))
                                     return;
@@ -55,16 +54,16 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                         btns.Add(new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }));
                     }
 
-                    if (pData.OwnedHouses.FirstOrDefault() is Locations.House house)
+                    if (pData.OwnedHouses.FirstOrDefault() is House house)
                         btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }));
 
-                    if (pData.OwnedApartments.FirstOrDefault() is Locations.Apartments aps)
+                    if (pData.OwnedApartments.FirstOrDefault() is Apartments aps)
                         btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }));
 
-                    if (pData.OwnedGarages.FirstOrDefault() is Locations.Garage garage)
+                    if (pData.OwnedGarages.FirstOrDefault() is Garage garage)
                         btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }));
 
-                    if (pData.OwnedBusinesses.FirstOrDefault() is Locations.Business biz)
+                    if (pData.OwnedBusinesses.FirstOrDefault() is Business biz)
                         btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
 
                     if (pData.CurrentFraction is Game.Fractions.Fraction fraction)
@@ -91,7 +90,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                 if (NPC.CurrentNPC == null)
                     return;
 
-                var houseData = (Locations.House)args[0];
+                var houseData = (House)args[0];
 
                 var data = ((string)await Events.CallRemoteProc("Bank::GHA", houseData.Id))?.Split('_');
 
@@ -110,7 +109,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                 var hoursLeft = balance / houseData.Tax;
 
-                var currentDate = Core.ServerTime;
+                var currentDate = World.Core.ServerTime;
 
                 var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -143,7 +142,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                         return;
                     }
 
-                    var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                    var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                     if (bank == null)
                         return;
@@ -178,7 +177,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                         var nBalance = balance - minBalance;
 
-                        var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                         if (bank == null)
                             return;
@@ -221,7 +220,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var apsData = (Locations.Apartments)args[0];
+                    var apsData = (Apartments)args[0];
 
                     var data = ((string)await Events.CallRemoteProc("Bank::GAA", apsData.Id))?.Split('_');
 
@@ -240,7 +239,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                     var hoursLeft = balance / apsData.Tax;
 
-                    var currentDate = Core.ServerTime;
+                    var currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -273,7 +272,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                             return;
                         }
 
-                        var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                         if (bank == null)
                             return;
@@ -308,7 +307,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                             var nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                             if (bank == null)
                                 return;
@@ -351,7 +350,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var garageData = (Locations.Garage)args[0];
+                    var garageData = (Garage)args[0];
 
                     var data = ((string)await Events.CallRemoteProc("Bank::GGA", garageData.Id))?.Split('_');
 
@@ -370,7 +369,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                     var hoursLeft = balance / garageData.Tax;
 
-                    var currentDate = Core.ServerTime;
+                    var currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -403,7 +402,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                             return;
                         }
 
-                        var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                         if (bank == null)
                             return;
@@ -438,7 +437,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                             var nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                             if (bank == null)
                                 return;
@@ -481,7 +480,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var businessData = (Locations.Business)args[0];
+                    var businessData = (Business)args[0];
 
                     var data = ((string)await Events.CallRemoteProc("Bank::GBA", businessData.Id))?.Split('_');
 
@@ -500,7 +499,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                     var hoursLeft = balance / businessData.Rent;
 
-                    var currentDate = Core.ServerTime;
+                    var currentDate = World.Core.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -533,7 +532,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                             return;
                         }
 
-                        var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                         if (bank == null)
                             return;
@@ -568,7 +567,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                             var nBalance = balance - minBalance;
 
-                            var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                             if (bank == null)
                                 return;
@@ -639,7 +638,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                             return;
                         }
 
-                        var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                        var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                         if (bank == null)
                             return;
@@ -674,7 +673,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                             var nBalance = balance;
 
-                            var bank = NPC.CurrentNPC.Data as Locations.Bank;
+                            var bank = NPC.CurrentNPC.Data as Game.Misc.Bank;
 
                             if (bank == null)
                                 return;
@@ -713,7 +712,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                 new Button("[Перейти к тарифам]", () =>
                 {
-                    if (NPC.CurrentNPC?.Data is Locations.Bank bankData)
+                    if (NPC.CurrentNPC?.Data is Game.Misc.Bank bankData)
                     {
                         if (NPC.LastSent.IsSpam(1000, false, false))
                             return;
@@ -739,7 +738,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             new Dialogue("bank_fraction_0", "Баланс на счете Вашей фракции составляет {0}.", null);
         }
 
-        private static async void HouseBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Locations.HouseBase house, Locations.Bank bank, bool add)
+        private static async void HouseBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, HouseBase house, Game.Misc.Bank bank, bool add)
         {
             if (ActionBox.LastSent.IsSpam(1000, false, true))
                 return;
@@ -749,11 +748,11 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                 return;
 
-            ActionBox.LastSent = Core.ServerTime;
+            ActionBox.LastSent = World.Core.ServerTime;
 
             var useCash = rType == ActionBox.ReplyTypes.OK;
 
-            var resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == House.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
+            var resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Estates.Core.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;
@@ -761,7 +760,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             ActionBox.Close(true);
         }
 
-        private static async void GarageBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Locations.Garage garage, Locations.Bank bank, bool add)
+        private static async void GarageBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Garage garage, Game.Misc.Bank bank, bool add)
         {
             if (ActionBox.LastSent.IsSpam(1000, false, true))
                 return;
@@ -771,7 +770,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                 return;
 
-            ActionBox.LastSent = Core.ServerTime;
+            ActionBox.LastSent = World.Core.ServerTime;
 
             var useCash = rType == ActionBox.ReplyTypes.OK;
 
@@ -783,7 +782,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             ActionBox.Close(true);
         }
 
-        private static async void BusinessBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Locations.Business biz, Locations.Bank bank, bool add)
+        private static async void BusinessBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Business biz, Game.Misc.Bank bank, bool add)
         {
             if (ActionBox.LastSent.IsSpam(1000, false, true))
                 return;
@@ -793,7 +792,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                 return;
 
-            ActionBox.LastSent = Core.ServerTime;
+            ActionBox.LastSent = World.Core.ServerTime;
 
             var useCash = rType == ActionBox.ReplyTypes.OK;
 
@@ -805,7 +804,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             ActionBox.Close(true);
         }
 
-        private static async void FractionBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Game.Fractions.Fraction fData, Locations.Bank bank, bool add)
+        private static async void FractionBalanceChangeRangeActionBoxAction(ActionBox.ReplyTypes rType, decimal amountD, Game.Fractions.Fraction fData, Game.Misc.Bank bank, bool add)
         {
             if (ActionBox.LastSent.IsSpam(1000, false, true))
                 return;
@@ -815,7 +814,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                 return;
 
-            ActionBox.LastSent = Core.ServerTime;
+            ActionBox.LastSent = World.Core.ServerTime;
 
             var useCash = rType == ActionBox.ReplyTypes.OK;
 

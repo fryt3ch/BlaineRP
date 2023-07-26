@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client
 {

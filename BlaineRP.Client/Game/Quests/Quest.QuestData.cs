@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Quests.Enums;
 
-namespace BlaineRP.Client.Quests
+namespace BlaineRP.Client.Game.Quests
 {
     public partial class Quest
     {

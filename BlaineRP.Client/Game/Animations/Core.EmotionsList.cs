@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations.Enums;
 
 namespace BlaineRP.Client.Game.Animations
 {

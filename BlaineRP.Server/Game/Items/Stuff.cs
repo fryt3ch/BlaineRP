@@ -743,8 +743,6 @@ namespace BlaineRP.Server.Game.Items
 
             foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Item).IsAssignableFrom(t)))
             {
-                //var idList= (IDictionary)x.GetField("IDList")?.GetValue(null).Cast<dynamic>().ToDictionary(a => (string)a.Key, a => (Item.ItemData)a.Value);
-
                 var idList = (Dictionary<string, Item.ItemData>)x.GetField("IDList")?.GetValue(null);
 
                 if (idList == null)
@@ -754,6 +752,8 @@ namespace BlaineRP.Server.Game.Items
 
                 counter += idList.Count;
 
+                var tempLines = new List<string>();
+
                 foreach (var t in idList)
                 {
                     var id = t.Key.Split('_');
@@ -761,16 +761,18 @@ namespace BlaineRP.Server.Game.Items
                     if (!AllTypes.ContainsKey(id[0]))
                         AllTypes.Add(id[0], x);
 
-                    lines.Add($"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({t.Value.ClientData}));");
+                    tempLines.Add($"{{ \"{t.Key}\", new {x.Name}.ItemData({t.Value.ClientData}) }}");
                 }
+
+                lines.Add($"dict.Add(typeof({x.Name}), new Dictionary<string, Item.ItemData>() {{ {string.Join(',', tempLines)} }});");
             }
 
             foreach (var x in Craft.Craft.AllReceipts)
             {
-                lines.Add($"Craft.AllReceipts.Add(new Craft.Receipt(new Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
+                lines.Add($"Craft.Craft.AllReceipts.Add(new Craft.Craft.Receipt(new Craft.Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
             }
 
-            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Data\Items\Items.cs", "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Items\Core.cs", "TO_REPLACE", lines);
 
             return counter;
         }

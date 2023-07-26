@@ -1,9 +1,9 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Input;
 using RAGE;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Note

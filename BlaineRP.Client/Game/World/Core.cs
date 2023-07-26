@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World.Enums;
-using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;

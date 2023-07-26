@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Jobs.Types
+namespace BlaineRP.Client.Game.Jobs
 {
     public class Cabbie : Job
     {
@@ -93,7 +92,7 @@ namespace BlaineRP.Client.Game.Jobs.Types
 
                         var order = orders[id];
 
-                        var res = Utils.Convert.ToByte(await Events.CallRemoteProc("Job::CAB::TO", order.Id));
+                        var res = Utils.Convert.ToByte(await RAGE.Events.CallRemoteProc("Job::CAB::TO", order.Id));
 
                         if (res == byte.MaxValue)
                         {
@@ -126,7 +125,7 @@ namespace BlaineRP.Client.Game.Jobs.Types
                                             return;
                                         }
 
-                                        Events.CallRemote("Job::CAB::OS", order.Id);
+                                        RAGE.Events.CallRemote("Job::CAB::OS", order.Id);
                                     }
                                 };
 

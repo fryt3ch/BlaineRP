@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Data;
-using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class JTR1
@@ -52,7 +51,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (job == null)
                                 return;
 
-                            var currentOrder = new Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = Locations.Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
+                            var currentOrder = new Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
 
                             var destPos = new Vector3(job.MaterialsPositions[currentOrder.MPIdx].X, job.MaterialsPositions[currentOrder.MPIdx].Y, job.MaterialsPositions[currentOrder.MPIdx].Z - 1f);
 
@@ -159,7 +158,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (job == null)
                                 return;
 
-                            var currentOrder = new Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = Locations.Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
+                            var currentOrder = new Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
 
                             var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z);
 

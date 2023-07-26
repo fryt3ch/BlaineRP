@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Game.Data.Vehicles
 
         public string ID { get; set; }
 
-        public Types Type { get; set; }
+        public VehicleTypes Type { get; set; }
 
         public string BrandName
         {
@@ -54,9 +54,9 @@ namespace BlaineRP.Client.Game.Data.Vehicles
 
         public ClassTypes Class { get; private set; }
 
-        public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault<Types, string>(Type) ?? "null";
+        public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault<VehicleTypes, string>(Type) ?? "null";
 
-        public Vehicle(string id, uint model, string name, float tank, FuelTypes fuelType, Trunk trunkData = null, bool isModdable = true, bool hasCruiseControl = false, bool hasAutoPilot = false, Types type = Types.Car, int govPrice = 0, ClassTypes @class = ClassTypes.Classic)
+        public Vehicle(string id, uint model, string name, float tank, FuelTypes fuelType, Trunk trunkData = null, bool isModdable = true, bool hasCruiseControl = false, bool hasAutoPilot = false, VehicleTypes type = VehicleTypes.Car, int govPrice = 0, ClassTypes @class = ClassTypes.Classic)
         {
             ID = id;
             Name = name;
@@ -82,13 +82,13 @@ namespace BlaineRP.Client.Game.Data.Vehicles
 
         public string GetEstateSvgName()
         {
-            if (Type == Types.Car)
+            if (Type == VehicleTypes.Car)
                 return "Veh";
 
-            if (Type == Types.Motorcycle)
+            if (Type == VehicleTypes.Motorcycle)
                 return "Moto";
 
-            if (Type == Types.Helicopter)
+            if (Type == VehicleTypes.Helicopter)
                 return "Heli";
 
             return Type.ToString();

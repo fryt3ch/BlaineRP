@@ -7,7 +7,7 @@ using BlaineRP.Client.Game.World;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Fraction

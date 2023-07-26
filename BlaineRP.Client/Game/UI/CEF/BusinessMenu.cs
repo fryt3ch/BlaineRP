@@ -5,13 +5,13 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.Scripts.Sync;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class BusinessMenu

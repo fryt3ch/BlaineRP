@@ -1,24 +1,20 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Sync;
-using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.NPCs;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Casino
 {
-    public partial class Casino
-        {
-            public class Blackjack
+    public class Blackjack
             {
                 /// <summary>Сумма значений карт, при достижении которой дилер перестает брать новые по завершению игры</summary>
                 private const byte DEALER_STOPS_ON = 17;
@@ -256,7 +252,7 @@ namespace BlaineRP.Client.Data.Locations
 
                 public MapObject TableObject { get; set; }
 
-                public NPC NPC { get; set; }
+                public NPCs.NPC NPC { get; set; }
 
                 public ExtraLabel TextLabel { get; set; }
 
@@ -273,7 +269,7 @@ namespace BlaineRP.Client.Data.Locations
                         NotifyStreaming = true, // h4_prop_casino_blckjack_01e
                     };
 
-                    NPC = new NPC($"Casino@Blackjack_{CasinoId}_{Id}", "", NPC.Types.Static, "S_M_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, Heading, 0f, 0.7f, 1f), Heading + 180f, Settings.App.Static.MainDimension)
+                    NPC = new NPCs.NPC($"Casino@Blackjack_{CasinoId}_{Id}", "", NPCs.NPC.Types.Static, "S_M_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, Heading, 0f, 0.7f, 1f), Heading + 180f, Settings.App.Static.MainDimension)
                     {
                         SubName = "NPC_SUBNAME_CASINO_BLACKJACK_WORKER",
                     };
@@ -432,12 +428,12 @@ namespace BlaineRP.Client.Data.Locations
 
                             if (CurrentTable == table)
                             {
-                                if (Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                                if (CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                                 {
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                    CasinoMinigames.ShowBlackjackButton(0, false);
+                                    CasinoMinigames.ShowBlackjackButton(1, false);
 
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(2, true);
+                                    CasinoMinigames.ShowBlackjackButton(2, true);
                                 }
                             }
 
@@ -489,12 +485,12 @@ namespace BlaineRP.Client.Data.Locations
                         {
                             updateFunc("Раздача карт...");
 
-                            if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                            if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                             {
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                CasinoMinigames.ShowBlackjackButton(0, false);
+                                CasinoMinigames.ShowBlackjackButton(1, false);
                             }
 
                             table.StartCardGiving(casinoId, tableId, str, onLoad);
@@ -503,12 +499,12 @@ namespace BlaineRP.Client.Data.Locations
                         {
                             updateFunc("Завершение игры...");
 
-                            if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                            if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                             {
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                CasinoMinigames.ShowBlackjackButton(0, false);
+                                CasinoMinigames.ShowBlackjackButton(1, false);
                             }
 
                             table.FinishGame(casinoId, tableId, str, onLoad);
@@ -531,22 +527,22 @@ namespace BlaineRP.Client.Data.Locations
 
                                 table.TextLabel.SetData("StateTask", task);
 
-                                if (Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                                if (CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                                 {
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                    CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(0, true);
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(1, true);
+                                    CasinoMinigames.ShowBlackjackButton(0, true);
+                                    CasinoMinigames.ShowBlackjackButton(1, true);
                                 }
                             }
                             else
                             {
-                                if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                                if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                                 {
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                    CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                    CasinoMinigames.ShowBlackjackButton(0, false);
+                                    CasinoMinigames.ShowBlackjackButton(1, false);
                                 }
 
                                 var task = new AsyncTask(() =>
@@ -569,24 +565,24 @@ namespace BlaineRP.Client.Data.Locations
 
                             if (CurrentTable == table && CurrentSeatIdx == seatIdx)
                             {
-                                if (Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                                if (CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                                 {
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                    CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                    CasinoMinigames.ShowBlackjackButton(0, false);
+                                    CasinoMinigames.ShowBlackjackButton(1, false);
                                 }
 
                                 updateFunc("Вы берёте еще одну карту...");
                             }
                             else
                             {
-                                if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                                if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                                 {
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                    CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                    Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                    CasinoMinigames.ShowBlackjackButton(0, false);
+                                    CasinoMinigames.ShowBlackjackButton(1, false);
                                 }
 
                                 updateFunc($"Игрок #{seatIdx + 1} берёт еще одну карту...");
@@ -600,12 +596,12 @@ namespace BlaineRP.Client.Data.Locations
 
                             var seatIdx = byte.Parse(subData[1]);
 
-                            if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                            if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                             {
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, false);
+                                CasinoMinigames.ShowBlackjackButton(2, false);
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                CasinoMinigames.ShowBlackjackButton(0, false);
+                                CasinoMinigames.ShowBlackjackButton(1, false);
                             }
 
                             if (CurrentTable == table && CurrentSeatIdx == seatIdx)
@@ -642,14 +638,14 @@ namespace BlaineRP.Client.Data.Locations
 
                             table.TextLabel.SetData("StateTask", task);
 
-                            if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                            if (CurrentTable == table && CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)
                             {
                                 var oBets = table.NPC.Ped.GetData<List<BetData>>("Bets");
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+                                CasinoMinigames.ShowBlackjackButton(0, false);
+                                CasinoMinigames.ShowBlackjackButton(1, false);
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, (oBets?[CurrentSeatIdx]?.Amount ?? 0) <= 0);
+                                CasinoMinigames.ShowBlackjackButton(2, (oBets?[CurrentSeatIdx]?.Amount ?? 0) <= 0);
                             }
                         }
                     }
@@ -670,7 +666,7 @@ namespace BlaineRP.Client.Data.Locations
 
                         if (CurrentTable == table)
                         {
-                            Data.Minigames.Casino.Casino.UpdateStatus(str);
+                            CasinoMinigames.UpdateStatus(str);
                         }
                     }
                 }
@@ -742,7 +738,7 @@ namespace BlaineRP.Client.Data.Locations
 
                     task = new AsyncTask(async () =>
                     {
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
@@ -870,7 +866,7 @@ namespace BlaineRP.Client.Data.Locations
 
                     task = new AsyncTask(async () =>
                     {
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
@@ -1000,7 +996,7 @@ namespace BlaineRP.Client.Data.Locations
 
                     task = new AsyncTask(async () =>
                     {
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                         var npc = NPC?.Ped;
 
@@ -1421,7 +1417,7 @@ namespace BlaineRP.Client.Data.Locations
 
                 public static async System.Threading.Tasks.Task LoadAllRequired()
                 {
-                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                    await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
                     await Streaming.RequestAnimDict("anim_casino_b@amb@casino@games@blackjack@dealer");
 
@@ -1431,5 +1427,4 @@ namespace BlaineRP.Client.Data.Locations
                         await Streaming.RequestModel(RAGE.Util.Joaat.Hash(GetCardModelByType(allCards[i])));
                 }
             }
-        }
 }

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
 using RAGE;
 
-namespace BlaineRP.Client.Quests.Types.Main
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class TQ1

@@ -2,8 +2,8 @@
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Management.Attachments;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 
@@ -13,22 +13,22 @@ namespace BlaineRP.Client.Game.Data.Customization
     {
         private static Dictionary<System.Type, int> Slots = new Dictionary<System.Type, int>()
         {
-            { typeof(Client.Data.Items.Top), 11 },
-            { typeof(Client.Data.Items.Under), 8 },
-            { typeof(Client.Data.Items.Pants), 4 },
-            { typeof(Client.Data.Items.Shoes), 6 },
-            { typeof(Client.Data.Items.Gloves), 3 },
-            { typeof(Client.Data.Items.Mask), 1 },
-            { typeof(Client.Data.Items.Accessory), 7 },
-            { typeof(Client.Data.Items.Bag), 5 },
+            { typeof(Top), 11 },
+            { typeof(Under), 8 },
+            { typeof(Pants), 4 },
+            { typeof(Shoes), 6 },
+            { typeof(Gloves), 3 },
+            { typeof(Mask), 1 },
+            { typeof(Accessory), 7 },
+            { typeof(Bag), 5 },
 
-            { typeof(Client.Data.Items.Hat), 0 },
-            { typeof(Client.Data.Items.Glasses), 1 },
-            { typeof(Client.Data.Items.Earrings), 2 },
-            { typeof(Client.Data.Items.Watches), 6 },
-            { typeof(Client.Data.Items.Bracelet), 7 },
+            { typeof(Hat), 0 },
+            { typeof(Glasses), 1 },
+            { typeof(Earrings), 2 },
+            { typeof(Watches), 6 },
+            { typeof(Bracelet), 7 },
 
-            { typeof(Client.Data.Items.Ring), int.MinValue },
+            { typeof(Ring), int.MinValue },
         };
 
         private static Dictionary<bool, Dictionary<System.Type, int>> NudeClothes = new Dictionary<bool, Dictionary<System.Type, int>>()
@@ -38,16 +38,16 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                 new Dictionary<System.Type, int>()
                 {
-                    { typeof(Client.Data.Items.Top), 15 },
-                    { typeof(Client.Data.Items.Under), 15 },
-                    { typeof(Client.Data.Items.Gloves), 15 },
-                    { typeof(Client.Data.Items.Pants), 21 },
-                    { typeof(Client.Data.Items.Shoes), 34 },
-                    { typeof(Client.Data.Items.Accessory), 0 },
-                    { typeof(Client.Data.Items.Mask), 0 },
-                    { typeof(Client.Data.Items.Bag), 0 },
+                    { typeof(Top), 15 },
+                    { typeof(Under), 15 },
+                    { typeof(Gloves), 15 },
+                    { typeof(Pants), 21 },
+                    { typeof(Shoes), 34 },
+                    { typeof(Accessory), 0 },
+                    { typeof(Mask), 0 },
+                    { typeof(Bag), 0 },
 
-                    { typeof(Client.Data.Items.Ring), 0 },
+                    { typeof(Ring), 0 },
                 }
             },
 
@@ -56,16 +56,16 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                 new Dictionary<System.Type, int>()
                 {
-                    { typeof(Client.Data.Items.Top), 15 },
-                    { typeof(Client.Data.Items.Under), 15 },
-                    { typeof(Client.Data.Items.Gloves), 15 },
-                    { typeof(Client.Data.Items.Pants), 15 },
-                    { typeof(Client.Data.Items.Shoes), 35 },
-                    { typeof(Client.Data.Items.Accessory), 0 },
-                    { typeof(Client.Data.Items.Mask), 0 },
-                    { typeof(Client.Data.Items.Bag), 0 },
+                    { typeof(Top), 15 },
+                    { typeof(Under), 15 },
+                    { typeof(Gloves), 15 },
+                    { typeof(Pants), 15 },
+                    { typeof(Shoes), 35 },
+                    { typeof(Accessory), 0 },
+                    { typeof(Mask), 0 },
+                    { typeof(Bag), 0 },
 
-                    { typeof(Client.Data.Items.Ring), 0 },
+                    { typeof(Ring), 0 },
                 }
             },
         };
@@ -91,12 +91,12 @@ namespace BlaineRP.Client.Game.Data.Customization
 
         public static async void Wear(string id, int var = 0, params object[] args)
         {
-            var type = Client.Data.Items.GetType(id, true);
+            var type = Items.Core.GetType(id, true);
 
             if (type == null)
                 return;
 
-            var data = (Client.Data.Items.Clothes.ItemData)Client.Data.Items.GetData(id, type);
+            var data = (Items.Clothes.ItemData)Items.Core.GetData(id, type);
 
             if (data == null)
                 return;
@@ -109,9 +109,9 @@ namespace BlaineRP.Client.Game.Data.Customization
 
             if (slot < 0)
             {
-                if (data is Client.Data.Items.Ring.ItemData ringData)
+                if (data is Ring.ItemData ringData)
                 {
-                    Unwear(typeof(Client.Data.Items.Ring));
+                    Unwear(typeof(Ring));
 
                     var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -135,9 +135,9 @@ namespace BlaineRP.Client.Game.Data.Customization
                     Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
                 }
             }
-            if (type.GetInterfaces().Contains(typeof(Client.Data.Items.Clothes.IProp)))
+            if (type.GetInterfaces().Contains(typeof(Items.Clothes.IProp)))
             {
-                if (data is Client.Data.Items.Hat.ItemData hData)
+                if (data is Hat.ItemData hData)
                 {
                     TempClothes currentHatTemp = null;
 
@@ -166,7 +166,7 @@ namespace BlaineRP.Client.Game.Data.Customization
             }
             else
             {
-                if (data is Client.Data.Items.Top.ItemData tData)
+                if (data is Top.ItemData tData)
                 {
                     TempClothes currentTopTemp = null;
 
@@ -211,7 +211,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     return;
                 }
-                else if (data is Client.Data.Items.Under.ItemData uData)
+                else if (data is Under.ItemData uData)
                 {
                     TempClothes currentUnderTemp = null;
 
@@ -272,7 +272,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     return;
                 }
-                else if (data is Client.Data.Items.Gloves.ItemData gData)
+                else if (data is Gloves.ItemData gData)
                 {
                     if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         Unwear(type);
@@ -295,12 +295,12 @@ namespace BlaineRP.Client.Game.Data.Customization
 
         public static async void Action(string id, int var, params object[] args)
         {
-            var type = Client.Data.Items.GetType(id, true);
+            var type = Items.Core.GetType(id, true);
 
             if (type == null)
                 return;
 
-            var data = (Client.Data.Items.Clothes.ItemData)Client.Data.Items.GetData(id, type);
+            var data = (Items.Clothes.ItemData)Items.Core.GetData(id, type);
 
             if (data == null)
                 return;
@@ -311,9 +311,9 @@ namespace BlaineRP.Client.Game.Data.Customization
 
             if (slot < 0)
             {
-                if (data is Client.Data.Items.Ring.ItemData ringData)
+                if (data is Ring.ItemData ringData)
                 {
-                    Unwear(typeof(Client.Data.Items.Ring));
+                    Unwear(typeof(Ring));
 
                     var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -337,7 +337,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                     Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
                 }
             }
-            if (data is Client.Data.Items.Hat.ItemData hData)
+            if (data is Hat.ItemData hData)
             {
                 if (hData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Hat"))
                     return;
@@ -361,7 +361,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                     Player.LocalPlayer.SetData("TempClothes::Hat", current);
                 }
             }
-            else if (data is Client.Data.Items.Top.ItemData tData)
+            else if (data is Top.ItemData tData)
             {
                 if (tData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Top"))
                     return;
@@ -419,7 +419,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                     }
                 }
             }
-            else if (data is Client.Data.Items.Under.ItemData uData)
+            else if (data is Under.ItemData uData)
             {
                 if (uData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Under"))
                     return;
@@ -514,7 +514,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
             if (slot < 0)
             {
-                if (type == typeof(Client.Data.Items.Ring))
+                if (type == typeof(Ring))
                 {
                     if (Player.LocalPlayer.GetData<GameEntity>("TempClothes::Ring") is GameEntity gEntity)
                     {
@@ -528,21 +528,21 @@ namespace BlaineRP.Client.Game.Data.Customization
                     }
                 }
             }
-            if (type.GetInterfaces().Contains(typeof(Client.Data.Items.Clothes.IProp)))
+            if (type.GetInterfaces().Contains(typeof(Items.Clothes.IProp)))
             {
                 Player.LocalPlayer.ClearProp(slot);
 
-                if (type == typeof(Client.Data.Items.Hat))
+                if (type == typeof(Hat))
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
                 }
             }
             else
             {
-                if (type == typeof(Client.Data.Items.Top))
+                if (type == typeof(Top))
                 {
                     Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(type, sex), 0, 2);
-                    Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Client.Data.Items.Gloves), sex), 0, 2);
+                    Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Gloves), sex), 0, 2);
 
                     Player.LocalPlayer.ResetData("TempClothes::Top");
 
@@ -561,15 +561,15 @@ namespace BlaineRP.Client.Game.Data.Customization
                             Wear(temp.ID, temp.Variation);
                     }
                 }
-                else if (type == typeof(Client.Data.Items.Under))
+                else if (type == typeof(Under))
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Under");
 
                     if (!Player.LocalPlayer.HasData("TempClothes::Top"))
                     {
-                        Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(typeof(Client.Data.Items.Top), sex), 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(typeof(Top), sex), 0, 2);
                         Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(type, sex), 0, 2);
-                        Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Client.Data.Items.Gloves), sex), 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Gloves), sex), 0, 2);
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
@@ -589,11 +589,11 @@ namespace BlaineRP.Client.Game.Data.Customization
                             Wear(temp.ID, temp.Variation);
                     }
                 }
-                else if (type == typeof(Client.Data.Items.Gloves))
+                else if (type == typeof(Gloves))
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Gloves");
 
-                    if (Player.LocalPlayer.GetDrawableVariation(11) == GetNudeDrawable(typeof(Client.Data.Items.Top), sex))
+                    if (Player.LocalPlayer.GetDrawableVariation(11) == GetNudeDrawable(typeof(Top), sex))
                         Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(type, sex), 0, 2);
 
                     if (Player.LocalPlayer.HasData("TempClothes::Top"))
@@ -629,13 +629,13 @@ namespace BlaineRP.Client.Game.Data.Customization
 
             Player.LocalPlayer.ClearAllProps();
 
-            Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(typeof(Client.Data.Items.Top), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(typeof(Client.Data.Items.Under), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Client.Data.Items.Gloves), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(4, GetNudeDrawable(typeof(Client.Data.Items.Pants), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(6, GetNudeDrawable(typeof(Client.Data.Items.Shoes), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(5, GetNudeDrawable(typeof(Client.Data.Items.Bag), sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(7, GetNudeDrawable(typeof(Client.Data.Items.Accessory), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(typeof(Top), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(typeof(Under), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(typeof(Gloves), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(4, GetNudeDrawable(typeof(Pants), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(6, GetNudeDrawable(typeof(Shoes), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(5, GetNudeDrawable(typeof(Bag), sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(7, GetNudeDrawable(typeof(Accessory), sex), 0, 2);
 
             Player.LocalPlayer.SetComponentVariation(10, 0, 0, 2);
             Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);

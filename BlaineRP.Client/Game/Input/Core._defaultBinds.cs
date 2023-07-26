@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Game.Input.Enums;
 
-namespace BlaineRP.Client.Input
+namespace BlaineRP.Client.Game.Input
 {
     partial class Core
     {

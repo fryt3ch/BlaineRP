@@ -730,7 +730,7 @@ namespace BlaineRP.Server.Game.Estates
             {
                 MySQL.LoadHouse(x);
 
-                lines.Add($"new House({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new House({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, {(int)x.RoomType}, {(x.GarageData == null ? "null" : $"{(int)x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, {(int)x.Class}, {x.Tax});");
 
                 x.Furniture.ForEach(y =>
                 {
@@ -738,7 +738,7 @@ namespace BlaineRP.Server.Game.Estates
                 });
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "HOUSES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Initialization.cs", "HOUSES_TO_REPLACE", lines);
 
             return All.Count;
         }

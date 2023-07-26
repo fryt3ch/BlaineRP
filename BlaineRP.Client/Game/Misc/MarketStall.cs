@@ -1,23 +1,21 @@
-﻿using BlaineRP.Client.Extensions.System;
+﻿using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Items;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.Helpers.Colshapes;
-using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
-using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Items.Types;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.UI.CEF;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Misc
 {
-    public class MarketStall
+    public partial class MarketStall
         {
             public static List<(uint, string, decimal, decimal)> SellHistory { get => Player.LocalPlayer.GetData<List<(uint, string, decimal, decimal)>>("MarketStall::SH"); set { if (value == null) Player.LocalPlayer.ResetData("MarketStall::SH"); else Player.LocalPlayer.SetData("MarketStall::SH", value); } }
 
@@ -103,7 +101,7 @@ namespace BlaineRP.Client.Data.Locations
                             if (mainCs?.Exists != true)
                                 return;
 
-                            if ((bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id))
+                            if ((bool)await RAGE.Events.CallRemoteProc("MarketStall::Close", marketStall.Id))
                                 Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_1"));
                         },
 
@@ -163,7 +161,7 @@ namespace BlaineRP.Client.Data.Locations
 
                     ExtraColshape.LastSent = Core.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("MarketStall::GMD", marketStall.Id))?.Split('_');
+                    var res = ((string)await RAGE.Events.CallRemoteProc("MarketStall::GMD", marketStall.Id))?.Split('_');
 
                     if (res == null)
                         return;
@@ -205,7 +203,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     ExtraColshape.LastSent = Core.ServerTime;
 
-                                    var res = Utils.Convert.ToByte(await Events.CallRemoteProc("MarketStall::Lock", marketStall.Id, !isStallLocked));
+                                    var res = Utils.Convert.ToByte(await RAGE.Events.CallRemoteProc("MarketStall::Lock", marketStall.Id, !isStallLocked));
 
                                     if (res == 255)
                                         return;
@@ -250,7 +248,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     ExtraColshape.LastSent = Core.ServerTime;
 
-                                    var res = ((await Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id)) as JArray)?.ToObject<List<string>>();
+                                    var res = ((await RAGE.Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id)) as JArray)?.ToObject<List<string>>();
 
                                     if (res == null)
                                         return;
@@ -312,7 +310,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     ExtraColshape.LastSent = Core.ServerTime;
 
-                                    var res = (bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id);
+                                    var res = (bool)await RAGE.Events.CallRemoteProc("MarketStall::Close", marketStall.Id);
 
                                     if (res)
                                     {
@@ -354,7 +352,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                 ExtraColshape.LastSent = Core.ServerTime;
 
-                                var res = (bool)await Events.CallRemoteProc("MarketStall::Rent", marketStall.Id, useCash);
+                                var res = (bool)await RAGE.Events.CallRemoteProc("MarketStall::Rent", marketStall.Id, useCash);
 
                                 if (res)
                                 {
@@ -393,7 +391,7 @@ namespace BlaineRP.Client.Data.Locations
 
             private static async void ShowGoods(MarketStall marketStall)
             {
-                var res = await Events.CallRemoteProc("MarketStall::Show", marketStall.Id);
+                var res = await RAGE.Events.CallRemoteProc("MarketStall::Show", marketStall.Id);
 
                 if (res == null)
                     return;
@@ -440,75 +438,6 @@ namespace BlaineRP.Client.Data.Locations
                 var res = await Core.GetRetrievableData<object>("MARKETSTALL_RP", 0);
 
                 return Utils.Convert.ToUInt32(res);
-            }
-
-            public static void LoadEvents()
-            {
-                Events.Add("MarketStall::UPD", (args) =>
-                {
-                    var id = Utils.Convert.ToInt32(args[0]);
-
-                    var cs = ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
-
-                    if (cs == null)
-                        return;
-
-                    if (PlayerMarket.CurrentContext == null)
-                        return;
-
-                    if (PlayerMarket.CurrentContext == $"MARKETSTALL@SELLER_{id}")
-                    {
-
-                    }
-                    else if (PlayerMarket.CurrentContext == $"MARKETSTALL@BUYER_{id}")
-                    {
-                        PlayerMarket.Close();
-
-                        Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("MARKETSTALL_B_SERROR_6"));
-                    }
-                });
-
-                Events.Add("MarketStall::ATBH", (args) =>
-                {
-                    var curRentedStall = GetCurrentRentedMarketStall(out _);
-
-                    if (curRentedStall == null)
-                        return;
-
-                    var sellHist = SellHistory;
-
-                    if (sellHist == null)
-                        return;
-
-                    var itemUid = Utils.Convert.ToUInt32(args[0]);
-                    var itemId = (string)args[1];
-
-                    var itemAmount = Utils.Convert.ToUInt32(args[2]);
-                    var itemPrice = Utils.Convert.ToDecimal(args[3]);
-
-                    int histItemIdx = -1;
-
-                    for (int i = 0; i < sellHist.Count; i++)
-                    {
-                        var x = sellHist[i];
-
-                        if (x.Item1 == itemUid && x.Item2 == itemId)
-                        {
-                            histItemIdx = i;
-
-                            break;
-                        }
-                    }
-
-                    if (histItemIdx < 0)
-                    {
-                        sellHist.Add((itemUid, itemId, itemAmount, itemPrice));
-                    }
-                    else
-                    {
-                        sellHist[histItemIdx] = (itemUid, itemId, sellHist[histItemIdx].Item3 + itemAmount, sellHist[histItemIdx].Item4 + itemPrice);
-                    }
-                });
             }
         }
 }

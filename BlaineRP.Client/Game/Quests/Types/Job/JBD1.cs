@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class JBD1

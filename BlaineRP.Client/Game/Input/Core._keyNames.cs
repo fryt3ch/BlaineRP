@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BlaineRP.Client.Input
+namespace BlaineRP.Client.Game.Input
 {
     partial class Core
     {

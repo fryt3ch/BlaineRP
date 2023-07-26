@@ -1,37 +1,29 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Jobs;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Quests;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Quests;
-using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Sync;
-using Players = BlaineRP.Client.Sync.Players;
-using BlaineRP.Client.Game.Animations.Enums;
-using BlaineRP.Client.Game.Businesses;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Types;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.UI.CEF;
-using BlaineRP.Client.UI.CEF.Phone.Apps;
-using Core = BlaineRP.Client.Input.Core;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Businesses
 {
     public class Farm : Business
         {
@@ -39,7 +31,7 @@ namespace BlaineRP.Client.Data.Locations
 
             public AsyncTask LoadTask { get; set; }
 
-            private static Dictionary<int, Dictionary<int, float>> CropFieldsRotations = new Dictionary<int, Dictionary<int, float>>()
+            private static Dictionary<int, Dictionary<int, float>> _cropFieldsRotations = new Dictionary<int, Dictionary<int, float>>()
             {
                 {
                     1,
@@ -62,7 +54,7 @@ namespace BlaineRP.Client.Data.Locations
 
             public static Dictionary<int, Dictionary<int, List<List<float>>>> CropFieldsZCoords { get; private set; } = RAGE.Util.Json.Deserialize<Dictionary<int, Dictionary<int, List<List<float>>>>>("{\"1\":{\"5\":[[42.5336838,42.64844,42.7764168,42.89217,42.86189,42.79722,42.6871262,42.68867],[42.3295364,42.3898125,42.42328,42.4887123,42.4823227,42.4578247,42.4056854,42.3499947],[41.9964943,42.1416855,42.14894,42.093586,42.0516052,41.9847221,41.9349823,41.8873177]],\"6\":[[41.0347252,41.2381859,41.4085274,41.46087,41.3224945,41.4318428,41.4992676,41.5380859,41.62737],[40.8451233,41.15395,41.2773,41.48984,41.6455078,41.77222,41.78264,41.8097076,41.82335,41.96824],[40.5231743,40.9371643,41.2473145,41.62332,41.8919678,41.92287,42.0365143,42.0438347,42.05152,42.1918831],[40.48166,41.01341,41.56176,41.8789,42.04512,42.143158,42.34362,42.4107,42.4367752,42.5841064]],\"7\":[[40.83733,41.5813065,42.2078934,42.7316971,43.1412048,43.31361,43.4344444,43.6241074,43.668602,43.73133],[41.1258469,41.8893,42.4115334,42.84376,43.3128128,43.61136,43.90068,44.1271172,44.22177,44.4324036],[41.2688,41.9774857,42.6814041,43.2070351,43.4911461,43.77423,44.09675,44.3787231,44.518158,44.7212448]],\"8\":[[42.50969,42.7982674,43.1128731,43.47725,43.80024,44.02668,44.2374649,44.3879356,44.4127579,44.52336],[42.7892036,42.9787331,43.30298,43.5958748,43.8641777,44.0514374,44.14557,44.20916,44.20378,44.30516],[42.85647,43.1364975,43.3894768,43.637,43.78091,43.85371,43.880043,43.8782043,43.8117332,43.8009758]]}}");
 
-            private static Dictionary<CropField.Types, (float GrownZOffset, float SownZOffset, string Name, uint Model)> CropTypesData = new Dictionary<CropField.Types, (float, float, string, uint)>()
+            private static Dictionary<CropField.Types, (float GrownZOffset, float SownZOffset, string Name, uint Model)> _cropTypesData = new Dictionary<CropField.Types, (float, float, string, uint)>()
             {
                 {
                     CropField.Types.Cabbage,
@@ -113,13 +105,13 @@ namespace BlaineRP.Client.Data.Locations
 
                     public static DateTime LastSent;
 
-                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Game.World.Core.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
+                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => World.Core.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                     public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
                     {
                         var data = dataKey.Split('_');
 
-                        var farm = Business.All[int.Parse(data[1])] as Farm;
+                        var farm = All[int.Parse(data[1])] as Farm;
 
                         var fieldIdx = int.Parse(data[2]);
 
@@ -194,7 +186,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     var field = farm.CropFields[fieldIdx];
 
-                                    var cropTData = CropTypesData[field.Type];
+                                    var cropTData = _cropTypesData[field.Type];
 
                                     field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
@@ -216,7 +208,7 @@ namespace BlaineRP.Client.Data.Locations
                                 {
                                     var field = farm.CropFields[fieldIdx];
 
-                                    var cropTData = CropTypesData[field.Type];
+                                    var cropTData = _cropTypesData[field.Type];
 
                                     float x, y, z;
 
@@ -256,7 +248,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                             if (GetGrowTime(farm, fieldIdx, col, row) is long growTime && growTime != 0)
                                             {
-                                                TextLabel.Text = $"Грядка засеяна, до созревания плода осталось\n{growDateTime.Subtract(Game.World.Core.ServerTime).GetBeautyString()}";
+                                                TextLabel.Text = $"Грядка засеяна, до созревания плода осталось\n{growDateTime.Subtract(World.Core.ServerTime).GetBeautyString()}";
                                             }
                                         }, 1000, true, 0);
 
@@ -269,7 +261,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                         var field = farm.CropFields[fieldIdx];
 
-                                        var cropTData = CropTypesData[field.Type];
+                                        var cropTData = _cropTypesData[field.Type];
 
                                         field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
@@ -291,7 +283,7 @@ namespace BlaineRP.Client.Data.Locations
                                     {
                                         var field = farm.CropFields[fieldIdx];
 
-                                        var cropTData = CropTypesData[field.Type];
+                                        var cropTData = _cropTypesData[field.Type];
 
                                         float x, y, z;
 
@@ -361,9 +353,9 @@ namespace BlaineRP.Client.Data.Locations
                         if (LastSent.IsSpam(500))
                             return;
 
-                        LastSent = Game.World.Core.ServerTime;
+                        LastSent = World.Core.ServerTime;
 
-                        var res = (int)await Events.CallRemoteProc("Job::FARM::CP", fieldIdx, col, row);
+                        var res = (int)await RAGE.Events.CallRemoteProc("Job::FARM::CP", fieldIdx, col, row);
 
                         if (res == byte.MaxValue)
                         {
@@ -439,7 +431,7 @@ namespace BlaineRP.Client.Data.Locations
                     y = Columns[col].Pos.Y + Offset.Y * row;
                 }
 
-                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Game.World.Core.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
+                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => World.Core.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public void IrrigationEndTimeChanged(Farm farm, int fieldIdx, long? irrigTimeN)
                 {
@@ -453,7 +445,7 @@ namespace BlaineRP.Client.Data.Locations
                 {
                     var data = dataKey.Split('_');
 
-                    var farm = Business.All[int.Parse(data[1])] as Farm;
+                    var farm = All[int.Parse(data[1])] as Farm;
 
                     var fieldIdx = int.Parse(data[2]);
 
@@ -489,20 +481,20 @@ namespace BlaineRP.Client.Data.Locations
 
                             CropsData[i].Add(cropData);
 
-                            var definedRot = CropFieldsRotations.GetValueOrDefault(fSubId)?.GetValueOrDefault(fieldIdx) ?? float.PositiveInfinity;
+                            var definedRot = _cropFieldsRotations.GetValueOrDefault(fSubId)?.GetValueOrDefault(fieldIdx) ?? float.PositiveInfinity;
 
                             cropData.RotationZ = definedRot == float.PositiveInfinity ? 360f * (float)Utils.Misc.Random.NextDouble() : definedRot;
 
-                            Game.World.Core.AddDataHandler($"FARM::CF_{farm.Id}_{fieldIdx}_{i}_{j}", CropData.OnSharedDataChanged);
+                            World.Core.AddDataHandler($"FARM::CF_{farm.Id}_{fieldIdx}_{i}_{j}", CropData.OnSharedDataChanged);
                         }
                     }
 
-                    Game.World.Core.AddDataHandler($"FARM::CFI_{farm.Id}_{fieldIdx}", OnSharedDataChanged);
+                    World.Core.AddDataHandler($"FARM::CFI_{farm.Id}_{fieldIdx}", OnSharedDataChanged);
                 }
 
                 public void Initialize(Farm farm, int fieldIdx)
                 {
-                    var cropTData = CropTypesData[farm.CropFields[fieldIdx].Type];
+                    var cropTData = _cropTypesData[farm.CropFields[fieldIdx].Type];
 
                     float x, y, z;
 
@@ -686,7 +678,7 @@ namespace BlaineRP.Client.Data.Locations
                         }
                     }
 
-                    var cropTData = CropTypesData[Type];
+                    var cropTData = _cropTypesData[Type];
 
                     InfoLabel.Text = $"Тип плодов - {cropTData.Name.ToLower()}\nСвободно {allAmount - (grownCount + seedCount)} из {allAmount} грядок\nСозрело {grownCount} плодов, а созревает - {seedCount}\n\n";
 
@@ -707,7 +699,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                 if (startIdx > 0)
                                 {
-                                    InfoLabel.Text = curText.Substring(0, startIdx + 1) + $"Почва орошена еще {irrigEndDateTime.Subtract(Game.World.Core.ServerTime).GetBeautyString()}";
+                                    InfoLabel.Text = curText.Substring(0, startIdx + 1) + $"Почва орошена еще {irrigEndDateTime.Subtract(World.Core.ServerTime).GetBeautyString()}";
                                 }
                             }
                         }, 1000, true, 0);
@@ -747,7 +739,7 @@ namespace BlaineRP.Client.Data.Locations
                 {
                     for (int i = 0; i < farm.OrangeTrees.Count; i++)
                     {
-                        Game.World.Core.AddDataHandler($"FARM::OT_{farm.Id}_{i}", OnSharedDataChanged);
+                        World.Core.AddDataHandler($"FARM::OT_{farm.Id}_{i}", OnSharedDataChanged);
                     }
                 }
 
@@ -755,7 +747,7 @@ namespace BlaineRP.Client.Data.Locations
                 {
                     var data = dataKey.Split('_');
 
-                    var farm = Business.All[int.Parse(data[1])] as Farm;
+                    var farm = All[int.Parse(data[1])] as Farm;
 
                     if (farm?.MainColshape.IsInside != true)
                         return;
@@ -820,7 +812,7 @@ namespace BlaineRP.Client.Data.Locations
                     };
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Game.World.Core.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => World.Core.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {
@@ -879,7 +871,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                         if (GetGrowTime(farm, idx) is long growTime && growTime != 0)
                                         {
-                                            Text = $"До созревания апельсинов осталось\n{growDateTime.Subtract(Game.World.Core.ServerTime).GetBeautyString()}";
+                                            Text = $"До созревания апельсинов осталось\n{growDateTime.Subtract(World.Core.ServerTime).GetBeautyString()}";
                                         }
                                     }, 1000, true, 0);
 
@@ -934,9 +926,9 @@ namespace BlaineRP.Client.Data.Locations
                     if (CropField.CropData.LastSent.IsSpam(500))
                         return;
 
-                    CropField.CropData.LastSent = Game.World.Core.ServerTime;
+                    CropField.CropData.LastSent = World.Core.ServerTime;
 
-                    var res = (int)await Events.CallRemoteProc("Job::FARM::OTP", idx);
+                    var res = (int)await RAGE.Events.CallRemoteProc("Job::FARM::OTP", idx);
 
                     if (res == byte.MaxValue)
                     {
@@ -967,13 +959,13 @@ namespace BlaineRP.Client.Data.Locations
                 public static int BindIdx { get; set; }
 
                 [JsonProperty(PropertyName = "P")]
-                public Utils.Vector4 Position { get; set; }
+                public Vector4 Position { get; set; }
 
                 public static void PreInitialize(Farm farm)
                 {
                     for (int i = 0; i < farm.Cows.Count; i++)
                     {
-                        Game.World.Core.AddDataHandler($"FARM::COW_{farm.Id}_{i}", OnSharedDataChanged);
+                        World.Core.AddDataHandler($"FARM::COW_{farm.Id}_{i}", OnSharedDataChanged);
                     }
                 }
 
@@ -981,7 +973,7 @@ namespace BlaineRP.Client.Data.Locations
                 {
                     var data = dataKey.Split('_');
 
-                    var farm = Business.All[int.Parse(data[1])] as Farm;
+                    var farm = All[int.Parse(data[1])] as Farm;
 
                     if (farm?.MainColshape.IsInside != true)
                         return;
@@ -991,7 +983,7 @@ namespace BlaineRP.Client.Data.Locations
                     farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.Convert.ToInt64(value));
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Game.World.Core.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => World.Core.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Utils.Convert.ToInt64(obj) : (long?)null;
 
                 public async void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {
@@ -1062,7 +1054,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                         if (GetGrowTime(farm, idx) is long growTime && growTime != 0)
                                         {
-                                            TextLabel.Text = $"Корова ест траву, будет готова дать молоко через\n{growDateTime.Subtract(Game.World.Core.ServerTime).GetBeautyString()}";
+                                            TextLabel.Text = $"Корова ест траву, будет готова дать молоко через\n{growDateTime.Subtract(World.Core.ServerTime).GetBeautyString()}";
                                         }
                                     }, 1000, true, 0);
 
@@ -1098,11 +1090,11 @@ namespace BlaineRP.Client.Data.Locations
                     if (CropField.CropData.LastSent.IsSpam(500))
                         return;
 
-                    CropField.CropData.LastSent = Game.World.Core.ServerTime;
+                    CropField.CropData.LastSent = World.Core.ServerTime;
 
                     var emptyBucketModel = RAGE.Util.Joaat.Hash("brp_p_farm_bucket_0");
 
-                    var res = (int)await Events.CallRemoteProc("Job::FARM::COWP", idx);
+                    var res = (int)await RAGE.Events.CallRemoteProc("Job::FARM::COWP", idx);
 
                     if (res == byte.MaxValue)
                     {
@@ -1117,7 +1109,7 @@ namespace BlaineRP.Client.Data.Locations
 
                         Player.LocalPlayer.Position = pPos;
 
-                        Game.Animations.Core.Play(Player.LocalPlayer, GeneralTypes.MilkCow0);
+                        Animations.Core.Play(Player.LocalPlayer, GeneralTypes.MilkCow0);
 
                         Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
 
@@ -1142,7 +1134,7 @@ namespace BlaineRP.Client.Data.Locations
 
                     cow.Ped?.Destroy();
 
-                    cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.App.Static.MainDimension);
+                    cow.Ped = new Ped(_cropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.App.Static.MainDimension);
                     cow.Ped.StreamInCustomActionsAdd(CowStreamInAction);
 
                     cow.Ped.SetData("LGT", GetGrowTime(farm, idx));
@@ -1223,17 +1215,17 @@ namespace BlaineRP.Client.Data.Locations
 
             public List<CowData> Cows { get; set; }
 
-            public Farm(int Id, Vector3 PositionInfo, Utils.Vector4 PositionInteract, uint Price, uint Rent, float Tax, string CropFieldsStr, string OrangeTreesStr, string CowsStr, string OrangeTreeBoxPositionsStr, string CowBucketPositionsStr) : base(Id, PositionInfo, BusinessTypes.Farm, Price, Rent, Tax)
+            public Farm(int id, Vector3 positionInfo, Vector4 positionInteract, uint price, uint rent, float tax, string cropFieldsStr, string orangeTreesStr, string cowsStr, string orangeTreeBoxPositionsStr, string cowBucketPositionsStr) : base(id, positionInfo, BusinessTypes.Farm, price, rent, tax)
             {
-                this.CropFields = RAGE.Util.Json.Deserialize<List<CropField>>(CropFieldsStr);
+                CropFields = RAGE.Util.Json.Deserialize<List<CropField>>(cropFieldsStr);
 
-                this.OrangeTrees = RAGE.Util.Json.Deserialize<List<OrangeTreeData>>(OrangeTreesStr);
+                OrangeTrees = RAGE.Util.Json.Deserialize<List<OrangeTreeData>>(orangeTreesStr);
 
-                this.OrangeTreeBoxPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(OrangeTreeBoxPositionsStr).Select(x => new Tuple<Vector3, ExtraColshape>(x, null)).ToList();
+                OrangeTreeBoxPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(orangeTreeBoxPositionsStr).Select(x => new Tuple<Vector3, ExtraColshape>(x, null)).ToList();
 
-                this.CowBucketPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(CowBucketPositionsStr).Select(x => new Tuple<Vector3, ExtraColshape>(x, null)).ToList();
+                CowBucketPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(cowBucketPositionsStr).Select(x => new Tuple<Vector3, ExtraColshape>(x, null)).ToList();
 
-                this.Cows = RAGE.Util.Json.Deserialize<List<CowData>>(CowsStr);
+                Cows = RAGE.Util.Json.Deserialize<List<CowData>>(cowsStr);
 
                 for (int i = 0; i < CropFields.Count; i++)
                 {
@@ -1266,9 +1258,9 @@ namespace BlaineRP.Client.Data.Locations
                     };
                 }
 
-                Blip = new ExtraBlip(569, PositionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                Blip = new ExtraBlip(569, positionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
-                this.Seller = new NPC($"farmer_{Id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.App.Static.MainDimension)
+                Seller = new NPC($"farmer_{id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", positionInteract.Position, positionInteract.RotationZ, Settings.App.Static.MainDimension)
                 {
                     SubName = "NPC_SUBNAME_JOB_FARM_BOSS",
 
@@ -1277,10 +1269,10 @@ namespace BlaineRP.Client.Data.Locations
                     Data = this,
                 };
 
-                var gpsPos = new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y);
+                var gpsPos = new RAGE.Ui.Cursor.Vector2(positionInteract.X, positionInteract.Y);
 
-                GPS.AddPosition("bizother", "farm", $"bizother_{Id}", $"{Name} #{SubId}", gpsPos);
-                GPS.AddPosition("jobs", "jobfarm", $"jobfarm_{Id}", $"{Name} #{SubId}", gpsPos);
+                GPS.AddPosition("bizother", "farm", $"bizother_{id}", $"{Name} #{SubId}", gpsPos);
+                GPS.AddPosition("jobs", "jobfarm", $"jobfarm_{id}", $"{Name} #{SubId}", gpsPos);
             }
 
             private static void OnEnterFarm(Farm farm)
@@ -1320,7 +1312,7 @@ namespace BlaineRP.Client.Data.Locations
                                         if (!pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.FarmOrangeBoxCarry).Any())
                                             return;
 
-                                        Events.CallRemote("Job::FARM::OTF", idx);
+                                        RAGE.Events.CallRemote("Job::FARM::OTF", idx);
                                     },
                                 });
                             }
@@ -1353,7 +1345,7 @@ namespace BlaineRP.Client.Data.Locations
                                         if (!pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.FarmMilkBucketCarry).Any())
                                             return;
 
-                                        Events.CallRemote("Job::FARM::COWF", idx);
+                                        RAGE.Events.CallRemote("Job::FARM::COWF", idx);
                                     },
                                 });
                             }
@@ -1528,7 +1520,7 @@ namespace BlaineRP.Client.Data.Locations
                                     var pos = new Vector3(x, y, z);
 
                                     var marker = new Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.App.Static.MainDimension);
-                                    var blip = new ExtraBlip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
+                                    var blip = new ExtraBlip(469, pos, _cropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 
                                     var cs = new Cylinder(pos, 2.5f, 5f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                                     {
@@ -1536,7 +1528,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                         OnEnter = async (cancel) =>
                                         {
-                                            var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<RAGE.Elements.Vehicle>("JVEH");
+                                            var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
 
                                             if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                             {
@@ -1628,7 +1620,7 @@ namespace BlaineRP.Client.Data.Locations
                                 {
                                     OnEnter = async (cancel) =>
                                     {
-                                        var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<RAGE.Elements.Vehicle>("JVEH");
+                                        var jobVehicle = PlayerData.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
 
                                         if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                         {
@@ -1660,7 +1652,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                                 if (effects != null)
                                                 {
-                                                    quest.SetActualData("FARMJOBTEMPFXT::PW", Game.World.Core.ServerTimestampMilliseconds);
+                                                    quest.SetActualData("FARMJOBTEMPFXT::PW", World.Core.ServerTimestampMilliseconds);
 
                                                     if (effects.Count == 0)
                                                     {

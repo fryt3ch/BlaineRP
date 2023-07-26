@@ -18,6 +18,7 @@ namespace BlaineRP.Server.Game
 
         public Dictionary<PlayerData.LicenseTypes, Vector3[]> PracticeRoutes { get; private set; }
 
+        [Properties.Settings.Static.ClientSync("drivingSchoolLicensePrices")]
         public static Dictionary<PlayerData.LicenseTypes, uint> Prices { get; private set; } = new Dictionary<PlayerData.LicenseTypes, uint>()
         {
             { PlayerData.LicenseTypes.B, 1_000 },
@@ -73,16 +74,14 @@ namespace BlaineRP.Server.Game
                 },
             };
 
-            lines.Add($"Autoschool.Prices = RAGE.Util.Json.Deserialize<Dictionary<BlaineRP.Client.EntitiesData.Enums.LicenseTypes, uint>>(\"{Prices.SerializeToJson().Replace('\"', '\'')}\");");
-
             foreach (var x in All)
             {
                 var avgVehiclePoses = x.Vehicles.GroupBy(x => x.Value).ToDictionary(x => x.Key, x => { var allPos = x.Select(y => y.Key.LastData.Position).ToList(); var pos = Utils.ZeroVector; foreach (var p in allPos) pos += p; return pos / allPos.Count; });
 
-                lines.Add($"new Autoschool({x.Position.ToCSharpStr()}, \"{x.PracticeRoutes.SerializeToJson().Replace('\"', '\'')}\", \"{avgVehiclePoses.SerializeToJson().Replace('\"', '\'')}\");");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.Autoschool)}({x.Position.ToCSharpStr()}, \"{x.PracticeRoutes.SerializeToJson().Replace('\"', '\'')}\", \"{avgVehiclePoses.SerializeToJson().Replace('\"', '\'')}\");");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "DRIVINGSCHOOLS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\Autoschool.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public static PlayerData.LicenseTypes GetLicenseTypeForPracticeRoute(PlayerData.LicenseTypes licType) => licType == PlayerData.LicenseTypes.B || licType == PlayerData.LicenseTypes.A || licType == PlayerData.LicenseTypes.C || licType == PlayerData.LicenseTypes.D ? PlayerData.LicenseTypes.B : licType;

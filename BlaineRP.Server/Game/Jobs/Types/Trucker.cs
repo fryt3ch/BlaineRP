@@ -147,7 +147,7 @@ namespace BlaineRP.Server.Game.Jobs
 
         public uint VehicleRentPrice { get; set; }
 
-        public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new List<Vector3>(){{{string.Join(',', MaterialsPositions.Select(x => x.ToCSharpStr()))}}}";
+        public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new System.Collections.Generic.List<RAGE.Vector3>(){{{string.Join(',', MaterialsPositions.Select(x => x.ToCSharpStr()))}}}";
 
         public Trucker(Utils.Vector4 Position) : base(Types.Trucker, Position)
         {

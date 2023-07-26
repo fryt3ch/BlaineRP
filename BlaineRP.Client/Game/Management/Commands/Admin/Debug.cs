@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Estates;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using Interaction = BlaineRP.Client.Game.Management.Interaction;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
 namespace BlaineRP.Client.Game.Management.Commands
@@ -25,12 +27,12 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("poly_stop", true, "Закончить создание полигона")]
         public static void PolygonStop()
         {
-            if (Wrappers.Colshapes.Core.PolygonCreationTask != null)
+            if (Helpers.Colshapes.Core.PolygonCreationTask != null)
             {
-                Wrappers.Colshapes.Core.PolygonCreationTask.Cancel();
-                Wrappers.Colshapes.Core.PolygonCreationTask = null;
+                Helpers.Colshapes.Core.PolygonCreationTask.Cancel();
+                Helpers.Colshapes.Core.PolygonCreationTask = null;
 
-                Wrappers.Colshapes.Core.TempPolygon = null;
+                Helpers.Colshapes.Core.TempPolygon = null;
             }
         }
 
@@ -43,36 +45,36 @@ namespace BlaineRP.Client.Game.Management.Commands
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 0.5f;
 
-            if (Wrappers.Colshapes.Core.PolygonCreationTask != null)
+            if (Helpers.Colshapes.Core.PolygonCreationTask != null)
             {
-                Wrappers.Colshapes.Core.PolygonCreationTask.Cancel();
+                Helpers.Colshapes.Core.PolygonCreationTask.Cancel();
 
-                Wrappers.Colshapes.Core.TempPolygon?.Destroy();
+                Helpers.Colshapes.Core.TempPolygon?.Destroy();
             }
 
-            Wrappers.Colshapes.Core.TempPolygon = new Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            Helpers.Colshapes.Core.TempPolygon = new Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
-            Wrappers.Colshapes.Core.PolygonCreationTask = new Utils.AsyncTask(() =>
+            Helpers.Colshapes.Core.PolygonCreationTask = new Utils.AsyncTask(() =>
             {
-                if (Wrappers.Colshapes.Core.TempPolygon == null)
+                if (Helpers.Colshapes.Core.TempPolygon == null)
                     return true;
 
                 var newVertice = Player.LocalPlayer.Position;
                 newVertice.Z -= 1f;
 
-                var vertices = Wrappers.Colshapes.Core.TempPolygon.Vertices;
+                var vertices = Helpers.Colshapes.Core.TempPolygon.Vertices;
 
                 if (vertices[vertices.Count - 1].DistanceTo(newVertice) < step)
                     return false;
 
-                Wrappers.Colshapes.Core.TempPolygon.AddVertice(newVertice);
+                Helpers.Colshapes.Core.TempPolygon.AddVertice(newVertice);
 
                 //Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Polygon_{(height > 0 ? "3D" : "2D")}] New pos: {newVertice}");
 
                 return false;
             }, 100, true, 0);
 
-            Wrappers.Colshapes.Core.PolygonCreationTask.Run();
+            Helpers.Colshapes.Core.PolygonCreationTask.Run();
         }
 
         [Command("poly_rotate", true, "Повернуть полигон", "poly_rt")]
@@ -344,7 +346,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         public static void BoatToWater()
         {
             if (Interaction.CurrentEntity is Vehicle veh)
-                Sync.Vehicles.BoatFromTrailerToWater(veh);
+                Scripts.Sync.Vehicles.BoatFromTrailerToWater(veh);
         }
 
         [Command("attachtool_start", true, "Установить сытость игроку")]
@@ -667,7 +669,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("farm_pos_save", true, "Установить сытость игроку")]
         public static void FarmPosSave()
         {
-            var farm = Client.Data.Locations.Farm.All[38] as Client.Data.Locations.Farm;
+            var farm = Farm.All[38] as Farm;
 
             var t = new Dictionary<int, Dictionary<int, List<List<float>>>>();
 
@@ -768,9 +770,9 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("new_house", true, "Получить текущую позицию")]
         public static void NewHouse()
         {
-            var last = Client.Data.Locations.House.All.Last();
+            var last = House.All.Last();
 
-            var house = new Client.Data.Locations.House(last.Key + 1, Player.LocalPlayer.Position, Sync.House.Style.RoomTypes.Two, Client.Data.Locations.Garage.Types.Two, new Vector3(0f, 0f, 0f), 0, Client.Data.Locations.HouseBase.ClassTypes.A, 0);
+            var house = new House(last.Key + 1, Player.LocalPlayer.Position, 2, 2, new Vector3(0f, 0f, 0f), 0, 0, 0);
 
             Player.LocalPlayer.SetData($"House::{house.Id}::RotZ", Player.LocalPlayer.GetHeading());
 
@@ -780,9 +782,9 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("del_house", true, "")]
         public static void DelHouse(uint id)
         {
-            Client.Data.Locations.House house;
+            House house;
 
-            if (Client.Data.Locations.House.All.Remove(id, out house))
+            if (House.All.Remove(id, out house))
             {
                 house.ToggleOwnerBlip(false);
 
@@ -794,7 +796,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("garage_house", true, "")]
         public static void GarageHouse(uint id)
         {
-            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
+            var house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -807,7 +809,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("enter_house", true, "")]
         public static void EnterHouse(uint id)
         {
-            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
+            var house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -824,7 +826,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         [Command("save_house", true, "")]
         public static async void SaveHouse(uint id)
         {
-            var house = Client.Data.Locations.House.All.GetValueOrDefault(id);
+            var house = House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;

@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Data.Vehicles
 {
-    public enum Types
+    public enum VehicleTypes
     {
         Car = 0,
         Motorcycle,

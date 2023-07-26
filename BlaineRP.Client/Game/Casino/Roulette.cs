@@ -1,27 +1,22 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Sync;
-using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.Management.Camera;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.UI.CEF;
 using Audio = BlaineRP.Client.Utils.Game.Audio;
 using Core = BlaineRP.Client.Game.Animations.Core;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Casino
 {
-    public partial class Casino
-        {
-            public class Roulette
+    public class Roulette
             {
                 public enum BetTypes : byte
                 {
@@ -183,7 +178,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     if (CurrentRoulette == roulette)
                                     {
-                                        Data.Minigames.Casino.Casino.AddLastBet(betType);
+                                        CasinoMinigames.AddLastBet(betType);
                                     }
 
                                     if (roulette.ActiveBets != null)
@@ -250,7 +245,7 @@ namespace BlaineRP.Client.Data.Locations
 
                         if (CurrentRoulette == roulette)
                         {
-                            Data.Minigames.Casino.Casino.UpdateStatus(str);
+                            CasinoMinigames.UpdateStatus(str);
                         }
                     }
                 }
@@ -798,7 +793,7 @@ namespace BlaineRP.Client.Data.Locations
                         return;
                     }
 
-                    var bet = Data.Minigames.Casino.Casino.CurrentBet;
+                    var bet = CasinoMinigames.CurrentBet;
 
                     if (roulette.ActiveBets != null)
                     {
@@ -940,4 +935,3 @@ namespace BlaineRP.Client.Data.Locations
                 }
             }
         }
-}

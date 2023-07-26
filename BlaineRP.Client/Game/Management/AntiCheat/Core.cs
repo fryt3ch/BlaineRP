@@ -2,8 +2,8 @@
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;

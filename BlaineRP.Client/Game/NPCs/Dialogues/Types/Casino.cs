@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.UI.CEF;
@@ -7,7 +6,7 @@ using BlaineRP.Client.Game.World;
 using RAGE.Elements;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Casino
@@ -23,7 +22,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                 var npc = NPC.CurrentNPC;
 
-                var casino = npc?.Data as Locations.Casino;
+                var casino = npc?.Data as Game.Casino.Casino;
 
                 if (casino == null)
                     return;
@@ -168,7 +167,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                 {
                     var npc = NPC.CurrentNPC;
 
-                    var casino = npc?.Data as Locations.Casino;
+                    var casino = npc?.Data as Game.Casino.Casino;
 
                     if (casino == null)
                         return;
@@ -200,7 +199,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                 {
                     var npc = NPC.CurrentNPC;
 
-                    var casino = npc?.Data as Locations.Casino;
+                    var casino = npc?.Data as Game.Casino.Casino;
 
                     if (casino == null)
                         return;

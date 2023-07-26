@@ -14,7 +14,7 @@ namespace BlaineRP.Server.Properties.Settings
         public const string ClientScriptsTargetPath = ClientPackagesTargetPath + @"\cs_packages";
         public const string ClientScriptsSourcePath = @"\backend\BlaineRP\BlaineRP.Client";
 
-        public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Data\Locations\Locations.cs";
+        public const string ClientScriptsTargetLocationsLoaderPath = ClientScriptsTargetPath + @"\Game\Misc\Initialization\Locations.cs";
 
         [ClientSync("mainDimension")]
         public const uint MainDimension = 7;
@@ -249,7 +249,7 @@ namespace BlaineRP.Server.Properties.Settings
         {
             var jObj = new JObject();
 
-            foreach (var x in typeof(Static).GetProperties().Cast<MemberInfo>().Concat(typeof(Static).GetFields()))
+            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().SelectMany(x => x.GetProperties().Cast<MemberInfo>().Concat(x.GetFields())))
             {
                 var syncAttr = x.GetCustomAttribute<ClientSyncAttribute>();
 
@@ -265,7 +265,7 @@ namespace BlaineRP.Server.Properties.Settings
         }
 
         [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-        private class ClientSyncAttribute : Attribute
+        public class ClientSyncAttribute : Attribute
         {
             public readonly string PropertyName;
 

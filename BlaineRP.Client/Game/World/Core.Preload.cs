@@ -1,7 +1,8 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Types;
 using BlaineRP.Client.Game.World.Enums;
 using RAGE;
 
@@ -61,7 +62,7 @@ namespace BlaineRP.Client.Game.World
 
             InvokeHandler("Weather", GetSharedData<int>("Weather"), 0);
 
-            foreach (var x in Client.Data.Locations.Business.All.Values)
+            foreach (var x in Business.All.Values)
             {
                 var id = x.Id;
                 var obj = x;
@@ -77,7 +78,7 @@ namespace BlaineRP.Client.Game.World
                 InvokeHandler($"Business::{id}::OName", obj.OwnerName, null);
             }
 
-            foreach (var x in Client.Data.Locations.House.All.Values)
+            foreach (var x in House.All.Values)
             {
                 var id = x.Id;
                 var obj = x;
@@ -93,7 +94,7 @@ namespace BlaineRP.Client.Game.World
                 InvokeHandler($"House::{id}::OName", obj.OwnerName, null);
             }
 
-            foreach (var x in Client.Data.Locations.Apartments.All.Values)
+            foreach (var x in Apartments.All.Values)
             {
                 var id = x.Id;
                 var obj = x;
@@ -109,10 +110,10 @@ namespace BlaineRP.Client.Game.World
                 //InvokeHandler($"Apartments::{id}::OName", GetSharedData<string>($"Apartments::{id}::OName"), null);
             }
 
-            foreach (var x in Client.Data.Locations.ApartmentsRoot.All.Values)
+            foreach (var x in ApartmentsRoot.All.Values)
                 x.UpdateTextLabel();
 
-            foreach (var x in Client.Data.Locations.Garage.All.Values)
+            foreach (var x in Garage.All.Values)
             {
                 var id = x.Id;
                 var obj = x;

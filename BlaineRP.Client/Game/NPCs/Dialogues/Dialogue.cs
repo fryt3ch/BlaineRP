@@ -140,8 +140,8 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             var buttons = Buttons;
 
-            if (!Game.UI.CEF.NPC.IsActive)
-                Game.UI.CEF.NPC.Show();
+            if (!UI.CEF.NPC.IsActive)
+                UI.CEF.NPC.Show();
 
             var currentTimeType = GetCurrentTimeType();
 
@@ -194,7 +194,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
             for (int i = 0; i < buttons.Count; i++)
                 btnsData.Add(new object[] { i, buttons[i].Text });
 
-            Game.UI.CEF.NPC.Draw(npcHolder.GetDisplayName() ?? npcHolder.Id, text, btnsData.ToArray());
+            UI.CEF.NPC.Draw(npcHolder.GetDisplayName() ?? npcHolder.Id, text, btnsData.ToArray());
         }
 
         public class LastInfo

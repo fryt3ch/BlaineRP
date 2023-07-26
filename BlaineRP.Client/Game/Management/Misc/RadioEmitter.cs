@@ -1,8 +1,8 @@
 ﻿using System.Linq;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;

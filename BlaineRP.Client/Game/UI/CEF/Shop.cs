@@ -6,24 +6,21 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Game.Management.Attachments;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Shop
@@ -895,7 +892,7 @@ namespace BlaineRP.Client.UI.CEF
                         if (TempVehicle.DoesHaveDoor(i) > 0)
                             TempVehicle.SetDoorCanBreak(i, false);
 
-                    if (data.Type != Game.Data.Vehicles.Types.Boat)
+                    if (data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                         TempVehicle.SetOnGroundProperly(0);
 
                     TempVehicle.FreezePosition(true);
@@ -1855,12 +1852,12 @@ namespace BlaineRP.Client.UI.CEF
                             if (iType == null)
                                 continue;
 
-                            var data = (Game.Items.Types.Clothes.ItemData)Game.Items.Core.GetData(x.Key, iType);
+                            var data = (Clothes.ItemData)Game.Items.Core.GetData(x.Key, iType);
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            var obj = new object[] { x.Key, Game.Items.Core.GetName(x.Key), x.Value, data.Textures.Length, (data as Game.Items.Types.Clothes.ItemData.IToggleable)?.ExtraData != null };
+                            var obj = new object[] { x.Key, Game.Items.Core.GetName(x.Key), x.Value, data.Textures.Length, (data as Clothes.ItemData.IToggleable)?.ExtraData != null };
 
                             if (data is Hat.ItemData)
                                 hats.Add(obj);
@@ -1971,7 +1968,7 @@ namespace BlaineRP.Client.UI.CEF
 
                         foreach (var x in prices)
                         {
-                            var data = (Game.Items.Types.Clothes.ItemData)Game.Items.Core.GetData(x.Key, null);
+                            var data = (Clothes.ItemData)Game.Items.Core.GetData(x.Key, null);
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
@@ -2086,7 +2083,7 @@ namespace BlaineRP.Client.UI.CEF
                         // tech
                         var subData = new List<object>();
 
-                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                         {
                             subData.Add(new object[] { "engine", techData["engine"].Name, "variants-list", techData["engine"].ModNames.Select(x => new object[] { prices[$"engine_{x.Key + 1}"], x.Value }), $"engine_{veh.GetMod(11) + 1}" });
 
@@ -2095,7 +2092,7 @@ namespace BlaineRP.Client.UI.CEF
                             subData.Add(new object[] { "trm", techData["trm"].Name, "variants-list", techData["trm"].ModNames.Select(x => new object[] { prices[$"trm_{x.Key + 1}"], x.Value }), $"trm_{veh.GetMod(13) + 1}" });
                         }
 
-                        if (vData.Data.Type == Game.Data.Vehicles.Types.Car)
+                        if (vData.Data.Type == Game.Data.Vehicles.VehicleTypes.Car)
                             subData.Add(new object[] { "susp", techData["susp"].Name, "variants-list", techData["susp"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"susp_{veh.GetMod(15) + 1}" });
 
                         subData.Add(new object[] { "tt", techData["tt"].Name, "variants-list", techData["tt"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"tt_{(veh.IsToggleModOn(18) ? 1 : 0)}" });
@@ -2109,7 +2106,7 @@ namespace BlaineRP.Client.UI.CEF
 
                         subData.Add(new object[] { "xenon", techData["xenon"].Name, "variants-list", techData["xenon"].ModNames.Select(x => new object[] { prices[$"xenon_{x.Key + 1}"], x.Value }), $"xenon_{(veh.GetXenonColour() ?? -2) + 2}" });
 
-                        if (vData.Data.Type == Game.Data.Vehicles.Types.Car)
+                        if (vData.Data.Type == Game.Data.Vehicles.VehicleTypes.Car)
                         {
                             var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEXNoAlpha : null;
 
@@ -2134,14 +2131,14 @@ namespace BlaineRP.Client.UI.CEF
                         CurrentColor1 = veh.GetPrimaryColour();
                         CurrentColor2 = veh.GetSecondaryColour();
 
-                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                             subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
 
                         subData.Add(new object[] { "colour", Locale.Get("SHOP_TUNING_COLOURS_L"), "color-selection-2", new object[] { CurrentColor1.HEXNoAlpha, CurrentColor2.HEXNoAlpha, prices["colour"] } });
 
                         subData.Add(new object[] { "pearl", Locale.Get("SHOP_TUNING_PEARL_L"), "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
 
-                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                         {
                             subData.Add(new object[] { "wcolour", Locale.Get("SHOP_TUNING_WHEELC_L"), "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
 
@@ -2156,11 +2153,11 @@ namespace BlaineRP.Client.UI.CEF
 
                         // wheels
 
-                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                         {
                             subData = new List<object>();
 
-                            if (vData.Data.Type == Game.Data.Vehicles.Types.Motorcycle)
+                            if (vData.Data.Type == Game.Data.Vehicles.VehicleTypes.Motorcycle)
                             {
                                 veh.SetWheelType(6);
 

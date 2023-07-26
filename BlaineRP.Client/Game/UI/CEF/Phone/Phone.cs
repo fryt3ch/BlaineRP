@@ -5,15 +5,15 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.UI.CEF.Phone.Apps;
-using BlaineRP.Client.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
-using Radio = BlaineRP.Client.UI.CEF.Phone.Apps.Radio;
-using Vehicles = BlaineRP.Client.UI.CEF.Phone.Apps.Vehicles;
+using Core = BlaineRP.Client.Game.Input.Core;
+using Radio = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Radio;
+using Vehicles = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Vehicles;
 
-namespace BlaineRP.Client.UI.CEF.Phone
+namespace BlaineRP.Client.Game.UI.CEF.Phone
 {
     [Script(int.MaxValue)]
     public class Phone
@@ -816,7 +816,7 @@ namespace BlaineRP.Client.UI.CEF.Phone
                 {
                     var ownedVehs = pData.OwnedVehicles.Select(x => new object[] { x.VID, $"{x.Data.BrandName}<br>{x.Data.SubName}<br>[#{x.VID}]", x.Data.Type.ToString() }).ToList();
 
-                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{(uint)x.RemoteId + 10_000}]", x.VehicleData.Type.ToString() }).ToList();
+                    var rentedVehs = Scripts.Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{(uint)x.RemoteId + 10_000}]", x.VehicleData.Type.ToString() }).ToList();
 
                     Vehicles.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }

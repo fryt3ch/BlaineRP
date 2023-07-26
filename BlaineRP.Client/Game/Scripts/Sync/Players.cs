@@ -1,62 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Items.Types;
-using BlaineRP.Client.Game.Scripts;
+using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Language;
-using BlaineRP.Client.Quests;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Settings.App;
 using BlaineRP.Client.Settings.User;
 using BlaineRP.Client.Utils;
-
 using Newtonsoft.Json.Linq;
-
 using RAGE;
 using RAGE.Elements;
 using RAGE.Game;
 using RAGE.Ui;
 using RAGE.Util;
-
 using Bank = BlaineRP.Client.Game.UI.CEF.Bank;
 using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 using Convert = BlaineRP.Client.Utils.Convert;
-using Core = BlaineRP.Client.Game.Management.Attachments.Core;
 using Discord = BlaineRP.Client.Game.Management.Misc.Discord;
 using Interaction = BlaineRP.Client.Game.Management.Interaction;
 using Math = System.Math;
-using Misc = BlaineRP.Client.Utils.Game.Misc;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 using Player = RAGE.Elements.Player;
-using Scaleform = BlaineRP.Client.Game.Management.Misc.Scaleform;
+using Scaleform = BlaineRP.Client.Game.Helpers.Scaleform;
 using Streaming = BlaineRP.Client.Utils.Game.Streaming;
 using Task = System.Threading.Tasks.Task;
 using Vehicle = BlaineRP.Client.Game.Data.Vehicles.Vehicle;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Scripts.Sync
 {
     [Script]
     public class Players
@@ -157,9 +146,9 @@ namespace BlaineRP.Client.Sync
             if (phoneStateType != Game.Scripts.Misc.Phone.PhoneStateTypes.Off)
                 Game.Scripts.Misc.Phone.SetState(player, phoneStateType);
 
-            if (data.GeneralAnim != Game.Animations.Enums.GeneralTypes.None)
+            if (data.GeneralAnim != GeneralTypes.None)
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim);
-            else if (data.OtherAnim != Game.Animations.Enums.OtherTypes.None)
+            else if (data.OtherAnim != OtherTypes.None)
                 InvokeHandler("Anim::Other", data, (int)data.OtherAnim);
         }
 
@@ -233,7 +222,7 @@ namespace BlaineRP.Client.Sync
 
                     var data = new PlayerData(Player.LocalPlayer);
 
-                    data.FastAnim = Game.Animations.Enums.FastTypes.None;
+                    data.FastAnim = FastTypes.None;
 
                     var sData = (JObject)args[0];
 
@@ -290,8 +279,8 @@ namespace BlaineRP.Client.Sync
                         : new List<Business>();
 
                     data.OwnedHouses = sData.TryGetValue("Houses", out var value6)
-                        ? Json.Deserialize<List<uint>>((string)value6).Select(x => Game.Estates.Houses.House.All[x]).ToList()
-                        : new List<Game.Estates.Houses.House>();
+                        ? Json.Deserialize<List<uint>>((string)value6).Select(x => House.All[x]).ToList()
+                        : new List<House>();
 
                     data.OwnedApartments = sData.TryGetValue("Apartments", out var value7)
                         ? Json.Deserialize<List<uint>>((string)value7).Select(x => Apartments.All[x]).ToList()
@@ -309,7 +298,7 @@ namespace BlaineRP.Client.Sync
                         var shbData = ((string)value10).Split('_');
 
                         data.SettledHouseBase = (Game.Estates.Core.HouseTypes)int.Parse(shbData[0]) == Game.Estates.Core.HouseTypes.House
-                            ? Game.Estates.Houses.House.All[uint.Parse(shbData[1])]
+                            ? House.All[uint.Parse(shbData[1])]
                             : (HouseBase)Apartments.All[uint.Parse(shbData[1])];
                     }
 
@@ -449,12 +438,12 @@ namespace BlaineRP.Client.Sync
                     if (data.WeaponSkins.Count > 0)
                         HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.WeaponSkinsMenu);
 
-                    Initialization.Load();
+                    Settings.User.Initialization.Load();
                     Game.Input.Core.LoadAll();
 
                     Game.UI.CEF.Phone.Phone.Preload();
 
-                    await Animations.Load();
+                    await UI.CEF.Animations.Load();
 
                     await Events.CallRemoteProc("Players::CRI",
                         data.IsInvalid,
@@ -747,7 +736,7 @@ namespace BlaineRP.Client.Sync
                     var x = (float)args[0];
                     var y = (float)args[1];
 
-                    Misc.SetWaypoint(x, y);
+                    Utils.Game.Misc.SetWaypoint(x, y);
                 });
 
             Events.Add("Player::Smoke::Start",
@@ -1019,7 +1008,7 @@ namespace BlaineRP.Client.Sync
                     var state = (bool)args[2];
 
                     var house = pType == Game.Estates.Core.HouseTypes.House
-                        ? Game.Estates.Houses.House.All[pId]
+                        ? House.All[pId]
                         : (HouseBase)Apartments.All[pId];
 
                     house.ToggleOwnerBlip(state);
@@ -1113,7 +1102,7 @@ namespace BlaineRP.Client.Sync
                     {
                         var hid = Convert.ToUInt32(args[2]);
 
-                        var t = Game.Estates.Houses.House.All[hid];
+                        var t = House.All[hid];
 
                         if (add)
                         {
@@ -1492,13 +1481,13 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var emotion = (Game.Animations.Enums.EmotionTypes)((int?)value ?? -1);
+                    var emotion = (EmotionTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
                         Other.CurrentEmotion = emotion;
 
-                        Animations.ToggleAnim("e-" + emotion, true);
+                        UI.CEF.Animations.ToggleAnim("e-" + emotion, true);
                     }
 
                     Game.Animations.Core.Set(player, emotion);
@@ -1509,13 +1498,13 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var wStyle = (Game.Animations.Enums.WalkstyleTypes)((int?)value ?? -1);
+                    var wStyle = (WalkstyleTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
                         Other.CurrentWalkstyle = wStyle;
 
-                        Animations.ToggleAnim("w-" + wStyle, true);
+                        UI.CEF.Animations.ToggleAnim("w-" + wStyle, true);
                     }
 
                     if (!pData.CrouchOn)
@@ -1527,16 +1516,16 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var anim = (Game.Animations.Enums.OtherTypes)((int?)value ?? -1);
+                    var anim = (OtherTypes)((int?)value ?? -1);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
                     {
-                        if (anim == Game.Animations.Enums.OtherTypes.None)
+                        if (anim == OtherTypes.None)
                         {
                             if (oldValue is int oldAnim)
-                                Animations.ToggleAnim("a-" + (Game.Animations.Enums.OtherTypes)oldAnim, false);
+                                UI.CEF.Animations.ToggleAnim("a-" + (OtherTypes)oldAnim, false);
 
-                            Main.Render -= Animations.Render;
+                            Main.Render -= UI.CEF.Animations.Render;
 
                             var cancelAnimKb = Game.Input.Core.Get(BindTypes.CancelAnimation);
 
@@ -1545,11 +1534,11 @@ namespace BlaineRP.Client.Sync
                         }
                         else
                         {
-                            Animations.ToggleAnim("a-" + anim, true);
+                            UI.CEF.Animations.ToggleAnim("a-" + anim, true);
                         }
                     }
 
-                    if (anim == Game.Animations.Enums.OtherTypes.None)
+                    if (anim == OtherTypes.None)
                     {
                         Game.Animations.Core.Stop(player);
 
@@ -1570,9 +1559,9 @@ namespace BlaineRP.Client.Sync
                 {
                     var player = pData.Player;
 
-                    var anim = (Game.Animations.Enums.GeneralTypes)((int?)value ?? -1);
+                    var anim = (GeneralTypes)((int?)value ?? -1);
 
-                    if (anim == Game.Animations.Enums.GeneralTypes.None)
+                    if (anim == GeneralTypes.None)
                     {
                         Game.Animations.Core.Stop(player);
 
@@ -1985,7 +1974,7 @@ namespace BlaineRP.Client.Sync
             Inventory.Close();
             Game.UI.CEF.Interaction.CloseMenu();
             Menu.Close();
-            Animations.Close();
+            UI.CEF.Animations.Close();
             Shop.Close(true);
             Gas.Close(true);
 

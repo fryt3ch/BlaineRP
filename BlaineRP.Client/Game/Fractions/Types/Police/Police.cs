@@ -12,7 +12,7 @@ using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.UI.CEF;
 using Newtonsoft.Json.Linq;
 using RAGE;
@@ -24,7 +24,7 @@ namespace BlaineRP.Client.Game.Fractions
 {
     public partial class Police : Fraction, IUniformable
     {
-        public Police(Types type,
+        public Police(FractionTypes type,
                       string name,
                       uint storageContainerId,
                       string containerPos,
@@ -86,7 +86,7 @@ namespace BlaineRP.Client.Game.Fractions
                     Settings.App.Static.MainDimension) { Font = 0, };
             }
 
-            if (type == Types.COP_BLAINE)
+            if (type == FractionTypes.COP_BLAINE)
                 UniformNames = new string[] { "Стандартная форма", "Форма для специальных операций", "Форма руководства", };
 
             ArrestCellsPositions = RAGE.Util.Json.Deserialize<Vector3[]>(arrestCellsPositionsJs);
@@ -335,17 +335,17 @@ namespace BlaineRP.Client.Game.Fractions
 
             var arrestCs = new List<ExtraColshape>();
 
-            if (Type == Types.COP_BLAINE)
+            if (Type == FractionTypes.COP_BLAINE)
                 arrestCs.Add(
                     new Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
-                        Data = Types.COP_BLAINE,
+                        Data = FractionTypes.COP_BLAINE,
                     });
-            else if (Type == Types.COP_LS)
+            else if (Type == FractionTypes.COP_LS)
                 arrestCs.Add(
                     new Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                     {
-                        Data = Types.COP_LS,
+                        Data = FractionTypes.COP_LS,
                     });
 
             foreach (var x in arrestCs)
@@ -356,7 +356,7 @@ namespace BlaineRP.Client.Game.Fractions
                 {
                     //Utils.ConsoleOutput("CAN ARREST");
 
-                    if (x.Data is Types fType)
+                    if (x.Data is FractionTypes fType)
                         Player.LocalPlayer.SetData("PoliceArrestFType", fType);
                 };
 
@@ -591,7 +591,7 @@ namespace BlaineRP.Client.Game.Fractions
                 return;
             }
 
-            var arrestFType = Player.LocalPlayer.GetData<Types>("PoliceArrestFType");
+            var arrestFType = Player.LocalPlayer.GetData<FractionTypes>("PoliceArrestFType");
 
             var fData = Get(arrestFType);
 
@@ -621,7 +621,7 @@ namespace BlaineRP.Client.Game.Fractions
                         var timeStr = ((string)args[2])?.Trim();
                         var reason2Str = ((string)args[3])?.Trim();
 
-                        arrestFType = Player.LocalPlayer.GetData<Types>("PoliceArrestFType");
+                        arrestFType = Player.LocalPlayer.GetData<FractionTypes>("PoliceArrestFType");
 
                         fData = Get(arrestFType);
 

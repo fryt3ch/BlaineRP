@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Jobs.Enums
+﻿namespace BlaineRP.Client.Game.Jobs
 {
     public enum JobTypes
     {

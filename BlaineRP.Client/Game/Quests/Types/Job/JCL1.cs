@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Data;
-using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class JCL1
@@ -51,7 +51,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (job == null)
                                 return;
 
-                            var currentOrder = new Collector.OrderInfo() { Id = uint.Parse(qData[0]), TargetBusiness = Locations.Business.All[int.Parse(qData[1])], Reward = uint.Parse(qData[2]) };
+                            var currentOrder = new Collector.OrderInfo() { Id = uint.Parse(qData[0]), TargetBusiness = Business.All[int.Parse(qData[1])], Reward = uint.Parse(qData[2]) };
 
                             var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z - 1f);
 
@@ -156,7 +156,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (job == null)
                                 return;
 
-                            var currentOrder = new Collector.OrderInfo() { Id = uint.Parse(qData[0]), TargetBusiness = Locations.Business.All[int.Parse(qData[1])], Reward = uint.Parse(qData[2]) };
+                            var currentOrder = new Collector.OrderInfo() { Id = uint.Parse(qData[0]), TargetBusiness = Business.All[int.Parse(qData[1])], Reward = uint.Parse(qData[2]) };
 
                             var destPos = new Vector3(job.Position.X, job.Position.Y, job.Position.Z - 1f);
 

@@ -178,16 +178,11 @@ namespace BlaineRP.Server.Game.Casino
 
             var lines = new List<string>();
 
-            lines.Add($"Casino.SlotMachine.JackpotMinValue = {SlotMachine.JACKPOT_MIN_VALUE};");
-
-            lines.Add($"Casino.SlotMachine.MinBet = {SlotMachine.MinBet};");
-            lines.Add($"Casino.SlotMachine.MaxBet = {SlotMachine.MaxBet};");
-
             for (int i = 0; i < All.Count; i++)
             {
                 var x = All[i];
 
-                lines.Add($"new Casino({i}, {x.BuyChipPrice}, {x.SellChipPrice}, \"{x.Roulettes.Select(x => new object[] { x.MinBet, x.MaxBet }).ToList().SerializeToJson().Replace('\"', '\'')}\", \"{x.Blackjacks.Select(x => new object[] { x.MinBet, x.MaxBet }).ToList().SerializeToJson().Replace('\"', '\'')}\");");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Casino.Casino)}({i}, {x.BuyChipPrice}, {x.SellChipPrice}, \"{x.Roulettes.Select(x => new object[] { x.MinBet, x.MaxBet }).ToList().SerializeToJson().Replace('\"', '\'')}\", \"{x.Blackjacks.Select(x => new object[] { x.MinBet, x.MaxBet }).ToList().SerializeToJson().Replace('\"', '\'')}\");");
 
                 for (int r = 0; r < x.Roulettes.Length; r++)
                 {
@@ -204,7 +199,7 @@ namespace BlaineRP.Server.Game.Casino
                 }
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "CASINOS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Casino\Casino.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public static bool TryAddCasinoChips(PlayerData.PlayerInfo pInfo, uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)

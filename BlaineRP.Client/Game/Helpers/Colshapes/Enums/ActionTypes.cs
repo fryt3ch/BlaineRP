@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Wrappers.Colshapes.Enums
+﻿namespace BlaineRP.Client.Game.Helpers.Colshapes.Enums
 {
     public enum ActionTypes
     {

@@ -96,7 +96,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             if (id == null)
                 return;
 
-            var type = Client.Data.Items.GetType(id, true);
+            var type = Items.Core.GetType(id, true);
 
             if (type == null)
             {
@@ -104,7 +104,7 @@ namespace BlaineRP.Client.Game.Management.Commands
             }
             else
             {
-                Notification.Show(Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, id, Client.Data.Items.GetName(id), type.BaseType.Name, type.Name, string.Join(", ", type.GetInterfaces().Select(x => x.Name))), 10000);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, id, Items.Core.GetName(id), type.BaseType.Name, type.Name, string.Join(", ", type.GetInterfaces().Select(x => x.Name))), 10000);
             }
         }
 

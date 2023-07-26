@@ -9,7 +9,7 @@ using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Weapons.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class MapEditor

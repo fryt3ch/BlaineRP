@@ -1,16 +1,13 @@
-﻿using BlaineRP.Client.Utils.Game;
-using RAGE;
-using RAGE.Elements;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Quests.Enums;
-using Players = BlaineRP.Client.Sync.Players;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Quests
+namespace BlaineRP.Client.Game.Quests
 {
     public partial class Quest
     {
@@ -155,7 +152,7 @@ namespace BlaineRP.Client.Quests
                     if (mBlip != null)
                     {
                         var coords = mBlip.Position;
-                        Misc.SetWaypoint(coords.X, coords.Y);
+                        Utils.Game.Misc.SetWaypoint(coords.X, coords.Y);
                     }
                 }
             }

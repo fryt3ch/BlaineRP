@@ -165,7 +165,7 @@ namespace BlaineRP.Server.Game.Estates
                     lines.Add($"new GarageRoot({x.Id}, {x.EnterPosition.Position.ToCSharpStr()}, {x.EnterPositionVehicle.ToCSharpStr()});");
                 }
 
-                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "GROOTS_TO_REPLACE", lines);
+                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Initialization.cs", "GROOTS_TO_REPLACE", lines);
             }
 
             public Utils.Vector4 GetNextVehicleExit()
@@ -272,10 +272,10 @@ namespace BlaineRP.Server.Game.Estates
             {
                 MySQL.LoadGarage(x);
 
-                lines.Add($"new Garage({x.Id}, {x.Root.Id}, Garage.Types.{x.StyleData.Type.ToString()}, {x.Variation}, Garage.ClassTypes.{x.ClassType.ToString()}, {x.Tax}, {x.Price});");
+                lines.Add($"new Garage({x.Id}, {x.Root.Id}, {(int)x.StyleData.Type}, {x.Variation}, {(int)x.ClassType}, {x.Tax}, {x.Price});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "GARAGES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Initialization.cs", "GARAGES_TO_REPLACE", lines);
         }
 
         public static Garage Get(uint id) => All.GetValueOrDefault(id);

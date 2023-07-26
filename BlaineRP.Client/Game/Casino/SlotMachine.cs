@@ -1,14 +1,13 @@
-﻿using BlaineRP.Client.Game.World;
+﻿using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Casino
 {
-    public partial class Casino
-        {
-            public class SlotMachine
+    public class SlotMachine
             {
                 public enum ModelTypes : byte
                 {
@@ -33,10 +32,10 @@ namespace BlaineRP.Client.Data.Locations
                     Superstar = 13,
                 }
 
-                public static uint MinBet { get; set; }
-                public static uint MaxBet { get; set; }
+                public static uint MinBet => Settings.App.Static.GetOther<uint>("casinoSlotMachineMinBet");
+                public static uint MaxBet => Settings.App.Static.GetOther<uint>("casinoSlotMachineMaxBet");
 
-                public static uint JackpotMinValue { get; set; }
+                public static uint JackpotMinValue => Settings.App.Static.GetOther<uint>("casinoSlotMachineJackpotMinValue");
 
                 public static SlotMachine CurrentMachine { get; set; }
 
@@ -65,9 +64,9 @@ namespace BlaineRP.Client.Data.Locations
 
                     task = new AsyncTask(async () =>
                     {
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
-                        await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                        await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
 
                         var rModelStr = ModelType.ToString();
 
@@ -121,7 +120,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                             Player.LocalPlayer.TaskPlayAnim(animDict0, "press_spin_b", 8f, 0f, -1, 16, 0f, false, false, false);*/
 
-                        if (Data.Minigames.Casino.Casino.SoundOn)
+                        if (CasinoMinigames.SoundOn)
                         {
                             RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "start_spin", machineObjHandle, soundSetName, true, 0);
                             RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "spinning", machineObjHandle, soundSetName, true, 0);
@@ -158,7 +157,7 @@ namespace BlaineRP.Client.Data.Locations
 
                                     Reels[j].SetRotation(results[j] * 22.5f - 180f, rotation.Y, rotation.Z, 0, false);
 
-                                    if (Data.Minigames.Casino.Casino.SoundOn)
+                                    if (CasinoMinigames.SoundOn)
                                         RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "wheel_stop_clunk", machineObjHandle, soundSetName, true, 0);
                                 }
                             }
@@ -176,29 +175,29 @@ namespace BlaineRP.Client.Data.Locations
                         {
                             if (resultA == ReelIconTypes.Seven)
                             {
-                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                if (CasinoMinigames.SoundOn)
                                     RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "jackpot", machineObjHandle, soundSetName, true, 0);
                             }
                             if (resultA == ReelIconTypes.Grape || resultA == ReelIconTypes.Cherry || resultA == ReelIconTypes.Watermelon)
                             {
-                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                if (CasinoMinigames.SoundOn)
                                     RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "small_win", machineObjHandle, soundSetName, true, 0);
                             }
                             else
                             {
-                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                if (CasinoMinigames.SoundOn)
                                     RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "big_win", machineObjHandle, soundSetName, true, 0);
                             }
                         }
                         else
                         {
-                            if (Data.Minigames.Casino.Casino.SoundOn)
+                            if (CasinoMinigames.SoundOn)
                                 RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "no_win", machineObjHandle, soundSetName, true, 0);
                         }
 
-                        if (CurrentMachine == this && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.SlotMachine)
+                        if (CurrentMachine == this && CasinoMinigames.CurrentType == CasinoMinigames.Types.SlotMachine)
                         {
-                            Data.Minigames.Casino.Casino.UpdateStatus(GetJackpotString(jackpot));
+                            CasinoMinigames.UpdateStatus(GetJackpotString(jackpot));
                         }
 
                         AsyncTask.Methods.CancelPendingTask(taskKey);
@@ -229,9 +228,9 @@ namespace BlaineRP.Client.Data.Locations
 
                 public async void PlayGreetingSound()
                 {
-                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
-                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
-                    await Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+                    await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                    await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                    await Utils.Game.Audio.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
 
                     if (MachineObj?.Exists == true)
                     {
@@ -249,5 +248,4 @@ namespace BlaineRP.Client.Data.Locations
                         return $"&#9989; {baseStr}";
                 }
             }
-        }
 }

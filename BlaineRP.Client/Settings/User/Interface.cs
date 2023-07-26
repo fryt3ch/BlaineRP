@@ -1,7 +1,6 @@
 ﻿using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using Interaction = BlaineRP.Client.Game.Management.Interaction;
 
 namespace BlaineRP.Client.Settings.User
 {

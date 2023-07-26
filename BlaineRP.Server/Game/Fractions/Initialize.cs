@@ -608,13 +608,11 @@ namespace BlaineRP.Server.Game.Fractions
         {
             var lines = new List<string>();
 
-            lines.Add($"Fractions.Police.NumberplatePrices = RAGE.Util.Json.Deserialize<Dictionary<string, uint[]>>(\"{Police.NumberplatePrices.SerializeToJson().Replace('"', '\'')}\");");
-
             foreach (var x in All.Values)
             {
                 x.PostInitialize();
 
-                lines.Add($"new Fractions.{x.GetType().Name}({x.ClientData});");
+                lines.Add($"new {x.GetType().Name}({x.ClientData});");
             }
 
             foreach (var x in Gang.GangZone.All)
@@ -624,10 +622,10 @@ namespace BlaineRP.Server.Game.Fractions
 
                 x.UpdateOwner(false);
 
-                lines.Add($"Fractions.Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");
+                lines.Add($"Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "FRACTIONS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Fractions\Fraction.Initialization.cs", "TO_REPLACE", lines);
         }
     }
 }

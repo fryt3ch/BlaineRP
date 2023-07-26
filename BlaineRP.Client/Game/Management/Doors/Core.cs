@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;

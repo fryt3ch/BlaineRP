@@ -6,14 +6,13 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class FractionMenu

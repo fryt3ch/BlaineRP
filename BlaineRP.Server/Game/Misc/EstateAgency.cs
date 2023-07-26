@@ -51,10 +51,10 @@ namespace BlaineRP.Server.Game.Misc
 
             for (int i = 0; i < All.Length; i++)
             {
-                lines.Add($"new EstateAgency({i}, \"{All[i].Positions.SerializeToJson().Replace('\"', '\'')}\");");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.EstateAgency)}({i}, \"{All[i].Positions.SerializeToJson().Replace('\"', '\'')}\");");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "ESTAGENCIES_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\EstateAgency.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public EstateAgency()

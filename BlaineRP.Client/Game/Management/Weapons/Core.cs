@@ -6,16 +6,13 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Weapons.Enums;
-using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Players = BlaineRP.Client.Sync.Players;
+using Players = BlaineRP.Client.Game.Scripts.Sync.Players;
 
 namespace BlaineRP.Client.Game.Management.Weapons
 {

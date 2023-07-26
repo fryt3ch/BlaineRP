@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Sync;
 
 namespace BlaineRP.Client.Settings.User
 {

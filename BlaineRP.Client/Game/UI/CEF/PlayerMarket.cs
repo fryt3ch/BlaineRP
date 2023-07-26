@@ -5,7 +5,7 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PlayerMarket

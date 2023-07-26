@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class JFRM2

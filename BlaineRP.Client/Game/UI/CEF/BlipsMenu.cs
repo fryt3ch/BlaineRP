@@ -6,9 +6,9 @@ using BlaineRP.Client.Utils;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class BlipsMenu

@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Game.Fractions
 {
     public class Army : Fraction, IUniformable
     {
-        public Army(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public Army(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
@@ -31,7 +31,7 @@ namespace BlaineRP.Client.Game.Fractions
                 };
             }
 
-            if (type == Types.GOV_LS)
+            if (type == FractionTypes.GOV_LS)
             {
                 UniformNames = new string[]
                 {

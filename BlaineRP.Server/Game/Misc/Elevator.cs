@@ -92,10 +92,10 @@ namespace BlaineRP.Server.Game.Misc
 
             foreach (var x in All)
             {
-                lines.Add($"new Elevator({x.Key}, {x.Value.Position.ToCSharpStr()}, {x.Value.Range}f, {x.Value.Dimension}, \"{x.Value.LinkedElevators.SerializeToJson().Replace('\"', '\'')}\");");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.Elevator)}({x.Key}, {x.Value.Position.ToCSharpStr()}, {x.Value.Range}f, {x.Value.Dimension}, \"{x.Value.LinkedElevators.SerializeToJson().Replace('\"', '\'')}\");");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "ELEVATORS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\Elevator.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public bool GetCheckFunctionResult(PlayerData pData, bool from)

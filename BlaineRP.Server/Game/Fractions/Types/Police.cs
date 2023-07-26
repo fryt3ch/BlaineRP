@@ -15,8 +15,9 @@ namespace BlaineRP.Server.Game.Fractions
 
         }
 
-        public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", {(uint)MetaFlags}, \"{ArrestCellsPositions.Select(x => x.Position).SerializeToJson().Replace('"', '\'')}\", \"{ArrestMenuPositions.SerializeToJson().Replace('\"', '\'')}\"";
+        public override string ClientData => $"FractionTypes.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", {(uint)MetaFlags}, \"{ArrestCellsPositions.Select(x => x.Position).SerializeToJson().Replace('"', '\'')}\", \"{ArrestMenuPositions.SerializeToJson().Replace('\"', '\'')}\"";
 
+        [Properties.Settings.Static.ClientSync("policeFractionNumberplatePrices")]
         public static Dictionary<string, uint[]> NumberplatePrices { get; } = new Dictionary<string, uint[]>()
         {
             {

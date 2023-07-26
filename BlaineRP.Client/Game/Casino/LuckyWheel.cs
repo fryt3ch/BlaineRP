@@ -5,11 +5,9 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Casino
 {
-    public partial class Casino
-        {
-            public class LuckyWheel
+    public class LuckyWheel
             {
                 public enum ZoneTypes : byte
                 {
@@ -221,5 +219,4 @@ namespace BlaineRP.Client.Data.Locations
                     AsyncTask.Methods.SetAsPending(task, taskKey);
                 }
             }
-        }
 }

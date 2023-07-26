@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Game.UI.CEF;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class FishBuyer
@@ -21,8 +20,8 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (npc == null)
                         return;
 
-                    if (npc.Data is Locations.FishBuyer fb)
-                        npc.ShowDialogue("fishbuyer_a_p", true, null, string.Join("\n", Locations.FishBuyer.BasePrices.Select(x => $"{Items.GetName(x.Key) ?? "null"} - {Locale.Get("GEN_MONEY_0", fb.GetPrice(x.Key))}")));
+                    if (npc.Data is Game.Misc.FishBuyer fb)
+                        npc.ShowDialogue("fishbuyer_a_p", true, null, string.Join("\n", Game.Misc.FishBuyer.BasePrices.Select(x => $"{Items.Core.GetName(x.Key) ?? "null"} - {Locale.Get("GEN_MONEY_0", fb.GetPrice(x.Key))}")));
                 }),
 
                 Button.DefaultExitButton
@@ -48,14 +47,14 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (npc == null)
                         return;
 
-                    var fb = npc.Data as Locations.FishBuyer;
+                    var fb = npc.Data as Game.Misc.FishBuyer;
 
                     if (fb == null)
                         return;
 
                     var dict = new Dictionary<string, int>();
 
-                    foreach (var x in Locations.FishBuyer.BasePrices)
+                    foreach (var x in Game.Misc.FishBuyer.BasePrices)
                     {
                         for (int i = 0; i < Inventory.ItemsParams.Length; i++)
                         {
@@ -96,7 +95,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                         var price = fb.GetPrice(id);
 
-                        var name = Items.GetName(x.Key);
+                        var name = Items.Core.GetName(x.Key);
 
                         dg.Buttons.Add(new Button($"{name} - {amount} шт.", () =>
                         {
@@ -159,7 +158,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (npc == null)
                         return;
 
-                    var fb = npc.Data as Locations.FishBuyer;
+                    var fb = npc.Data as Game.Misc.FishBuyer;
 
                     if (fb == null)
                         return;
@@ -237,7 +236,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             if (npc == null)
                 return;
 
-            var fb = npc.Data as Locations.FishBuyer;
+            var fb = npc.Data as Game.Misc.FishBuyer;
 
             if (fb == null)
                 return;
@@ -259,7 +258,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
             }
             else
             {
-                var t = $"Я правильно понял, что ты хочешь продать мне {Items.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", amount * fb.GetPrice(fishId))}, согласен?";
+                var t = $"Я правильно понял, что ты хочешь продать мне {Items.Core.GetName(fishId)} в кол-ве {amount} шт.? За все это я дам тебе {Locale.Get("GEN_MONEY_0", amount * fb.GetPrice(fishId))}, согласен?";
 
                 var dg = AllDialogues["fishbuyer_a_fs3"].Text = t;
 

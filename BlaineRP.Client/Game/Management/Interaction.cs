@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Management
 {
     class Interaction
     {

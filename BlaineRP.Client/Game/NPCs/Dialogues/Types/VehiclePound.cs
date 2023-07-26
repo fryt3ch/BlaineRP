@@ -5,7 +5,7 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.UI.CEF;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class VehiclePound

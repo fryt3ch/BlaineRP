@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Animations

@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.UI.CEF.Phone.Enums
+﻿namespace BlaineRP.Client.Game.UI.CEF.Phone.Enums
 {
     public enum AppTypes
     {

@@ -6,28 +6,23 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Garages;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.Management.Radio.Enums;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
-
 using Newtonsoft.Json.Linq;
-
 using RAGE;
 using RAGE.Elements;
 using Camera = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Camera;
-using Core = BlaineRP.Client.Game.Management.Radio.Core;
 using Interaction = BlaineRP.Client.Game.Management.Interaction;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Scripts.Sync
 {
     [Script(int.MaxValue)]
     public class Vehicles
@@ -1128,7 +1123,7 @@ namespace BlaineRP.Client.Sync
                                 {
                                     var vehicle = Player.LocalPlayer.Vehicle;
 
-                                    if (vehicle?.Exists != true || Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type != Game.Data.Vehicles.Types.Car)
+                                    if (vehicle?.Exists != true || Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type != Game.Data.Vehicles.VehicleTypes.Car)
                                         return;
 
                                     if (_lastBeltToggled.IsSpam(1000, false, false))
@@ -1465,7 +1460,7 @@ namespace BlaineRP.Client.Sync
 
                                 var vType = Game.Data.Vehicles.Core.GetByModel(vehicle.Model);
 
-                                if (vType?.Type != Game.Data.Vehicles.Types.Plane || vType.ID == "duster")
+                                if (vType?.Type != Game.Data.Vehicles.VehicleTypes.Plane || vType.ID == "duster")
                                     return;
 
                                 if (vehicle.IsLocal)
@@ -1722,7 +1717,7 @@ namespace BlaineRP.Client.Sync
 
                                 if (Player.LocalPlayer.HasData("CurrentHouse"))
                                 {
-                                    var house = Player.LocalPlayer.GetData<Game.Estates.Houses.House>("CurrentHouse");
+                                    var house = Player.LocalPlayer.GetData<House>("CurrentHouse");
 
                                     if (house?.GarageType == null)
                                         return;
@@ -2045,7 +2040,7 @@ namespace BlaineRP.Client.Sync
 
                                     if (!vData.Data.HasAutoPilot)
                                     {
-                                        if (vData.Data.Type != Game.Data.Vehicles.Types.Plane)
+                                        if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Plane)
                                             Notification.Show(Notification.Types.Error,
                                                 Locale.Notifications.Vehicles.Additional.HeaderAutoPilot,
                                                 Locale.Notifications.Vehicles.Additional.Unsupported);
@@ -2145,7 +2140,7 @@ namespace BlaineRP.Client.Sync
                                 if (veh == null || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || vData.ForcedSpeed != 0f)
                                     return;
 
-                                if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                                if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                                     return;
 
                                 Events.CallRemote("Vehicles::Anchor", !vData.IsAnchored);
@@ -2194,7 +2189,7 @@ namespace BlaineRP.Client.Sync
                                 if (vData == null)
                                     return;
 
-                                if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
+                                if (vData.Data.Type != Game.Data.Vehicles.VehicleTypes.Boat)
                                     return;
 
                                 if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)

@@ -4,7 +4,7 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Browser

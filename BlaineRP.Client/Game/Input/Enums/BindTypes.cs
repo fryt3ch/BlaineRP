@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Input.Enums
+﻿namespace BlaineRP.Client.Game.Input.Enums
 {
     internal enum BindTypes
     {

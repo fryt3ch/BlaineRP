@@ -1,34 +1,30 @@
-﻿using BlaineRP.Client.Extensions.RAGE.Elements;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
-using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.UI.CEF;
-using Core = BlaineRP.Client.Game.Management.Doors.Core;
-using Players = BlaineRP.Client.Sync.Players;
+using Players = BlaineRP.Client.Game.Scripts.Sync.Players;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Estates
 {
     [Script(int.MaxValue)]
-    public class House
+    public class Core
     {
-        public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
+        public static Colour DefaultLightColour => new Colour(255, 187, 96, 255);
 
         /// <summary>Типы домов</summary>
         public enum HouseTypes
@@ -43,7 +39,7 @@ namespace BlaineRP.Client.Sync
         {
             public bool State { get; set; }
 
-            public Utils.Colour RGB { get; set; }
+            public Colour RGB { get; set; }
 
             public List<MapObject> Objects { get; set; }
 
@@ -100,7 +96,7 @@ namespace BlaineRP.Client.Sync
 
             private HashSet<ushort> FamiliarTypes { get; }
 
-            public Utils.Vector4 InteriorPosition { get; private set; }
+            public Vector4 InteriorPosition { get; private set; }
 
             public Vector3 Position { get; private set; }
 
@@ -114,20 +110,20 @@ namespace BlaineRP.Client.Sync
 
             public static Style Get(ushort sType) => All.GetValueOrDefault(sType);
 
-            public Style(ushort Type, Vector3 Position, Utils.Vector4 InteriorPosition, uint Price, string DoorsJs, string LightsJs, string SupportedRoomTypesJs, string SupportedHouseTypesJs, string FamiliarTypesJs)
+            public Style(ushort type, Vector3 position, Vector4 interiorPosition, uint price, string doorsJs, string lightsJs, string supportedRoomTypesJs, string supportedHouseTypesJs, string familiarTypesJs)
             {
-                All.Add(Type, this);
+                All.Add(type, this);
 
-                this.Position = Position;
-                this.InteriorPosition = InteriorPosition;
-                this.Price = Price;
+                Position = position;
+                InteriorPosition = interiorPosition;
+                Price = price;
 
-                this.Doors = RAGE.Util.Json.Deserialize<DoorInfo[]>(DoorsJs);
-                this.Lights = RAGE.Util.Json.Deserialize<LightInfo[][]>(LightsJs);
+                Doors = RAGE.Util.Json.Deserialize<DoorInfo[]>(doorsJs);
+                Lights = RAGE.Util.Json.Deserialize<LightInfo[][]>(lightsJs);
 
-                this.SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseTypes>>(SupportedHouseTypesJs);
-                this.SupportedRoomTypes = RAGE.Util.Json.Deserialize<HashSet<RoomTypes>>(SupportedRoomTypesJs);
-                this.FamiliarTypes = RAGE.Util.Json.Deserialize<HashSet<ushort>>(FamiliarTypesJs);
+                SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseTypes>>(supportedHouseTypesJs);
+                SupportedRoomTypes = RAGE.Util.Json.Deserialize<HashSet<RoomTypes>>(supportedRoomTypesJs);
+                FamiliarTypes = RAGE.Util.Json.Deserialize<HashSet<ushort>>(familiarTypesJs);
             }
 
             public static string GetName(ushort type) => Locale.Get($"HOUSE_STYLE_{type}@Name");
@@ -161,9 +157,9 @@ namespace BlaineRP.Client.Sync
 
         public static DateTime LastSent;
 
-        public House()
+        public Core()
         {
-            Data.Furniture.LoadAll();
+            Estates.Furniture.LoadAll();
 
             Style.LoadAll();
 
@@ -314,7 +310,7 @@ namespace BlaineRP.Client.Sync
                     var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
                     var lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);
 
-                    var house = hType == HouseTypes.House ? (HouseBase)Game.Estates.Houses.House.All[id] : (HouseBase)Apartments.All[id];
+                    var house = hType == HouseTypes.House ? (HouseBase)House.All[id] : (HouseBase)Apartments.All[id];
 
                     var style = Style.Get(sType);
 
@@ -360,10 +356,10 @@ namespace BlaineRP.Client.Sync
 
                     foreach (var x in RAGE.Util.Json.Deserialize<List<JObject>>((string)data["F"]))
                     {
-                        var fData = Data.Furniture.GetData((string)x["I"]);
+                        var fData = Estates.Furniture.GetData((string)x["I"]);
                         var fUid = (uint)x["U"];
 
-                        var fProps = x["D"].ToObject<Utils.Vector4>();
+                        var fProps = x["D"].ToObject<Vector4>();
 
                         CreateObject(fUid, fData, fProps);
                     }
@@ -411,7 +407,7 @@ namespace BlaineRP.Client.Sync
 
                         t.SetCoordsNoOffset(coords.X, coords.Y, coords.Z, false, false, false);
 
-                        Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
+                        Management.Doors.Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
 
                         Doors.Add(i, t);
 
@@ -425,7 +421,7 @@ namespace BlaineRP.Client.Sync
                             if (LastSent.IsSpam(1000, false, true))
                                 return;
 
-                            LastSent = Game.World.Core.ServerTime;
+                            LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
                         }));
@@ -451,7 +447,7 @@ namespace BlaineRP.Client.Sync
 
                         var info = new LightsPack();
 
-                        info.RGB = i >= lights.Length ? DefaultLightColour : lights[i]["C"].ToObject<Utils.Colour>();
+                        info.RGB = i >= lights.Length ? DefaultLightColour : lights[i]["C"].ToObject<Colour>();
                         info.State = i >= lights.Length ? true : (bool)lights[i]["S"];
 
                         Lights.Add(i, info);
@@ -502,7 +498,7 @@ namespace BlaineRP.Client.Sync
 
                     TempColshapes.Add(exitCs);
 
-                    if (house is Game.Estates.Houses.House rHouse)
+                    if (house is House rHouse)
                     {
                         if (rHouse.GarageType is Garage.Types grType)
                         {
@@ -549,7 +545,7 @@ namespace BlaineRP.Client.Sync
 
                 door.SetData("DoorState", state);
 
-                Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
+                Management.Doors.Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
             });
 
             Events.Add("House::Light", (object[] args) =>
@@ -575,7 +571,7 @@ namespace BlaineRP.Client.Sync
                 }
                 else if (args[1] is string str)
                 {
-                    var rgb = RAGE.Util.Json.Deserialize<Utils.Colour>(str);
+                    var rgb = RAGE.Util.Json.Deserialize<Colour>(str);
 
                     if (rgb != null)
                     {
@@ -615,11 +611,11 @@ namespace BlaineRP.Client.Sync
 
                     var furn = Furniture.GetValueOrDefault(fUid);
 
-                    var props = data["D"].ToObject<Utils.Vector4>();
+                    var props = data["D"].ToObject<Vector4>();
 
                     if (furn == null)
                     {
-                        var fData = Data.Furniture.GetData((string)data["I"]);
+                        var fData = Estates.Furniture.GetData((string)data["I"]);
 
                         CreateObject(fUid, fData, props);
 
@@ -684,23 +680,23 @@ namespace BlaineRP.Client.Sync
             }, 0);
         }
 
-        private static void CreateObject(uint fUid, Data.Furniture fData, Utils.Vector4 fProps)
+        private static void CreateObject(uint fUid, Furniture fData, Vector4 fProps)
         {
             MapObject obj = null;
 
-            if (fData.Type == Data.Furniture.Types.Locker)
+            if (fData.Type == Estates.Furniture.Types.Locker)
             {
                 obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::LI"));
             }
-            else if (fData.Type == Data.Furniture.Types.Wardrobe)
+            else if (fData.Type == Estates.Furniture.Types.Wardrobe)
             {
                 obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::WI"));
             }
-            else if (fData.Type == Data.Furniture.Types.Fridge)
+            else if (fData.Type == Estates.Furniture.Types.Fridge)
             {
                 obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::FI"));
             }
-            else if (fData.Type == Data.Furniture.Types.KitchenSet)
+            else if (fData.Type == Estates.Furniture.Types.KitchenSet)
             {
                 obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, fUid);
             }
@@ -777,7 +773,7 @@ namespace BlaineRP.Client.Sync
                     if (handle <= 0)
                         continue;
 
-                    var x = new RAGE.Elements.MapObject(handle)
+                    var x = new MapObject(handle)
                     {
                         Dimension = uint.MaxValue,
                     };

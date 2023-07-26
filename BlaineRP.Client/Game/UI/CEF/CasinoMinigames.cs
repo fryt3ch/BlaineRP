@@ -9,7 +9,7 @@ using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class CasinoMinigames
@@ -104,13 +104,13 @@ namespace BlaineRP.Client.UI.CEF
                     {
                         var typesList = ((Game.Casino.SlotMachine.ReelIconTypes[])Enum.GetValues(typeof(Game.Casino.SlotMachine.ReelIconTypes))).ToList();
 
-                        resA = typesList[Misc.Random.Next(0, typesList.Count)];
-                        resB = typesList[Misc.Random.Next(0, typesList.Count)];
+                        resA = typesList[Utils.Misc.Random.Next(0, typesList.Count)];
+                        resB = typesList[Utils.Misc.Random.Next(0, typesList.Count)];
 
                         if (resA == resB)
                             typesList.Remove(resA);
 
-                        resC = typesList[Misc.Random.Next(0, typesList.Count)];
+                        resC = typesList[Utils.Misc.Random.Next(0, typesList.Count)];
                     }
                     else
                     {

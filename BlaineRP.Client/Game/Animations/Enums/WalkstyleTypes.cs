@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Animations.Enums
+﻿namespace BlaineRP.Client.Game.Animations
 {
     public enum WalkstyleTypes
     {

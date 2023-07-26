@@ -157,16 +157,16 @@ namespace BlaineRP.Server.Game
             var lines = new List<string>();
 
             foreach (var x in Banks)
-                lines.Add($"new Bank({x.Key}, new Utils.Vector4[] {{ {string.Join(", ", x.Value.Select(x => x.ToCSharpStr()))} }});");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.Bank)}({x.Key}, new {typeof(BlaineRP.Client.Utils.Vector4).FullName}[] {{ {string.Join(", ", x.Value.Select(x => x.ToCSharpStr()))} }});");
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "BANKS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\Bank.Initialization.cs", "TO_REPLACE", lines);
 
             lines = new List<string>();
 
             foreach (var x in ATMs)
-                lines.Add($"new ATM({x.Key}, {x.Value.ToCSharpStr()});");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.ATM)}({x.Key}, {x.Value.ToCSharpStr()});");
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "ATM_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\ATM.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public static Utils.Vector4[] GetBankData(int id) => Banks.GetValueOrDefault(id);

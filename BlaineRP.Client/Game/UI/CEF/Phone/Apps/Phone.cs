@@ -7,14 +7,14 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.UI.CEF.Phone.Enums;
+using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Phone

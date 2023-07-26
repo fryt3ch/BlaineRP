@@ -1,14 +1,13 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Chat = BlaineRP.Client.UI.CEF.Chat;
+using Chat = BlaineRP.Client.Game.UI.CEF.Chat;
 
-namespace BlaineRP.Client.Data.Minigames
+namespace BlaineRP.Client.Game.Scripts
 {
     [Script(int.MaxValue)]
     public class Farm

@@ -8,14 +8,13 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Commands.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Chat

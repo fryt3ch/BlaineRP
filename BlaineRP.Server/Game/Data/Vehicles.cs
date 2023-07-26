@@ -1164,10 +1164,10 @@ namespace BlaineRP.Server.Game.Data
             {
                 x.Value.GovPrice = Game.Businesses.Shop.AllPrices.Where(y => y.Value.Prices.ContainsKey(x.Key)).Select(y => y.Value.Prices[x.Key] * y.Value.RealPrice).FirstOrDefault();
 
-                lines.Add($"new Vehicle(\"{x.Key}\", {x.Value.Model}, \"{x.Value.Name}\", {x.Value.Tank}f, Vehicle.FuelTypes.{x.Value.FuelType}, {(x.Value.TrunkData == null ? "null" : $"new Vehicle.Trunk({x.Value.TrunkData.Slots}")}, {x.Value.TrunkData.MaxWeight}), {x.Value.IsModdable.ToString().ToLower()}, {x.Value.HasCruiseControl.ToString().ToLower()}, {x.Value.HasAutoPilot.ToString().ToLower()}, Vehicle.Types.{x.Value.Type}, {x.Value.GovPrice}, Vehicle.ClassTypes.{x.Value.Class});");
+                lines.Add($"new Vehicle(\"{x.Key}\", {x.Value.Model}, \"{x.Value.Name}\", {x.Value.Tank}f, FuelTypes.{x.Value.FuelType}, {(x.Value.TrunkData == null ? "null" : $"new Vehicle.Trunk({x.Value.TrunkData.Slots}")}, {x.Value.TrunkData.MaxWeight}), {x.Value.IsModdable.ToString().ToLower()}, {x.Value.HasCruiseControl.ToString().ToLower()}, {x.Value.HasAutoPilot.ToString().ToLower()}, VehicleTypes.{x.Value.Type}, {x.Value.GovPrice}, ClassTypes.{x.Value.Class});");
             }
 
-            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Data\Vehicles.cs", "TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Data\Vehicles\Core.cs", "TO_REPLACE", lines);
 
             return All.Count;
         }

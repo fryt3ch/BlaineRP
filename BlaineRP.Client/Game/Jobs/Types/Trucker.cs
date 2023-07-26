@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Quests;
-using BlaineRP.Client.Quests.Enums;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 
-namespace BlaineRP.Client.Game.Jobs.Types
+namespace BlaineRP.Client.Game.Jobs
 {
     public class Trucker : Job
     {
@@ -24,7 +23,7 @@ namespace BlaineRP.Client.Game.Jobs.Types
 
             public int MPIdx { get; set; }
 
-            public Client.Data.Locations.Business TargetBusiness { get; set; }
+            public Business TargetBusiness { get; set; }
 
             public OrderInfo()
             {
@@ -62,7 +61,7 @@ namespace BlaineRP.Client.Game.Jobs.Types
 
                 var id = uint.Parse(t[0]);
 
-                var business = Client.Data.Locations.Business.All[int.Parse(t[1])];
+                var business = Business.All[int.Parse(t[1])];
 
                 return new OrderInfo() { Id = id, TargetBusiness = business, MPIdx = int.Parse(t[2]), Reward = uint.Parse(t[3]) };
             }).OrderByDescending(x => x.Reward).ToList();

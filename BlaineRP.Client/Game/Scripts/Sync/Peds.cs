@@ -1,12 +1,11 @@
-﻿using RAGE;
-using RAGE.Elements;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.NPCs;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Sync
+namespace BlaineRP.Client.Game.Scripts.Sync
 {
     [Script(int.MaxValue)]
     public class Peds

@@ -5,18 +5,17 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Jobs;
+using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.Scripts.Misc;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Quests;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
-using Players = BlaineRP.Client.Sync.Players;
+using Players = BlaineRP.Client.Game.Scripts.Sync.Players;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class HUD
@@ -96,7 +95,7 @@ namespace BlaineRP.Client.UI.CEF
 
             public Menu()
             {
-                Events.Add("HUD::Menu::Action", (object[] args) =>
+                RAGE.Events.Add("HUD::Menu::Action", (object[] args) =>
                 {
                     Switch(false);
 

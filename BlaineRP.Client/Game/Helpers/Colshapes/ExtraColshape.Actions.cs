@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Game.Businesses;
-using BlaineRP.Client.Game.Businesses.Types;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Management.IPLs;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.Game.Wrappers.Colshapes
+namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
     public abstract partial class ExtraColshape
     {
@@ -26,7 +24,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     {
                         true, (cs) =>
                         {
-                            if (cs.Data is Client.Data.Locations.MarketStall marketStall)
+                            if (cs.Data is MarketStall marketStall)
                             {
                                 var currentRenterRid = marketStall.CurrentRenterRID;
 
@@ -253,7 +251,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     {
                         true, (cs) =>
                         {
-                            if (cs.Data is Client.Data.Locations.ATM atm)
+                            if (cs.Data is Misc.ATM atm)
                                 Player.LocalPlayer.SetData("CurrentATM", atm);
                         }
                     },
@@ -282,7 +280,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                             if (cs.Data is ExtraBlip blip)
                             {
                                 if (blip.Type == ExtraBlip.Types.AutoPilot)
-                                    Sync.Vehicles.ToggleAutoPilot(false, true);
+                                    Scripts.Sync.Vehicles.ToggleAutoPilot(false, true);
 
                                 blip.Destroy();
 
@@ -348,7 +346,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                                 Player.LocalPlayer.SetData("ColshapeVehicleSpeedLimited", maxSpeed);
 
                                 if (Player.LocalPlayer.Vehicle is Vehicle veh)
-                                    Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, maxSpeed);
+                                    Scripts.Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, maxSpeed);
                             }
                         }
                     },
@@ -358,7 +356,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                             Player.LocalPlayer.ResetData("ColshapeVehicleSpeedLimited");
 
                             if (Player.LocalPlayer.Vehicle is Vehicle veh)
-                                Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, float.MinValue);
+                                Scripts.Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, float.MinValue);
                         }
                     },
                 }

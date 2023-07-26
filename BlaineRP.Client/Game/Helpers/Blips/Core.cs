@@ -1,9 +1,9 @@
-﻿using BlaineRP.Client.UI.CEF;
+﻿using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Wrappers.Blips
+namespace BlaineRP.Client.Game.Helpers.Blips
 {
     [Script(int.MaxValue)]
     public class Core

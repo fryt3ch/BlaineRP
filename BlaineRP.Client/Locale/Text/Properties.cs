@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Data;
+
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Data.Vehicles;
+using BlaineRP.Client.Game.Jobs;
 
 namespace BlaineRP.Client
 {
@@ -8,14 +10,14 @@ namespace BlaineRP.Client
     {
         public static class Property
         {
-            public static Dictionary<Types, string> VehicleTypesNames = new Dictionary<Types, string>()
+            public static Dictionary<VehicleTypes, string> VehicleTypesNames = new Dictionary<VehicleTypes, string>()
             {
-                { Types.Car, "Автомобиль" },
-                { Types.Boat, "Лодка" },
-                { Types.Motorcycle, "Мотоцикл" },
-                { Types.Cycle, "Велосипед" },
-                { Types.Helicopter, "Вертолет" },
-                { Types.Plane, "Самолет" },
+                { VehicleTypes.Car, "Автомобиль" },
+                { VehicleTypes.Boat, "Лодка" },
+                { VehicleTypes.Motorcycle, "Мотоцикл" },
+                { VehicleTypes.Cycle, "Велосипед" },
+                { VehicleTypes.Helicopter, "Вертолет" },
+                { VehicleTypes.Plane, "Самолет" },
             };
 
             public static string VehicleTradeInfoStr = "{0} | {1} #{2}";
@@ -25,43 +27,43 @@ namespace BlaineRP.Client
             public static string GarageTradeInfoStr = "{0}, #{1}";
             public static string BusinessTradeInfoStr = "{0} #{1}";
 
-            public static Dictionary<Game.Jobs.Enums.JobTypes, string> JobNames = new Dictionary<Game.Jobs.Enums.JobTypes, string>()
+            public static Dictionary<JobTypes, string> JobNames = new Dictionary<JobTypes, string>()
             {
-                { Game.Jobs.Enums.JobTypes.Trucker, "Доставка грузов" },
+                { JobTypes.Trucker, "Доставка грузов" },
             };
 
-            public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
+            public static Dictionary<BusinessTypes, string> BusinessNames = new Dictionary<BusinessTypes, string>()
             {
-                { Data.Locations.Business.Types.ClothesShop1, "Магазин спортивной одежды" },
-                { Data.Locations.Business.Types.ClothesShop2, "Магазин премиальной одежды" },
-                { Data.Locations.Business.Types.ClothesShop3, "Магазин брендовой одежды" },
+                { BusinessTypes.ClothesShop1, "Магазин спортивной одежды" },
+                { BusinessTypes.ClothesShop2, "Магазин премиальной одежды" },
+                { BusinessTypes.ClothesShop3, "Магазин брендовой одежды" },
 
-                { Data.Locations.Business.Types.JewelleryShop, "Ювелирный салон" },
+                { BusinessTypes.JewelleryShop, "Ювелирный салон" },
 
-                { Data.Locations.Business.Types.Market, "Магазин 24/7" },
+                { BusinessTypes.Market, "Магазин 24/7" },
 
-                { Data.Locations.Business.Types.GasStation, "АЗС" },
+                { BusinessTypes.GasStation, "АЗС" },
 
-                { Data.Locations.Business.Types.CarShop1, "Автосалон бюджетного сегмента" },
+                { BusinessTypes.CarShop1, "Автосалон бюджетного сегмента" },
 
-                { Data.Locations.Business.Types.BoatShop, "Лодочный салон" },
+                { BusinessTypes.BoatShop, "Лодочный салон" },
 
-                { Data.Locations.Business.Types.AeroShop, "Салон воздушного транспорта" },
+                { BusinessTypes.AeroShop, "Салон воздушного транспорта" },
 
-                { Data.Locations.Business.Types.TuningShop, "Тюнинг" },
+                { BusinessTypes.TuningShop, "Тюнинг" },
 
-                { Data.Locations.Business.Types.WeaponShop, "Оружейный магазин" },
+                { BusinessTypes.WeaponShop, "Оружейный магазин" },
 
-                { Data.Locations.Business.Types.BarberShop, "Салон красоты" },
+                { BusinessTypes.BarberShop, "Салон красоты" },
 
-                { Data.Locations.Business.Types.TattooShop, "Тату-салон" },
+                { BusinessTypes.TattooShop, "Тату-салон" },
 
-                { Data.Locations.Business.Types.BagShop, "Торговец сумок и рюкзаков" },
-                { Data.Locations.Business.Types.MaskShop, "Торговец масок" },
+                { BusinessTypes.BagShop, "Торговец сумок и рюкзаков" },
+                { BusinessTypes.MaskShop, "Торговец масок" },
 
-                { Data.Locations.Business.Types.FurnitureShop, "Мебельный магазин" },
+                { BusinessTypes.FurnitureShop, "Мебельный магазин" },
 
-                { Data.Locations.Business.Types.Farm, "Ферма" },
+                { BusinessTypes.Farm, "Ферма" },
             };
 
             public static Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string>()

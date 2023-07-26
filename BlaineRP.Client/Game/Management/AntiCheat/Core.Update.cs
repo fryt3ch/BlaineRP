@@ -1,7 +1,8 @@
 ﻿using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -103,9 +104,9 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                     Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
             }
 
-            for (int i = 0; i < Sync.Vehicles.ControlledVehicles.Count; i++)
+            for (int i = 0; i < Vehicles.ControlledVehicles.Count; i++)
             {
-                var veh = Sync.Vehicles.ControlledVehicles[i];
+                var veh = Vehicles.ControlledVehicles[i];
 
                 if (veh?.Exists != true)
                     continue;

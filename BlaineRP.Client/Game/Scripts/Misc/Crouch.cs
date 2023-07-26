@@ -1,13 +1,14 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Scripts.Misc
 {
     public class Crouch
     {

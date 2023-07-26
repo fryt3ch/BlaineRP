@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Fractions
 {
-    public enum Types
+    public enum FractionTypes
     {
         None = 0,
 

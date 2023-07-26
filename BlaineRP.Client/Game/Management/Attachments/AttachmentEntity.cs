@@ -1,6 +1,4 @@
-﻿using BlaineRP.Client.Game.Management.Attachments.Enums;
-
-namespace BlaineRP.Client.Game.Management.Attachments
+﻿namespace BlaineRP.Client.Game.Management.Attachments
 {
     public class AttachmentEntity
     {

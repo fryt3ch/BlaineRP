@@ -5,20 +5,18 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Types;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management.Camera;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Interaction = BlaineRP.Client.Game.Misc.Interaction;
+using Interaction = BlaineRP.Client.Game.Management.Interaction;
 
 namespace BlaineRP.Client.Game.Management.Attachments
 {
@@ -472,7 +470,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
-            Events.AddDataHandler(AttachedEntitiesKey,
+            RAGE.Events.AddDataHandler(AttachedEntitiesKey,
                 async (entity, value, oldValue) =>
                 {
                     if (entity.IsLocal)
@@ -500,7 +498,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                     }
                 });
 
-            Events.AddDataHandler(AttachedObjectsKey,
+            RAGE.Events.AddDataHandler(AttachedObjectsKey,
                 async (entity, value, oldValue) =>
                 {
                     if (entity.IsLocal)
@@ -1085,7 +1083,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Players::StopInTrunk");
+                        RAGE.Events.CallRemote("Players::StopInTrunk");
                     }
                     else
                     {
@@ -1125,7 +1123,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Players::StopCarry");
+                        RAGE.Events.CallRemote("Players::StopCarry");
                     }
                     else
                     {
@@ -1207,7 +1205,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Players::StopCarry");
+                        RAGE.Events.CallRemote("Players::StopCarry");
                     }
                     else
                     {
@@ -1252,7 +1250,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Players::Smoke::Stop");
+                        RAGE.Events.CallRemote("Players::Smoke::Stop");
                     }
                     else
                     {
@@ -1266,7 +1264,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                         {
                             if (!lastSent.IsSpam(1000, false, false))
                             {
-                                Events.CallRemote("Players::Smoke::Puff");
+                                RAGE.Events.CallRemote("Players::Smoke::Puff");
 
                                 Player.LocalPlayer.SetData("Temp::Smoke::LastSent", World.Core.ServerTime);
                             }
@@ -1277,7 +1275,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                         {
                             if (!lastSent.IsSpam(1000, false, false))
                             {
-                                Events.CallRemote("Players::Smoke::State");
+                                RAGE.Events.CallRemote("Players::Smoke::State");
 
                                 Player.LocalPlayer.SetData("Temp::Smoke::LastSent", World.Core.ServerTime);
                             }
@@ -1322,7 +1320,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                             Animations.Core.LastSent = World.Core.ServerTime;
 
-                            Events.CallRemote("Players::Smoke::Stop");
+                            RAGE.Events.CallRemote("Players::Smoke::Stop");
                         }
                         else
                         {
@@ -1337,7 +1335,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                                             PlayerActions.Types.FastAnimation,
                                             PlayerActions.Types.OtherAnimation))
                                     {
-                                        Events.CallRemote("Players::Smoke::State");
+                                        RAGE.Events.CallRemote("Players::Smoke::State");
 
                                         Player.LocalPlayer.SetData("Temp::Smoke::LastSent", World.Core.ServerTime);
                                     }
@@ -1381,7 +1379,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Job::FARM::SCP");
+                        RAGE.Events.CallRemote("Job::FARM::SCP");
                     }
                     else
                     {
@@ -1411,7 +1409,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                        Events.CallRemote("Job::FARM::SOTP");
+                        RAGE.Events.CallRemote("Job::FARM::SOTP");
                     }
                     else
                     {
@@ -1493,7 +1491,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Notification.ShowError("Вы уронили коробку с апельсинами!");
 
-                        Events.CallRemote("Job::FARM::SOTP");
+                        RAGE.Events.CallRemote("Job::FARM::SOTP");
                     }
                 }))
             },
@@ -1562,7 +1560,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                         Notification.ShowError("Вы уронили ведро с молоком!");
 
-                        Events.CallRemote("Job::FARM::SCOWP");
+                        RAGE.Events.CallRemote("Job::FARM::SCOWP");
                     }
                 }))
             },
@@ -1591,7 +1589,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                                     {
                                         Animations.Core.LastSent = World.Core.ServerTime;
 
-                                        Events.CallRemote("EMS::BedFree");
+                                        RAGE.Events.CallRemote("EMS::BedFree");
                                     }
                         }))
             },
@@ -1615,14 +1613,14 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                     Interaction.Enabled = true;
 
-                    if (Client.Data.Minigames.LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
-                        Client.Data.Minigames.LockPicking.Close();
+                    if (LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
+                        LockPicking.Close();
                 }, () =>
                 {
                     if (Player.LocalPlayer.IsInAnyVehicle(false))
                         Main.DisableMoveRender();
 
-                    var lockpickItemAmount = Client.Data.Minigames.LockPicking.GetLockpickTotalAmount();
+                    var lockpickItemAmount = LockPicking.GetLockpickTotalAmount();
 
                     if (lockpickItemAmount > 0)
                     {
@@ -1647,21 +1645,21 @@ namespace BlaineRP.Client.Game.Management.Attachments
                                 {
                                     Animations.Core.LastSent = World.Core.ServerTime;
 
-                                    Client.Data.Minigames.LockPicking.Show("POLICE_CUFFS_LOCKPICK",
-                                        Client.Data.Minigames.LockPicking.DurabilityDefault,
-                                        Client.Data.Minigames.LockPicking.GetLockpickingRandomTargetRotation(),
-                                        Client.Data.Minigames.LockPicking.MaxDeviationDefault,
-                                        Client.Data.Minigames.LockPicking.RotationDefault);
+                                    LockPicking.Show("POLICE_CUFFS_LOCKPICK",
+                                        LockPicking.DurabilityDefault,
+                                        LockPicking.GetLockpickingRandomTargetRotation(),
+                                        LockPicking.MaxDeviationDefault,
+                                        LockPicking.RotationDefault);
                                 }
                         }
                     }
                     else
                     {
-                        if (Client.Data.Minigames.LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
+                        if (LockPicking.CurrentContext == "POLICE_CUFFS_LOCKPICK")
                         {
                             Notification.Show("Inventory::NoItem");
 
-                            Client.Data.Minigames.LockPicking.Close();
+                            LockPicking.Close();
                         }
                     }
                 })
@@ -1704,7 +1702,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                             {
                                 Animations.Core.LastSent = World.Core.ServerTime;
 
-                                await Events.CallRemoteProc("Police::Escort", null, false);
+                                await RAGE.Events.CallRemoteProc("Police::Escort", null, false);
                             }
                 })
             },
@@ -1748,7 +1746,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                             if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 return;
 
-                            Events.CallRemote("Player::ResurrectFinish");
+                            RAGE.Events.CallRemote("Player::ResurrectFinish");
 
                             AsyncTask.Methods.CancelPendingTask(taskKey);
                         },

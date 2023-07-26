@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Jobs.Types;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Jobs;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class JFRM1
@@ -45,7 +43,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             {
                                 var fieldData = businessData.CropFields[i];
 
-                                if (fieldData.Type != Data.Locations.Farm.CropField.Types.Wheat)
+                                if (fieldData.Type != Farm.CropField.Types.Wheat)
                                     continue;
 
                                 var srcCs = fieldData.Colshape as Cuboid;
@@ -53,13 +51,13 @@ namespace BlaineRP.Client.Quests.Types.Job
                                 if (srcCs == null)
                                     continue;
 
-                                var cs = new Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Misc.RedColor, Settings.App.Static.MainDimension, null)
+                                var cs = new Cuboid(srcCs.Position, srcCs.Width, srcCs.Depth, srcCs.Height, srcCs.Heading, false, Utils.Misc.RedColor, Settings.App.Static.MainDimension, null)
                                 {
                                     ApproveType = ApproveTypes.OnlyVehicleDriver,
 
                                     ActionType = ActionTypes.VehicleSpeedLimit,
 
-                                    Data = Data.Locations.Farm.TRACTOR_MAX_SPEED_KM_H / 3.6f,
+                                    Data = Farm.TRACTOR_MAX_SPEED_KM_H / 3.6f,
                                 };
 
                                 quest.SetActualData($"CS_VSL_{i}", cs);

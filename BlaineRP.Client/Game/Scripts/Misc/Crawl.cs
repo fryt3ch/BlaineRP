@@ -1,12 +1,13 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Scripts.Misc
 {
     [Script(int.MaxValue)]
     public class Crawl

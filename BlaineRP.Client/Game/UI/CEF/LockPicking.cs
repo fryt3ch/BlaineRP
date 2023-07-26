@@ -1,8 +1,7 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Utils;
 using RAGE;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class LockPicking
@@ -176,7 +175,7 @@ namespace BlaineRP.Client.UI.CEF
 
         public static int GetLockpickingRandomTargetRotation()
         {
-            return Misc.Random.Next(0, 360 + 1);
+            return Utils.Misc.Random.Next(0, 360 + 1);
         }
     }
 }

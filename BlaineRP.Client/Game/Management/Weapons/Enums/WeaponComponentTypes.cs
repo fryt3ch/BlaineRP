@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Management.Weapons.Enums
+﻿namespace BlaineRP.Client.Game.Management.Weapons
 {
     public enum WeaponComponentTypes
     {

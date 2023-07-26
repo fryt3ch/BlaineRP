@@ -8,19 +8,19 @@ using BlaineRP.Client.Game.Data.Vehicles;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Houses;
-using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Estates;
+using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.Scripts.Misc;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input.Enums;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Interaction
@@ -246,20 +246,20 @@ namespace BlaineRP.Client.UI.CEF
 
             Events.Add("Interaction::Close", (args) => CloseMenu());
 
-            OutVehicleInteractionInfo.AddAction("doors", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(true, veh); });
-            OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(null, veh); });
+            OutVehicleInteractionInfo.AddAction("doors", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Lock(null, veh); });
 
             OutVehicleInteractionInfo.AddAction("push", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PushVehicle.Toggle(veh); });
 
-            OutVehicleInteractionInfo.AddAction("trunk", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ShowContainer(veh); });
-            OutVehicleInteractionInfo.AddAction("trunk", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleTrunkLock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("trunk", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleTrunkLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ShowContainer(veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleTrunkLock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleTrunkLock(true, veh); });
             OutVehicleInteractionInfo.AddAction("trunk", "", OutVehicleInteractionInfo.GetAction("trunk", "look"));
 
-            OutVehicleInteractionInfo.AddAction("hood", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.LookHood(veh); });
-            OutVehicleInteractionInfo.AddAction("hood", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleHoodLock(false, veh); });
-            OutVehicleInteractionInfo.AddAction("hood", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleHoodLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.LookHood(veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleHoodLock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.ToggleHoodLock(true, veh); });
             OutVehicleInteractionInfo.AddAction("hood", "", OutVehicleInteractionInfo.GetAction("hood", "look"));
 
             OutVehicleInteractionInfo.AddAction("seat", "", (entity) =>
@@ -288,7 +288,7 @@ namespace BlaineRP.Client.UI.CEF
                 }
                 else if (freeSeats.Count == 1)
                 {
-                    Sync.Vehicles.SeatTo((int)freeSeats[0].Item1, veh);
+                    Vehicles.SeatTo((int)freeSeats[0].Item1, veh);
                 }
                 else
                 {
@@ -305,29 +305,29 @@ namespace BlaineRP.Client.UI.CEF
 
                         CEF.ActionBox.Close(true);
 
-                        Sync.Vehicles.SeatTo(seatIdx, veh);
+                        Vehicles.SeatTo(seatIdx, veh);
                     }, null);
                 }
             });
 
-            OutVehicleInteractionInfo.AddAction("seat", "s_one", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(0, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_two", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(1, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_three", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(2, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_four", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(3, veh); });
-            OutVehicleInteractionInfo.AddAction("seat", "s_trunk", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(int.MaxValue, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_one", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(0, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_two", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(1, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_three", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(2, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_four", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(3, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_trunk", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SeatTo(int.MaxValue, veh); });
 
             OutVehicleInteractionInfo.AddAction("gas", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; CEF.Gas.RequestShow(veh); });
 
-            OutVehicleInteractionInfo.AddAction("park", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Park(veh); });
+            OutVehicleInteractionInfo.AddAction("park", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.Park(veh); });
 
-            OutVehicleInteractionInfo.AddAction("other", "remove_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.TakePlate(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "put_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SetupPlate(veh); });
-            OutVehicleInteractionInfo.AddAction("other", "fix", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.FixVehicle(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "remove_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.TakePlate(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "put_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.SetupPlate(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "fix", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.FixVehicle(veh); });
             OutVehicleInteractionInfo.AddAction("other", "junkyard", (entity) => { var veh = entity as Vehicle; if (veh == null) return; VehicleDestruction.VehicleDestruct(veh); });
 
             OutVehicleInteractionInfo.AddAction("vehdoc", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Events.CallRemote("Vehicles::ShowPass", veh); });
 
-            OutVehicleInteractionInfo.AddAction("other", "trailer", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.BoatFromTrailerToWater(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "trailer", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Vehicles.BoatFromTrailerToWater(veh); });
 
 
             InVehicleInteractionInfo.AddAction("doors", "open", OutVehicleInteractionInfo.GetAction("doors", "open"));
@@ -422,7 +422,7 @@ namespace BlaineRP.Client.UI.CEF
             {
                 if (RAGE.Elements.Player.LocalPlayer.Vehicle == null)
                 {
-                    if (Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type == Types.Boat)
+                    if (Game.Data.Vehicles.Core.GetByModel(vehicle.Model)?.Type == VehicleTypes.Boat)
                     {
                         OutVehicleInteractionInfo.ReplaceExtraLabelTemp("other", 8, "trailer");
                     }
@@ -556,7 +556,7 @@ namespace BlaineRP.Client.UI.CEF
 
             var players = new List<object>();
 
-            foreach (var x in Sync.Vehicles.GetPlayersInVehicle(veh))
+            foreach (var x in Vehicles.GetPlayersInVehicle(veh))
             {
                 if (x.Handle == Player.LocalPlayer.Handle)
                     continue;
@@ -612,7 +612,7 @@ namespace BlaineRP.Client.UI.CEF
             if (player?.Exists != true)
                 return;
 
-            Sync.Vehicles.KickPassenger(player);
+            Vehicles.KickPassenger(player);
 
             CloseMenu();
         }

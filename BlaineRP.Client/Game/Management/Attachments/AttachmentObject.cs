@@ -1,5 +1,4 @@
-﻿using BlaineRP.Client.Game.Management.Attachments.Enums;
-using RAGE.Elements;
+﻿using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Attachments
 {

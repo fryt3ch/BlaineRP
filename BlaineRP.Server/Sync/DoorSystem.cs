@@ -76,7 +76,7 @@ namespace BlaineRP.Server.Sync
                 lines.Add($"new Door({x.Key}, {x.Value.Model}, {x.Value.Position.ToCSharpStr()}, {x.Value.Dimension});");
             }
 
-            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Sync\DoorSystem.cs", "DOORS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Management\Doors\Core.cs", "DOORS_TO_REPLACE", lines);
         }
     }
 }

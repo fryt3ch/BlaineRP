@@ -1,11 +1,11 @@
-﻿using BlaineRP.Client.Utils.Game;
+﻿using System;
+using System.Collections.Generic;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using BlaineRP.Client.UI.CEF;
 
-namespace BlaineRP.Client.Data
+namespace BlaineRP.Client.Game.Estates
 {
     public class Furniture
     {

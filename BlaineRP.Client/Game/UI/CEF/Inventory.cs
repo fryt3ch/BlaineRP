@@ -8,19 +8,17 @@ using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Items.Craft;
-using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Weapons.Enums;
+using BlaineRP.Client.Game.Management.Weapons;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Inventory

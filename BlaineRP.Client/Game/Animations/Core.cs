@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;

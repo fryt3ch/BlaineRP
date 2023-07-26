@@ -1,7 +1,6 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Utils.Game

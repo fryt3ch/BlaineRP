@@ -16,7 +16,7 @@ namespace BlaineRP.Client.Game.Fractions
 
             public ExtraBlip Blip { get; set; }
 
-            public Types OwnerType => (Types)Core.GetSharedData<int>($"GZONE_{Id}_O", 0);
+            public FractionTypes OwnerType => (FractionTypes)Core.GetSharedData<int>($"GZONE_{Id}_O", 0);
 
             public int BlipFlashInterval => Core.GetSharedData<int>($"GZONE_{Id}_FI", 0);
 
@@ -43,7 +43,7 @@ namespace BlaineRP.Client.Game.Fractions
                 if (zoneInfo == null)
                     return;
 
-                var owner = (Types)Utils.Convert.ToInt32(value ?? 0);
+                var owner = (FractionTypes)Utils.Convert.ToInt32(value ?? 0);
 
                 zoneInfo.OnOwnerUpdate(owner);
             }
@@ -64,9 +64,9 @@ namespace BlaineRP.Client.Game.Fractions
                 zoneInfo.OnBlipFlashUpdate(interval);
             }
 
-            public void OnOwnerUpdate(Types type)
+            public void OnOwnerUpdate(FractionTypes type)
             {
-                var color = type == Types.GANG_VAGS ? 5 : type == Types.GANG_BALS ? 27 : type == Types.GANG_FAMS ? 2 : type == Types.GANG_MARA ? 3 : 0;
+                var color = type == FractionTypes.GANG_VAGS ? 5 : type == FractionTypes.GANG_BALS ? 27 : type == FractionTypes.GANG_FAMS ? 2 : type == FractionTypes.GANG_MARA ? 3 : 0;
 
                 if (color == 0)
                     Blip.Display = 0;

@@ -1,6 +1,5 @@
 ﻿using System;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
 using Newtonsoft.Json;
 
 namespace BlaineRP.Client.Game.EntitiesData.Components

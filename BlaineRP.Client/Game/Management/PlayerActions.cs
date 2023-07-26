@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Scripts.Misc;
-using BlaineRP.Client.Sync;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.UI.CEF;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Weapons.Core;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Management
 {
     internal static class PlayerActions
     {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Items;
 
 namespace BlaineRP.Client
 {
@@ -74,10 +75,10 @@ namespace BlaineRP.Client
             public static string SelectOkBtn2 = "Взять заказ";
             public static string SelectCancelBtn1 = "Закрыть";
 
-            public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()
+            public static Dictionary<WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<WeaponSkin.ItemData.Types, string>()
             {
-                { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
-                { Data.Items.WeaponSkin.ItemData.Types.UniMk2, "Универсальная (Mk2)" },
+                { WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
+                { WeaponSkin.ItemData.Types.UniMk2, "Универсальная (Mk2)" },
             };
         }
     }

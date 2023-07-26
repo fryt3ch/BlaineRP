@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Helpers;
@@ -27,7 +27,7 @@ namespace BlaineRP.Client.Game.Fractions
 
         public List<MapObject> TempObjects { get; set; }
 
-        public EMS(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string bedPositionsJs) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public EMS(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string bedPositionsJs) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
@@ -52,7 +52,7 @@ namespace BlaineRP.Client.Game.Fractions
 
             Utils.Vector4[] mainColshapes = null;
 
-            if (type == Types.EMS_BLAINE)
+            if (type == FractionTypes.EMS_BLAINE)
             {
                 UniformNames = new string[]
                 {
@@ -68,7 +68,7 @@ namespace BlaineRP.Client.Game.Fractions
                     new Utils.Vector4(1830.509f, 3679.626f, 33.2749f, 45f),
                 };
             }
-            else if (type == Types.EMS_LS)
+            else if (type == FractionTypes.EMS_LS)
             {
                 mainColshapes = new Utils.Vector4[]
                 {

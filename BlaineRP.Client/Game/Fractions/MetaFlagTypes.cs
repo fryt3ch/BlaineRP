@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlaineRP.Client.Game.Fractions.Enums
+namespace BlaineRP.Client.Game.Fractions
 {
     [Flags]
     public enum MetaFlagTypes

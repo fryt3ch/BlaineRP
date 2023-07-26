@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Management.Weapons.Enums;
 
 namespace BlaineRP.Client.Game.Management.Weapons
 {

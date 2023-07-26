@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Wrappers.Blips
+namespace BlaineRP.Client.Game.Helpers.Blips
 {
     public class ExtraBlip
     {

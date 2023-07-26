@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Quests;
-using BlaineRP.Client.Quests.Enums;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Jobs.Types
+namespace BlaineRP.Client.Game.Jobs
 {
     public class BusDriver : Job
     {

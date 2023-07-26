@@ -6,17 +6,17 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management.Misc;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Input.Enums;
 using Audio = BlaineRP.Client.Utils.Game.Audio;
 using Core = BlaineRP.Client.Game.Management.Attachments.Core;
-using Players = BlaineRP.Client.Sync.Players;
+using Players = BlaineRP.Client.Game.Scripts.Sync.Players;
 
 namespace BlaineRP.Client
 {
@@ -208,7 +208,7 @@ namespace BlaineRP.Client
 
                     ExtraBlip.RefreshAllBlips();
 
-                    Sync.House.UpdateAllLights();
+                    Game.Estates.Core.UpdateAllLights();
                 };
 
                 Events.OnPlayerQuit += async (player) =>
@@ -251,7 +251,7 @@ namespace BlaineRP.Client
 
                     if (entity is Vehicle veh)
                     {
-                        await Sync.Vehicles.OnVehicleStreamIn(veh);
+                        await Game.Scripts.Sync.Vehicles.OnVehicleStreamIn(veh);
                     }
                     else if (entity is Player player)
                     {
@@ -259,7 +259,7 @@ namespace BlaineRP.Client
                     }
                     else if (entity is Ped ped)
                     {
-                        await Sync.Peds.OnPedStreamIn(ped);
+                        await Peds.OnPedStreamIn(ped);
                     }
                     else if (entity is MapObject obj)
                     {
@@ -285,7 +285,7 @@ namespace BlaineRP.Client
 
                     if (entity is Vehicle veh)
                     {
-                        await Sync.Vehicles.OnVehicleStreamOut(veh);
+                        await Game.Scripts.Sync.Vehicles.OnVehicleStreamOut(veh);
                     }
                     else if (entity is Player player)
                     {
@@ -293,7 +293,7 @@ namespace BlaineRP.Client
                     }
                     else if (entity is Ped ped)
                     {
-                        await Sync.Peds.OnPedStreamOut(ped);
+                        await Peds.OnPedStreamOut(ped);
                     }
                     else if (entity is MapObject obj)
                     {
@@ -425,9 +425,9 @@ namespace BlaineRP.Client
 
             Game.Management.AntiCheat.Core.Enable();
 
-            Input.Core.LoadMain();
+            Game.Input.Core.LoadMain();
 
-            Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, Input.Core.Get(BindTypes.Cursor).GetKeyString()), false);
+            Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, Game.Input.Core.Get(BindTypes.Cursor).GetKeyString()), false);
         }
 
         public static void DisableAllControls(bool state)

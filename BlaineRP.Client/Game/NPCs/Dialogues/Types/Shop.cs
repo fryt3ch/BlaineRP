@@ -1,12 +1,12 @@
 ﻿using System.Linq;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Shop
@@ -42,7 +42,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                 Button.DefaultExitButton
             );
 
-            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = Core.ServerTime; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Locations.Business)?.Id ?? -1, (int)x.Key); })));
+            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = Core.ServerTime; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Business)?.Id ?? -1, (int)x.Key); })));
 
             new Dialogue("seller_clothes_greeting_0", "Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!", null,
 

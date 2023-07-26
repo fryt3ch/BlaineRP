@@ -5,16 +5,14 @@ using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.Fractions.Types;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Helpers.Blips.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PoliceTabletPC

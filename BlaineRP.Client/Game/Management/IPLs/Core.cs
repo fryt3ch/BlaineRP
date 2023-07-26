@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 

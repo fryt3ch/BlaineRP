@@ -20,7 +20,7 @@ namespace BlaineRP.Server.Game.Jobs
             }
         }
 
-        public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new List<(uint, List<Vector3>)>(){{{string.Join(',', Routes.Select(x => $"({x.Reward}, new List<Vector3>(){{{string.Join(',', x.Positions.Select(y => y.ToCSharpStr()))}}})"))}}}";
+        public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new System.Collections.Generic.List<(uint, System.Collections.Generic.List<RAGE.Vector3>)>(){{{string.Join(',', Routes.Select(x => $"({x.Reward}, new System.Collections.Generic.List<RAGE.Vector3>(){{{string.Join(',', x.Positions.Select(y => y.ToCSharpStr()))}}})"))}}}";
 
         public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
 

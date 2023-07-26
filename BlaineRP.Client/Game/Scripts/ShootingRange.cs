@@ -1,21 +1,17 @@
-﻿using BlaineRP.Client.Utils;
-using BlaineRP.Client.Utils.Game;
-using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
-using BlaineRP.Client.UI.CEF;
-using Core = BlaineRP.Client.Input.Core;
-using Players = BlaineRP.Client.Sync.Players;
+using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Utils;
+using BlaineRP.Client.Utils.Game;
+using RAGE;
+using RAGE.Elements;
 
-namespace BlaineRP.Client.Data.Minigames
+namespace BlaineRP.Client.Game.Scripts
 {
     [Script(int.MaxValue)]
     public class ShootingRange

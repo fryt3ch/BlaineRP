@@ -1,12 +1,12 @@
-﻿using BlaineRP.Client.Game.Jobs.Enums;
+﻿using BlaineRP.Client.Game.Businesses;
 
-namespace BlaineRP.Client.Game.Jobs.Types
+namespace BlaineRP.Client.Game.Jobs
 {
     public class Farmer : Job
     {
         private int BusinessId { get; set; }
 
-        public Client.Data.Locations.Farm FarmBusiness => Client.Data.Locations.Business.All[BusinessId] as Client.Data.Locations.Farm;
+        public Farm FarmBusiness => Business.All[BusinessId] as Farm;
 
         public Farmer(int Id, int BuisnessId) : base(Id, JobTypes.Farmer)
         {
@@ -15,8 +15,8 @@ namespace BlaineRP.Client.Game.Jobs.Types
 
         public override void OnEndJob()
         {
-            Client.Data.Minigames.Farm.StopCowMilk(false);
-            Client.Data.Minigames.Farm.StopOrangeTreeCollect(false);
+            Scripts.Farm.StopCowMilk(false);
+            Scripts.Farm.StopOrangeTreeCollect(false);
 
             base.OnEndJob();
         }

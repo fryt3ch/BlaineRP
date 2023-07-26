@@ -3,6 +3,7 @@ using System.Linq;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
 using RAGE.Elements;
@@ -104,9 +105,9 @@ namespace BlaineRP.Client.Game.Management.Radio
 
                         if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle || veh.GetPedInSeat(0, 0) == Player.LocalPlayer.Handle)
                         {
-                            if (sType != actualStation && !Sync.Vehicles.LastRadioSent.IsSpam(1000, false, false))
+                            if (sType != actualStation && !Vehicles.LastRadioSent.IsSpam(1000, false, false))
                             {
-                                Sync.Vehicles.LastRadioSent = World.Core.ServerTime;
+                                Vehicles.LastRadioSent = World.Core.ServerTime;
 
                                 RAGE.Events.CallRemote("Vehicles::SetRadio", (byte)CurrentStationType);
                             }

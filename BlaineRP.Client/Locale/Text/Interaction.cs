@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 
 namespace BlaineRP.Client
 {

@@ -1,5 +1,4 @@
-﻿using BlaineRP.Client.Game.Management.Attachments.Enums;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace BlaineRP.Client.Game.Management.Attachments
 {

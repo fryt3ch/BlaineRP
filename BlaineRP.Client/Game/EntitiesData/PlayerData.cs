@@ -2,16 +2,16 @@
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.Animations.Enums;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
+using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management.Attachments;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
+using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
-using BlaineRP.Client.Quests;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Attachments.Core;
@@ -69,7 +69,7 @@ namespace BlaineRP.Client.Game.EntitiesData
 
         public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
 
-        public Misc.Phone.PhoneStateTypes PhoneStateType => (Misc.Phone.PhoneStateTypes)Player.GetSharedData<int>("PST", 0);
+        public Scripts.Misc.Phone.PhoneStateTypes PhoneStateType => (Scripts.Misc.Phone.PhoneStateTypes)Player.GetSharedData<int>("PST", 0);
 
         public int AdminLevel => Player.GetSharedData<int>("AdminLevel", -1);
 
@@ -123,33 +123,33 @@ namespace BlaineRP.Client.Game.EntitiesData
             set => Player.LocalPlayer.SetData("OwnedVehicles", value);
         }
 
-        public List<Client.Data.Locations.Business> OwnedBusinesses
+        public List<Business> OwnedBusinesses
         {
-            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Business>>("OwnedBusinesses");
+            get => Player.LocalPlayer.GetData<List<Business>>("OwnedBusinesses");
             set => Player.LocalPlayer.SetData("OwnedBusinesses", value);
         }
 
-        public List<Client.Data.Locations.House> OwnedHouses
+        public List<House> OwnedHouses
         {
-            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.House>>("OwnedHouses");
+            get => Player.LocalPlayer.GetData<List<House>>("OwnedHouses");
             set => Player.LocalPlayer.SetData("OwnedHouses", value);
         }
 
-        public List<Client.Data.Locations.Apartments> OwnedApartments
+        public List<Apartments> OwnedApartments
         {
-            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Apartments>>("OwnedApartments");
+            get => Player.LocalPlayer.GetData<List<Apartments>>("OwnedApartments");
             set => Player.LocalPlayer.SetData("OwnedApartments", value);
         }
 
-        public List<Client.Data.Locations.Garage> OwnedGarages
+        public List<Garage> OwnedGarages
         {
-            get => Player.LocalPlayer.GetData<List<Client.Data.Locations.Garage>>("OwnedGarages");
+            get => Player.LocalPlayer.GetData<List<Garage>>("OwnedGarages");
             set => Player.LocalPlayer.SetData("OwnedGarages", value);
         }
 
-        public Client.Data.Locations.HouseBase SettledHouseBase
+        public HouseBase SettledHouseBase
         {
-            get => Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("SettledHouseBase");
+            get => Player.LocalPlayer.GetData<HouseBase>("SettledHouseBase");
             set
             {
                 if (value == null) Player.LocalPlayer.ResetData("SettledHouseBase");
@@ -157,15 +157,15 @@ namespace BlaineRP.Client.Game.EntitiesData
             }
         }
 
-        public Dictionary<uint, Client.Data.Furniture> Furniture
+        public Dictionary<uint, Furniture> Furniture
         {
-            get => Player.LocalPlayer.GetData<Dictionary<uint, Client.Data.Furniture>>("Furniture");
+            get => Player.LocalPlayer.GetData<Dictionary<uint, Furniture>>("Furniture");
             set => Player.LocalPlayer.SetData("Furniture", value);
         }
 
-        public Dictionary<Client.Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkins
+        public Dictionary<WeaponSkin.ItemData.Types, string> WeaponSkins
         {
-            get => Player.LocalPlayer.GetData<Dictionary<Client.Data.Items.WeaponSkin.ItemData.Types, string>>("WeaponSkins");
+            get => Player.LocalPlayer.GetData<Dictionary<WeaponSkin.ItemData.Types, string>>("WeaponSkins");
             set => Player.LocalPlayer.SetData("WeaponSkins", value);
         }
 

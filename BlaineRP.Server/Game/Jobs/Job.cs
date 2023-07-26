@@ -108,13 +108,13 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 x.Initialize();
 
-                lines.Add($"new Jobs.{x.GetType().Name}({x.ClientData});");
+                lines.Add($"new {x.GetType().Name}({x.ClientData});");
             }
 
             Trucker.AllTruckerJobs = AllJobs.Values.Select(x => x as Trucker).Where(x => x != null).ToList();
             Collector.AllCollectorJobs = AllJobs.Values.Select(x => x as Collector).Where(x => x != null).ToList();
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "JOBS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Jobs\Job.Initialization.cs", "TO_REPLACE", lines);
 
             return AllJobs.Count;
         }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations.Enums;
-using BlaineRP.Client.Sync;
+using BlaineRP.Client.Game.Animations;
 
 namespace BlaineRP.Client
 {

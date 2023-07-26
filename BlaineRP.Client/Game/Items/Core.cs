@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Items.Types;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
@@ -13,7 +12,7 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Items
 {
     [Script(int.MaxValue)]
-    public class Items
+    public class Core
     {
         private static Dictionary<string, System.Type> AllTypes { get; set; } = new Dictionary<string, System.Type>();
 
@@ -28,32 +27,30 @@ namespace BlaineRP.Client.Game.Items
             { typeof(Holster), new string[] { } },
         };
 
-        public Items()
+        public Core()
         {
+            var dict = new Dictionary<System.Type, Dictionary<string, Item.ItemData>>();
+
             #region TO_REPLACE
+
+
 
             #endregion
 
-            foreach (var x in typeof(Items).GetNestedTypes().Where(x => x.IsClass && !x.IsAbstract && typeof(Item).IsAssignableFrom(x)))
+            foreach (var x in dict)
             {
-                var idList = (Dictionary<string, Item.ItemData>)x.GetProperty("IDList")?.GetValue(null);
+                AllData.Add(x.Key, x.Value);
 
-                if (idList == null)
-                    continue;
-
-                AllData.Add(x, idList);
-
-                foreach (var t in idList)
+                foreach (var t in x.Value)
                 {
                     var id = t.Key.Split('_');
 
                     if (!AllTypes.ContainsKey(id[0]))
-                        AllTypes.Add(id[0], x);
+                        AllTypes.Add(id[0], x.Key);
                 }
             }
         }
-
-        #region Stuff
+        
         public static string GetImageId(string id, System.Type type = null)
         {
             if (type == null)
@@ -153,9 +150,7 @@ namespace BlaineRP.Client.Game.Items
 
             return actions.ToArray();
         }
-        #endregion
 
-        #region All Custom Actions
         private static List<KeyValuePair<System.Type, object[][]>> Actions { get; set; } = new List<KeyValuePair<System.Type, object[][]>>()
         {
             new KeyValuePair<System.Type, object[][]>(typeof(FishingRod), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FishingRodUseBait }, new object[] { 6, Locale.General.Inventory.Actions.FishingRodUseWorms } }),
@@ -176,7 +171,7 @@ namespace BlaineRP.Client.Game.Items
 
             new KeyValuePair<System.Type, object[][]>(typeof(WeaponSkin), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
-            new KeyValuePair<System.Type, object[][]>(typeof(Types.Note), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.NoteRead }, new object[] { 6, Locale.General.Inventory.Actions.NoteWrite } }),
+            new KeyValuePair<System.Type, object[][]>(typeof(Note), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.NoteRead }, new object[] { 6, Locale.General.Inventory.Actions.NoteWrite } }),
         };
 
         private static List<KeyValuePair<System.Type, List<string>>> ItemsActionsNotBag { get; set; } = new List<KeyValuePair<System.Type, List<string>>>()
@@ -336,7 +331,6 @@ namespace BlaineRP.Client.Game.Items
 
             Inventory.BindedAction(5, "pockets", itemIdx, pos.X.ToString(), pos.Y.ToString(), pos.Z.ToString(), heading.ToString());
         }
-        #endregion
     }
 
     public interface ICraftIngredient

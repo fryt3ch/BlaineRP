@@ -1,9 +1,10 @@
 ﻿using System.Linq;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -52,7 +53,7 @@ namespace BlaineRP.Client.Game.Management.Commands
         {
             if (id == null)
             {
-                Sync.Vehicles.Lock(state, null);
+                Vehicles.Lock(state, null);
             }
             else
             {
@@ -72,7 +73,7 @@ namespace BlaineRP.Client.Game.Management.Commands
                     return;
                 }
 
-                Sync.Vehicles.Lock(state, veh);
+                Vehicles.Lock(state, veh);
             }
         }
 

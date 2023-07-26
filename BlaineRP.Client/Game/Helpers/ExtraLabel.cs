@@ -3,7 +3,7 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Wrappers
+namespace BlaineRP.Client.Game.Helpers
 {
     public class ExtraLabel
     {

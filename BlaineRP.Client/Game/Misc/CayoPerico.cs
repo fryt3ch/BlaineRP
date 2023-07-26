@@ -1,83 +1,43 @@
-﻿using BlaineRP.Client.Game.Helpers.Blips;
-using BlaineRP.Client.Game.Helpers.Colshapes;
-using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
-using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using BlaineRP.Client.Game.World;
+﻿using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.World.Enums;
 using BlaineRP.Client.Utils;
-using RAGE;
-using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Data.Locations
+namespace BlaineRP.Client.Game.Misc
 {
-    public static class CayoPerico
+    public static partial class CayoPerico
+    {
+        public static bool IslandLoaded { get; set; }
+
+        public static ExtraColshape MainColshape { get; set; }
+
+        private static AsyncTask LoadTask { get; set; }
+
+        public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)
         {
-            public static bool IslandLoaded { get; set; }
+            SetIslandHopperEnabledHeistIsland(state);
 
-            public static ExtraColshape MainColshape { get; set; }
+            SetToggleMinimapHeistIsland(state);
 
-            private static AsyncTask LoadTask { get; set; }
+            if (updateCustomWeather)
+                Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
 
-            public static void Initialize()
-            {
-                MainColshape = new Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null)
-                {
-                    Name = "CayoPerico_Loader",
+            LoadTask?.Cancel();
 
-                    ApproveType = ApproveTypes.None,
-
-                    OnEnter = (cancel) =>
-                    {
-                        if (Player.LocalPlayer.Dimension == 2)
-                            return;
-
-                        if (IslandLoaded)
-                            return;
-
-                        ToggleCayoPericoIsland(true, true);
-                    },
-
-                    OnExit = (cancel) =>
-                    {
-                        if (!IslandLoaded)
-                            return;
-
-                        ToggleCayoPericoIsland(false, true);
-                    },
-
-                };
-
-                ToggleCayoPericoIsland(false, false);
-
-                var mainBlip = new ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
-            }
-
-            public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)
-            {
-                SetIslandHopperEnabledHeistIsland(state);
-
-                SetToggleMinimapHeistIsland(state);
-
-                if (updateCustomWeather)
-                    Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
-
-                LoadTask?.Cancel();
-
-                if (state)
-                {
-                    LoadTask = new AsyncTask(() =>
+            if (state)
+                LoadTask = new AsyncTask(() =>
                     {
                         SetIslandHopperEnabledHeistIsland(true);
 
                         RAGE.Game.Streaming.RemoveIpl("h4_islandx_sea_mines");
 
                         LoadTask = null;
-                    }, 2000, false, 0);
-                }
-                else
-                {
-                    LoadTask = new AsyncTask(() =>
+                    },
+                    2000,
+                    false,
+                    0);
+            else
+                LoadTask = new AsyncTask(() =>
                     {
                         SetIslandHopperEnabledHeistIsland(false);
 
@@ -93,16 +53,26 @@ namespace BlaineRP.Client.Data.Locations
                         RAGE.Game.Interior.RefreshInterior(intid);
 
                         LoadTask = null;
-                    }, 1550, false, 0);
-                }
+                    },
+                    1550,
+                    false,
+                    0);
 
-                LoadTask.Run();
+            LoadTask.Run();
 
-                IslandLoaded = state;
-            }
-
-            private static void SetIslandHopperEnabledHeistIsland(bool state) => RAGE.Game.Invoker.Invoke(0x9A9D1BA639675CF1, "HeistIsland", state); // SetIslandHopperEnabled
-
-            private static void SetToggleMinimapHeistIsland(bool state) => RAGE.Game.Invoker.Invoke(0x5E1460624D194A38, state); // SetToggleMinimapHeistIsland
+            IslandLoaded = state;
         }
+
+        private static void SetIslandHopperEnabledHeistIsland(bool state)
+        {
+            RAGE.Game.Invoker.Invoke(0x9A9D1BA639675CF1, "HeistIsland", state);
+            // SetIslandHopperEnabled
+        }
+
+        private static void SetToggleMinimapHeistIsland(bool state)
+        {
+            RAGE.Game.Invoker.Invoke(0x5E1460624D194A38, state);
+            // SetToggleMinimapHeistIsland
+        }
+    }
 }

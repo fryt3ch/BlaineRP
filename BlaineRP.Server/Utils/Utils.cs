@@ -1071,8 +1071,8 @@ namespace BlaineRP.Server
             }
         }
 
-        public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new Vector3({v.X}f, {v.Y}f, {v.Z}f)";
-        public static string ToCSharpStr(this Utils.Vector4 v) => v == null ? "null" : $"new Utils.Vector4({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
+        public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new RAGE.Vector3({v.X}f, {v.Y}f, {v.Z}f)";
+        public static string ToCSharpStr(this Utils.Vector4 v) => v == null ? "null" : $"new {typeof(BlaineRP.Client.Utils.Vector4).FullName}({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
 
         public static string GetBeautyString(this TimeSpan ts)
         {

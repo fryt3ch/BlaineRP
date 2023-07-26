@@ -1,12 +1,13 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.UI.CEF;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Scripts.Misc
 {
     [Script(int.MaxValue)]
     public class PushVehicle
@@ -89,7 +90,7 @@ namespace BlaineRP.Client.Game.Misc
             }
             else
             {
-                Interaction.Enabled = false;
+                Management.Interaction.Enabled = false;
 
                 Toggled = true;
             }
@@ -106,7 +107,7 @@ namespace BlaineRP.Client.Game.Misc
             }
             else
             {
-                Interaction.Enabled = true;
+                Management.Interaction.Enabled = true;
 
                 Toggled = false;
             }

@@ -1,14 +1,15 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
-using Camera = BlaineRP.Client.UI.CEF.Phone.Apps.Camera;
+using Camera = BlaineRP.Client.Game.UI.CEF.Phone.Apps.Camera;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.Misc
+namespace BlaineRP.Client.Game.Scripts.Misc
 {
     [Script(int.MaxValue)]
     public class Phone

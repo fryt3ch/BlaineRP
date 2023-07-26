@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Wrappers.Colshapes
+namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
     public abstract partial class ExtraColshape
     {

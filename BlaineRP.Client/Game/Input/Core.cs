@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.UI.CEF;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.UI.CEF;
 
-namespace BlaineRP.Client.Input
+namespace BlaineRP.Client.Game.Input
 {
     internal partial class Core
     {
@@ -152,7 +151,7 @@ namespace BlaineRP.Client.Input
                 down,
                 () =>
                 {
-                    if (!Misc.IsGameWindowFocused)
+                    if (!Utils.Misc.IsGameWindowFocused)
                         return;
 
                     action?.Invoke();

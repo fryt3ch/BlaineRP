@@ -15,6 +15,7 @@ namespace BlaineRP.Server.Game.Misc
 
         private static Timer FishBuyersPricesUpdateTimer;
 
+        [Properties.Settings.Static.ClientSync("fishBuyersBasePrices")]
         public static Dictionary<string, uint> BasePrices { get; private set; } = new Dictionary<string, uint>()
         {
             { "f_acod", 10 },
@@ -64,11 +65,9 @@ namespace BlaineRP.Server.Game.Misc
 
             var lines = new List<string>();
 
-            lines.Add($"FishBuyer.BasePrices = RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(\"{BasePrices.SerializeToJson().Replace('"', '\'')}\");");
+            lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.FishBuyer)}({pos1.ToCSharpStr()});");
 
-            lines.Add($"new FishBuyer({pos1.ToCSharpStr()});");
-
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "FISHBUYERS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\FishBuyer.Initialization.cs", "TO_REPLACE", lines);
 
             FishBuyersPricesUpdateTimer = new Timer((obj) =>
             {

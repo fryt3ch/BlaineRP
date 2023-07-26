@@ -38,7 +38,7 @@ namespace BlaineRP.Server.Game.Estates
                     lines.Add($"new ApartmentsRoot({x.Id}, {(byte)x.ShellType}, {x.EnterParams.Position.ToCSharpStr()});");
                 }
 
-                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "AROOTS_TO_REPLACE", lines);
+                Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Initialization.cs", "AROOTS_TO_REPLACE", lines);
             }
         }
 
@@ -56,10 +56,10 @@ namespace BlaineRP.Server.Game.Estates
             {
                 MySQL.LoadApartments(x);
 
-                lines.Add($"new Apartments({x.Id}, {x.RootId}, {x.FloorIdx}, {x.SubIdx}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new Apartments({x.Id}, {x.RootId}, {x.FloorIdx}, {x.SubIdx}, {(int)x.RoomType}, {x.Price}, {(int)x.Class}, {x.Tax});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "APARTMENTS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Initialization.cs", "APARTMENTS_TO_REPLACE", lines);
 
             return All.Count;
         }

@@ -26,10 +26,10 @@ namespace BlaineRP.Server.Game.Misc
 
             foreach (var x in All)
             {
-                lines.Add($"new VehicleDestruction({x.Id}, {x.Position.ToCSharpStr()});");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.VehicleDestruction)}({x.Id}, {x.Position.ToCSharpStr()});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "VEHICLEDESTR_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\VehicleDestruction.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public VehicleDestruction(Vector3 Position)

@@ -1,10 +1,9 @@
 ﻿using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Sync;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Data
+namespace BlaineRP.Client.Game.Scripts.Misc
 {
     [Script(int.MaxValue)]
     public class Shovel

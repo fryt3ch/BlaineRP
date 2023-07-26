@@ -2,7 +2,7 @@
 using RAGE.Elements;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Misc

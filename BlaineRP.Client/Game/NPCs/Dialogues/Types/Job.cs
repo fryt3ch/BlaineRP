@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Jobs.Types;
+using BlaineRP.Client.Game.Jobs;
 using RAGE;
 using RAGE.Elements;
 using static BlaineRP.Client.Game.NPCs.Dialogues.Dialogue;
 
-namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
+namespace BlaineRP.Client.Game.NPCs.Dialogues
 {
     [Script(int.MaxValue)]
     public class Job
@@ -43,7 +43,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
 
                 if (pData.CurrentJob == farmJobData)
                 {
-                    var salary = Utils.Convert.ToDecimal(await Events.CallRemoteProc("Job::GTCSI"));
+                    var salary = Utils.Convert.ToDecimal(await RAGE.Events.CallRemoteProc("Job::GTCSI"));
 
                     if (salary <= 0)
                         AllDialogues["job_farm_aj_0"].Text = "Эй, работник, я вижу, что ты вообще ничего не сделал, можешь, конечно закончить рабочий день, но денег не получишь";
@@ -56,7 +56,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                 }
                 else
                 {
-                    var margin = Utils.Convert.ToSingle(await Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
+                    var margin = Utils.Convert.ToSingle(await RAGE.Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
 
                     if (NPC.CurrentNPC == null || margin < 0f)
                         return;
@@ -76,7 +76,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (NPC.LastSent.IsSpam(500, false, false))
                         return;
 
-                    if ((bool)await Events.CallRemoteProc("Job::FARM::TJ", farmJobData.Id))
+                    if ((bool)await RAGE.Events.CallRemoteProc("Job::FARM::TJ", farmJobData.Id))
                         NPC.CurrentNPC?.SwitchDialogue(false);
                 }),
 
@@ -94,7 +94,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues.Types
                     if (NPC.LastSent.IsSpam(500, false, false))
                         return;
 
-                    if ((bool)await Events.CallRemoteProc("Job::FARM::FJ"))
+                    if ((bool)await RAGE.Events.CallRemoteProc("Job::FARM::FJ"))
                         NPC.CurrentNPC?.SwitchDialogue(false);
                 }),
                 Button.DefaultExitButton

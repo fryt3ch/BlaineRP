@@ -7,11 +7,18 @@ namespace BlaineRP.Server.Game.Casino
 {
     public class SlotMachine
     {
-        public const uint JACKPOT_MIN_VALUE = 2_500;
+        [Properties.Settings.Static.ClientSync("casinoSlotMachineJackpotMinValue")]
+        public const uint JackpotMinValue = 2_500;
 
-        public const uint JACKPOT_MAX_VALUE = 10_000;
+        public const uint JackpotMaxValue = 10_000;
 
-        public const ReelIconTypes JACKPOT_REPLACE_TYPE = ReelIconTypes.Grape;
+        [Properties.Settings.Static.ClientSync("casinoSlotMachineMinBet")]
+        public const uint MinBet = 5;
+
+        [Properties.Settings.Static.ClientSync("casinoSlotMachineMaxBet")]
+        public const uint MaxBet = 1000;
+
+        public const ReelIconTypes JackpotReplaceType = ReelIconTypes.Grape;
 
         public enum ReelIconTypes : byte
         {
@@ -50,9 +57,6 @@ namespace BlaineRP.Server.Game.Casino
 
             new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.85d, ReelIconTypes.Loose)
         );
-
-        public static uint MinBet { get; set; } = 5;
-        public static uint MaxBet { get; set; } = 1000;
 
         public Vector3 Position { get; set; }
 
@@ -104,15 +108,15 @@ namespace BlaineRP.Server.Game.Casino
 
             if (rItem == ReelIconTypes.Loose)
             {
-                if (Jackpot < JACKPOT_MAX_VALUE)
+                if (Jackpot < JackpotMaxValue)
                 {
-                    if (Jackpot + bet > JACKPOT_MAX_VALUE)
-                        Jackpot = JACKPOT_MAX_VALUE;
+                    if (Jackpot + bet > JackpotMaxValue)
+                        Jackpot = JackpotMaxValue;
                     else
                         Jackpot += bet;
                 }
             }
-            else if (rItem == JACKPOT_REPLACE_TYPE && jackpot >= JACKPOT_MIN_VALUE)
+            else if (rItem == JackpotReplaceType && jackpot >= JackpotMinValue)
             {
                 rItem = ReelIconTypes.Seven;
 

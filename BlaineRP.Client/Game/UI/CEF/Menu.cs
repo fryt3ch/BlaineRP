@@ -6,18 +6,15 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Quests.Enums;
+using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.Quests;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Input.Core;
+using Core = BlaineRP.Client.Game.Input.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Menu

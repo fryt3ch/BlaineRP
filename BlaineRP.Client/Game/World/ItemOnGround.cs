@@ -2,7 +2,7 @@
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.UI.CEF;
 using RAGE;
 using RAGE.Elements;
@@ -43,7 +43,7 @@ namespace BlaineRP.Client.Game.World
         {
             this.Object = Object;
 
-            this.Name = Client.Data.Items.GetName(Id);
+            this.Name = Items.Core.GetName(Id);
         }
 
         public static ItemOnGround GetItemOnGroundObject(MapObject obj)

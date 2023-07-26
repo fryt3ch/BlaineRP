@@ -1,17 +1,13 @@
-﻿using BlaineRP.Client.Extensions.RAGE;
+﻿using System;
+using System.Linq;
+using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
-using System;
-using System.Linq;
-using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Attachments.Enums;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Sync;
-using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Data.Minigames
+namespace BlaineRP.Client.Game.Scripts
 {
     [Script(int.MaxValue)]
     public class Fishing
@@ -161,7 +157,7 @@ namespace BlaineRP.Client.Data.Minigames
                 return;
             }
 
-            var fpsCoef = Misc.GetFpsCoef();
+            var fpsCoef = Utils.Misc.GetFpsCoef();
 
             var interp = Player.LocalPlayer.GetData<float>("MG::F::Interp");
 

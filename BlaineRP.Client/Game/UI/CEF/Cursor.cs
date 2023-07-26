@@ -1,6 +1,6 @@
 ﻿using BlaineRP.Client.Utils;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     public class Cursor
     {

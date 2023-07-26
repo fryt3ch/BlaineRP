@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.UI.CEF;
 
-namespace BlaineRP.Client.Input
+namespace BlaineRP.Client.Game.Input
 {
     partial class Core
     {

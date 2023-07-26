@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Camera.Core;
 
-namespace BlaineRP.Client.UI.CEF
+namespace BlaineRP.Client.Game.UI.CEF
 {
     [Script(int.MaxValue)]
     public class CharacterCreation

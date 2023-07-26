@@ -97,10 +97,10 @@ namespace BlaineRP.Server.Game.Misc
             {
                 var x = All[i];
 
-                lines.Add($"new MarketStall({i}, {x.Position.ToCSharpStr()});");
+                lines.Add($"new {nameof(BlaineRP.Client.Game.Misc.MarketStall)}({i}, {x.Position.ToCSharpStr()});");
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetLocationsLoaderPath, "MARKETSTALLS_TO_REPLACE", lines);
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Misc\MarketStall.Initialization.cs", "TO_REPLACE", lines);
         }
 
         public bool IsPlayerRenter(int stallIdx, Player player, bool notify, out ushort renterRid)

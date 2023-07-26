@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Client.Game.Management.Weapons;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -20,7 +21,7 @@ namespace BlaineRP.Server.Game.Items
 
             public Types Type { get; set; }
 
-            public override string ClientData => $"\"{Name}\", {Weight}f, {typeof(BlaineRP.Client.Game.Management.Weapons.Enums.WeaponComponentTypes).FullName}.{Type}";
+            public override string ClientData => $"\"{Name}\", {Weight}f, {typeof(WeaponComponentTypes).FullName}.{Type}";
 
             public ItemData(string Name, float Weight, string Model, Types Type, params uint[] SupportedWeapons) : base(Name, Weight, Model)
             {

@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Misc;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Quests.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Quests.Types.Job
+namespace BlaineRP.Client.Game.Quests
 {
     [Script(int.MaxValue)]
     internal class DRSCHOOL0
@@ -41,9 +41,9 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                             var licType = (LicenseTypes)int.Parse(qData[0]);
 
-                            for (int i = 0; i < Data.Locations.Autoschool.All.Count; i++)
+                            for (int i = 0; i < Autoschool.All.Count; i++)
                             {
-                                var school = Data.Locations.Autoschool.All[i];
+                                var school = Autoschool.All[i];
 
                                 if (school.VehiclesPositions.TryGetValue(licType, out pos) && pPos.DistanceTo(pos) is float dist && dist <= minDist)
                                 {
@@ -80,7 +80,7 @@ namespace BlaineRP.Client.Quests.Types.Job
                             if (qData == null)
                                 return;
 
-                            var school = Data.Locations.Autoschool.Get(int.Parse(qData[1]));
+                            var school = Autoschool.Get(int.Parse(qData[1]));
 
                             var licType = (LicenseTypes)int.Parse(qData[2]);
 
@@ -88,7 +88,7 @@ namespace BlaineRP.Client.Quests.Types.Job
 
                             var posIdx = quest.StepProgress;
 
-                            var routeData = school.PracticeRoutes.GetValueOrDefault(Data.Locations.Autoschool.GetLicenseTypeForPracticeRoute(licType));
+                            var routeData = school.PracticeRoutes.GetValueOrDefault(Autoschool.GetLicenseTypeForPracticeRoute(licType));
 
                             if (routeData == null)
                                 return;
@@ -301,7 +301,7 @@ namespace BlaineRP.Client.Quests.Types.Job
             if (Player.LocalPlayer.Vehicle != veh || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                 return 2;
 
-            if (vData.Data.Type == Game.Data.Vehicles.Types.Car && vData.EngineOn && veh.GetSpeed() > 1f && !pData.BeltOn)
+            if (vData.Data.Type == Game.Data.Vehicles.VehicleTypes.Car && vData.EngineOn && veh.GetSpeed() > 1f && !pData.BeltOn)
                 return 3;
 
             if (veh.GetEngineHealth() <= 1f)

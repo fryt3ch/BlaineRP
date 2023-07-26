@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
+
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Helpers.Blips;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.NPCs.Dialogues;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -123,7 +124,7 @@ namespace BlaineRP.Client.Game.NPCs
 
         public bool SellerNpcRequestEnterBusiness()
         {
-            if (CurrentNPC.Data is Locations.Business businessData)
+            if (CurrentNPC.Data is Business businessData)
             {
                 Events.CallRemote("Business::Enter", businessData.Id);
 
@@ -306,7 +307,7 @@ namespace BlaineRP.Client.Game.NPCs
 
                 CurrentDialogue = null;
 
-                Game.UI.CEF.NPC.Close();
+                UI.CEF.NPC.Close();
             }
         }
 

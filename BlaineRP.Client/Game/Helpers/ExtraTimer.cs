@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Game.World;
 
-namespace BlaineRP.Client.Game.Wrappers
+namespace BlaineRP.Client.Game.Helpers
 {
     public class ExtraTimer
     {

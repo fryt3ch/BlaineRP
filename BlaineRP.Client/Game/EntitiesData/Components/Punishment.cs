@@ -4,11 +4,10 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Types;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -197,7 +196,7 @@ namespace BlaineRP.Client.Game.EntitiesData.Components
 
                 var dataS = data.AdditionalData.Split('_');
 
-                var fData = Fraction.Get((Fractions.Enums.FractionTypes)int.Parse(dataS[1])) as Police;
+                var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(dataS[1])) as Police;
 
                 if (fData != null)
                 {

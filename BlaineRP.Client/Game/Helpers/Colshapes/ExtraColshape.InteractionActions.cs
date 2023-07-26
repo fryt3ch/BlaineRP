@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
-using BlaineRP.Client.Game.Businesses.Types;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Estates.Garages;
-using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.Fractions.Types;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.UI.CEF;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.UI.CEF;
 using RAGE;
 using RAGE.Elements;
 using NPC = BlaineRP.Client.Game.NPCs.NPC;
 using Vehicle = RAGE.Elements.Vehicle;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.Game.Wrappers.Colshapes
+namespace BlaineRP.Client.Game.Helpers.Colshapes
 {
     public abstract partial class ExtraColshape
     {
@@ -175,14 +171,14 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
 
                     var elevatorId = Player.LocalPlayer.GetData<uint>("EXED::ElevatorId");
 
-                    var elevatorData = Client.Data.Locations.Elevator.Get(elevatorId);
+                    var elevatorData = Misc.Elevator.Get(elevatorId);
 
                     if (elevatorData == null)
                         return;
 
                     await ActionBox.ShowSelect("ElevatorSelect",
                         "Выбор места перемещения",
-                        elevatorData.LinkedElevators.Select(x => ((decimal)x, Client.Data.Locations.Elevator.GetName(x))).ToArray(),
+                        elevatorData.LinkedElevators.Select(x => ((decimal)x, Misc.Elevator.GetName(x))).ToArray(),
                         null,
                         null,
                         ActionBox.DefaultBindAction,
@@ -226,7 +222,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.Enums.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
 
                     if (pData.CurrentFraction != fData)
                     {
@@ -271,7 +267,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     if (res == null)
                         return;
 
-                    await EstateAgency.Show(id, posId, decimal.Parse(res[0]), 0, 0);
+                    await UI.CEF.EstateAgency.Show(id, posId, decimal.Parse(res[0]), 0, 0);
                 }
             },
             {
@@ -292,7 +288,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
 
                     var lics = pData.Licenses;
 
-                    var notOwnedLics = Client.Data.Locations.Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToHashSet();
+                    var notOwnedLics = Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToHashSet();
 
                     if (notOwnedLics.Count == 0)
                     {
@@ -315,7 +311,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                             {
                                 var licType = (LicenseTypes)id;
 
-                                AutoschoolTest.Show(schoolId, licType, Client.Data.Locations.Autoschool.Prices.GetValueOrDefault(licType));
+                                AutoschoolTest.Show(schoolId, licType, Autoschool.Prices.GetValueOrDefault(licType));
                             }
                         },
                         null);
@@ -337,7 +333,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.Enums.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
 
                     var fDataUnif = fData as IUniformable;
 
@@ -413,7 +409,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     if (fTypeS == null)
                         return;
 
-                    var fData = Fraction.Get((Fractions.Enums.FractionTypes)int.Parse(fTypeS[0]));
+                    var fData = Fraction.Get((Fractions.FractionTypes)int.Parse(fTypeS[0]));
 
                     if (fData == null)
                         return;
@@ -614,7 +610,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     if (!Player.LocalPlayer.HasData("CurrentATM"))
                         return;
 
-                    Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<Client.Data.Locations.ATM>("CurrentATM").Id);
+                    Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<Misc.ATM>("CurrentATM").Id);
 
                     LastSent = World.Core.ServerTime;
                 }
@@ -752,7 +748,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
 
                         var shell = aRoot.Shell;
 
-                        Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, Elevator.ContextTypes.ApartmentsRoot);
+                        UI.CEF.Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, UI.CEF.Elevator.ContextTypes.ApartmentsRoot);
                     }
                 }
             },
@@ -770,7 +766,7 @@ namespace BlaineRP.Client.Game.Wrappers.Colshapes
                     LastSent = World.Core.ServerTime;
                 }
             },
-            { InteractionTypes.MarketStallInteract, Client.Data.Locations.MarketStall.OnInteractionKeyPressed },
+            { InteractionTypes.MarketStallInteract, MarketStall.OnInteractionKeyPressed },
         };
     }
 }
