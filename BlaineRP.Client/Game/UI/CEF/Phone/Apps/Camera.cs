@@ -4,16 +4,15 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
+using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Camera
@@ -112,7 +111,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             _renderTicks = 0;
 
-            _lastSwitched = World.Core.ServerTime;
+            _lastSwitched = Game.World.Core.ServerTime;
 
             Core.DisableAll(BindTypes.MicrophoneOn, BindTypes.MicrophoneOff);
 
@@ -124,7 +123,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             IsActive = true;
 
-            Misc.Phone.CreateLocalPhone();
+            Game.Scripts.Misc.Phone.CreateLocalPhone();
 
             RAGE.Game.Mobile.CellCamActivate(true, true);
 
@@ -184,7 +183,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             }
 
-            if (Misc.Phone.Toggled)
+            if (Game.Scripts.Misc.Phone.Toggled)
                 CEF.Phone.Phone.Show();
 
             IsActive = false;
@@ -214,7 +213,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             {
                 _photoStartCounter = 1;
 
-                _lastSwitched = World.Core.ServerTime;
+                _lastSwitched = Game.World.Core.ServerTime;
 
                 return;
             }
@@ -248,7 +247,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                 UpdateInstructionButtons();
 
-                _lastSwitched = World.Core.ServerTime;
+                _lastSwitched = Game.World.Core.ServerTime;
 
                 return;
             }
@@ -443,7 +442,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void SavePicture(bool isCam, bool sound, bool notify)
         {
-            var curDateStr = World.Core.ServerTime.ToString("dd_MM_yyyy_HH_mm_ss_ff");
+            var curDateStr = Game.World.Core.ServerTime.ToString("dd_MM_yyyy_HH_mm_ss_ff");
 
             var fileName = isCam ? $"CAM_{curDateStr}.png" : $"{curDateStr}.png";
 

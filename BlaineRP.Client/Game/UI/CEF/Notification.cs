@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.World;
 using RAGE;
 using Players = BlaineRP.Client.Utils.Game.Players;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Notification
@@ -394,7 +395,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public Notification()
         {
-            LastAntiSpamShowed = Core.ServerTime;
+            LastAntiSpamShowed = Game.World.Core.ServerTime;
 
             Events.Add("Notify::Custom", (args) =>
             {
@@ -418,12 +419,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Events.Add("Item::Added", (object[] args) =>
             {
-                CEF.Notification.Show(CEF.Notification.Types.Item, Locale.Notifications.Inventory.Header, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.Added, Client.Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.AddedOne, Client.Data.Items.GetName((string)args[0])));
+                CEF.Notification.Show(CEF.Notification.Types.Item, Locale.Notifications.Inventory.Header, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.Added, Game.Items.Core.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.AddedOne, Game.Items.Core.GetName((string)args[0])));
             });
 
             Events.Add("Item::FCN", (object[] args) =>
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Client.Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Client.Data.Items.GetName((string)args[0])));
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Game.Items.Core.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Game.Items.Core.GetName((string)args[0])));
             });
 
             Events.Add("Notify::P", (object[] args) =>
@@ -515,17 +516,17 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static bool SpamCheck(ref DateTime dateTime, int timeout = 500, bool updateTime = false, bool notify = false)
         {
-            var spam = Core.ServerTime.Subtract(dateTime).TotalMilliseconds < timeout;
+            var spam = Game.World.Core.ServerTime.Subtract(dateTime).TotalMilliseconds < timeout;
 
-            if (spam && notify && Core.ServerTime.Subtract(LastAntiSpamShowed).TotalMilliseconds > 500)
+            if (spam && notify && Game.World.Core.ServerTime.Subtract(LastAntiSpamShowed).TotalMilliseconds > 500)
             {
                 Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ASPAM"), Locale.Get("ANTISPAM_TEXT_0"), 2000);
 
-                LastAntiSpamShowed = Core.ServerTime;
+                LastAntiSpamShowed = Game.World.Core.ServerTime;
             }
 
             if (updateTime)
-                dateTime = Core.ServerTime;
+                dateTime = Game.World.Core.ServerTime;
 
             return spam;
         }

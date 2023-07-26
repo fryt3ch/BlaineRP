@@ -4,12 +4,11 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.Management.Radio;
 using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
-using BlaineRP.Client.Utils.Game;
+using BlaineRP.Client.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Radio

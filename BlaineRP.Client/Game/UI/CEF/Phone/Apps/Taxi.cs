@@ -3,18 +3,15 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Utils.Game;
+using BlaineRP.Client.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Taxi
@@ -48,7 +45,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                         Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi3);
 
-                        Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
+                        Game.Helpers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                     }
                 }
                 else if (args.Length == 2)
@@ -78,7 +75,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                             Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
 
-                            Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
+                            Game.Helpers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                         }
                         else
                         {
@@ -89,7 +86,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                             Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, Core.Get(BindTypes.SendCoordsToDriver).GetKeyString()));
 
-                            Wrappers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
+                            Game.Helpers.Blips.Core.DestroyTrackerBlipByKey("Taxi");
                         }
                     }
                 }
@@ -114,7 +111,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 {
                     if (id == 0)
                     {
-                        CEF.Phone.Phone.LastSent = World.Core.ServerTime;
+                        CEF.Phone.Phone.LastSent = Game.World.Core.ServerTime;
 
                         var res = (bool)await Events.CallRemoteProc("Taxi::NO");
 
@@ -128,7 +125,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                             CurrentOrderInfo = new ClientOrderInfo()
                             {
-                                Date = World.Core.ServerTime,
+                                Date = Game.World.Core.ServerTime,
 
                                 ExitColshape1 = new Cylinder(pos, Client.Settings.App.Static.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.Misc.RedColor, Client.Settings.App.Static.MainDimension)
                                 {
@@ -168,7 +165,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                     {
                         if (id == 0)
                         {
-                            CEF.Phone.Phone.LastSent = World.Core.ServerTime;
+                            CEF.Phone.Phone.LastSent = Game.World.Core.ServerTime;
 
                             Events.CallRemote("Taxi::CO");
                         }

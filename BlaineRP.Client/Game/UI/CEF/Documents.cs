@@ -13,7 +13,7 @@ using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Documents

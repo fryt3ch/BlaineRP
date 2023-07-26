@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Sync;
-using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ATM
@@ -29,7 +27,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             TempBinds = new List<int>();
 
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
 
             Events.Add("ATM::Action", (object[] args) =>
             {
@@ -54,7 +52,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
             });
 
             Events.Add("ATM::Show", (object[] args) =>

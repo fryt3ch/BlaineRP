@@ -4,16 +4,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.Fractions.Types;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class ArrestsMenu

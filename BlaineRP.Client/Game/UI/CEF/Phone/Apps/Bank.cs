@@ -1,8 +1,8 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
+using BlaineRP.Client.UI.CEF.Phone.Enums;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Bank

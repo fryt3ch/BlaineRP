@@ -4,15 +4,14 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Data.Customization;
-using BlaineRP.Client.Game.Management.Camera;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Items;
+using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Camera.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class CharacterCreation
@@ -27,10 +26,10 @@ namespace BlaineRP.Client.Game.UI.CEF
         private static string[] _femaleNames => "Makaela,Adriana,Aniya,Maryann,Nayeli,Alex,Janiya,Camila,Paulina,Zaria,Samira,Audrey,Yasmin,Pilar,Veronica,Tristin,Iris,Angie,Laken,Leyla,Maia,Shay,Tatyana,Jaliyah,Shelbi,Corrine,Alanis,Miracle,Aiyana,Tayler,Susannah,Eliza,Helen,Devyn,Nicolette,Kassidy,Griselda,Janessa,Joy,Cayla,Rubi,Hillary,Chassidy,Liza,Lyndsey,Dajah,Savana,Danielle,Lilliana,Imari,Emerald,Tiffani,Tyra,Kaylyn,Jasmyne,Bobbi,Ann,Infant,Robin,Nathalie,Gwendolyn,Allie,Hazel,Jailyn,Darby,Anabel,Justine,Gina,Susanna,Carina,Katlyn,Chaya,Haven,Mindy,Lily,Jennifer,Lilian,Macie,Klarissa,Gia,Whitney,Izabella,Tionna,Kayley,Camille,Misty,Karlee,Brooklyn,Kyndall,Kelsi,Charity,Keri,Susana,Karla,Jewel,Kristal,Karissa,Kiana,Gloria,Danica,Francesca,Elaina,Jayden,Jacinda,Nicolle,Cathy,Jessika,Jada,Lucinda,Tyasia,Daria,Meg,Desire,Halley,Beth,Jazmyn,Ayesha,Kristy,Flor,Nyla,Fatima,Kalie,Sandra,Evelin,Georgina,Alaina,Notnamed,Terri,Sasha,Carrie,Melanie,Keyara,Galilea,Lucero,Silvia,Yesica,Sadie,Shyanne,Breanne,Sheyla,Shreya,Rhonda,Colette,Leila,Katharine,Jala,Cynthia,Jesse,Nikole,Linnea".Split(',');
         private static string[] _surnames => "Zimmer,Cable,Edwards,Neumann,Royer,Beers,Marr,Daigle,Turner,Baldwin,Poore,Roldan,Hadley,Benton,Wetzel,Good,Walsh,Carlson,Low,Mcghee,Corcoran,Dozier,Krueger,Jaeger,Reyes,Stroud,Ricks,Gallegos,Bartels,Ridgeway,Gill,Estep,Graham,Burks,Nance,Norris,Patten,Holmes,Locke,Mancuso,Huerta,Cordell,Schiller,Oh,Snyder,Staples,Morgan,Hand,Newberry,Gallant,Turpin,Bermudez,Mallory,Garber,Robles,Spears,Corbin,Maxwell,Mott,Mulligan,Lowry,Whitworth,Fulmer,Heredia,Vang,Dixon,Alonzo,Muse,Watts,Hennessy,Savage,Borden,Sam,Loy,Mojica,Singletary,Noble,Wolff,Evers,Guillen,Muir,Mason,Correa,Emerson,Reedy,Braswell,Zhao,Hinds,Shipp,Ruffin,Land,Jacobson,Stamper,Solorzano,Ly,Garza,Canada,Colburn,High,Light,Woodruff,Jacoby,Schwab,Kenny,Lindsey,Ngo,Cramer,Chin,Cepeda,Ochoa,Mears,Victor,Ferguson,Kirk,Felder,Quigley,Price,Browne,Atkinson,Mancini,Robertson,Alley,Israel,Polanco,Lane,Heinrich,Chow,Herr,Morris,Llamas,Woods,Ceja,Davenport,Ware,Ryder,Swain,Sepulveda,Hastings,Flowers,Fair,Decker,Winslow,Jewell,Ortega,Lauer,Root,Spaulding,Ragland,Embry,Bateman".Split(',');
 
-        private static Data.Customization.Customization.HeadBlend _headBlend;
-        private static Dictionary<int, Data.Customization.Customization.HeadOverlay> _headOverlays;
+        private static Game.Data.Customization.Customization.HeadBlend _headBlend;
+        private static Dictionary<int, Game.Data.Customization.Customization.HeadOverlay> _headOverlays;
         private static float[] _faceFeatures;
-        private static Data.Customization.Customization.HairStyle _hairStyle;
+        private static Game.Data.Customization.Customization.HairStyle _hairStyle;
         private static byte _eyeColor;
 
         private static bool _sex;
@@ -112,14 +111,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                 var approveContext = $"CharacterCreation_{name}_{surname}_{age}";
                 var approveTime = 5_000;
 
-                if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                 {
                     if (LastSent.IsSpam(1_500, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
-                    CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                     CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToCreate, approveTime);
                 }
@@ -138,14 +137,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                 var approveContext = "CharacterCreationEXIT";
                 var approveTime = 5_000;
 
-                if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                 {
                     if (LastSent.IsSpam(1_000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
-                    CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                     CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToExit, approveTime);
                 }
@@ -170,7 +169,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
 
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 var res = (int)await Events.CallRemoteProc("CharacterCreation::SetSex", _sex);
 
@@ -187,10 +186,10 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Events.CallRemote("CharacterCreation::SetSex", _sex);
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     SetDefaultCustomization();
-                    Clothes.UndressAll();
+                    Game.Data.Customization.Clothes.UndressAll();
 
                     _clothes[0] = null;
                     _clothes[1] = null;
@@ -308,7 +307,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             Events.Add("CharacterCreation::Update::Hair", (object[] args) =>
             {
                 int id = (int)args[0];
-                int value = Data.Customization.Customization.GetHair(_sex, id);
+                int value = Game.Data.Customization.Customization.GetHair(_sex, id);
 
                 if (_hairStyle.Id == id)
                     return;
@@ -318,7 +317,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 _hairStyle.Id = id;
 
                 if (IsActive)
-                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.Customization.GetDefaultHairOverlayId(_sex, (int)args[0]));
+                    Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Game.Data.Customization.Customization.GetDefaultHairOverlayId(_sex, (int)args[0]));
             });
 
             Events.Add("CharacterCreation::Update::HairOverlay", (object[] args) =>
@@ -330,7 +329,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 _hairStyle.Overlay = value;
 
-                var overlay = Data.Customization.Customization.GetHairOverlay(_sex, value);
+                var overlay = Game.Data.Customization.Customization.GetHairOverlay(_sex, value);
 
                 Player.LocalPlayer.ClearFacialDecorations();
 
@@ -355,7 +354,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 _hairStyle.Color2 = value;
 
-                if (Data.Customization.Customization.GetHairOverlay(_sex, _hairStyle.Overlay) is Data.Customization.Customization.HairOverlay overlay)
+                if (Game.Data.Customization.Customization.GetHairOverlay(_sex, _hairStyle.Overlay) is Game.Data.Customization.Customization.HairOverlay overlay)
                 {
                     Player.LocalPlayer.ClearFacialDecorations();
 
@@ -390,31 +389,31 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     if (type == 1)
                     {
-                        Clothes.Unwear(typeof(Client.Data.Items.Under));
-                        Clothes.Unwear(typeof(Client.Data.Items.Top));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Under));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Top));
                     }
 
                     var clothes = _defaultClothes[_sex][type][value];
 
                     _clothes[type] = clothes;
 
-                    Clothes.Wear(clothes, 0);
+                    Game.Data.Customization.Clothes.Wear(clothes, 0);
                 }
                 else
                 {
                     _clothes[type] = null;
 
                     if (type == 0)
-                        Clothes.Unwear(typeof(Client.Data.Items.Hat));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Hat));
                     else if (type == 1)
                     {
-                        Clothes.Unwear(typeof(Client.Data.Items.Under));
-                        Clothes.Unwear(typeof(Client.Data.Items.Top));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Under));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Top));
                     }
                     else if (type == 2)
-                        Clothes.Unwear(typeof(Client.Data.Items.Pants));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Pants));
                     else
-                        Clothes.Unwear(typeof(Client.Data.Items.Shoes));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Shoes));
                 }
             });
             #endregion
@@ -476,7 +475,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             _currentCameraStateNum = 0;
 
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
 
             _tempBinds = new List<int>();
 
@@ -490,17 +489,17 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             _sex = true;
 
-            _headBlend = new Data.Customization.Customization.HeadBlend();
-            _hairStyle = new Data.Customization.Customization.HairStyle();
-            _headOverlays = new Dictionary<int, Data.Customization.Customization.HeadOverlay>();
+            _headBlend = new Game.Data.Customization.Customization.HeadBlend();
+            _hairStyle = new Game.Data.Customization.Customization.HairStyle();
+            _headOverlays = new Dictionary<int, Game.Data.Customization.Customization.HeadOverlay>();
 
             for (int i = 0; i < 13; i++)
-                _headOverlays.Add(i, new Data.Customization.Customization.HeadOverlay());
+                _headOverlays.Add(i, new Game.Data.Customization.Customization.HeadOverlay());
 
             _faceFeatures = new float[20];
 
             SetDefaultCustomization();
-            Clothes.UndressAll();
+            Game.Data.Customization.Clothes.UndressAll();
 
             _cursorTask = null;
 

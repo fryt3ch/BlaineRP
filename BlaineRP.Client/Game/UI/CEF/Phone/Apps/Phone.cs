@@ -5,18 +5,16 @@ using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Input.Enums;
+using BlaineRP.Client.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class Phone
@@ -308,7 +306,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 if (number == null || number.Length == 0)
                     return;
 
-                CEF.Phone.Phone.LastSent = World.Core.ServerTime;
+                CEF.Phone.Phone.LastSent = Game.World.Core.ServerTime;
 
                 Call(number);
             });
@@ -320,7 +318,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                 var ans = (bool)args[0];
 
-                CEF.Phone.Phone.LastSent = World.Core.ServerTime;
+                CEF.Phone.Phone.LastSent = Game.World.Core.ServerTime;
 
                 Events.CallRemote("Phone::CA", ans);
             });
@@ -382,7 +380,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             return;
 
                         callInfo.Player = player;
-                        callInfo.StartDate = World.Core.ServerTime;
+                        callInfo.StartDate = Game.World.Core.ServerTime;
 
                         ShowActiveCall(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number), "");
 
@@ -435,7 +433,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                     {
                         callInfo.Player.VoiceVolume = 0f;
 
-                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, World.Core.ServerTime.Subtract(callInfo.StartDate).GetBeautyString());
+                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, Game.World.Core.ServerTime.Subtract(callInfo.StartDate).GetBeautyString());
 
                         if (cancelType == CancelTypes.ServerAuto)
                         {
@@ -501,7 +499,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                     cs.Destroy();
 
-                    Wrappers.Blips.Core.DestroyTrackerBlipByKey("PoliceCall");
+                    Game.Helpers.Blips.Core.DestroyTrackerBlipByKey("PoliceCall");
                 }
             });
         }
@@ -522,7 +520,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 return;
             }
 
-            CEF.Phone.Phone.LastSent = World.Core.ServerTime;
+            CEF.Phone.Phone.LastSent = Game.World.Core.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Phone::BLC", number, add))
             {

@@ -5,12 +5,11 @@ using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Utils;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Auth

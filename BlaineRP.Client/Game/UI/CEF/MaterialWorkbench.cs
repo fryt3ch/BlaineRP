@@ -3,11 +3,11 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Items;
 using RAGE;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class MaterialWorkbench
@@ -53,7 +53,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (TempData == null)
                         return;
 
-                    Shop.LastSent = World.Core.ServerTime;
+                    Shop.LastSent = Game.World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Fraction::CWBC", TempData[0], TempData[1], itemId, amount);
                 }
@@ -71,7 +71,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CurrentType = type;
 
-            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Client.Data.Items.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Client.Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; }) }, materialsAmount, false);
+            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Game.Items.Core.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; }) }, materialsAmount, false);
 
             CEF.Cursor.Show(true, true);
 

@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Utils;
 using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class BlipsMenu

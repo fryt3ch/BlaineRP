@@ -1,8 +1,7 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Utils;
 using RAGE;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class NPC
@@ -53,10 +52,10 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static void Reply(int buttonId)
         {
-            if (NPCs.NPC.CurrentNPC == null)
+            if (Game.NPCs.NPC.CurrentNPC == null)
                 return;
 
-            NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
+            Game.NPCs.NPC.CurrentNPC.CurrentDialogue?.InvokeButtonAction(buttonId);
         }
     }
 }

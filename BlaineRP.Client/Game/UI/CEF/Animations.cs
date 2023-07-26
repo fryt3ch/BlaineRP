@@ -5,16 +5,14 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Input.Enums;
-using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Animations
@@ -35,7 +33,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public Animations()
         {
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
 
             TempBinds = new List<int>();
             Queue = new Queue<(string, object[])>();
@@ -71,7 +69,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Events.CallRemote("Players::SetAnim", (int)anim);
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
                     }
 
                 }

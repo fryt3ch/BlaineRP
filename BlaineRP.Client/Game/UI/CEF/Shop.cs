@@ -8,13 +8,14 @@ using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Items;
+using BlaineRP.Client.Game.Items.Types;
 using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Management.Attachments.Enums;
-using BlaineRP.Client.Game.Management.Camera;
 using BlaineRP.Client.Game.Management.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
@@ -22,7 +23,7 @@ using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Shop
@@ -43,7 +44,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static bool IsRenderedTuning => Browser.IsRendered(Browser.IntTypes.Tuning);
 
-        private static Management.Camera.Core.StateTypes[] AllowedCameraStates;
+        private static Game.Management.Camera.Core.StateTypes[] AllowedCameraStates;
 
         public static DateTime LastSent;
 
@@ -215,19 +216,19 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static Dictionary<Types, Dictionary<string, uint>> Prices = new Dictionary<Types, Dictionary<string, uint>>();
 
-        private static Dictionary<FurnitureSubTypes, Client.Data.Furniture.Types[]> FurnitureSections = new Dictionary<FurnitureSubTypes, Client.Data.Furniture.Types[]>()
+        private static Dictionary<FurnitureSubTypes, Furniture.Types[]> FurnitureSections = new Dictionary<FurnitureSubTypes, Furniture.Types[]>()
         {
-            { FurnitureSubTypes.Chairs, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Chair, } },
-            { FurnitureSubTypes.Tables, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Table, } },
-            { FurnitureSubTypes.Beds, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Bed, } },
-            { FurnitureSubTypes.Closets, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Locker, Client.Data.Furniture.Types.Wardrobe, } },
-            { FurnitureSubTypes.Plants, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Plant, } },
-            { FurnitureSubTypes.Lamps, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Lamp, } },
-            { FurnitureSubTypes.Electronics, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Washer, Client.Data.Furniture.Types.TV, Client.Data.Furniture.Types.Electronics, } },
-            { FurnitureSubTypes.Kitchen, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Fridge, Client.Data.Furniture.Types.KitchenSet, Client.Data.Furniture.Types.KitchenStuff } },
-            { FurnitureSubTypes.Bath, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Bath, Client.Data.Furniture.Types.Toilet, Client.Data.Furniture.Types.BathStuff } },
-            { FurnitureSubTypes.Pictures, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Painting } },
-            { FurnitureSubTypes.Decores, new Client.Data.Furniture.Types[] { Client.Data.Furniture.Types.Decor } },
+            { FurnitureSubTypes.Chairs, new Furniture.Types[] { Furniture.Types.Chair, } },
+            { FurnitureSubTypes.Tables, new Furniture.Types[] { Furniture.Types.Table, } },
+            { FurnitureSubTypes.Beds, new Furniture.Types[] { Furniture.Types.Bed, } },
+            { FurnitureSubTypes.Closets, new Furniture.Types[] { Furniture.Types.Locker, Furniture.Types.Wardrobe, } },
+            { FurnitureSubTypes.Plants, new Furniture.Types[] { Furniture.Types.Plant, } },
+            { FurnitureSubTypes.Lamps, new Furniture.Types[] { Furniture.Types.Lamp, } },
+            { FurnitureSubTypes.Electronics, new Furniture.Types[] { Furniture.Types.Washer, Furniture.Types.TV, Furniture.Types.Electronics, } },
+            { FurnitureSubTypes.Kitchen, new Furniture.Types[] { Furniture.Types.Fridge, Furniture.Types.KitchenSet, Furniture.Types.KitchenStuff } },
+            { FurnitureSubTypes.Bath, new Furniture.Types[] { Furniture.Types.Bath, Furniture.Types.Toilet, Furniture.Types.BathStuff } },
+            { FurnitureSubTypes.Pictures, new Furniture.Types[] { Furniture.Types.Painting } },
+            { FurnitureSubTypes.Decores, new Furniture.Types[] { Furniture.Types.Decor } },
         };
 
         private static Dictionary<Types, Dictionary<SectionTypes, string[]>> RetailSections = new Dictionary<Types, Dictionary<SectionTypes, string[]>>()
@@ -541,7 +542,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Player.LocalPlayer.SetVisible(true, false);
 
-                    Management.Camera.Core.Disable(750);
+                    Game.Management.Camera.Core.Disable(750);
 
                     CEF.HUD.ShowHUD(true);
 
@@ -577,26 +578,26 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (CurrentItem?.StartsWith("ring") == true)
                     {
-                        Clothes.Wear(CurrentItem, CurrentVariation, Player.LocalPlayer.GetData<bool?>("Temp::JewelShop::RingIsLeft") ?? false);
+                        Game.Data.Customization.Clothes.Wear(CurrentItem, CurrentVariation, Player.LocalPlayer.GetData<bool?>("Temp::JewelShop::RingIsLeft") ?? false);
                     }
                     else
                     {
-                        Clothes.Wear(CurrentItem, CurrentVariation);
+                        Game.Data.Customization.Clothes.Wear(CurrentItem, CurrentVariation);
                     }
 
-                    var type = Client.Data.Items.GetType(CurrentItem, true);
+                    var type = Game.Items.Core.GetType(CurrentItem, true);
 
                     if (type == null)
                         return;
 
-                    var data = Client.Data.Items.GetData(CurrentItem, type);
+                    var data = Game.Items.Core.GetData(CurrentItem, type);
 
                     if (data == null)
                         return;
 
                     if (newItem)
                     {
-                        if (data is Client.Data.Items.Under.ItemData uData)
+                        if (data is Under.ItemData uData)
                         {
                             if (uData.ExtraData == null && uData.BestTop != null && uData.BestTop.ExtraData != null)
                                 CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopUnderExtraNotNeedTop, false);
@@ -615,11 +616,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     var subId = (string)args[1];
 
-                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Data.Customization.Customization.TattooData>>("TempDecorations");
+                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Game.Data.Customization.Customization.TattooData>>("TempDecorations");
 
-                    if (Data.Customization.Customization.TattooData.GetZoneTypeById(mainId) is Data.Customization.Customization.TattooData.ZoneTypes zType)
+                    if (Game.Data.Customization.Customization.TattooData.GetZoneTypeById(mainId) is Game.Data.Customization.Customization.TattooData.ZoneTypes zType)
                     {
-                        Data.Customization.Customization.TattooData.ClearAll(Player.LocalPlayer);
+                        Game.Data.Customization.Customization.TattooData.ClearAll(Player.LocalPlayer);
 
                         var idx = decors.Where(x => x.Value.ZoneType == zType).Select(x => (int?)x.Key).FirstOrDefault() ?? -1;
 
@@ -629,7 +630,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             var tattoIdx = int.Parse(subId.Split('_')[1]);
 
-                            var tattoData = Data.Customization.Customization.GetTattooData(tattoIdx);
+                            var tattoData = Game.Data.Customization.Customization.GetTattooData(tattoIdx);
 
                             decors.TryAdd(tattoIdx, tattoData);
                         }
@@ -650,15 +651,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         if (hairData[0] == "hair")
                         {
-                            var curHair = Player.LocalPlayer.GetData<Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
+                            var curHair = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
 
                             curHair.Id = variation;
 
-                            Player.LocalPlayer.SetComponentVariation(2, Data.Customization.Customization.GetHair(pData.Sex, curHair.Id), 0, 2);
+                            Player.LocalPlayer.SetComponentVariation(2, Game.Data.Customization.Customization.GetHair(pData.Sex, curHair.Id), 0, 2);
                         }
                         else if (hairData[0] == "beard")
                         {
-                            var curBeard = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Beard");
+                            var curBeard = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Beard");
 
                             if (variation == 0)
                                 curBeard.Index = 255;
@@ -669,7 +670,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                         else if (hairData[0] == "chest")
                         {
-                            var curChest = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Chest");
+                            var curChest = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Chest");
 
                             curChest.Index = byte.Parse(hairData[1]);
 
@@ -682,7 +683,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                         else if (hairData[0] == "eyebrows")
                         {
-                            var curEyebrows = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Eyebrows");
+                            var curEyebrows = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Eyebrows");
 
                             curEyebrows.Index = byte.Parse(hairData[1]);
 
@@ -706,7 +707,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (apType == "hair")
                             {
-                                var curHair = Player.LocalPlayer.GetData<Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
+                                var curHair = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
 
                                 if (args.Length > 3 && args[3] is string str)
                                 {
@@ -717,15 +718,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                                     Player.LocalPlayer.SetHairColor(curHair.Color, curHair.Color2);
 
-                                    Data.Customization.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
+                                    Game.Data.Customization.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
 
-                                    if (Data.Customization.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Data.Customization.Customization.HairOverlay overlay)
+                                    if (Game.Data.Customization.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Game.Data.Customization.Customization.HairOverlay overlay)
                                         overlay.Apply(Player.LocalPlayer);
                                 }
                             }
                             else if (apType == "beard")
                             {
-                                var curBeard = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Beard");
+                                var curBeard = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Beard");
 
                                 curBeard.Color = colourNum;
                                 curBeard.SecondaryColor = curBeard.Color;
@@ -734,7 +735,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apType == "chest")
                             {
-                                var curChest = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Chest");
+                                var curChest = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Chest");
 
                                 curChest.Color = colourNum;
                                 curChest.SecondaryColor = curChest.Color;
@@ -743,7 +744,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apType == "eyebrows")
                             {
-                                var curEyebrows = Player.LocalPlayer.GetData< Data.Customization.Customization.HeadOverlay >("TempAppearance::Eyebrows");
+                                var curEyebrows = Player.LocalPlayer.GetData< Game.Data.Customization.Customization.HeadOverlay >("TempAppearance::Eyebrows");
 
                                 curEyebrows.Color = colourNum;
                                 curEyebrows.SecondaryColor = curEyebrows.Color;
@@ -752,7 +753,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apType == "lipstick")
                             {
-                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
+                                var curLipstick = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
 
                                 curLipstick.Color = colourNum;
                                 curLipstick.SecondaryColor = curLipstick.Color;
@@ -761,7 +762,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apType == "blush")
                             {
-                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
+                                var curBlush = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
 
                                 curBlush.Color = colourNum;
                                 curBlush.SecondaryColor = curBlush.Color;
@@ -777,7 +778,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (fullId == "lipstick")
                             {
-                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
+                                var curLipstick = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
 
                                 curLipstick.Opacity = value;
 
@@ -785,7 +786,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (fullId == "blush")
                             {
-                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
+                                var curBlush = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
 
                                 curBlush.Opacity = value;
 
@@ -793,7 +794,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (fullId == "makeup")
                             {
-                                var curMakeup = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Makeup");
+                                var curMakeup = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Makeup");
 
                                 curMakeup.Opacity = value;
 
@@ -810,18 +811,18 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (apData[0] == "hairoverlay")
                             {
-                                var curHair = Player.LocalPlayer.GetData<Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
+                                var curHair = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
 
                                 curHair.Overlay = (byte)variation;
 
-                                Data.Customization.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
+                                Game.Data.Customization.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
 
-                                if (Data.Customization.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Data.Customization.Customization.HairOverlay overlay)
+                                if (Game.Data.Customization.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Game.Data.Customization.Customization.HairOverlay overlay)
                                     overlay.Apply(Player.LocalPlayer);
                             }
                             else if (apData[0] == "lipstick")
                             {
-                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
+                                var curLipstick = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Lipstick");
 
                                 if (variation == 0)
                                     curLipstick.Index = 255;
@@ -832,7 +833,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apData[0] == "blush")
                             {
-                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
+                                var curBlush = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Blush");
 
                                 curBlush.Index = byte.Parse(apData[1]);
 
@@ -845,7 +846,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else if (apData[0] == "makeup")
                             {
-                                var curMakeup = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>("TempAppearance::Makeup");
+                                var curMakeup = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>("TempAppearance::Makeup");
 
                                 if (variation == 0)
                                     curMakeup.Index = 255;
@@ -863,7 +864,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     CurrentItem = (string)args[0];
 
-                    var data = Data.Vehicles.Core.GetById(CurrentItem);
+                    var data = Game.Data.Vehicles.Core.GetById(CurrentItem);
 
                     TempVehicle = new Vehicle(data.Model, Player.LocalPlayer.Position, DefaultHeading, "SHOP", 255, false, 0, 0, Player.LocalPlayer.Dimension);
 
@@ -872,13 +873,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     CurrentCameraStateNum = 0;
 
-                    var t = new float[] { (Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                    var t = new float[] { (Game.Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
 
-                    var pDef = Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].Position;
+                    var pDef = Game.Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].Position;
 
                     var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                    Game.Management.Camera.Core.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
 
                     TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -894,7 +895,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (TempVehicle.DoesHaveDoor(i) > 0)
                             TempVehicle.SetDoorCanBreak(i, false);
 
-                    if (data.Type != Data.Vehicles.Types.Boat)
+                    if (data.Type != Game.Data.Vehicles.Types.Boat)
                         TempVehicle.SetOnGroundProperly(0);
 
                     TempVehicle.FreezePosition(true);
@@ -1026,11 +1027,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (data[0] != CurrentItem)
                     {
                         if (data[0] == "spoiler")
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BackVehicleUpAngle));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.BackVehicleUpAngle));
                         else if (data[0] == "fbump" || data[0] == "xenon")
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.FrontVehicle));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.FrontVehicle));
                         else if (data[0] == "rbump" || data[0] == "exh")
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BackVehicle));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.BackVehicle));
                         else
                             ChangeView(0);
                     }
@@ -1044,7 +1045,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             {
                 if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
                 {
-                    Clothes.Action(CurrentItem, CurrentVariation);
+                    Game.Data.Customization.Clothes.Action(CurrentItem, CurrentVariation);
                 }
                 else if (CurrentType == Types.JewelleryShop)
                 {
@@ -1056,20 +1057,20 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         if (isLeft)
                         {
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.LeftHandFingers, Management.Camera.Core.StateTypes.WholePed };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.LeftHandFingers, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHandFingers));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.LeftHandFingers));
                         }
                         else
                         {
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.RightHandFingers, Management.Camera.Core.StateTypes.WholePed };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.RightHandFingers, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHandFingers));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.RightHandFingers));
                         }
 
                         Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", isLeft);
 
-                        Clothes.Action(CurrentItem, CurrentVariation, isLeft);
+                        Game.Data.Customization.Clothes.Action(CurrentItem, CurrentVariation, isLeft);
                     }
                 }
             });
@@ -1091,56 +1092,56 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
                 {
                     if (id == 0 || id == 1)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Head));
                     else if (id == 2 || id == 3 || id == 4)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Body));
                     else if (id == 6 || id == 5)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Legs));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Legs));
                     else if (id == 7)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Foots));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Foots));
                     else if (id == 8)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHand));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.LeftHand));
                     else if (id == 9)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHand));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.RightHand));
                 }
                 else if (CurrentType == Types.JewelleryShop)
                 {
                     if (id == 0)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Body));
                     else if (id == 1)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Head));
                     else if (id == 2)
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft") ? Management.Camera.Core.StateTypes.LeftHandFingers : Management.Camera.Core.StateTypes.RightHandFingers));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft") ? Game.Management.Camera.Core.StateTypes.LeftHandFingers : Game.Management.Camera.Core.StateTypes.RightHandFingers));
                 }
                 else if (CurrentType == Types.TattooShop)
                 {
                     if (id >= 0 && id <= 3)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Head));
                     }
                     else if (id >= 4 && id <= 5)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BodyUpper));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.BodyUpper));
                     }
                     else if (id == 6)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BodyBackUpper));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.BodyBackUpper));
                     }
                     else if (id == 7)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHandUpper));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.LeftHandUpper));
                     }
                     else if (id == 8)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHandUpper));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.RightHandUpper));
                     }
                     else if (id == 9)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftLeg));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.LeftLeg));
                     }
                     else if (id == 10)
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightLeg));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.RightLeg));
                     }
                 }
                 else if (CurrentType == Types.BarberShop)
@@ -1149,7 +1150,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     {
                         if (id == 3)
                         {
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Body));
 
                             if (RealClothes != null)
                             {
@@ -1164,7 +1165,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                         else
                         {
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Head));
 
                             if (RealClothes != null)
                             {
@@ -1180,7 +1181,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else
                     {
-                        ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Game.Management.Camera.Core.StateTypes.Head));
                     }
                 }
             });
@@ -1193,34 +1194,34 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
                 {
                     if (CurrentNavigation == 0)
-                        Clothes.Unwear(typeof(Client.Data.Items.Hat));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Hat));
                     else if (CurrentNavigation == 1)
-                        Clothes.Unwear(typeof(Client.Data.Items.Glasses));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Glasses));
                     else if (CurrentNavigation == 2)
-                        Clothes.Unwear(typeof(Client.Data.Items.Top));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Top));
                     else if (CurrentNavigation == 3)
-                        Clothes.Unwear(typeof(Client.Data.Items.Under));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Under));
                     else if (CurrentNavigation == 4)
-                        Clothes.Unwear(typeof(Client.Data.Items.Accessory));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Accessory));
                     else if (CurrentNavigation == 5)
-                        Clothes.Unwear(typeof(Client.Data.Items.Gloves));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Gloves));
                     else if (CurrentNavigation == 6)
-                        Clothes.Unwear(typeof(Client.Data.Items.Pants));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Pants));
                     else if (CurrentNavigation == 7)
-                        Clothes.Unwear(typeof(Client.Data.Items.Shoes));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Shoes));
                     else if (CurrentNavigation == 8)
-                        Clothes.Unwear(typeof(Client.Data.Items.Watches));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Watches));
                     else if (CurrentNavigation == 9)
-                        Clothes.Unwear(typeof(Client.Data.Items.Bracelet));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Bracelet));
                 }
                 else if (CurrentType == Types.JewelleryShop)
                 {
                     if (CurrentNavigation == 0)
-                        Clothes.Unwear(typeof(Client.Data.Items.Accessory));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Accessory));
                     else if (CurrentNavigation == 1)
-                        Clothes.Unwear(typeof(Client.Data.Items.Earrings));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Earrings));
                     else if (CurrentNavigation == 2)
-                        Clothes.Unwear(typeof(Client.Data.Items.Ring));
+                        Game.Data.Customization.Clothes.Unwear(typeof(Ring));
                 }
             });
 
@@ -1239,7 +1240,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if (CurrentType == Types.TuningShop)
                 {
@@ -1408,9 +1409,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             var approveContext = "TuningShopKeysChange";
                             var approveTime = 5_000;
 
-                            if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                            if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                             {
-                                CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                                CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                                 CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Get("SHOP_TUNING_KEYS_CHANGE_APPROVE"), approveTime);
                             }
@@ -1436,7 +1437,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                                 Locale.Get("SHOP_TUNING_KEYDUBL_CONTENT"),
 
-                                18, Client.Data.Items.GetName("vk_0") ?? "null", null, null,
+                                18, Game.Items.Core.GetName("vk_0") ?? "null", null, null,
 
                                 null,
 
@@ -1491,7 +1492,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (TempVehicle == null)
                         return;
 
-                    var vehData = Data.Vehicles.Core.GetByModel(TempVehicle.Model);
+                    var vehData = Game.Data.Vehicles.Core.GetByModel(TempVehicle.Model);
 
                     if (vehData == null)
                         return;
@@ -1503,13 +1504,13 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
                 else if (CurrentType == Types.TattooShop)
                 {
-                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Data.Customization.Customization.TattooData>>("TempDecorations");
+                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Game.Data.Customization.Customization.TattooData>>("TempDecorations");
 
                     var mainId = (string)args[1];
                     var boughtItemId = mainId;
                     var serverItemId = mainId;
 
-                    if (Data.Customization.Customization.TattooData.GetZoneTypeById(mainId) is Data.Customization.Customization.TattooData.ZoneTypes zType)
+                    if (Game.Data.Customization.Customization.TattooData.GetZoneTypeById(mainId) is Game.Data.Customization.Customization.TattooData.ZoneTypes zType)
                     {
                         var idx = decors.Where(x => x.Value.ZoneType == zType).Select(x => (int?)x.Key).FirstOrDefault() ?? -1;
 
@@ -1543,7 +1544,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (itemMainId == "hair")
                     {
-                        var curHair = Player.LocalPlayer.GetData<Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
+                        var curHair = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HairStyle>("TempAppearance::Hair");
 
                         itemMainId = $"{itemMainId}_{(pData.Sex ? "m" : "f")}_{curHair.Id}&{curHair.Overlay}&{curHair.Color}&{curHair.Color2}";
 
@@ -1551,7 +1552,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else if (itemMainId == "beard" || itemMainId == "chest" || itemMainId == "eyebrows")
                     {
-                        var curBeard = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
+                        var curBeard = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
 
                         itemMainId = $"{itemMainId}_{curBeard.Index}&{curBeard.Color}";
 
@@ -1559,7 +1560,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else
                     {
-                        var curBeard = Player.LocalPlayer.GetData<Data.Customization.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
+                        var curBeard = Player.LocalPlayer.GetData<Game.Data.Customization.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
 
                         itemMainId = $"{itemMainId}_{curBeard.Index}&{curBeard.Color}&{curBeard.Opacity}";
 
@@ -1619,7 +1620,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (RetailPreviewActive)
                         return;
 
-                    var furnData = Client.Data.Furniture.GetData(itemId);
+                    var furnData = Furniture.GetData(itemId);
 
                     if (furnData == null)
                         return;
@@ -1636,7 +1637,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     mapObj.FreezePosition(true);
 
-                    StartRetailPreview(mapObj, 194.5612f + 180f, 1, Management.Camera.Core.StateTypes.WholeFurniture, Management.Camera.Core.StateTypes.FrontFurniture, Management.Camera.Core.StateTypes.TopFurniture);
+                    StartRetailPreview(mapObj, 194.5612f + 180f, 1, Game.Management.Camera.Core.StateTypes.WholeFurniture, Game.Management.Camera.Core.StateTypes.FrontFurniture, Game.Management.Camera.Core.StateTypes.TopFurniture);
                 }
             });
         }
@@ -1669,7 +1670,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     CEF.Chat.Show(false);
 
-                    Misc.Interaction.Enabled = false;
+                    Game.Management.Interaction.Enabled = false;
 
                     Main.Render -= CharacterCreation.ClearTasksRender;
                     Main.Render += CharacterCreation.ClearTasksRender;
@@ -1686,27 +1687,27 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         var shopData = new List<object>();
 
-                        var hairStyle = ((JObject)args[0]).ToObject<Data.Customization.Customization.HairStyle>();
+                        var hairStyle = ((JObject)args[0]).ToObject<Game.Data.Customization.Customization.HairStyle>();
 
-                        var beard = ((JObject)args[1]).ToObject<Data.Customization.Customization.HeadOverlay>();
-                        var chestHair = ((JObject)args[2]).ToObject<Data.Customization.Customization.HeadOverlay>();
+                        var beard = ((JObject)args[1]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
+                        var chestHair = ((JObject)args[2]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
 
-                        var eyebrows = ((JObject)args[3]).ToObject<Data.Customization.Customization.HeadOverlay>();
-                        var lipstick = ((JObject)args[4]).ToObject<Data.Customization.Customization.HeadOverlay>();
-                        var blush = ((JObject)args[5]).ToObject<Data.Customization.Customization.HeadOverlay>();
-                        var makeup = ((JObject)args[6]).ToObject<Data.Customization.Customization.HeadOverlay>();
+                        var eyebrows = ((JObject)args[3]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
+                        var lipstick = ((JObject)args[4]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
+                        var blush = ((JObject)args[5]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
+                        var makeup = ((JObject)args[6]).ToObject<Game.Data.Customization.Customization.HeadOverlay>();
 
                         if (pData.Sex)
                         {
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body };
 
-                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_m")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_m_", "")); return new object[] { hairNum + 1, x.Value, Data.Customization.Customization.GetDefaultHairOverlayId(true, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Data.Customization.Customization.MaleHairOverlays.Count) });
+                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_m")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_m_", "")); return new object[] { hairNum + 1, x.Value, Game.Data.Customization.Customization.GetDefaultHairOverlayId(true, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Game.Data.Customization.Customization.MaleHairOverlays.Count) });
                         }
                         else
                         {
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head };
 
-                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_f")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_f_", "")); return new object[] { hairNum + 1, x.Value, Data.Customization.Customization.GetDefaultHairOverlayId(false, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Data.Customization.Customization.FemaleHairOverlays.Count) });
+                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_f")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_f_", "")); return new object[] { hairNum + 1, x.Value, Game.Data.Customization.Customization.GetDefaultHairOverlayId(false, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Game.Data.Customization.Customization.FemaleHairOverlays.Count) });
                         }
 
                         shopData.Add(new object[] { "eyebrows", Enumerable.Range(1, 33 + 1).Select(x => new object[] { x, x == 1 ? prices["eyebrows_255"] : prices["eyebrows"] }), new object[] { eyebrows.Color, $"eyebrows_{(eyebrows.Index == 255 ? 1 : eyebrows.Index + 2)}" } });
@@ -1721,9 +1722,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             Player.LocalPlayer.SetData("TempAppearance::Chest", chestHair);
                         }
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
                         Player.LocalPlayer.ClearProp(0);
@@ -1749,21 +1750,21 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Browser.Window.ExecuteJs("Salon.draw", new object[] { shopData });
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
                     }
                     else if (type == Types.TattooShop)
                     {
                         var prices = GetPrices(type);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.BodyUpper, Management.Camera.Core.StateTypes.RightHandUpper, Management.Camera.Core.StateTypes.LeftHandUpper, Management.Camera.Core.StateTypes.LeftLeg, Management.Camera.Core.StateTypes.RightLeg, Management.Camera.Core.StateTypes.BodyBackUpper, Management.Camera.Core.StateTypes.WholePed };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.BodyUpper, Game.Management.Camera.Core.StateTypes.RightHandUpper, Game.Management.Camera.Core.StateTypes.LeftHandUpper, Game.Management.Camera.Core.StateTypes.LeftLeg, Game.Management.Camera.Core.StateTypes.RightLeg, Game.Management.Camera.Core.StateTypes.BodyBackUpper, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                         await Browser.Render(Browser.IntTypes.TattooSalon, true);
 
-                        var tattoos = (pData.Decorations ?? new List<int>()).ToDictionary(x => x, x => Data.Customization.Customization.GetTattooData(x));
+                        var tattoos = (pData.Decorations ?? new List<int>()).ToDictionary(x => x, x => Game.Data.Customization.Customization.GetTattooData(x));
 
-                        var allTattoos = new Dictionary<Data.Customization.Customization.TattooData.ZoneTypes, List<object>>();
+                        var allTattoos = new Dictionary<Game.Data.Customization.Customization.TattooData.ZoneTypes, List<object>>();
 
                         foreach (var x in prices)
                         {
@@ -1772,7 +1773,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             if (tattooIdx < 0)
                                 continue;
 
-                            var tattooData = Data.Customization.Customization.GetTattooData(tattooIdx);
+                            var tattooData = Game.Data.Customization.Customization.GetTattooData(tattooIdx);
 
                             if (tattooData == null || (tattooData.Sex is bool tSex && tSex != pData.Sex))
                                 continue;
@@ -1785,15 +1786,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Player.LocalPlayer.SetData("TempDecorations", tattoos);
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
-                        Clothes.UndressAll();
+                        Game.Data.Customization.Clothes.UndressAll();
 
                         Browser.Switch(Browser.IntTypes.TattooSalon, true);
 
-                        Browser.Window.ExecuteJs("Tattoo.draw", allTattoos.OrderBy(x => x.Key).Select(x => new object[] { Data.Customization.Customization.TattooData.GetZoneTypeId(x.Key), Data.Customization.Customization.TattooData.GetZoneTypeName(x.Key), x.Value, tattoos.Where(y => y.Value?.ZoneType == x.Key).Select(y => $"tat_{y.Key}").FirstOrDefault() ?? "none" }));
+                        Browser.Window.ExecuteJs("Tattoo.draw", allTattoos.OrderBy(x => x.Key).Select(x => new object[] { Game.Data.Customization.Customization.TattooData.GetZoneTypeId(x.Key), Game.Data.Customization.Customization.TattooData.GetZoneTypeName(x.Key), x.Value, tattoos.Where(y => y.Value?.ZoneType == x.Key).Select(y => $"tat_{y.Key}").FirstOrDefault() ?? "none" }));
                     }
                     else if (type >= Types.ClothesShop1 && type <= Types.ClothesShop3)
                     {
@@ -1801,31 +1802,31 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                         CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.WholePed, Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.RightHand, Management.Camera.Core.StateTypes.LeftHand, Management.Camera.Core.StateTypes.Legs, Management.Camera.Core.StateTypes.Foots };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.WholePed, Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.RightHand, Game.Management.Camera.Core.StateTypes.LeftHand, Game.Management.Camera.Core.StateTypes.Legs, Game.Management.Camera.Core.StateTypes.Foots };
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
                         Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
 
-                        var currentTop = Client.Data.Items.AllData[typeof(Client.Data.Items.Top)].Where(x => ((Client.Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Client.Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentUnder = Client.Data.Items.AllData[typeof(Client.Data.Items.Under)].Where(x => ((Client.Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Client.Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentGloves = Client.Data.Items.AllData[typeof(Client.Data.Items.Gloves)].Where(x => ((Client.Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Client.Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
+                        var currentTop = Game.Items.Core.AllData[typeof(Top)].Where(x => ((Top.ItemData)x.Value).Sex == pData.Sex && ((Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentUnder = Game.Items.Core.AllData[typeof(Under)].Where(x => ((Under.ItemData)x.Value).Sex == pData.Sex && ((Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentGloves = Game.Items.Core.AllData[typeof(Gloves)].Where(x => ((Gloves.ItemData)x.Value).Sex == pData.Sex && ((Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
 
                         if (currentTop != null)
-                            Player.LocalPlayer.SetData("TempClothes::Top", new Clothes.TempClothes(currentTop, RealClothes[11].Item2));
+                            Player.LocalPlayer.SetData("TempClothes::Top", new Game.Data.Customization.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
 
                         if (currentUnder != null)
-                            Player.LocalPlayer.SetData("TempClothes::Under", new Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
+                            Player.LocalPlayer.SetData("TempClothes::Under", new Game.Data.Customization.Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
 
                         if (currentGloves != null)
-                            Player.LocalPlayer.SetData("TempClothes::Gloves", new Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
+                            Player.LocalPlayer.SetData("TempClothes::Gloves", new Game.Data.Customization.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
 
                         CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false);
 
@@ -1849,37 +1850,37 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         foreach (var x in prices)
                         {
-                            var iType = Client.Data.Items.GetType(x.Key, true);
+                            var iType = Game.Items.Core.GetType(x.Key, true);
 
                             if (iType == null)
                                 continue;
 
-                            var data = (Client.Data.Items.Clothes.ItemData)Client.Data.Items.GetData(x.Key, iType);
+                            var data = (Game.Items.Types.Clothes.ItemData)Game.Items.Core.GetData(x.Key, iType);
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            var obj = new object[] { x.Key, Client.Data.Items.GetName(x.Key), x.Value, data.Textures.Length, (data as Client.Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
+                            var obj = new object[] { x.Key, Game.Items.Core.GetName(x.Key), x.Value, data.Textures.Length, (data as Game.Items.Types.Clothes.ItemData.IToggleable)?.ExtraData != null };
 
-                            if (data is Client.Data.Items.Hat.ItemData)
+                            if (data is Hat.ItemData)
                                 hats.Add(obj);
-                            else if (data is Client.Data.Items.Top.ItemData)
+                            else if (data is Top.ItemData)
                                 tops.Add(obj);
-                            else if (data is Client.Data.Items.Under.ItemData)
+                            else if (data is Under.ItemData)
                                 unders.Add(obj);
-                            else if (data is Client.Data.Items.Pants.ItemData)
+                            else if (data is Pants.ItemData)
                                 pants.Add(obj);
-                            else if (data is Client.Data.Items.Shoes.ItemData)
+                            else if (data is Shoes.ItemData)
                                 shoes.Add(obj);
-                            else if (data is Client.Data.Items.Accessory.ItemData)
+                            else if (data is Accessory.ItemData)
                                 accs.Add(obj);
-                            else if (data is Client.Data.Items.Glasses.ItemData)
+                            else if (data is Glasses.ItemData)
                                 glasses.Add(obj);
-                            else if (data is Client.Data.Items.Gloves.ItemData)
+                            else if (data is Gloves.ItemData)
                                 gloves.Add(obj);
-                            else if (data is Client.Data.Items.Watches.ItemData)
+                            else if (data is Watches.ItemData)
                                 watches.Add(obj);
-                            else if (data is Client.Data.Items.Bracelet.ItemData)
+                            else if (data is Bracelet.ItemData)
                                 bracelets.Add(obj);
                         }
 
@@ -1902,15 +1903,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                         CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.BodyBack, Management.Camera.Core.StateTypes.WholePed };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.BodyBack, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
 
@@ -1920,7 +1921,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         foreach (var x in prices)
                         {
-                            var data = (Client.Data.Items.Bag.ItemData)Client.Data.Items.GetData(x.Key, typeof(Client.Data.Items.Bag));
+                            var data = (Bag.ItemData)Game.Items.Core.GetData(x.Key, typeof(Bag));
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
@@ -1938,7 +1939,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                         CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
@@ -1952,13 +1953,13 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
 
                         if (Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft"))
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.LeftHandFingers, Management.Camera.Core.StateTypes.WholePed };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.LeftHandFingers, Game.Management.Camera.Core.StateTypes.WholePed };
                         else
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.RightHandFingers, Management.Camera.Core.StateTypes.WholePed };
+                            AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.RightHandFingers, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         var prices = GetPrices(CurrentType);
 
@@ -1970,16 +1971,16 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         foreach (var x in prices)
                         {
-                            var data = (Client.Data.Items.Clothes.ItemData)Client.Data.Items.GetData(x.Key, null);
+                            var data = (Game.Items.Types.Clothes.ItemData)Game.Items.Core.GetData(x.Key, null);
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            if (data is Client.Data.Items.Accessory.ItemData acc)
+                            if (data is Accessory.ItemData acc)
                                 necklaces.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
-                            else if (data is Client.Data.Items.Earrings.ItemData ear)
+                            else if (data is Earrings.ItemData ear)
                                 earrings.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
-                            else if (data is Client.Data.Items.Ring.ItemData ring)
+                            else if (data is Ring.ItemData ring)
                                 rings.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, true });
                         }
 
@@ -1995,15 +1996,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                         CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.Head, Management.Camera.Core.StateTypes.Body, Management.Camera.Core.StateTypes.WholePed };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.Head, Game.Management.Camera.Core.StateTypes.Body, Game.Management.Camera.Core.StateTypes.WholePed };
 
-                        RealClothes = Clothes.GetAllRealClothes(Player.LocalPlayer);
+                        RealClothes = Game.Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = Clothes.GetAllRealAccessories(Player.LocalPlayer);
+                        RealAccessories = Game.Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
 
@@ -2013,7 +2014,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         foreach (var x in prices)
                         {
-                            var data = (Client.Data.Items.Mask.ItemData)Client.Data.Items.GetData(x.Key, typeof(Client.Data.Items.Mask));
+                            var data = (Mask.ItemData)Game.Items.Core.GetData(x.Key, typeof(Mask));
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
@@ -2043,15 +2044,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                         CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
                         CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
 
-                        Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.WholeVehicle, Management.Camera.Core.StateTypes.WholeVehicleOpen, Management.Camera.Core.StateTypes.FrontVehicle, Management.Camera.Core.StateTypes.FrontVehicleOpenHood, Management.Camera.Core.StateTypes.RightVehicle, Management.Camera.Core.StateTypes.BackVehicle, Management.Camera.Core.StateTypes.BackVehicleOpenTrunk, Management.Camera.Core.StateTypes.TopVehicle };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.WholeVehicle, Game.Management.Camera.Core.StateTypes.WholeVehicleOpen, Game.Management.Camera.Core.StateTypes.FrontVehicle, Game.Management.Camera.Core.StateTypes.FrontVehicleOpenHood, Game.Management.Camera.Core.StateTypes.RightVehicle, Game.Management.Camera.Core.StateTypes.BackVehicle, Game.Management.Camera.Core.StateTypes.BackVehicleOpenTrunk, Game.Management.Camera.Core.StateTypes.TopVehicle };
 
                         Browser.Switch(Browser.IntTypes.Shop, true);
 
                         Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
                         {
-                            var data = Data.Vehicles.Core.GetById(x.Key);
+                            var data = Game.Data.Vehicles.Core.GetById(x.Key);
 
                             return new object[] { x.Key, data.Name, x.Value, System.Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
                         }));
@@ -2085,7 +2086,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         // tech
                         var subData = new List<object>();
 
-                        if (vData.Data.Type != Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                         {
                             subData.Add(new object[] { "engine", techData["engine"].Name, "variants-list", techData["engine"].ModNames.Select(x => new object[] { prices[$"engine_{x.Key + 1}"], x.Value }), $"engine_{veh.GetMod(11) + 1}" });
 
@@ -2094,7 +2095,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             subData.Add(new object[] { "trm", techData["trm"].Name, "variants-list", techData["trm"].ModNames.Select(x => new object[] { prices[$"trm_{x.Key + 1}"], x.Value }), $"trm_{veh.GetMod(13) + 1}" });
                         }
 
-                        if (vData.Data.Type == Data.Vehicles.Types.Car)
+                        if (vData.Data.Type == Game.Data.Vehicles.Types.Car)
                             subData.Add(new object[] { "susp", techData["susp"].Name, "variants-list", techData["susp"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"susp_{veh.GetMod(15) + 1}" });
 
                         subData.Add(new object[] { "tt", techData["tt"].Name, "variants-list", techData["tt"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"tt_{(veh.IsToggleModOn(18) ? 1 : 0)}" });
@@ -2108,7 +2109,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         subData.Add(new object[] { "xenon", techData["xenon"].Name, "variants-list", techData["xenon"].ModNames.Select(x => new object[] { prices[$"xenon_{x.Key + 1}"], x.Value }), $"xenon_{(veh.GetXenonColour() ?? -2) + 2}" });
 
-                        if (vData.Data.Type == Data.Vehicles.Types.Car)
+                        if (vData.Data.Type == Game.Data.Vehicles.Types.Car)
                         {
                             var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEXNoAlpha : null;
 
@@ -2133,14 +2134,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                         CurrentColor1 = veh.GetPrimaryColour();
                         CurrentColor2 = veh.GetSecondaryColour();
 
-                        if (vData.Data.Type != Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                             subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
 
                         subData.Add(new object[] { "colour", Locale.Get("SHOP_TUNING_COLOURS_L"), "color-selection-2", new object[] { CurrentColor1.HEXNoAlpha, CurrentColor2.HEXNoAlpha, prices["colour"] } });
 
                         subData.Add(new object[] { "pearl", Locale.Get("SHOP_TUNING_PEARL_L"), "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
 
-                        if (vData.Data.Type != Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                         {
                             subData.Add(new object[] { "wcolour", Locale.Get("SHOP_TUNING_WHEELC_L"), "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
 
@@ -2155,11 +2156,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         // wheels
 
-                        if (vData.Data.Type != Data.Vehicles.Types.Boat)
+                        if (vData.Data.Type != Game.Data.Vehicles.Types.Boat)
                         {
                             subData = new List<object>();
 
-                            if (vData.Data.Type == Data.Vehicles.Types.Motorcycle)
+                            if (vData.Data.Type == Game.Data.Vehicles.Types.Motorcycle)
                             {
                                 veh.SetWheelType(6);
 
@@ -2237,7 +2238,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Player.LocalPlayer.SetVisible(false, false);
 
-                        AllowedCameraStates = new Management.Camera.Core.StateTypes[] { Management.Camera.Core.StateTypes.WholeVehicle, Management.Camera.Core.StateTypes.FrontVehicle, Management.Camera.Core.StateTypes.BackVehicleUpAngle, Management.Camera.Core.StateTypes.BackVehicle, Management.Camera.Core.StateTypes.TopVehicle };
+                        AllowedCameraStates = new Game.Management.Camera.Core.StateTypes[] { Game.Management.Camera.Core.StateTypes.WholeVehicle, Game.Management.Camera.Core.StateTypes.FrontVehicle, Game.Management.Camera.Core.StateTypes.BackVehicleUpAngle, Game.Management.Camera.Core.StateTypes.BackVehicle, Game.Management.Camera.Core.StateTypes.TopVehicle };
 
                         ChangeView(0);
                     }
@@ -2275,7 +2276,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     var viewText = Locale.Get("SHOP_RET_VIEW_L");
 
-                    CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Client.Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, viewText }) }, null, false);
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, viewText }) }, null, false);
                 }
                 else
                 {
@@ -2295,7 +2296,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                     };
 
-                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Client.Data.Items.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Client.Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; })), null, false);
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Game.Items.Core.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; })), null, false);
                 }
 
                 OnShowFinish();
@@ -2421,11 +2422,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (Player.LocalPlayer.HasData("TempDecorations"))
                 {
-                    Data.Customization.Customization.TattooData.ClearAll(Player.LocalPlayer);
+                    Game.Data.Customization.Customization.TattooData.ClearAll(Player.LocalPlayer);
 
                     if (pData.Decorations is List<int> decors)
                         foreach (var x in decors)
-                            Data.Customization.Customization.GetTattooData(x)?.TryApply(Player.LocalPlayer);
+                            Game.Data.Customization.Customization.GetTattooData(x)?.TryApply(Player.LocalPlayer);
 
                     Player.LocalPlayer.ResetData("TempDecorations");
                 }
@@ -2434,7 +2435,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     Player.LocalPlayer.ResetData("Temp::JewelShop::RingIsLeft");
 
-                    Clothes.Unwear(typeof(Client.Data.Items.Ring));
+                    Game.Data.Customization.Clothes.Unwear(typeof(Ring));
                 }
                 if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
@@ -2486,7 +2487,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Main.DisableAllControls(false);
 
-                    Misc.Interaction.Enabled = true;
+                    Game.Management.Interaction.Enabled = true;
 
                     CEF.Chat.Show(true);
 
@@ -2495,7 +2496,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Core.EnableAll();
 
-                    Management.Camera.Core.Disable();
+                    Game.Management.Camera.Core.Disable();
                 }
                 else if (Browser.IsRendered(Browser.IntTypes.Retail))
                 {
@@ -2592,15 +2593,15 @@ namespace BlaineRP.Client.Game.UI.CEF
                 while (TempVehicle?.Exists != true)
                     await RAGE.Game.Invoker.WaitAsync(25);
 
-                var cs = Management.Camera.Core.StateTypes.WholeVehicle;
+                var cs = Game.Management.Camera.Core.StateTypes.WholeVehicle;
 
-                var t = new float[] { (Management.Camera.Core.States[cs].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                var t = new float[] { (Game.Management.Camera.Core.States[cs].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
 
-                var pDef = Management.Camera.Core.States[cs].Position;
+                var pDef = Game.Management.Camera.Core.States[cs].Position;
 
                 var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
 
-                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null, pOff);
+                Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null, pOff);
 
                 TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -2620,7 +2621,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+                Game.Management.Camera.Core.Enable(Game.Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
             }
 
             CEF.Cursor.Show(true, true);
@@ -2681,11 +2682,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             if (RAGE.Game.Pad.GetDisabledControlNormal(0, 241) == 1f)
             {
-                Management.Camera.Core.Fov -= 1;
+                Game.Management.Camera.Core.Fov -= 1;
             }
             else if (RAGE.Game.Pad.GetDisabledControlNormal(0, 242) == 1f)
             {
-                Management.Camera.Core.Fov += 1;
+                Game.Management.Camera.Core.Fov += 1;
             }
 
             if (TempEntity != null)
@@ -2730,13 +2731,13 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempEntity, TempEntity, -1);
+                    Game.Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempEntity, TempEntity, -1);
                 }
                 else
                 {
                     Player.LocalPlayer.SetHeading(DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                    Game.Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
                 }
             }
             else
@@ -2746,25 +2747,25 @@ namespace BlaineRP.Client.Game.UI.CEF
                     TempVehicle.SetHeading(DefaultHeading);
 
                     //var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
-                    var t = new float[] { (Management.Camera.Core.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, 5f };
+                    var t = new float[] { (Game.Management.Camera.Core.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, 5f };
 
-                    var pDef = Management.Camera.Core.States[AllowedCameraStates[camStateNum]].Position;
+                    var pDef = Game.Management.Camera.Core.States[AllowedCameraStates[camStateNum]].Position;
 
                     //var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
                     var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * 1.5f);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                    Game.Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
                 }
                 else
                 {
                     Player.LocalPlayer.SetHeading(DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                    Game.Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
                 }
             }
         }
 
-        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, byte renderType, params Management.Camera.Core.StateTypes[] cameraStates)
+        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, byte renderType, params Game.Management.Camera.Core.StateTypes[] cameraStates)
         {
             if (RetailPreviewActive)
                 return;
@@ -2821,7 +2822,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             AllowedCameraStates = null;
 
-            Management.Camera.Core.Disable(0);
+            Game.Management.Camera.Core.Disable(0);
 
             Main.DisableAllControls(false);
 
@@ -2839,7 +2840,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             if (CurrentItem != null)
             {
-                var furnData = Client.Data.Furniture.GetData(CurrentItem);
+                var furnData = Furniture.GetData(CurrentItem);
 
                 if (furnData == null)
                     return;

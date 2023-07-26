@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Sync;
-using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Bank
@@ -55,7 +53,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Bank::Savings::ToDebitSett", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), state))
                 {
@@ -85,7 +83,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if (aId == "transfer")
                 {
@@ -94,14 +92,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var approveContext = $"BankSendToPlayer_{cid}_{amount}";
                     var approveTime = 5_000;
 
-                    if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                     {
                         if (LastSent.IsSpam(1_500, false, true))
                             return;
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
 
-                        CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                        CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                         if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true)) ;
                         {
@@ -152,7 +150,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     Events.CallRemote("Bank::Tariff::Buy", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), (int)tarrif);
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
                 }
             });
 

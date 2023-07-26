@@ -3,16 +3,13 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Fractions.Types;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Numberplates
@@ -33,14 +30,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                 var num = (int)args[1];
                 var signsAmount = (int)args[2];
 
-                var npcData = NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
+                var npcData = Game.NPCs.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
 
                 if (npcData == null)
                     return;
 
                 if (!LastSent.IsSpam(1000, false, true))
                 {
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var res = (string)await npcData.CallRemoteProc("cop_np_buy", $"np_{num}", signsAmount, byCash ? 1 : 0);
 

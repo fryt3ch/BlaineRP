@@ -4,15 +4,14 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Estates.Garages;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class GarageMenu
@@ -21,7 +20,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static DateTime LastSent;
 
-        private static Client.Data.Locations.GarageRoot CurrentGarageRoot { get; set; }
+        private static GarageRoot CurrentGarageRoot { get; set; }
 
         private static List<int> TempBinds { get; set; }
 
@@ -49,7 +48,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if (aId == "enter")
                 {
@@ -70,9 +69,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var approveContext = "GarageMenuSellGov}";
                     var approveTime = 5_000;
 
-                    if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                     {
-                        CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                        CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                         CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(garage.Price))), approveTime);
                     }
@@ -100,7 +99,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(Client.Data.Locations.GarageRoot gRoot)
+        public static async System.Threading.Tasks.Task Show(GarageRoot gRoot)
         {
             if (IsActive)
                 return;

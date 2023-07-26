@@ -7,15 +7,13 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class FractionMenu
@@ -47,14 +45,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var coords = (Vector3)await Events.CallRemoteProc("Fraction::VGPS", vid);
 
                     if (coords == null)
                         return;
 
-                    Wrappers.Blips.Core.CreateGPS(coords, Settings.App.Static.MainDimension, true);
+                    Game.Helpers.Blips.Core.CreateGPS(coords, Settings.App.Static.MainDimension, true);
                 }
                 else if (actionId == 1) // respawn
                 {
@@ -76,7 +74,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
                     }
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Fraction::VRSP", vid))
                     {
@@ -126,7 +124,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
                 }
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Fraction::VCMR", vid, newMinRank))
                 {
@@ -177,7 +175,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
                     }
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var newRank = (byte)(mData.Rank + 1);
 
@@ -195,7 +193,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
                     }
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var newRank = (byte)(mData.Rank - 1);
 
@@ -206,7 +204,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
                 else if (actionId == 2) // fire
                 {
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Fraction::MF", cid))
                     {
@@ -239,7 +237,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
                 }
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 var rankData = ((JObject)await Events.CallRemoteProc("Fraction::RE", rankToEdit))?.ToObject<Dictionary<uint, int>>();
 
@@ -272,7 +270,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if ((Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                 {
@@ -316,7 +314,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(500, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                     {
@@ -403,7 +401,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(500, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                     {
@@ -454,7 +452,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Fraction::RUP", Player.LocalPlayer.GetData<byte>("FractionMenu::RankEdit::CurrentRank"), permId, state))
                 {
@@ -515,7 +513,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Fraction::RUN", rankToEdit, name))
                 {
@@ -524,7 +522,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             });
         }
 
-        public static async void Show(FractionTypes type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, Fractions.VehicleData> vehs, decimal balance, byte myRank)
+        public static async void Show(FractionTypes type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, Game.Fractions.VehicleData> vehs, decimal balance, byte myRank)
         {
             if (IsActive)
                 return;

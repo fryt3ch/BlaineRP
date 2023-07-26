@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using RAGE;
 
-namespace BlaineRP.Client.Game.Fractions.Types
+namespace BlaineRP.Client.Game.Fractions
 {
     public class Army : Fraction, IUniformable
     {
-        public Army(Enums.FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public Army(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
@@ -32,7 +31,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
                 };
             }
 
-            if (type == Enums.FractionTypes.GOV_LS)
+            if (type == Types.GOV_LS)
             {
                 UniformNames = new string[]
                 {

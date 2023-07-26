@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PlayerMarket

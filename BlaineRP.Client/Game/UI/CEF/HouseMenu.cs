@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Client.Data;
+
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Camera;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.Game.Estates.Houses;
+using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class HouseMenu
@@ -45,7 +44,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Events.Add("MenuHome::Action", async (args) =>
             {
-                var house = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("House::CurrentHouse");
+                var house = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
 
                 if (house == null)
                     return;
@@ -59,7 +58,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     Events.CallRemote("House::Lock", id == "entry", !state);
                 }
@@ -72,7 +71,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     var fUid = uint.Parse((string)args[1]);
 
-                    var furn = Sync.House.Furniture.GetValueOrDefault(fUid);
+                    var furn = Game.Estates.Core.Furniture.GetValueOrDefault(fUid);
                     var pFurn = pData.Furniture.GetValueOrDefault(fUid);
 
                     if (id == "locate")
@@ -80,14 +79,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (furn == null)
                             return;
 
-                        Sync.House.FindObject(furn);
+                        Game.Estates.Core.FindObject(furn);
                     }
                     else if (id == "rearrange")
                     {
                         if (furn == null && pFurn == null)
                             return;
 
-                        var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+                        var curStyle = Player.LocalPlayer.GetData<Game.Estates.Core.Style>("House::CurrentHouse::Style");
 
                         if (curStyle == null)
                             return;
@@ -95,7 +94,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
 
                         if ((bool)await Events.CallRemoteProc("House::Menu::Furn::Start", fUid))
                         {
@@ -106,7 +105,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (furn == null)
                             {
-                                var pos = Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+                                var pos = Game.Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
                                 furn = Streaming.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 
@@ -119,7 +118,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             {
                                 var pos = furn.GetCoords(false);
                                 var rot = furn.GetRotation(2);
-                                var model = furn.GetData<Client.Data.Furniture>("Data")?.Model ?? 0;
+                                var model = furn.GetData<Furniture>("Data")?.Model ?? 0;
 
                                 furn.SetVisible(false, false);
                                 furn.SetCollision(false, false);
@@ -174,7 +173,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Events.CallRemote("House::Menu::Furn::Remove", fUid);
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
                     }
                     else if (id == "sellfurn")
                     {
@@ -187,9 +186,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    if (!Player.LocalPlayer.HasData("HouseMenu::SellGov::ApproveTime") || World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("HouseMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
+                    if (!Player.LocalPlayer.HasData("HouseMenu::SellGov::ApproveTime") || Game.World.Core.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("HouseMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
                     {
-                        Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", World.Core.ServerTime);
+                        Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", Game.World.Core.ServerTime);
 
                         CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Locale.Get("GEN_MONEY_0", Utils.Misc.GetGovSellPrice(house.Price))), 5000);
                     }
@@ -210,12 +209,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     var layoutId = ushort.Parse(id2.Replace("hlo_", ""));
 
-                    var style = Sync.House.Style.Get(layoutId);
+                    var style = Game.Estates.Core.Style.Get(layoutId);
 
                     if (style == null)
                         return;
 
-                    var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+                    var curStyle = Player.LocalPlayer.GetData<Game.Estates.Core.Style>("House::CurrentHouse::Style");
 
                     if (curStyle == null)
                         return;
@@ -225,11 +224,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
 
                         CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, true);
 
-                        var res = (bool)await Events.CallRemoteProc("House::SSOV", layoutId, Sync.House.CurrentOverviewStyle ?? Sync.House.Style.All.Where(x => x.Value == curStyle).FirstOrDefault().Key);
+                        var res = (bool)await Events.CallRemoteProc("House::SSOV", layoutId, Game.Estates.Core.CurrentOverviewStyle ?? Game.Estates.Core.Style.All.Where(x => x.Value == curStyle).FirstOrDefault().Key);
 
                         if (!res)
                         {
@@ -251,14 +250,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                         var approveContext = $"HouseMenuBuyStyle_{layoutId}";
                         var approveTime = 5_000;
 
-                        if (CEF.Notification.HasApproveTimedOut(approveContext, World.Core.ServerTime, approveTime))
+                        if (CEF.Notification.HasApproveTimedOut(approveContext, Game.World.Core.ServerTime, approveTime))
                         {
                             if (LastSent.IsSpam(1000, false, true))
                                 return;
 
-                            LastSent = World.Core.ServerTime;
+                            LastSent = Game.World.Core.ServerTime;
 
-                            CEF.Notification.SetCurrentApproveContext(approveContext, World.Core.ServerTime);
+                            CEF.Notification.SetCurrentApproveContext(approveContext, Game.World.Core.ServerTime);
 
                             CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), curStyle.IsTypeFamiliar(layoutId) ? Locale.Get("HOUSE_STYLE_APPROVE_0") : Locale.Get("HOUSE_STYLE_APPROVE_1"), approveTime);
                         }
@@ -285,12 +284,12 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     var lIdx = int.Parse(((string)args[1]).Replace("ls_", ""));
 
-                    var light = Sync.House.Lights.GetValueOrDefault(lIdx);
+                    var light = Game.Estates.Core.Lights.GetValueOrDefault(lIdx);
 
                     if (light == null)
                         return;
 
-                    var rgb = Sync.House.DefaultLightColour;
+                    var rgb = Game.Estates.Core.DefaultLightColour;
 
                     if (id == "apply-color")
                     {
@@ -307,7 +306,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Events.CallRemote("House::Menu::Light::RGB", lIdx, rgb.Red, rgb.Green, rgb.Blue);
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
                 }
             });
 
@@ -332,7 +331,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     var lIdx = int.Parse(id.Replace("ls_", ""));
 
-                    var light = Sync.House.Lights.GetValueOrDefault(lIdx);
+                    var light = Game.Estates.Core.Lights.GetValueOrDefault(lIdx);
 
                     if (light == null)
                         return;
@@ -340,14 +339,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                     Events.CallRemote("House::Menu::Light::State", lIdx, state);
                 }
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
             });
 
             Events.Add("HomeMenu::UpdateLightColor", (args) =>
             {
                 var id = (string)args[0];
 
-                var light = Sync.House.Lights.GetValueOrDefault(int.Parse(id.Replace("ls_", "")));
+                var light = Game.Estates.Core.Lights.GetValueOrDefault(int.Parse(id.Replace("ls_", "")));
 
                 if (light == null)
                     return;
@@ -403,7 +402,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                 return;
 
-            var house = Player.LocalPlayer.GetData<Client.Data.Locations.HouseBase>("House::CurrentHouse");
+            var house = Player.LocalPlayer.GetData<HouseBase>("House::CurrentHouse");
 
             if (house == null)
                 return;
@@ -413,34 +412,34 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            var style = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+            var style = Player.LocalPlayer.GetData<Game.Estates.Core.Style>("House::CurrentHouse::Style");
 
             object[] info = null;
 
-            if (house is Client.Data.Locations.House rHouse)
+            if (house is House rHouse)
             {
                 info = new object[] { house.Id, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, rHouse.GarageType == null ? 0 : (int)rHouse.GarageType, new object[] { doorState, contState } };
             }
-            else if (house is Client.Data.Locations.Apartments rApartments)
+            else if (house is Apartments rApartments)
             {
                 info = new object[] { rApartments.NumberInRoot + 1, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, 0, new object[] { doorState, contState } };
             }
 
-            var layouts = new object[] { Sync.House.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).OrderBy(x => x.Key).Select(x => new object[] { $"hlo_{x.Key}", Sync.House.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Sync.House.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
+            var layouts = new object[] { Game.Estates.Core.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).OrderBy(x => x.Key).Select(x => new object[] { $"hlo_{x.Key}", Game.Estates.Core.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Game.Estates.Core.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
 
-            var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Client.Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
+            var furns = new object[] { Game.Estates.Core.Furniture.Select(x => { var fData = x.Value.GetData<Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
-            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", Locale.Get(x.Value.Objects.Count > 1 ? "HOUSEMENU_LAMPS_SET" : "HOUSEMENU_LAMPS_SINGLE", x.Key + 1), x.Value.State, x.Value.RGB.HEX });
+            var lights = Game.Estates.Core.Lights.Select(x => new object[] { $"ls_{x.Key}", Locale.Get(x.Value.Objects.Count > 1 ? "HOUSEMENU_LAMPS_SET" : "HOUSEMENU_LAMPS_SINGLE", x.Key + 1), x.Value.State, x.Value.RGB.HEX });
 
             await CEF.Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
-            CEF.Browser.Window.ExecuteJs("MenuHome.draw", house.Type == Sync.House.HouseTypes.Apartments ? 1 : 0, new object[] { info, layouts, settlers, furns, lights });
+            CEF.Browser.Window.ExecuteJs("MenuHome.draw", house.Type == Game.Estates.Core.HouseTypes.Apartments ? 1 : 0, new object[] { info, layouts, settlers, furns, lights });
 
             CEF.Cursor.Show(true, true);
 
             EscBind = Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
-                if (Sync.House.CurrentOverviewStyle is ushort curStyle)
+                if (Game.Estates.Core.CurrentOverviewStyle is ushort curStyle)
                 {
                     if (CEF.Browser.IsActive(Browser.IntTypes.MenuHome))
                     {
@@ -480,7 +479,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Events.CallRemote("House::Menu::Show");
 
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -497,7 +496,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Core.Unbind(EscBind);
 
-            foreach (var x in Sync.House.Lights.Values)
+            foreach (var x in Game.Estates.Core.Lights.Values)
             {
                 if (x == null)
                     continue;
@@ -508,7 +507,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Player.LocalPlayer.ResetData("HouseMenu::SellGov::ApproveTime");
 
-            if (Sync.House.CurrentOverviewStyle is ushort curStyle)
+            if (Game.Estates.Core.CurrentOverviewStyle is ushort curStyle)
             {
                 StyleOverviewStop();
 
@@ -528,11 +527,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static void RemoveSettler(uint cid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeRoommate", cid);
 
-        public static void AddInstalledFurniture(uint uid, Client.Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "installed", uid, fData.Id, fData.Name);
+        public static void AddInstalledFurniture(uint uid, Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "installed", uid, fData.Id, fData.Name);
 
         public static void RemoveInstalledFurniture(uint uid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeFurniture", "installed", uid);
 
-        public static void AddOwnedFurniture(uint uid, Client.Data.Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "possible", uid, fData.Id, fData.Name);
+        public static void AddOwnedFurniture(uint uid, Furniture fData) => CEF.Browser.Window.ExecuteJs("MenuHome.newFurnitureElem", "possible", uid, fData.Id, fData.Name);
 
         public static void RemoveOwnedFurniture(uint uid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeFurniture", "possible", uid);
 
@@ -557,7 +556,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             CEF.Browser.SwitchTemp(Browser.IntTypes.MenuHome, true);
 
-            foreach (var x in Sync.House.Furniture.Values)
+            foreach (var x in Game.Estates.Core.Furniture.Values)
             {
                 if (x?.IsVisible() == false)
                 {
@@ -572,7 +571,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (LastSent.IsSpam(1000, false, false))
                 return;
 
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
 
             var res = Utils.Convert.ToByte(await Events.CallRemoteProc("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z));
 
@@ -594,7 +593,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             StyleOverviewStop();
 
-            Sync.House.CurrentOverviewStyle = styleId;
+            Game.Estates.Core.CurrentOverviewStyle = styleId;
 
             Main.Render -= StyleOverviewRender;
             Main.Render += StyleOverviewRender;
@@ -608,10 +607,10 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static void StyleOverviewStop()
         {
-            if (Sync.House.CurrentOverviewStyle == null)
+            if (Game.Estates.Core.CurrentOverviewStyle == null)
                 return;
 
-            Sync.House.CurrentOverviewStyle = null;
+            Game.Estates.Core.CurrentOverviewStyle = null;
 
             Main.Render -= StyleOverviewRender;
 
@@ -627,13 +626,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static void StyleOverviewRender()
         {
-            if (Sync.House.CurrentOverviewStyle is ushort styleId)
+            if (Game.Estates.Core.CurrentOverviewStyle is ushort styleId)
             {
                 var isMenuActive = CEF.Browser.IsActive(Browser.IntTypes.MenuHome);
 
                 if (!isMenuActive)
                 {
-                    var text = Sync.House.Style.GetName(styleId);
+                    var text = Game.Estates.Core.Style.GetName(styleId);
 
                     Graphics.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
@@ -688,7 +687,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (CurrentContext == ContextTypes.ApartmentsRoot)
                 {
-                    var aRoot = Player.LocalPlayer.GetData<Locations.ApartmentsRoot>("ApartmentsRoot::Current");
+                    var aRoot = Player.LocalPlayer.GetData<ApartmentsRoot>("ApartmentsRoot::Current");
 
                     if (aRoot == null)
                         return;
@@ -716,7 +715,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Events.CallRemote("ARoot::Elevator", elevI, elevJ, floor - shell.StartFloor);
 
-                    HouseMenu.LastSent = World.Core.ServerTime;
+                    HouseMenu.LastSent = Game.World.Core.ServerTime;
 
                     Close();
                 }

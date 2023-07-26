@@ -4,7 +4,7 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using RAGE.Elements;
 using RAGE.NUI;
 
-namespace BlaineRP.Client.Game.UI
+namespace BlaineRP.Client.UI
 {
     class TuningMenu
     {

@@ -5,19 +5,16 @@ using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Estates.Houses;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
 using BlaineRP.Client.Game.Fractions.Types;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
-using BlaineRP.Client.Input;
-using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
-using Core = BlaineRP.Client.Game.Wrappers.Blips.Core;
+using Core = BlaineRP.Client.Game.Helpers.Blips.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class PoliceTabletPC
@@ -65,7 +62,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::CODEF", curCallInfo.Player.RemoteId, curCallInfo.Type);
                 }
@@ -74,7 +71,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::CODE", code);
 
@@ -160,7 +157,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
                     }
 
-                    if (CurrentFoundPlayerData != null && (CurrentFoundPlayerData.GetValueOrDefault("Vehicles") as List<Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>>)?.Where(x => x.Item2 == vehPlateStr).Any() == true)
+                    if (CurrentFoundPlayerData != null && (CurrentFoundPlayerData.GetValueOrDefault("Vehicles") as List<Tuple<Game.Data.Vehicles.Vehicle, string, Utils.Colour>>)?.Where(x => x.Item2 == vehPlateStr).Any() == true)
                     {
                         CEF.Notification.Show("Police::DBS::PAF");
 
@@ -197,7 +194,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                LastSent = World.Core.ServerTime;
+                LastSent = Game.World.Core.ServerTime;
 
                 var resObj = await Events.CallRemoteProc("Police::DBS", searchType, searchStr);
 
@@ -216,10 +213,10 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var fractionData = res.ContainsKey("FT") ? Fraction.Get((FractionTypes)Utils.Convert.ToInt32(res["FT"])) : null;
                     var fractionRank = res.ContainsKey("FR") ? Utils.Convert.ToByte(res["FT"]) : (byte)0;
 
-                    var houseData = res.ContainsKey("H") ? Client.Data.Locations.House.All[Utils.Convert.ToUInt32(res["H"])] : null;
-                    var apsData = res.ContainsKey("A") ? Client.Data.Locations.Apartments.All[Utils.Convert.ToUInt32(res["A"])] : null;
+                    var houseData = res.ContainsKey("H") ? House.All[Utils.Convert.ToUInt32(res["H"])] : null;
+                    var apsData = res.ContainsKey("A") ? Apartments.All[Utils.Convert.ToUInt32(res["A"])] : null;
 
-                    var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>(Data.Vehicles.Core.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
+                    var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Game.Data.Vehicles.Vehicle, string, Utils.Colour>(Game.Data.Vehicles.Core.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
 
                     CurrentFoundPlayerData = new Dictionary<string, object>()
                     {
@@ -253,7 +250,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         losSantosAllowed,
                         phoneNumber,
                         houseData == null ? null : $"#{houseData.Id}, {Utils.Game.Misc.GetStreetName(houseData.Position)}",
-                        apsData == null ? null : $"#{apsData.Id}, {Client.Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
+                        apsData == null ? null : $"#{apsData.Id}, {ApartmentsRoot.All[apsData.RootId].Name}",
                         null, // organisation
                         fractionData == null ? null : $"{fractionData.Name} | {fractionData.GetRankName(fractionRank)}",
                         vehicles.Select(x => new object[] { x.Item1.Name, x.Item2 == null || x.Item2.Length == 0 ? null : x.Item2, x.Item3.HEXNoAlpha })
@@ -333,7 +330,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var largeDetails = (string)await Events.CallRemoteProc("Police::APBGLD", id);
 
@@ -356,7 +353,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::APBF", apbInfo.Id))
                     {
@@ -380,7 +377,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::APBA", name, details, largeDetails))
                     {
@@ -437,7 +434,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     var res = await Events.CallRemoteProc("Police::GPSTRL", gpsTrackerId);
 
@@ -462,7 +459,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (idx == 0) // house
                 {
-                    var houseData = CurrentFoundPlayerData.GetValueOrDefault("HouseData") as Client.Data.Locations.House;
+                    var houseData = CurrentFoundPlayerData.GetValueOrDefault("HouseData") as House;
 
                     if (houseData == null)
                         return;
@@ -482,7 +479,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
                 else if (idx == 1) // aps
                 {
-                    var apsData = CurrentFoundPlayerData.GetValueOrDefault("ApsData") as Client.Data.Locations.Apartments;
+                    var apsData = CurrentFoundPlayerData.GetValueOrDefault("ApsData") as Apartments;
 
                     if (apsData == null)
                         return;
@@ -495,9 +492,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else
                     {
-                        var aRoot = Client.Data.Locations.ApartmentsRoot.All[apsData.RootId];
+                        var aRoot = ApartmentsRoot.All[apsData.RootId];
 
-                        var pos = Player.LocalPlayer.GetData<Client.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current") == aRoot ? apsData.Position : aRoot.PositionEnter;
+                        var pos = Player.LocalPlayer.GetData<ApartmentsRoot>("ApartmentsRoot::Current") == aRoot ? apsData.Position : aRoot.PositionEnter;
 
                         Core.CreateGPS(pos, Player.LocalPlayer.Dimension, true);
                     }
@@ -531,7 +528,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Police::GPSTRD", gpsTrackerId))
                     {

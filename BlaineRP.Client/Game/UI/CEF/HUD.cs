@@ -7,19 +7,16 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Types;
 using BlaineRP.Client.Game.Jobs;
-using BlaineRP.Client.Game.Misc;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Input;
+using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Quests;
-using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 using Players = BlaineRP.Client.Sync.Players;
 using VehicleData = BlaineRP.Client.Game.EntitiesData.VehicleData;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class HUD

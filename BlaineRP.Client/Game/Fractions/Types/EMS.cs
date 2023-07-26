@@ -6,13 +6,12 @@ using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Animations.Enums;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
-using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.Wrappers;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Enums;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
@@ -20,7 +19,7 @@ using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Animations.Core;
 
-namespace BlaineRP.Client.Game.Fractions.Types
+namespace BlaineRP.Client.Game.Fractions
 {
     public class EMS : Fraction, IUniformable
     {
@@ -28,7 +27,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
 
         public List<MapObject> TempObjects { get; set; }
 
-        public EMS(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string bedPositionsJs) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public EMS(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string lockerRoomPositionsStr, string creationWorkbenchPricesJs, uint metaFlags, string bedPositionsJs) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(lockerRoomPositionsStr);
 
@@ -53,7 +52,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
 
             Utils.Vector4[] mainColshapes = null;
 
-            if (type == FractionTypes.EMS_BLAINE)
+            if (type == Types.EMS_BLAINE)
             {
                 UniformNames = new string[]
                 {
@@ -69,7 +68,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
                     new Utils.Vector4(1830.509f, 3679.626f, 33.2749f, 45f),
                 };
             }
-            else if (type == FractionTypes.EMS_LS)
+            else if (type == Types.EMS_LS)
             {
                 mainColshapes = new Utils.Vector4[]
                 {
@@ -185,25 +184,25 @@ namespace BlaineRP.Client.Game.Fractions.Types
         {
             base.OnStartMembership(args);
 
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
 
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, "fraction_invite");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, "ems_heal");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, "ems_diag");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "ems_medcard");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "ems_narco");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "ems_psych");
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "ems_sellmask");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, "fraction_invite");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, "ems_heal");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, "ems_diag");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "ems_medcard");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "ems_narco");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "ems_psych");
+            UI.CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "ems_sellmask");
 
-            Game.UI.CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "player_to_veh");
-            Game.UI.CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "player_from_veh");
+            UI.CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "player_to_veh");
+            UI.CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "player_from_veh");
 
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_heal", (entity) => { var player = entity as Player; if (player == null) return; PlayerHeal(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_diag", (entity) => { var player = entity as Player; if (player == null) return; PlayerDiagnostics(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_medcard", (entity) => { var player = entity as Player; if (player == null) return; PlayerMedicalCard(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_narco", (entity) => { var player = entity as Player; if (player == null) return; PlayerDrugHeal(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_psych", (entity) => { var player = entity as Player; if (player == null) return; PlayerPsychHeal(player); });
-            Game.UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_sellmask", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellMask(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_heal", (entity) => { var player = entity as Player; if (player == null) return; PlayerHeal(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_diag", (entity) => { var player = entity as Player; if (player == null) return; PlayerDiagnostics(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_medcard", (entity) => { var player = entity as Player; if (player == null) return; PlayerMedicalCard(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_narco", (entity) => { var player = entity as Player; if (player == null) return; PlayerDrugHeal(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_psych", (entity) => { var player = entity as Player; if (player == null) return; PlayerPsychHeal(player); });
+            UI.CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "ems_sellmask", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellMask(player); });
 
             /*            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
                         CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });*/
@@ -277,7 +276,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
 
             Core.LastSent = Game.World.Core.ServerTime;
 
-            var res = (bool)await Events.CallRemoteProc("EMS::BedOcc", fTypeNum, bedIdx);
+            var res = (bool)await RAGE.Events.CallRemoteProc("EMS::BedOcc", fTypeNum, bedIdx);
 
             if (res)
             {
@@ -300,7 +299,7 @@ namespace BlaineRP.Client.Game.Fractions.Types
                         if (cs?.Exists != true)
                             return;
 
-                        Events.CallRemote("EMS::BedFree");
+                        RAGE.Events.CallRemote("EMS::BedFree");
                     },
                 };
 

@@ -6,17 +6,18 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Estates.Garages;
+using BlaineRP.Client.Game.Estates.Houses;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.World;
+using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Quests.Enums;
-using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Menu
@@ -79,7 +80,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         public static DateTime CreationDate { get; set; }
         public static DateTime BirthDate { get; set; }
 
-        public static List<(uint VID, Data.Vehicles.Vehicle Data)> OwnedVehicles;
+        public static List<(uint VID, Game.Data.Vehicles.Vehicle Data)> OwnedVehicles;
         public static Dictionary<uint, (string Reason, string Name)> Gifts;
 
         private static int TempBindEsc;
@@ -88,7 +89,7 @@ namespace BlaineRP.Client.Game.UI.CEF
         {
             TempBindEsc = -1;
 
-            OwnedVehicles = new List<(uint, Data.Vehicles.Vehicle)>();
+            OwnedVehicles = new List<(uint, Game.Data.Vehicles.Vehicle)>();
             Gifts = new Dictionary<uint, (string Reason, string Name)>();
 
             #region Events
@@ -169,7 +170,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Events.CallRemote("Players::SetIsInvalid", (bool)args[1]);
 
-                        LastSent = World.Core.ServerTime;
+                        LastSent = Game.World.Core.ServerTime;
                         break;
 
                     case "sett-aimType":
@@ -353,7 +354,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             //Browser.Window.ExecuteJs("switchEsc", !Settings.User.Interface.HideHints);
 
-            LastSwitched = World.Core.ServerTime;
+            LastSwitched = Game.World.Core.ServerTime;
 
             Cursor.Show(true, true);
         }
@@ -410,10 +411,10 @@ namespace BlaineRP.Client.Game.UI.CEF
         public static string GetGiftName(GiftTypes type, string gid, int amount)
         {
             if (type == GiftTypes.Item)
-                return Client.Data.Items.GetName(gid) + (amount > 1 ? $" x{amount}" : "");
+                return Game.Items.Core.GetName(gid) + (amount > 1 ? $" x{amount}" : "");
 
             if (type == GiftTypes.Vehicle)
-                return Data.Vehicles.Core.GetById(gid)?.Name ?? "null";
+                return Game.Data.Vehicles.Core.GetById(gid)?.Name ?? "null";
 
             if (type == GiftTypes.Money)
                 return $"${amount}";
@@ -489,9 +490,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.Game.Misc.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
-            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Client.Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
 
-            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Client.Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }
@@ -546,13 +547,13 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (ReportSendAntiSpam.IsSpam(2500, false, true))
                 return;
 
-            ReportSendAntiSpam = World.Core.ServerTime;
+            ReportSendAntiSpam = Game.World.Core.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Report::Send", text))
             {
                 UpdatePlayerReportInput("");
 
-                AddMessageToChatHistory(Player.LocalPlayer, World.Core.ServerTime, text);
+                AddMessageToChatHistory(Player.LocalPlayer, Game.World.Core.ServerTime, text);
             }
         }
     }

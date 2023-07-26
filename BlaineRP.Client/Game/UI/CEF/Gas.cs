@@ -5,16 +5,16 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Data.Vehicles;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Colshapes;
-using BlaineRP.Client.Game.Wrappers.Colshapes.Types;
-using BlaineRP.Client.Utils;
+using BlaineRP.Client.Game.Helpers.Colshapes;
+using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Items;
+using BlaineRP.Client.Game.Items.Types;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Input.Core;
 using Vehicle = RAGE.Elements.Vehicle;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Gas
@@ -52,7 +52,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (!LastSent.IsSpam(500, false, true))
                 {
-                    LastSent = World.Core.ServerTime;
+                    LastSent = Game.World.Core.ServerTime;
 
                     if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{GetGasBuyIdByFuelType(vData.Data.FuelType)}&{TargetVehicle.RemoteId}&{amount}&{(BuyByFraction ? 1 : 0)}", useCash))
                     {
@@ -120,9 +120,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (CEF.Inventory.ItemsParams[i] == null)
                         continue;
 
-                    if (Client.Data.Items.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(Client.Data.Items.VehicleJerrycan))
+                    if (Game.Items.Core.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(VehicleJerrycan))
                     {
-                        if ((Client.Data.Items.GetData(CEF.Inventory.ItemsParams[i].Id, typeof(Client.Data.Items.VehicleJerrycan)) as Client.Data.Items.VehicleJerrycan.ItemData)?.IsPetrol == vehIsPetrol)
+                        if ((Game.Items.Core.GetData(CEF.Inventory.ItemsParams[i].Id, typeof(VehicleJerrycan)) as VehicleJerrycan.ItemData)?.IsPetrol == vehIsPetrol)
                         {
                             var name = ((string)(((object[])CEF.Inventory.ItemsData[i][0])[1]));
 
@@ -257,7 +257,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            LastSent = World.Core.ServerTime;
+            LastSent = Game.World.Core.ServerTime;
 
             var res = await Events.CallRemoteProc("GasStation::Enter", vehicle, gasStationId);
 

@@ -4,14 +4,12 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
-using BlaineRP.Client.Game.World;
-using BlaineRP.Client.Game.Wrappers.Blips;
+using BlaineRP.Client.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.World.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
+namespace BlaineRP.Client.UI.CEF.Phone.Apps
 {
     [Script(int.MaxValue)]
     public class SMS
@@ -80,7 +78,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                 var coords = new Vector3(x, y, 0f);
 
-                Wrappers.Blips.Core.CreateGPS(coords, Player.LocalPlayer.Dimension, true);
+                Game.Helpers.Blips.Core.CreateGPS(coords, Player.LocalPlayer.Dimension, true);
             });
 
             Events.Add("Phone::SmsSend", async (args) =>

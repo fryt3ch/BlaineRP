@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Fractions.Enums;
 
-namespace BlaineRP.Client.Game.Fractions.Types
+namespace BlaineRP.Client.Game.Fractions
 {
     public class WeazelNews : Fraction
     {
-        public WeazelNews(FractionTypes type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
+        public WeazelNews(Types type, string name, uint storageContainerId, string containerPos, string cWbPos, byte maxRank, string creationWorkbenchPricesJs, uint metaFlags) : base(type, name, storageContainerId, containerPos, cWbPos, maxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(creationWorkbenchPricesJs), metaFlags)
         {
-            if (type == FractionTypes.MEDIA_LS)
+            if (type == Types.MEDIA_LS)
             {
 
             }

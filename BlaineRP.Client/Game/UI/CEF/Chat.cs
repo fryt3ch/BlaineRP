@@ -9,14 +9,13 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Fractions.Enums;
-using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Input.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
 using Core = BlaineRP.Client.Game.Management.Commands.Core;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class Chat
@@ -28,7 +27,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static Regex TodoMessageRegex = new Regex(@".+\*.+");
 
-        private static string TimeStr { get => Settings.User.Chat.ShowTime ? (Settings.User.Interface.UseServerTime ? "[" + World.Core.ServerTime.ToString("HH:mm:ss") + "] " : "[" + World.Core.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
+        private static string TimeStr { get => Settings.User.Chat.ShowTime ? (Settings.User.Interface.UseServerTime ? "[" + Game.World.Core.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Game.World.Core.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
         public enum MessageTypes
         {

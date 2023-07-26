@@ -6,7 +6,7 @@ using BlaineRP.Client.Game.World;
 using Newtonsoft.Json.Linq;
 using RAGE;
 
-namespace BlaineRP.Client.Game.UI.CEF
+namespace BlaineRP.Client.UI.CEF
 {
     [Script(int.MaxValue)]
     public class StartPlace
