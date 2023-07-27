@@ -7,41 +7,8 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Estates
 {
-    public class Furniture
+    public partial class Furniture
     {
-        public enum Types
-        {
-            Chair = 0,
-            Bed,
-            Table,
-
-            Locker,
-            Wardrobe,
-            Fridge,
-
-            Plant,
-            Lamp,
-            TV,
-            Electronics,
-
-            KitchenSet,
-
-            KitchenStuff,
-
-            Bath,
-            Toilet,
-            Painting,
-            Decor,
-
-            Washer,
-
-            BathStuff,
-
-            Workbench,
-            Storage,
-            PC,
-        }
-
         private static Dictionary<Types, Action<MapObject, object[]>> CreateActions = new Dictionary<Types, Action<MapObject, object[]>>()
         {
             {
@@ -162,13 +129,6 @@ namespace BlaineRP.Client.Game.Estates
             cAct.Invoke(obj, args);
 
             return obj;
-        }
-
-        public static void LoadAll()
-        {
-            #region TO_REPLACE_FURN_LIST
-
-            #endregion
         }
     }
 }

@@ -1,71 +1,13 @@
-﻿using GTANetworkAPI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Sync.Offers
+namespace BlaineRP.Server.Game.Management.Offers
 {
-    public enum Types
-    {
-        /// <summary>Рукопожатие</summary>
-        Handshake = 0,
-        /// <summary>Обмен</summary>
-        Exchange,
-        /// <summary>Нести игркока</summary>
-        Carry,
-        /// <summary>Сыграть в орел и решка</summary>
-        HeadsOrTails,
-        /// <summary>Приглашение во фракцию</summary>
-        InviteFraction,
-        /// <summary>Приглашение в организацию</summary>
-        InviteOrganisation,
-        /// <summary>Передать наличные</summary>
-        Cash,
-        /// <summary>Показать паспорт</summary>
-        ShowPassport,
-        /// <summary>Показать мед. карту</summary>
-        ShowMedicalCard,
-        /// <summary>Показать лицензии</summary>
-        ShowLicenses,
-        /// <summary>Показать тех. паспорт</summary>
-        ShowVehiclePassport,
-        /// <summary>Показать резюме</summary>
-        ShowResume,
-        /// <summary>Показать удостоверение</summary>
-        ShowFractionDocs,
-        /// <summary>Продажа имущества</summary>
-        PropertySell,
-        /// <summary>Поделиться меткой</summary>
-        WaypointShare,
-        /// <summary>Подселить в дом/квартиру</summary>
-        Settle,
-        /// <summary>Продать недвижимость</summary>
-        SellEstate,
-        /// <summary>Продать транспорт</summary>
-        SellVehicle,
-        /// <summary>Продать бизнес</summary>
-        SellBusiness,
-        /// <summary>Штраф полиции</summary>
-        PoliceFine,
-        /// <summary>Лечение от врача</summary>
-        EmsHeal,
-        /// <summary>Лечение (психики) от врача</summary>
-        EmsPsychHeal,
-        /// <summary>Лечение (наркозавимиости) от врача</summary>
-        EmsDrugHeal,
-        /// <summary>Проверка здоровья от врача</summary>
-        EmsDiagnostics,
-        /// <summary>Выдача мед. карты от врача</summary>
-        EmsMedicalCard,
-        /// <summary>Продажа мед. маски от врача</summary>
-        EmsSellMask,
-        /// <summary>Использовать мед. предмет для лечения</summary>
-        GiveHealingItem,
-    }
-
     public enum ReplyTypes
     {
         Deny = 0,
@@ -76,7 +18,7 @@ namespace BlaineRP.Server.Sync.Offers
 
     public partial class Offer
     {
-        private static Dictionary<Types, OfferBase> _offerBases;
+        private static Dictionary<OfferType, OfferBase> _offerBases;
 
         private static List<Offer> _allOffers = new List<Offer>();
 
@@ -87,7 +29,7 @@ namespace BlaineRP.Server.Sync.Offers
         public PlayerData Receiver { get; set; }
 
         /// <summary>Тип предложения</summary>
-        public Types Type { get; set; }
+        public OfferType Type { get; set; }
 
         public Trade TradeData { get; set; }
 
@@ -100,7 +42,7 @@ namespace BlaineRP.Server.Sync.Offers
         /// <param name="Sender">Сущность игрока, который отправил предложение</param>
         /// <param name="Receiver">Сущность игрока, которому отправлено предложение</param>
         /// <param name="Type">Тип предложения</param>
-        public Offer(PlayerData Sender, PlayerData Receiver, Types Type, object Data = null)
+        public Offer(PlayerData Sender, PlayerData Receiver, OfferType Type, object Data = null)
         {
             this.Sender = Sender;
             this.Receiver = Receiver;
@@ -175,7 +117,7 @@ namespace BlaineRP.Server.Sync.Offers
             oBase.OnAccept(Sender, Receiver, this);
         }
 
-        public static Offer Create(PlayerData pData, PlayerData tData, Types type, int duration = -1, object data = null)
+        public static Offer Create(PlayerData pData, PlayerData tData, OfferType type, int duration = -1, object data = null)
         {
             var offer = new Offer(pData, tData, type, data);
 
@@ -204,29 +146,6 @@ namespace BlaineRP.Server.Sync.Offers
 
         public static Offer GetByReceiver(PlayerData pData) => _allOffers.Where(x => x.Receiver == pData).FirstOrDefault();
 
-        public static OfferBase GetOfferBaseDataByType(Types type) => _offerBases.GetValueOrDefault(type);
-
-        public static void Load()
-        {
-            if (_offerBases != null)
-                return;
-
-            _offerBases = new Dictionary<Types, OfferBase>();
-
-            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsClass && x.BaseType == typeof(OfferBase) && x.Namespace?.StartsWith("BCRPServer.Sync.Offers") == true))
-            {
-                var attr = x.GetCustomAttribute<OfferAttribute>();
-
-                if (attr == null)
-                    continue;
-
-                var obj = (OfferBase)Activator.CreateInstance(x);
-
-                if (!_offerBases.TryAdd(attr.Type, obj))
-                    _offerBases[attr.Type] = obj;
-
-                //Console.WriteLine(x.Name);
-            }
-        }
+        public static OfferBase GetOfferBaseDataByType(OfferType type) => _offerBases.GetValueOrDefault(type);
     }
 }

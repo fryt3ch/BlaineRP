@@ -1,6 +1,8 @@
 ﻿using BlaineRP.Server;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Events.NPC.Types
 {
@@ -14,7 +16,7 @@ namespace BlaineRP.Server.Events.NPC.Types
 
             var npcIdData = npcId.Split('_');
 
-            var fraction = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(npcIdData[1])) as Game.Fractions.Police;
+            var fraction = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(npcIdData[1])) as Game.Fractions.Police;
 
             if (fraction == null)
                 return null;
@@ -161,7 +163,7 @@ namespace BlaineRP.Server.Events.NPC.Types
 
             var npTag = vInfo.Numberplate.Tag;
 
-            var aRegisteredVehInfo = VehicleData.VehicleInfo.All.Values.Where(x => x.RegisteredNumberplate == npTag).FirstOrDefault();
+            var aRegisteredVehInfo = VehicleInfo.All.Values.Where(x => x.RegisteredNumberplate == npTag).FirstOrDefault();
 
             if (aRegisteredVehInfo != null)
             {

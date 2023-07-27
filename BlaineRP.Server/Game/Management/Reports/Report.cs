@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Server.EntitiesData.Players;
 
-namespace BlaineRP.Server.Sync
+namespace BlaineRP.Server.Game.Management.Reports
 {
-    public class Report
+    public partial class Report
     {
         public const int REPORT_PLAYER_MESSAGE_TIMEOUT = 120_000;
 

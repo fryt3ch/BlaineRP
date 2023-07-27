@@ -1,32 +1,14 @@
-﻿using GTANetworkAPI;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading;
+using BlaineRP.Server.UtilsT;
+using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Sync
+namespace BlaineRP.Server.Game.World
 {
     public static class Weather
     {
-        public enum Types : byte
-        {
-            BLIZZARD = 0,
-            CLEAR,
-            CLEARING,
-            CLOUDS,
-            EXTRASUNNY,
-            FOGGY,
-            HALLOWEEN,
-            NEUTRAL,
-            OVERCAST,
-            RAIN,
-            SMOG,
-            SNOW,
-            SNOWLIGHT,
-            THUNDER,
-            XMAS,
-        }
-
         private static Timer UpdateTimer { get; set; }
 
         private const int UpdateTimeout = 1000 * 60 * 30;
@@ -36,17 +18,17 @@ namespace BlaineRP.Server.Sync
 
         private const string APIKey = "8dd49447c2374d32a2874253230706";
 
-        private static ChancePicker<Types> RandomWeatherChances = new ChancePicker<Types>
+        private static ChancePicker<WeatherType> RandomWeatherChances = new ChancePicker<WeatherType>
         (
-            new ChancePicker<Types>.Item<Types>(0.25d, Types.CLEAR),
-            new ChancePicker<Types>.Item<Types>(0.10d, Types.CLEARING),
-            new ChancePicker<Types>.Item<Types>(0.15d, Types.EXTRASUNNY),
-            new ChancePicker<Types>.Item<Types>(0.10d, Types.OVERCAST),
-            new ChancePicker<Types>.Item<Types>(0.10d, Types.CLOUDS),
-            new ChancePicker<Types>.Item<Types>(0.05d, Types.SMOG),
-            new ChancePicker<Types>.Item<Types>(0.05d, Types.FOGGY),
-            new ChancePicker<Types>.Item<Types>(0.15d, Types.RAIN),
-            new ChancePicker<Types>.Item<Types>(0.05d, Types.THUNDER)
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.25d, WeatherType.CLEAR),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.10d, WeatherType.CLEARING),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.15d, WeatherType.EXTRASUNNY),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.10d, WeatherType.OVERCAST),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.10d, WeatherType.CLOUDS),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.05d, WeatherType.SMOG),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.05d, WeatherType.FOGGY),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.15d, WeatherType.RAIN),
+            new ChancePicker<WeatherType>.Item<WeatherType>(0.05d, WeatherType.THUNDER)
         );
 
         public static void StartRealWeatherSync(string[] citiesStr, bool updateNow, int currentCityIdx = 0, int maxCallsPerCity = -1)
@@ -70,7 +52,7 @@ namespace BlaineRP.Server.Sync
                 else if (currentCityIdx >= citiesStr.Length)
                     currentCityIdx = 0;
 
-                Types weatherTypeToSet;
+                WeatherType weatherTypeToSet;
 
                 string cityStr = null;
 
@@ -148,7 +130,7 @@ namespace BlaineRP.Server.Sync
             {
                 double chance;
 
-                Types weatherTypeToSet = RandomWeatherChances.GetNextItem(out chance);
+                WeatherType weatherTypeToSet = RandomWeatherChances.GetNextItem(out chance);
 
                 NAPI.Task.Run(() =>
                 {
@@ -169,61 +151,61 @@ namespace BlaineRP.Server.Sync
             }
         }
 
-        public static void SetWeather(Types weather)
+        public static void SetWeather(WeatherType weather)
         {
-            if (weather == Types.XMAS)
+            if (weather == WeatherType.XMAS)
                 NAPI.World.SetWeather("XMAS");
 
-            Sync.World.SetSharedData("Weather", (byte)weather);
+            Service.SetSharedData("Weather", (byte)weather);
         }
 
-        private static bool TryGetWeatherTypeByCode(uint code, out Types weatherType)
+        private static bool TryGetWeatherTypeByCode(uint code, out WeatherType weatherType)
         {
             switch (code)
             {
                 case 1000:
-                    weatherType = Types.EXTRASUNNY;
+                    weatherType = WeatherType.EXTRASUNNY;
 
                     return true;
 
                 case 1003:
                 case 1006:
-                    weatherType = Types.CLOUDS;
+                    weatherType = WeatherType.CLOUDS;
 
                     return true;
 
                 case 1009:
-                    weatherType = Types.OVERCAST;
+                    weatherType = WeatherType.OVERCAST;
 
                     return true;
 
                 case 1066:
-                    weatherType = Types.SNOW;
+                    weatherType = WeatherType.SNOW;
 
                     return true;
 
                 case 1030:
                 case 1135:
-                    weatherType = Types.FOGGY;
+                    weatherType = WeatherType.FOGGY;
 
                     return true;
 
                 case 1183:
                 case 1189:
                 case 1198:
-                    weatherType = Types.RAIN;
+                    weatherType = WeatherType.RAIN;
 
                     return true;
 
                 case 1273:
                 case 1192:
                 case 1195:
-                    weatherType = Types.THUNDER;
+                    weatherType = WeatherType.THUNDER;
 
                     return true;
 
                 default:
-                    weatherType = Types.CLEAR;
+                    weatherType = WeatherType.CLEAR;
 
                     return false;
             }

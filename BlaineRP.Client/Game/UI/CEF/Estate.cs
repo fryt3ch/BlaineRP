@@ -11,6 +11,7 @@ using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Scripts;
 using RAGE;
 using RAGE.Elements;
 
@@ -345,7 +346,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
 
             CurrentType = Types.Info;
-            CurrentPropertyType = houseBase.Type == Estates.Core.HouseTypes.House ? PropertyTypes.House : PropertyTypes.Apartments;
+            CurrentPropertyType = houseBase.Type == Estates.HouseBase.Types.House ? PropertyTypes.House : PropertyTypes.Apartments;
 
             Player.LocalPlayer.SetData("Estate::CurrentData", houseBase);
 
@@ -476,7 +477,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 estToSell.Add(new object[]
                     {
                         "House",
-                        Locale.General.PropertyHouseString,
+                        Locale.Get("GEN_PROPERTY_HOUSE_TEXT_0"),
                         Utils.Game.Misc.GetStreetName(x.Position),
                         x.Class.ToString(),
                         x.Price,
@@ -492,7 +493,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 estToSell.Add(new object[]
                     {
                         "Flat",
-                        Locale.General.PropertyApartmentsString,
+                        Locale.Get("GEN_PROPERTY_APARTMENTS_TEXT_0"),
                         ApartmentsRoot.All[x.RootId].Name,
                         x.Class.ToString(),
                         x.Price,
@@ -508,7 +509,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 estToSell.Add(new object[]
                     {
                         "Garage",
-                        Locale.General.PropertyGarageString,
+                        Locale.Get("GEN_PROPERTY_GARAGE_TEXT_0"),
                         GarageRoot.All[x.RootId].Name,
                         x.ClassType.ToString(),
                         x.Price,
@@ -771,7 +772,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                                "Biz",
                                                x.Name,
                                                Utils.Game.Misc.GetStreetName(x.InfoColshape.Position),
-                                               Locale.General.PropertyBusinessClass,
+                                               Locale.Get("GEN_PROPERTY_BUSINESS_TEXT_1"),
                                                x.Price,
                                                x.SubId,
                                            }

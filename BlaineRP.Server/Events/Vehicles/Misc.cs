@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Events.Vehicles
 {

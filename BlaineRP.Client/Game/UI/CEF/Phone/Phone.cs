@@ -8,7 +8,6 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 
@@ -19,20 +18,20 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
     {
         public static DateTime LastSent;
 
-        private static Dictionary<AppTypes, string> AppsJsNames = new Dictionary<AppTypes, string>()
+        private static Dictionary<AppType, string> AppsJsNames = new Dictionary<AppType, string>()
         {
-            { AppTypes.Settings, "settings" },
-            { AppTypes.Vehicles, "veh" },
-            { AppTypes.Bank, "bank" },
-            { AppTypes.BSim, "bsim" },
-            { AppTypes.Camera, "camera" },
-            { AppTypes.Navigator, "gps" },
-            { AppTypes.Radio, "radio" },
-            { AppTypes.Phone, "phone" },
-            { AppTypes.Contacts, "contacts" },
-            { AppTypes.SMS, "sms" },
-            { AppTypes.Browser, "browser" },
-            { AppTypes.Taxi, "cab" },
+            { AppType.Settings, "settings" },
+            { AppType.Vehicles, "veh" },
+            { AppType.Bank, "bank" },
+            { AppType.BSim, "bsim" },
+            { AppType.Camera, "camera" },
+            { AppType.Navigator, "gps" },
+            { AppType.Radio, "radio" },
+            { AppType.Phone, "phone" },
+            { AppType.Contacts, "contacts" },
+            { AppType.SMS, "sms" },
+            { AppType.Browser, "browser" },
+            { AppType.Taxi, "cab" },
         };
 
         public Phone()
@@ -50,7 +49,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     string appIdStr = args[0] is string str ? str : null;
 
-                    AppTypes appType = appIdStr == null ? AppTypes.None : GetAppTypeByJsName(appIdStr.Replace("_app", ""));
+                    AppType appType = appIdStr == null ? AppType.None : GetAppTypeByJsName(appIdStr.Replace("_app", ""));
 
                     LastSent = World.Core.ServerTime;
 
@@ -73,7 +72,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     LastSent = World.Core.ServerTime;
 
-                    if (CurrentApp == AppTypes.Phone)
+                    if (CurrentApp == AppType.Phone)
                     {
                         if (appTab == 0) // callhist
                         {
@@ -114,7 +113,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                                 );
                         }
                     }
-                    else if (CurrentApp == AppTypes.Settings)
+                    else if (CurrentApp == AppType.Settings)
                     {
                         if (appTab == "wallpaper".GetHashCode())
                         {
@@ -123,7 +122,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                             CurrentAppTab = appTab;
                         }
                     }
-                    else if (CurrentApp == AppTypes.SMS)
+                    else if (CurrentApp == AppType.SMS)
                     {
                         if (appTab == 0) // typeSms
                         {
@@ -146,12 +145,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                             SMS.ShowChat(targetNum, chatList, GetContactNameByNumberNull(targetNum));
                         }
                     }
-                    else if (CurrentApp == AppTypes.Contacts)
+                    else if (CurrentApp == AppType.Contacts)
                     {
                         if (appTab == 0) // add contact
                             Contacts.ShowEdit(null, null);
                     }
-                    else if (CurrentApp == AppTypes.Bank)
+                    else if (CurrentApp == AppType.Bank)
                     {
                         if (appTab == 0) // send money
                         {
@@ -436,7 +435,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                             };
                         }
                     }
-                    else if (CurrentApp == AppTypes.Navigator)
+                    else if (CurrentApp == AppType.Navigator)
                     {
                         GPS.ShowTab((string)args[0]);
                     }
@@ -462,7 +461,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                     if (elem == null)
                         return;
 
-                    if (CurrentApp == AppTypes.Phone)
+                    if (CurrentApp == AppType.Phone)
                     {
                         if (CurrentAppTab == 0)
                         {
@@ -513,7 +512,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                             }
                         }
                     }
-                    else if (CurrentApp == AppTypes.Contacts)
+                    else if (CurrentApp == AppType.Contacts)
                     {
                         //var number = uint.Parse(elem.ToString());
 
@@ -562,10 +561,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                             allContacts.Remove(number);
 
-                            ShowApp(pData, AppTypes.Contacts);
+                            ShowApp(pData, AppType.Contacts);
                         }
                     }
-                    else if (CurrentApp == AppTypes.Vehicles)
+                    else if (CurrentApp == AppType.Vehicles)
                     {
                         var vOType = (string)args[0];
 
@@ -648,7 +647,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                     if (LastSent.IsSpam(500, false, false))
                         return;
 
-                    if (CurrentApp == AppTypes.BSim)
+                    if (CurrentApp == AppType.BSim)
                     {
                         var amountStr = args[0]?.ToString();
 
@@ -676,7 +675,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                         Browser.Window.ExecuteJs("Phone.updateInfoLine", "bsim-app-info", 1, res);
                     }
-                    else if (CurrentApp == AppTypes.Bank)
+                    else if (CurrentApp == AppType.Bank)
                     {
                         if (CurrentAppTab == 0)
                         {
@@ -764,7 +763,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     var state = (bool)args[1];
 
-                    if (CurrentApp == AppTypes.Settings)
+                    if (CurrentApp == AppType.Settings)
                         if (toggleId == "disturb")
                         {
                             Settings.User.Other.PhoneNotDisturb = state;
@@ -785,7 +784,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
         public static bool IsActive { get; private set; }
 
-        public static AppTypes CurrentApp { get; set; }
+        public static AppType CurrentApp { get; set; }
 
         public static int CurrentAppTab { get; set; } = -1;
 
@@ -793,12 +792,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
         private static int EscBindIdx { get; set; } = -1;
 
-        public static AppTypes GetAppTypeByJsName(string jsName)
+        public static AppType GetAppTypeByJsName(string jsName)
         {
             return AppsJsNames.Where(x => x.Value == jsName).Select(x => x.Key).FirstOrDefault();
         }
 
-        public static async void ShowApp(PlayerData pData, AppTypes appType)
+        public static async void ShowApp(PlayerData pData, AppType appType)
         {
             if (pData == null)
             {
@@ -808,15 +807,15 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                     return;
             }
 
-            if (appType == AppTypes.None)
+            if (appType == AppType.None)
             {
-                CurrentApp = AppTypes.None;
+                CurrentApp = AppType.None;
 
                 SwitchMenu(true);
             }
             else
             {
-                if (appType == AppTypes.BSim)
+                if (appType == AppType.BSim)
                 {
                     string[] res = ((string)await Events.CallRemoteProc("Phone::GPD"))?.Split('_');
 
@@ -825,20 +824,20 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     BSim.Show(pData.PhoneNumber.ToString(), uint.Parse(res[0]), uint.Parse(res[1]), uint.Parse(res[2]));
                 }
-                else if (appType == AppTypes.Phone)
+                else if (appType == AppType.Phone)
                 {
                     Apps.Phone.ShowDefault(null);
                 }
-                else if (appType == AppTypes.Camera)
+                else if (appType == AppType.Camera)
                 {
                     if (Scripts.Misc.Phone.CanUsePhoneAnim(true) && !PlayerActions.IsAnyActionActive(true, PlayerActions.Types.InVehicle))
                         Apps.Camera.Show();
                 }
-                else if (appType == AppTypes.Settings)
+                else if (appType == AppType.Settings)
                 {
                     Apps.Settings.Show();
                 }
-                else if (appType == AppTypes.Bank)
+                else if (appType == AppType.Bank)
                 {
                     string[] resData = ((string)await Events.CallRemoteProc("Bank::PAGD"))?.Split('_');
 
@@ -847,7 +846,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     Apps.Bank.Show(((Bank.TariffTypes)int.Parse(resData[0])).ToString(), pData.BankBalance, decimal.Parse(resData[1]));
                 }
-                else if (appType == AppTypes.Vehicles)
+                else if (appType == AppType.Vehicles)
                 {
                     var ownedVehs = pData.OwnedVehicles.Select(x => new object[]
                                               {
@@ -869,7 +868,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
 
                     Vehicles.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }
-                else if (appType == AppTypes.Contacts)
+                else if (appType == AppType.Contacts)
                 {
                     Dictionary<uint, string> allContacts = pData.Contacts;
 
@@ -885,7 +884,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                                                      )
                         );
                 }
-                else if (appType == AppTypes.SMS)
+                else if (appType == AppType.SMS)
                 {
                     List<SMS.Message> allSms = pData.AllSMS;
 
@@ -909,15 +908,15 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                         );
                     }
                 }
-                else if (appType == AppTypes.Taxi)
+                else if (appType == AppType.Taxi)
                 {
                     Taxi.Show(pData);
                 }
-                else if (appType == AppTypes.Radio)
+                else if (appType == AppType.Radio)
                 {
                     Radio.Show();
                 }
-                else if (appType == AppTypes.Navigator)
+                else if (appType == AppType.Navigator)
                 {
                     GPS.Show();
                 }
@@ -978,7 +977,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone
                 return;
 
             if (pData.ActiveCall != null)
-                ShowApp(pData, AppTypes.None);
+                ShowApp(pData, AppType.None);
 
             IsActive = false;
 

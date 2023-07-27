@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
-using BlaineRP.Server.Sync;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Misc;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Vehicles
+namespace BlaineRP.Server.EntitiesData.Vehicles
 {
     public partial class VehicleData
     {
@@ -108,10 +111,10 @@ namespace BlaineRP.Server.EntityData.Vehicles
 
             DirtLevel = 0;
 
-            AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
-            AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
+            AttachedObjects = new List<AttachmentObjectNet>();
+            AttachedEntities = new List<AttachmentEntityNet>();
 
-            Vehicle.SetData(Sync.AttachSystem.AttachedObjectsTimersKey, new Dictionary<Sync.AttachSystem.Types, Timer>());
+            Vehicle.SetData(Service.AttachedObjectsTimersKey, new Dictionary<AttachmentType, Timer>());
 
             SetData(Vehicle, this);
         }
@@ -141,7 +144,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
                 return false;
 
-            return Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachSystem.Types.TrailerObjOnBoat, -1, null);
+            return Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
         }
 
         public bool DetachBoatFromTrailer()
@@ -149,7 +152,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
                 return false;
 
-            return Vehicle.DetachObject(AttachSystem.Types.TrailerObjOnBoat);
+            return Vehicle.DetachObject(AttachmentType.TrailerObjOnBoat);
         }
 
         public bool IsBoatAttachedToTrailer()
@@ -157,7 +160,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
                 return false;
 
-            return AttachedObjects.Where(x => x.Type == AttachSystem.Types.TrailerObjOnBoat).Any();
+            return AttachedObjects.Where(x => x.Type == AttachmentType.TrailerObjOnBoat).Any();
         }
 
         public void SetFreezePosition(Vector3 pos, float? heading = null)
@@ -292,7 +295,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
                         vData.Vehicle.NumberPlateStyle = numberplateS;
                     }
 
-                    if (jobData is Game.Jobs.IVehicles jobDataV)
+                    if (jobData is Game.Jobs.IVehicleRelated jobDataV)
                     {
                         jobDataV.OnVehicleRespawned(Info, owner);
                     }
@@ -309,7 +312,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
 
                     if (owner != null)
                     {
-                        if (owner.Quests.GetValueOrDefault(Quest.QuestData.Types.DRSCHOOL0) is Sync.Quest quest)
+                        if (owner.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest quest)
                         {
                             quest.Cancel(owner, false);
 
@@ -336,7 +339,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             }
         }
         
-        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension, bool setInto = false)
+        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension, bool setInto = false)
         {
             var player = pData.Player;
 
@@ -387,7 +390,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 
@@ -427,7 +430,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewTemp(Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewTemp(Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var vInfo = new VehicleInfo()
             {
@@ -460,7 +463,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewRent(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewRent(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 
@@ -504,7 +507,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             return vData;
         }
 
-        public static VehicleInfo NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        public static VehicleInfo NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
         {
             var job = Game.Jobs.Job.Get(jobId);
 
@@ -530,7 +533,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
 
             var veh = vData.Vehicle;
 
-            if (job is Game.Jobs.IVehicles vehJob)
+            if (job is Game.Jobs.IVehicleRelated vehJob)
             {
                 veh.NumberPlate = $"{numberplateText}{vehJob.Vehicles.Count + 1}";
             }
@@ -546,9 +549,9 @@ namespace BlaineRP.Server.EntityData.Vehicles
             return vInfo;
         }
 
-        public static VehicleInfo NewAutoschool(int autoschoolId, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        public static VehicleInfo NewAutoschool(int autoschoolId, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
         {
-            var autoschool = Game.Autoschool.Get(autoschoolId);
+            var autoschool = DrivingSchool.Get(autoschoolId);
 
             var vInfo = new VehicleInfo()
             {
@@ -661,7 +664,7 @@ namespace BlaineRP.Server.EntityData.Vehicles
             }
             else if (OwnerType == OwnerTypes.Fraction)
             {
-                var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)OwnerID);
+                var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)OwnerID);
 
                 if (pData.Fraction == fData.Type && pData.Info.FractionRank >= (fData.AllVehicles.GetValueOrDefault(Info)?.MinimalRank ?? byte.MaxValue))
                     return true;

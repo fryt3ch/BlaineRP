@@ -13,7 +13,7 @@ namespace BlaineRP.Client.Game.Estates
     {
         public static Dictionary<uint, House> All = new Dictionary<uint, House>();
 
-        public House(uint id, Vector3 position, int roomType, int? garageType, Vector3 garagePosition, uint price, int @class, uint tax) : base(Core.HouseTypes.House,
+        public House(uint id, Vector3 position, int roomType, int? garageType, Vector3 garagePosition, uint price, int @class, uint tax) : base(HouseBase.Types.House,
             id,
             price,
             roomType,

@@ -1,4 +1,6 @@
-﻿namespace BlaineRP.Server.Events.Commands
+﻿using BlaineRP.Server.EntitiesData.Players;
+
+namespace BlaineRP.Server.Events.Commands
 {
     partial class Commands
     {

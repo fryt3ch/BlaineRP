@@ -2,6 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -81,9 +86,9 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = true;
 
-            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemShovel, -1, null, 10_000 - 100 * pData.Info.Skills[PlayerData.SkillTypes.Strength]);
+            pData.Player.AttachObject(Model, AttachmentType.ItemShovel, -1, null, 10_000 - 100 * pData.Info.Skills[SkillTypes.Strength]);
 
-            pData.PlayAnim(Sync.Animations.GeneralTypes.ShovelProcess0);
+            pData.PlayAnim(GeneralType.ShovelProcess0);
 
             if (needUpdate && slot >= 0)
             {
@@ -100,7 +105,7 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = false;
 
-            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemShovel);
+            pData.Player.DetachObject(AttachmentType.ItemShovel);
 
             pData.StopGeneralAnim();
 

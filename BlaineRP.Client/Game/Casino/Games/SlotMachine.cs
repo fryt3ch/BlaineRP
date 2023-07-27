@@ -6,7 +6,7 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Casino
+namespace BlaineRP.Client.Game.Casino.Games
 {
     public class SlotMachine
     {

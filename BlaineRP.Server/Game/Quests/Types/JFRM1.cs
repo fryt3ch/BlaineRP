@@ -1,10 +1,10 @@
-﻿namespace BlaineRP.Server.Sync.Quests.Types
+﻿namespace BlaineRP.Server.Game.Quests.Types
 {
     public class JFRM1
     {
         public static void Initialize()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JFRM1)
+            new Quest.QuestData(QuestType.JFRM1)
             {
                 ProgressUpdateFunc = (pData, questData, data) =>
                 {

@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Management.Animations
 {
-    public enum OtherTypes
+    public enum OtherType
     {
         None = -1,
 

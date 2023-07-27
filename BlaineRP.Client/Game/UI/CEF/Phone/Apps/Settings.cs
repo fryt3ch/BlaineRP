@@ -1,6 +1,5 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Game.World;
 using RAGE;
 
@@ -22,7 +21,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                     if (Client.Settings.User.Other.PhoneWallpaperNum == wpNum)
                         return;
 
-                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Settings)
+                    if (CEF.Phone.Phone.CurrentApp == AppType.Settings)
                         if (CEF.Phone.Phone.CurrentAppTab == "wallpaper".GetHashCode())
                         {
                             CEF.Phone.Phone.LastSent = Core.ServerTime;
@@ -37,10 +36,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show()
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Settings;
+            CEF.Phone.Phone.CurrentApp = AppType.Settings;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 

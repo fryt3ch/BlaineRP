@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Vehicles
+namespace BlaineRP.Server.EntitiesData.Vehicles
 {
     public class VehicleInfo
     {
             public static Dictionary<uint, VehicleInfo> All { get; private set; } = new Dictionary<uint, VehicleInfo>();
 
-            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Properties.Settings.Profile.Current.Game.VIDBaseOffset);
+            public static UtilsT.UidHandlers.UInt32 UidHandler { get; private set; } = new UtilsT.UidHandlers.UInt32(Properties.Settings.Profile.Current.Game.VIDBaseOffset);
 
             public static void AddOnLoad(VehicleInfo vInfo)
             {

@@ -2,6 +2,9 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -80,15 +83,15 @@ namespace BlaineRP.Server.Game.Items
             /// <inheritdoc cref="ItemData.ItemData(Types, TopTypes, Types?, uint, int, bool)"/>
             public ItemData(string Name, float Weight, string Model, TopTypes TopType, string AmmoType, WeaponHash Hash, int MaxAmmo, bool CanUseInVehicle = false) : this(Name, Weight, Model, TopType, AmmoType, (uint)Hash, MaxAmmo, CanUseInVehicle) { }
 
-            public Sync.AttachSystem.Types? GetAttachType(PlayerData pData)
+            public AttachmentType? GetAttachType(PlayerData pData)
             {
                 if (TopType == TopTypes.Shotgun || TopType == TopTypes.AssaultRifle || TopType == TopTypes.SniperRifle || TopType == TopTypes.HeavyWeapon)
                 {
-                    return pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.WeaponLeftBack).Any() ? Sync.AttachSystem.Types.WeaponRightBack : Sync.AttachSystem.Types.WeaponLeftBack;
+                    return pData.AttachedObjects.Where(x => x.Type == AttachmentType.WeaponLeftBack).Any() ? AttachmentType.WeaponRightBack : AttachmentType.WeaponLeftBack;
                 }
                 else if (TopType == TopTypes.SubMachine)
                 {
-                    return pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.WeaponLeftTight).Any() ? Sync.AttachSystem.Types.WeaponRightTight : Sync.AttachSystem.Types.WeaponLeftTight;
+                    return pData.AttachedObjects.Where(x => x.Type == AttachmentType.WeaponLeftTight).Any() ? AttachmentType.WeaponRightTight : AttachmentType.WeaponLeftTight;
                 }
 
                 return null;
@@ -170,7 +173,7 @@ namespace BlaineRP.Server.Game.Items
 
         /// <summary>Тип привязки к игроку объекта оружия</summary>
         [JsonIgnore]
-        public Sync.AttachSystem.Types? AttachType { get; set; }
+        public AttachmentType? AttachType { get; set; }
 
         [JsonProperty(PropertyName = "A")]
 
@@ -253,7 +256,7 @@ namespace BlaineRP.Server.Game.Items
 
             var data = Data;
 
-            if (data.GetAttachType(pData) is Sync.AttachSystem.Types attachType)
+            if (data.GetAttachType(pData) is AttachmentType attachType)
             {
                 if (player.AttachObject(data.Hash, attachType, -1, $"{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}"))
                     AttachType = attachType;
@@ -267,7 +270,7 @@ namespace BlaineRP.Server.Game.Items
             if (pData.Holster != null && (pData.Holster.Items[0] == null || pData.Holster.Items[0] == this))
                 pData.Holster.UnwearWeapon(pData);
 
-            if (AttachType is Sync.AttachSystem.Types aType)
+            if (AttachType is AttachmentType aType)
             {
                 player.DetachObject(aType);
 
@@ -300,7 +303,7 @@ namespace BlaineRP.Server.Game.Items
             {
                 pData.WeaponComponents = $"{Data.Hash}_{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}";
             }
-            else if (AttachType is Sync.AttachSystem.Types aType)
+            else if (AttachType is AttachmentType aType)
             {
                 var atObjects = pData.AttachedObjects;
 

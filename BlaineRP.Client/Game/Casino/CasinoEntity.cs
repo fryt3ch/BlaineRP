@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.NPCs;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -15,23 +15,11 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Casino
 {
-    public enum WallScreenTypes : byte
-    {
-        None = 0,
-
-        CASINO_DIA_PL,
-        CASINO_DIA_SLW_PL,
-        CASINO_HLW_PL,
-        CASINO_SNWFLK_PL,
-        CASINO_WIN_PL,
-        CASINO_WIN_SLW_PL,
-    }
-
-    public partial class Casino
+    public partial class CasinoEntity
     {
         public static DateTime LastSent;
 
-        public Casino(int Id, ushort BuyChipPrice, ushort SellChipPrice, string RoulettesDataJs, string BlackjacksDataJs)
+        public CasinoEntity(int Id, ushort BuyChipPrice, ushort SellChipPrice, string RoulettesDataJs, string BlackjacksDataJs)
         {
             All.Add(this);
 
@@ -122,7 +110,7 @@ namespace BlaineRP.Client.Game.Casino
                         if (ped == null)
                             return;
 
-                        Animations.Core.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
+                        Management.Animations.Core.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
                     }
                 );
 
@@ -564,7 +552,7 @@ namespace BlaineRP.Client.Game.Casino
             Blackjacks[0].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(3));
         }
 
-        public static List<Casino> All { get; set; } = new List<Casino>();
+        public static List<CasinoEntity> All { get; set; } = new List<CasinoEntity>();
 
         public int Id => All.IndexOf(this);
 
@@ -582,7 +570,7 @@ namespace BlaineRP.Client.Game.Casino
         public ushort BuyChipPrice { get; set; }
         public ushort SellChipPrice { get; set; }
 
-        public static Casino GetById(int id)
+        public static CasinoEntity GetById(int id)
         {
             return id < 0 || id >= All.Count ? null : All[id];
         }
@@ -652,7 +640,7 @@ namespace BlaineRP.Client.Game.Casino
 
             var casinoId = int.Parse(keyD[1]);
 
-            Casino casino = GetById(casinoId);
+            CasinoEntity casino = GetById(casinoId);
 
             if (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null))
                 return;

@@ -7,7 +7,6 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Input.Enums;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 
@@ -87,8 +86,8 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                         }
                     }
 
-                    if (CEF.Phone.Phone.CurrentApp == AppTypes.Taxi)
-                        CEF.Phone.Phone.ShowApp(null, AppTypes.Taxi);
+                    if (CEF.Phone.Phone.CurrentApp == AppType.Taxi)
+                        CEF.Phone.Phone.ShowApp(null, AppType.Taxi);
                 }
             );
 
@@ -164,8 +163,8 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                                     },
                                 };
 
-                                if (CEF.Phone.Phone.CurrentApp == AppTypes.Taxi)
-                                    CEF.Phone.Phone.ShowApp(null, AppTypes.Taxi);
+                                if (CEF.Phone.Phone.CurrentApp == AppType.Taxi)
+                                    CEF.Phone.Phone.ShowApp(null, AppType.Taxi);
                             }
                             else
                             {
@@ -212,10 +211,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show(PlayerData pData)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Taxi;
+            CEF.Phone.Phone.CurrentApp = AppType.Taxi;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 

@@ -1,15 +1,14 @@
-﻿using BlaineRP.Server.Game.Items;
-using GTANetworkAPI;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Items;
 using BlaineRP.Server.Game.Management.Chat;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Sync
+namespace BlaineRP.Server.Game.World
 {
-    public partial class World
+    public partial class Service
     {
         public class ItemOnGround
         {
@@ -237,7 +236,7 @@ namespace BlaineRP.Server.Sync
             if (ClearItemsTimer != null)
                 ClearItemsTimer.Dispose();
 
-            Service.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_0"), delay));
+            Management.Chat.Service.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_0"), delay));
 
             ClearItemsTimer = new Timer((obj) =>
             {
@@ -259,7 +258,7 @@ namespace BlaineRP.Server.Sync
                         counter++;
                     }
 
-                    Service.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_1"), counter));
+                    Management.Chat.Service.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_1"), counter));
                 });
             }, null, delay * 1000, Timeout.Infinite);
         }
@@ -272,7 +271,7 @@ namespace BlaineRP.Server.Sync
 
                 ClearItemsTimer = null;
 
-                Service.SendServer(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_2"));
+                Management.Chat.Service.SendServer(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_2"));
             }
         }
 

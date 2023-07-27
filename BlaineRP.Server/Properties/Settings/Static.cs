@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Collections.ObjectModel;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Properties.Settings
 {
@@ -33,13 +35,13 @@ namespace BlaineRP.Server.Properties.Settings
         public const byte PlayerDrugAddictionStage3 = 75;
 
         [ClientSync("playerMaxSkills")]
-        public static Dictionary<PlayerData.SkillTypes, int> PlayerMaxSkills = new Dictionary<PlayerData.SkillTypes, int>()
+        public static readonly ReadOnlyDictionary<SkillTypes, int> PlayerMaxSkills = new ReadOnlyDictionary<SkillTypes, int>(new Dictionary<SkillTypes, int>()
         {
-            { PlayerData.SkillTypes.Strength, 100 },
-            { PlayerData.SkillTypes.Shooting, 100 },
-            { PlayerData.SkillTypes.Cooking, 100 },
-            { PlayerData.SkillTypes.Fishing, 100 },
-        };
+            { SkillTypes.Strength, 100 },
+            { SkillTypes.Shooting, 100 },
+            { SkillTypes.Cooking, 100 },
+            { SkillTypes.Fishing, 100 },
+        });
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
@@ -240,10 +242,10 @@ namespace BlaineRP.Server.Properties.Settings
         public static TimeSpan WhistleAnimationTime { get; } = TimeSpan.FromMilliseconds(2_500);
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
-        public static Dictionary<PlayerData.SkillTypes, int> CharacterDefaultSkills => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
+        public static Dictionary<SkillTypes, int> CharacterDefaultSkills => new Dictionary<SkillTypes, int>() { { SkillTypes.Strength, 0 }, { SkillTypes.Cooking, 0 }, { SkillTypes.Shooting, 0 }, { SkillTypes.Fishing, 0 } };
 
         /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
-        public static HashSet<PlayerData.LicenseTypes> CharacterDefaultLicenses => new HashSet<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
+        public static HashSet<LicenseType> CharacterDefaultLicenses => new HashSet<LicenseType> { LicenseType.M };
 
         public static JObject GetClientSettings()
         {

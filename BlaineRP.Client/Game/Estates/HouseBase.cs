@@ -5,22 +5,9 @@ using RAGE;
 
 namespace BlaineRP.Client.Game.Estates
 {
-    public abstract class HouseBase
+    public abstract partial class HouseBase
     {
-        public enum ClassTypes
-        {
-            A = 0,
-            B,
-            C,
-            D,
-
-            FA,
-            FB,
-            FC,
-            FD,
-        }
-
-        public HouseBase(Core.HouseTypes type, uint id, uint price, int roomType, int @class, uint tax)
+        public HouseBase(HouseBase.Types type, uint id, uint price, int roomType, int @class, uint tax)
         {
             Type = type;
 
@@ -31,7 +18,7 @@ namespace BlaineRP.Client.Game.Estates
             Tax = tax;
         }
 
-        public Core.HouseTypes Type { get; set; }
+        public HouseBase.Types Type { get; set; }
 
         public uint Id { get; set; }
 

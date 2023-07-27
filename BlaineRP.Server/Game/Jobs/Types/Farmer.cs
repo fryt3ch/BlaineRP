@@ -2,12 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Jobs
 {
-    public class Farmer : Job, IVehicles
+    public partial class Farmer : Job, IVehicleRelated
     {
-        public Farmer(Game.Businesses.Farm FarmBusiness) : base(Types.Farmer, FarmBusiness.PositionInteract)
+        public Farmer(Game.Businesses.Farm FarmBusiness) : base(JobType.Farmer, FarmBusiness.PositionInteract)
         {
             this.FarmBusiness = FarmBusiness;
         }
@@ -29,7 +35,7 @@ namespace BlaineRP.Server.Game.Jobs
         public const byte ORANGES_ON_TREE_MIN_AMOUNT = 3;
         public const byte ORANGES_ON_TREE_MAX_AMOUNT = 12;
 
-        public static decimal GetPlayerSalaryCoef(PlayerData.PlayerInfo pInfo) => 1m;
+        public static decimal GetPlayerSalaryCoef(PlayerInfo pInfo) => 1m;
 
         private static Dictionary<Game.Businesses.Farm.CropField.Types, int> CropGrowTimes = new Dictionary<Businesses.Farm.CropField.Types, int>()
         {
@@ -50,39 +56,9 @@ namespace BlaineRP.Server.Game.Jobs
 
         public Game.Businesses.Farm FarmBusiness { get; set; }
 
-        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
+        public List<VehicleInfo> Vehicles { get; set; } = new List<VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
-
-        public override void Initialize()
-        {
-            var subId = SubId;
-
-            var numberplate = $"FARM{FarmBusiness.ID}";
-
-            var tractorType = TractorVehicleData;
-            var planeType = PlaneVehicleData;
-
-            if (subId == 0)
-            {
-                var tractorCol1 = new Utils.Colour(255, 0, 0, 255);
-                var tractorCol2 = new Utils.Colour(0, 0, 0, 255);
-
-                //2133.948f, 4783.06f, 41.31395f, 23.95123f - plane pos
-
-                Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1865.232f, 4872.092f, 44.38249f, 206.4608f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1870.744f, 4874.888f, 44.66641f, 206.8733f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1876.944f, 4878.157f, 45.11294f, 202.0746f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1859.166f, 4868.78f, 44.17879f, 210.0185f), Properties.Settings.Static.MainDimension));
-
-                Vehicles.Add(VehicleData.NewJob(Id, numberplate, planeType, tractorCol1, tractorCol2, new Utils.Vector4(2143.947f, 4813.993f, 41.57311f, 114.3835f), Properties.Settings.Static.MainDimension));
-            }
-
-            foreach (var x in Vehicles.Where(x => x.Data == tractorType))
-            {
-                AttachHarvTrailOnTractor(x.VehicleData);
-            }
-        }
 
         public override void SetPlayerJob(PlayerData pData, params object[] args)
         {
@@ -95,7 +71,7 @@ namespace BlaineRP.Server.Game.Jobs
             SetPlayerTotalCashSalary(pData, 0, false);
         }
 
-        public override void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
+        public override void SetPlayerNoJob(PlayerInfo pInfo)
         {
             if (pInfo.PlayerData != null)
             {
@@ -113,19 +89,19 @@ namespace BlaineRP.Server.Game.Jobs
 
                 if (HasPlayerCurrentCropInfo(pInfo.PlayerData))
                 {
-                    pInfo.PlayerData.Player.DetachObject(Sync.AttachSystem.Types.FarmPlantSmallShovel);
+                    pInfo.PlayerData.Player.DetachObject(AttachmentType.FarmPlantSmallShovel);
                 }
                 else if (HasPlayerCurrentOrangeTreeInfo(pInfo.PlayerData))
                 {
-                    if (!pInfo.PlayerData.Player.DetachObject(Sync.AttachSystem.Types.FarmWateringCan))
+                    if (!pInfo.PlayerData.Player.DetachObject(AttachmentType.FarmWateringCan))
                     {
-                        if (!pInfo.PlayerData.Player.DetachObject(Sync.AttachSystem.Types.FarmOrangeBoxCarry))
+                        if (!pInfo.PlayerData.Player.DetachObject(AttachmentType.FarmOrangeBoxCarry))
                         {
                             int treeIdx;
 
                             if (TryGetPlayerCurrentOrangeTreeInfo(pInfo.PlayerData, out treeIdx))
                             {
-                                if (pInfo.PlayerData.GeneralAnim == Sync.Animations.GeneralTypes.TreeCollect0)
+                                if (pInfo.PlayerData.GeneralAnim == GeneralType.TreeCollect0)
                                     pInfo.PlayerData.StopGeneralAnim();
 
                                 Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pInfo.PlayerData);
@@ -135,13 +111,13 @@ namespace BlaineRP.Server.Game.Jobs
                 }
                 else if (HasPlayerCurrentCowInfo(pInfo.PlayerData))
                 {
-                    if (!pInfo.PlayerData.Player.DetachObject(Sync.AttachSystem.Types.FarmMilkBucketCarry))
+                    if (!pInfo.PlayerData.Player.DetachObject(AttachmentType.FarmMilkBucketCarry))
                     {
                         int cowIdx;
 
                         if (TryGetPlayerCurrentCowInfo(pInfo.PlayerData, out cowIdx))
                         {
-                            if (pInfo.PlayerData.GeneralAnim == Sync.Animations.GeneralTypes.MilkCow0)
+                            if (pInfo.PlayerData.GeneralAnim == GeneralType.MilkCow0)
                                 pInfo.PlayerData.StopGeneralAnim();
 
                             Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pInfo.PlayerData);
@@ -154,8 +130,8 @@ namespace BlaineRP.Server.Game.Jobs
                 Data.Customization.SetNoUniform(pInfo.PlayerData);
             }
 
-            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
-            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM2)?.Cancel(pInfo);
+            pInfo.Quests.GetValueOrDefault(QuestType.JFRM1)?.Cancel(pInfo);
+            pInfo.Quests.GetValueOrDefault(QuestType.JFRM2)?.Cancel(pInfo);
 
             Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
 
@@ -182,13 +158,13 @@ namespace BlaineRP.Server.Game.Jobs
 
         }
 
-        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
+        public void OnVehicleRespawned(VehicleInfo vInfo, PlayerInfo pInfo)
         {
             if (vInfo.Data == TractorVehicleData)
             {
                 if (pInfo != null)
                 {
-                    pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
+                    pInfo.Quests.GetValueOrDefault(QuestType.JFRM1)?.Cancel(pInfo);
                 }
 
                 if (vInfo.VehicleData != null)
@@ -198,7 +174,7 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 if (pInfo != null)
                 {
-                    pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM2)?.Cancel(pInfo);
+                    pInfo.Quests.GetValueOrDefault(QuestType.JFRM2)?.Cancel(pInfo);
 
                     if (pInfo.PlayerData != null)
                         ResetPlayerFieldsIrrigationData(pInfo.PlayerData);
@@ -343,17 +319,17 @@ namespace BlaineRP.Server.Game.Jobs
 
         public static bool AttachHarvTrailOnTractor(VehicleData vData)
         {
-            return vData.Vehicle.AttachObject(Game.Data.Vehicles.GetData("raketrailer").Model, Sync.AttachSystem.Types.TractorTrailFarmHarv, -1, null);
+            return vData.Vehicle.AttachObject(Game.Data.Vehicles.GetData("raketrailer").Model, AttachmentType.TractorTrailFarmHarv, -1, null);
         }
 
         public void SetPlayerAsTractorTaker(PlayerData pData, VehicleData vData)
         {
-            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JFRM1, 0, 0, $"{vData.Vehicle.Id}");
+            Quest.StartQuest(pData, QuestType.JFRM1, 0, 0, $"{vData.Vehicle.Id}");
         }
 
         public void SetPlayerAsPlaneIrrigator(PlayerData pData, VehicleData vData)
         {
-            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JFRM2, 0, 0, $"{vData.Vehicle.Id}");
+            Quest.StartQuest(pData, QuestType.JFRM2, 0, 0, $"{vData.Vehicle.Id}");
 
             SetPlayerFieldsIrrigationData(pData);
         }

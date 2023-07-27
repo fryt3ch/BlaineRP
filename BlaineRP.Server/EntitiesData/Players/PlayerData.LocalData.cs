@@ -2,19 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntityData.Vehicles;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.BankSystem;
 using BlaineRP.Server.Game.Estates;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Offers;
+using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.Game.World;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
     public partial class PlayerData
     {
         /// <summary>Список наказаний игрока</summary>
-        public List<Sync.Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
+        public List<Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
 
         /// <summary>Банковский счёт игрока</summary>
-        public Game.Bank.Account BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }
+        public BankAccount BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }
 
         /// <summary>Информация об игроке с момента последнего захода на сервер</summary>
         public LastPlayerData LastData { get => Info.LastData; set => Info.LastData = value; }
@@ -106,15 +112,15 @@ namespace BlaineRP.Server.EntityData.Players
         public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
 
         /// <summary>Активное предложение игрока</summary>
-        public Sync.Offers.Offer ActiveOffer => Sync.Offers.Offer.GetByPlayer(this);
+        public Offer ActiveOffer => Offer.GetByPlayer(this);
 
         /// <summary>Активный звонок игрока</summary>
-        public Sync.Phone.Call ActiveCall => Sync.Phone.Call.GetByPlayer(this);
+        public Call ActiveCall => Call.GetByPlayer(this);
 
         /// <summary>Время получения последнего урона от оружия</summary>
         public DateTime LastDamageTime { get; set; }
 
-        public IEnumerable<Sync.World.ItemOnGround> OwnedItemsOnGround => Sync.World.GetItemsOnGroundByOwner(Info);
+        public IEnumerable<Service.ItemOnGround> OwnedItemsOnGround => Service.GetItemsOnGroundByOwner(Info);
 
         private HashSet<Player> _microphoneListeners = new HashSet<Player>();
 

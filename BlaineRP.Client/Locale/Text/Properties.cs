@@ -9,16 +9,6 @@ namespace BlaineRP.Client
     {
         public static class Property
         {
-            public static Dictionary<VehicleTypes, string> VehicleTypesNames = new Dictionary<VehicleTypes, string>()
-            {
-                { VehicleTypes.Car, "Автомобиль" },
-                { VehicleTypes.Boat, "Лодка" },
-                { VehicleTypes.Motorcycle, "Мотоцикл" },
-                { VehicleTypes.Cycle, "Велосипед" },
-                { VehicleTypes.Helicopter, "Вертолет" },
-                { VehicleTypes.Plane, "Самолет" },
-            };
-
             public static string VehicleTradeInfoStr = "{0} | {1} #{2}";
             public static string VehicleTradeInfoStr1 = "{0} #{1}";
             public static string HouseTradeInfoStr = "Дом #{0}";
@@ -26,30 +16,25 @@ namespace BlaineRP.Client
             public static string GarageTradeInfoStr = "{0}, #{1}";
             public static string BusinessTradeInfoStr = "{0} #{1}";
 
-            public static Dictionary<JobTypes, string> JobNames = new Dictionary<JobTypes, string>()
+            public static Dictionary<BusinessType, string> BusinessNames = new Dictionary<BusinessType, string>()
             {
-                { JobTypes.Trucker, "Доставка грузов" },
-            };
-
-            public static Dictionary<BusinessTypes, string> BusinessNames = new Dictionary<BusinessTypes, string>()
-            {
-                { BusinessTypes.ClothesShop1, "Магазин спортивной одежды" },
-                { BusinessTypes.ClothesShop2, "Магазин премиальной одежды" },
-                { BusinessTypes.ClothesShop3, "Магазин брендовой одежды" },
-                { BusinessTypes.JewelleryShop, "Ювелирный салон" },
-                { BusinessTypes.Market, "Магазин 24/7" },
-                { BusinessTypes.GasStation, "АЗС" },
-                { BusinessTypes.CarShop1, "Автосалон бюджетного сегмента" },
-                { BusinessTypes.BoatShop, "Лодочный салон" },
-                { BusinessTypes.AeroShop, "Салон воздушного транспорта" },
-                { BusinessTypes.TuningShop, "Тюнинг" },
-                { BusinessTypes.WeaponShop, "Оружейный магазин" },
-                { BusinessTypes.BarberShop, "Салон красоты" },
-                { BusinessTypes.TattooShop, "Тату-салон" },
-                { BusinessTypes.BagShop, "Торговец сумок и рюкзаков" },
-                { BusinessTypes.MaskShop, "Торговец масок" },
-                { BusinessTypes.FurnitureShop, "Мебельный магазин" },
-                { BusinessTypes.Farm, "Ферма" },
+                { BusinessType.ClothesShop1, "Магазин спортивной одежды" },
+                { BusinessType.ClothesShop2, "Магазин премиальной одежды" },
+                { BusinessType.ClothesShop3, "Магазин брендовой одежды" },
+                { BusinessType.JewelleryShop, "Ювелирный салон" },
+                { BusinessType.Market, "Магазин 24/7" },
+                { BusinessType.GasStation, "АЗС" },
+                { BusinessType.CarShop1, "Автосалон бюджетного сегмента" },
+                { BusinessType.BoatShop, "Лодочный салон" },
+                { BusinessType.AeroShop, "Салон воздушного транспорта" },
+                { BusinessType.TuningShop, "Тюнинг" },
+                { BusinessType.WeaponShop, "Оружейный магазин" },
+                { BusinessType.BarberShop, "Салон красоты" },
+                { BusinessType.TattooShop, "Тату-салон" },
+                { BusinessType.BagShop, "Торговец сумок и рюкзаков" },
+                { BusinessType.MaskShop, "Торговец масок" },
+                { BusinessType.FurnitureShop, "Мебельный магазин" },
+                { BusinessType.Farm, "Ферма" },
             };
 
             public static string NoOwner = "Государство";
@@ -68,22 +53,6 @@ namespace BlaineRP.Client
 
             public static string ApartmentsRootExitTextLabel = "Выход на улицу";
             public static string HouseExitTextLabel = "Выход";
-
-            public static Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } =
-                new Dictionary<Game.UI.CEF.Shop.FurnitureSubTypes, string>()
-                {
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
-                    { Game.UI.CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
-                };
         }
 
         public static class Shop

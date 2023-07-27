@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -19,11 +20,11 @@ namespace BlaineRP.Server.Game.Items
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
-        public virtual Sync.World.ItemOnGround Install(PlayerData pData, Vector3 pos, Vector3 rot)
+        public virtual World.Service.ItemOnGround Install(PlayerData pData, Vector3 pos, Vector3 rot)
         {
-            if (OnGroundInstance is Sync.World.ItemOnGround iogInstance)
+            if (OnGroundInstance is World.Service.ItemOnGround iogInstance)
             {
-                if (iogInstance.Type == Sync.World.ItemOnGround.Types.PlacedItem)
+                if (iogInstance.Type == World.Service.ItemOnGround.Types.PlacedItem)
                 {
                     iogInstance.Object.Position = pos;
                     iogInstance.Object.Rotation = rot;
@@ -34,14 +35,14 @@ namespace BlaineRP.Server.Game.Items
                 return null;
             }
 
-            return Sync.World.AddItemOnGround(pData, this, pos, rot, pData.Player.Dimension, Sync.World.ItemOnGround.Types.PlacedItem);
+            return World.Service.AddItemOnGround(pData, this, pos, rot, pData.Player.Dimension, World.Service.ItemOnGround.Types.PlacedItem);
         }
 
         public virtual bool Remove(PlayerData pData)
         {
-            if (OnGroundInstance is Sync.World.ItemOnGround iog)
+            if (OnGroundInstance is World.Service.ItemOnGround iog)
             {
-                if (iog.Type == Sync.World.ItemOnGround.Types.PlacedItem)
+                if (iog.Type == World.Service.ItemOnGround.Types.PlacedItem)
                 {
                     iog.Delete(false);
 

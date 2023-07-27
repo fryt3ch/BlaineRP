@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Businesses
 {
-    public enum BusinessTypes
+    public enum BusinessType
     {
         ClothesShop1 = 0,
         ClothesShop2,

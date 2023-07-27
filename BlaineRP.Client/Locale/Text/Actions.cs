@@ -74,12 +74,6 @@ namespace BlaineRP.Client
             public static string SelectOkBtn1 = "Снять";
             public static string SelectOkBtn2 = "Взять заказ";
             public static string SelectCancelBtn1 = "Закрыть";
-
-            public static Dictionary<WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<WeaponSkin.ItemData.Types, string>()
-            {
-                { WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
-                { WeaponSkin.ItemData.Types.UniMk2, "Универсальная (Mk2)" },
-            };
         }
     }
 }

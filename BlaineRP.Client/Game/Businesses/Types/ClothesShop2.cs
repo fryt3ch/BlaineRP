@@ -9,7 +9,7 @@ namespace BlaineRP.Client.Game.Businesses
     {
         public ClothesShop2(int id, Vector3 positionInfo, uint price, uint rent, float tax, Utils.Vector4 positionInteract) : base(id,
             positionInfo,
-            BusinessTypes.ClothesShop2,
+            BusinessType.ClothesShop2,
             price,
             rent,
             tax

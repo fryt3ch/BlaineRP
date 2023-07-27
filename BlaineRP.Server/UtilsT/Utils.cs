@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using BlaineRP.Server.Additional;
 using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.GTANetworkAPI;
 using BlaineRP.Server.Game.Estates;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Animations;
@@ -19,6 +20,7 @@ using BlaineRP.Server.Game.Management.AntiCheat;
 using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Game.Management.Misc;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server
 {
@@ -118,13 +120,6 @@ namespace BlaineRP.Server
         /// <summary>Нулевой вектор (X=0, Y=0, Z=0)</summary>
         public static Vector3 ZeroVector => new Vector3(0, 0, 0);
 
-        public static Color WhiteColor = new Color(255, 255, 255);
-        public static Color BlackColor = new Color(0, 0, 0);
-        public static Color RedColor = new Color(255, 0, 0);
-        public static Color BlueColor = new Color(0, 0, 255);
-        public static Color GreenColor = new Color(0, 255, 0);
-        public static Color YellowColor = new Color(255, 255, 0);
-
         public enum NotificationTypes
         {
             /// <summary>Информация (синий)</summary>
@@ -165,122 +160,8 @@ namespace BlaineRP.Server
             Jail2,
         }
 
-        public class Colour
-        {
-            [JsonIgnore]
-            public static Colour DefBlack => new Colour(0, 0, 0, 255);
-
-            [JsonIgnore]
-            public static Colour DefWhite => new Colour(255, 255, 255, 255);
-
-            [JsonIgnore]
-            public static Colour DefRed => new Colour(255, 0, 0, 255);
-
-            [JsonIgnore]
-            public static Colour DefGreen => new Colour(0, 255, 0, 255);
-
-            [JsonIgnore]
-            public static Colour DefBlue => new Colour(0, 0, 255, 255);
-
-            [JsonIgnore]
-            /// <summary>Красный</summary>
-            public byte Red { get; set; }
-
-            [JsonIgnore]
-            /// <summary>Зеленый</summary>
-            public byte Green { get; set; }
-
-            [JsonIgnore]
-            /// <summary>Синий</summary>
-            public byte Blue { get; set; }
-
-            [JsonIgnore]
-            /// <summary>Непрозрачность</summary>
-            public byte Alpha { get; set; }
-
-            [JsonProperty(PropertyName = "H")]
-            public string HEX => $"#{Red:X2}{Green:X2}{Blue:X2}{Alpha:X2}";
-
-            public Colour(byte Red, byte Green, byte Blue, byte Alpha = 255)
-            {
-                this.Red = Red;
-                this.Green = Green;
-                this.Blue = Blue;
-
-                this.Alpha = Alpha;
-            }
-
-            [JsonConstructor]
-            public Colour(string HEX)
-            {
-                this.Red = byte.Parse(HEX.Substring(1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-                this.Green = byte.Parse(HEX.Substring(3, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-                this.Blue = byte.Parse(HEX.Substring(5, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-
-                if (HEX.Length == 6)
-                    this.Alpha = byte.Parse(HEX.Substring(7, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
-                else
-                    this.Alpha = 255;
-            }
-
-            public Color ToRageColour() => new Color(Red, Green, Blue, Alpha);
-
-            public static Colour FromRageColour(Color colour) => new Colour((byte)colour.Red, (byte)colour.Green, (byte)colour.Blue, (byte)colour.Alpha);
-        }
-
-        public class Vector2
-        {
-            public float X { get; set; }
-
-            public float Y { get; set; }
-
-            public Vector2(float X = 0f, float Y = 0f)
-            {
-                this.X = X;
-                this.Y = Y;
-            }
-
-            public float Distance(Vector2 pos1, Vector2 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
-        }
-
-        public class Vector4
-        {
-            [JsonProperty(PropertyName = "P")]
-            public Vector3 Position { get; set; }
-
-            [JsonProperty(PropertyName = "RZ")]
-            public float RotationZ { get; set; }
-
-            [JsonIgnore]
-            public float X => Position.X;
-
-            [JsonIgnore]
-            public float Y => Position.Y;
-
-            [JsonIgnore]
-            public float Z => Position.Z;
-
-            public Vector4(float X, float Y, float Z, float RotationZ = 0f)
-            {
-                this.Position = new Vector3(X, Y, Z);
-
-                this.RotationZ = RotationZ;
-            }
-
-            public Vector4(Vector3 Position, float RotationZ = 0f) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
-
-            public Vector4(Vector4 Position) : this(Position.X, Position.Y, Position.Z, Position.RotationZ) { }
-
-            public Vector4() { }
-        }
-
         /// <summary>Получить текущее время (по МСК.)</summary>
         public static DateTime GetCurrentTime() => DateTime.UtcNow.AddHours(3);
-
-        public static long GetUnixTimestamp(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalSeconds;
-
-        public static long GetUnixTimestampMil(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalMilliseconds;
-
 
         /// <summary>Тихий кик игрока (со стороны сервера)</summary>
         /// <param name="player">Сущность игрока</param>
@@ -299,9 +180,6 @@ namespace BlaineRP.Server
             }, 1);
         }
 
-        public static List<T> ToList<T>(this Newtonsoft.Json.Linq.JArray jArray) => jArray.ToObject<List<T>>();
-        public static Dictionary<T1, T2> ToDictionary<T1, T2>(this Newtonsoft.Json.Linq.JArray jArray) => jArray.ToObject<Dictionary<T1, T2>>();
-
         #region Vehicle Stuff
 
         /// <summary>Получить сущность транспорта по ID</summary>
@@ -319,47 +197,6 @@ namespace BlaineRP.Server
         #endregion
 
         #region Main Thread Help
-        public static async Task<T> RunAsync<T>(this GTANetworkMethods.Task task, Func<T> func, long delay = 0)
-        {
-            if (delay <= 0 && IsMainThread())
-            {
-                return func.Invoke();
-            }
-
-            var taskCompletionSource = new TaskCompletionSource<T>();
-
-            task.Run(() => taskCompletionSource.SetResult(func.Invoke()), delay);
-
-            return await taskCompletionSource.Task;
-        }
-
-        public static async Task RunAsync(this GTANetworkMethods.Task task, Action action, long delay = 0)
-        {
-            if (delay <= 0 && IsMainThread())
-            {
-                action.Invoke();
-
-                return;
-            }
-
-            var taskCompletionSource = new TaskCompletionSource<object>();
-
-            task.Run(() => { action.Invoke(); taskCompletionSource.SetResult(null); }, delay);
-
-            await taskCompletionSource.Task;
-        }
-
-        public static void RunSafe(this GTANetworkMethods.Task task, Action action, long delay = 0)
-        {
-            if (delay <= 0 && IsMainThread())
-            {
-                action.Invoke();
-
-                return;
-            }
-
-            task.Run(action, delay);
-        }
 
         public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, Properties.Settings.Profile.Current.Game.StreamDistance, eventName, args);
 
@@ -789,33 +626,6 @@ namespace BlaineRP.Server
 
         public static float GetOppositeAngle(float angle) => (angle + 180) % 360;
 
-        /// <summary>Получить сущность ближайшего игрока к сущности</summary>
-        /// <param name="entity">Сущность</param>
-        /// <returns>Объект класса Player, если игрок был найден, null - в противном случае</returns>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData GetClosestPlayer(this Entity entity)
-        {
-            if (entity?.Exists != true)
-                return null;
-
-            var minDist = Properties.Settings.Profile.Current.Game.StreamDistance;
-            PlayerData minPlayer = null;
-
-            foreach (var x in PlayerData.All.Values.Where(x => x.Player.Dimension == entity.Dimension))
-            {
-                var dist = Vector3.Distance(x.Player.Position, entity.Position);
-
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    minPlayer = x;
-                }
-            }
-
-            return minPlayer;
-
-        }
-
         /// <summary>Метод для поворота одной точки относительно другой В указанный угол</summary>
         /// <param name="point">Точка (которую необходимо повернуть)</param>
         /// <param name="originPoint">Точка (относительно которой поворачиваем)</param>
@@ -844,12 +654,6 @@ namespace BlaineRP.Server
         /// <param name="radians">Радианы</param>
         public static float RadiansToDegrees(float radians) => (float)(180f / Math.PI) * radians;
 
-        /// <summary>Найти расстояние между двумя точками в 3D пространстве</summary>
-        /// <remarks>Игнорирует ось Z</remarks>
-        /// <param name="pos1">Точка 1</param>
-        /// <param name="pos2">Точка 2</param>
-        public static float DistanceIgnoreZ(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
-
         public static int GetTotalYears(this DateTime dateTime) => (DateTime.MinValue + Utils.GetCurrentTime().Subtract(dateTime)).Year - 1;
 
         public static bool YearPassed(this DateTime dateTime)
@@ -858,10 +662,6 @@ namespace BlaineRP.Server
 
             return currentTime.Month == dateTime.Month && currentTime.Day == dateTime.Day;
         }
-
-        public static bool MonthPassed(this DateTime dateTime) => Utils.GetCurrentTime().Day == dateTime.Day;
-
-        public static float DistanceXY(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
 
         /// <inheritdoc cref="Game.Management.Attachments.Service.AttachObject(Entity, string, AttachmentType, int)"/>
         public static bool AttachObject(this Entity entity, uint model, AttachmentType type, int detachAfter, string syncData, params object[] args) => Game.Management.Attachments.Service.AttachObject(entity, model, type, detachAfter, syncData, args);
@@ -919,11 +719,7 @@ namespace BlaineRP.Server
         /// <summary>Метод, который закрывает все активные интерфейсы на стороне клиента</summary>
         /// <param name="player"></param>
         public static void CloseAll(this Player player, bool onlyInterfaces = false) => player.TriggerEvent("Player::CloseAll", onlyInterfaces);
-
-        public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == NAPI.MainThreadId;
-
-        public static T GetRandom<T>(this List<T> list) => list.Count == 0 ? default(T) : list[(new Random()).Next(0, list.Count - 1)];
-
+        
         public static int CalculateDifference(int currentValue, int difference, int minValue, int maxValue)
         {
             var maxDifference = maxValue - currentValue;
@@ -1082,48 +878,7 @@ namespace BlaineRP.Server
         }
 
         public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new RAGE.Vector3({v.X}f, {v.Y}f, {v.Z}f)";
-        public static string ToCSharpStr(this Utils.Vector4 v) => v == null ? "null" : $"new {typeof(BlaineRP.Client.Utils.Vector4).FullName}({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
-
-        public static string GetBeautyString(this TimeSpan ts)
-        {
-            var days = ts.Days;
-
-            if (days >= 1)
-            {
-                var hours = ts.Hours;
-
-                if (hours >= 1)
-                    return $"{days} дн. и {hours} ч.";
-
-                return $"{days} дн.";
-            }
-
-            var hours1 = ts.Hours;
-
-            if (hours1 >= 1)
-            {
-                var mins = ts.Minutes;
-
-                if (mins >= 1)
-                    return $"{hours1} ч. и {mins} мин.";
-
-                return $"{hours1} ч.";
-            }
-
-            var mins1 = ts.Minutes;
-
-            var secs = ts.Seconds;
-
-            if (mins1 >= 1)
-            {
-                if (secs >= 1)
-                    return $"{mins1} мин. и {secs} сек.";
-
-                return $"{mins1} мин.";
-            }
-
-            return $"{secs} сек.";
-        }
+        public static string ToCSharpStr(this Vector4 v) => v == null ? "null" : $"new {typeof(BlaineRP.Client.Utils.Vector4).FullName}({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
 
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
 
@@ -1156,46 +911,6 @@ namespace BlaineRP.Server
             {
                 var target_file = new FileInfo(Path.Combine(dest.FullName, source_file.Name));
                 source_file.CopyTo(target_file.FullName, true);
-            }
-        }
-
-        public static bool TryAdd(this ulong source, ulong value, out ulong result)
-        {
-            unchecked
-            {
-                result = source + value;
-
-                return result >= source;
-            }
-        }
-
-        public static bool TrySubtract(this ulong source, ulong value, out ulong result)
-        {
-            unchecked
-            {
-                result = source - value;
-
-                return result <= source;
-            }
-        }
-
-        public static bool TryAdd(this uint source, uint value, out uint result)
-        {
-            unchecked
-            {
-                result = source + value;
-
-                return result >= source;
-            }
-        }
-
-        public static bool TrySubtract(this uint source, uint value, out uint result)
-        {
-            unchecked
-            {
-                result = source - value;
-
-                return result <= source;
             }
         }
 

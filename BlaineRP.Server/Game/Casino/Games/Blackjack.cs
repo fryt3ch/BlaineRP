@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.CasinoSystem.Games
+namespace BlaineRP.Server.Game.Casino.Games
 {
     public partial class Blackjack
     {
@@ -191,9 +193,9 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
 
                                     uint chipBalance;
 
-                                    if (Casino.TryAddCasinoChips(pInfo, CurrentPlayers[x].Bet, out chipBalance, true, null))
+                                    if (CasinoEntity.TryAddCasinoChips(pInfo, CurrentPlayers[x].Bet, out chipBalance, true, null))
                                     {
-                                        Casino.SetCasinoChips(pInfo, chipBalance, null);
+                                        CasinoEntity.SetCasinoChips(pInfo, chipBalance, null);
                                     }
                                 }
 
@@ -234,9 +236,9 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
 
                                     uint chipBalance;
 
-                                    if (Casino.TryAddCasinoChips(pInfo, (uint)Math.Floor(CurrentPlayers[x].Bet * BLACKJACK_COEF), out chipBalance, true, null))
+                                    if (CasinoEntity.TryAddCasinoChips(pInfo, (uint)Math.Floor(CurrentPlayers[x].Bet * BLACKJACK_COEF), out chipBalance, true, null))
                                     {
-                                        Casino.SetCasinoChips(pInfo, chipBalance, null);
+                                        CasinoEntity.SetCasinoChips(pInfo, chipBalance, null);
                                     }
 
                                     CurrentPlayers[x].Bet = 0;
@@ -386,9 +388,9 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
                             {
                                 uint newBalance;
 
-                                if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                                if (CasinoEntity.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
                                 {
-                                    Casino.SetCasinoChips(pInfo, newBalance, null);
+                                    CasinoEntity.SetCasinoChips(pInfo, newBalance, null);
                                 }
 
                                 totalPayed += totalWin;

@@ -1,5 +1,4 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 
 namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
@@ -12,10 +11,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show(object ownedList, object rentedList)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Vehicles;
+            CEF.Phone.Phone.CurrentApp = AppType.Vehicles;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 

@@ -13,6 +13,7 @@ using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Items.Craft;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Management.Weapons;
+using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;

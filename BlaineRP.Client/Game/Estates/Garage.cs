@@ -1,32 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using RAGE;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Estates
 {
-    public class Garage
+    public partial class Garage
     {
-        public enum ClassTypes
-        {
-            GA = 0,
-            GB,
-            GC,
-            GD,
-        }
-
-        public enum Types
-        {
-            Two = 2,
-            Six = 6,
-            Ten = 10,
-        }
-
         public static Dictionary<uint, Garage> All = new Dictionary<uint, Garage>();
 
         public Garage(uint Id, uint RootId, int Type, byte Variation, int ClassType, uint Tax, uint Price)
@@ -170,95 +153,6 @@ namespace BlaineRP.Client.Game.Estates
 
         public void UpdateOwnerName(string name)
         {
-        }
-
-        public class Style
-        {
-            public Style(Types Type, byte Variation, Vector3 EnterPosition, Action OnAction = null, Action OffAction = null)
-            {
-                this.Variation = Variation;
-
-                this.EnterPosition = EnterPosition;
-
-                this.OnAction = OnAction;
-                this.OffAction = OffAction;
-
-                if (!All.ContainsKey(Type))
-                    All.Add(Type,
-                        new Dictionary<byte, Style>()
-                        {
-                            { Variation, this },
-                        }
-                    );
-                else
-                    All[Type].Add(Variation, this);
-            }
-
-            private static Dictionary<Types, Dictionary<byte, Style>> All { get; set; } = new Dictionary<Types, Dictionary<byte, Style>>();
-
-            public Types Type { get; set; }
-
-            public Vector3 EnterPosition { get; set; }
-
-            public byte Variation { get; set; }
-
-            public Action OnAction { get; set; }
-
-            public Action OffAction { get; set; }
-
-            public static void LoadAll()
-            {
-                new Style(Types.Two, 0, new Vector3(179.0708f, -1005.729f, -98.99996f), null, null);
-                new Style(Types.Six, 0, new Vector3(207.0894f, -998.9854f, -98.99996f), null, null);
-                new Style(Types.Ten, 0, new Vector3(238.0103f, -1004.861f, -98.99996f), null, null);
-
-                new Style(Types.Ten,
-                    1,
-                    new Vector3(238.0103f, -1004.861f, -98.99996f),
-                    () =>
-                    {
-                        int intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_01", true);
-                    },
-                    () =>
-                    {
-                        int intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_01", false);
-                    }
-                );
-
-                new Style(Types.Ten,
-                    2,
-                    new Vector3(238.0103f, -1004.861f, -98.99996f),
-                    () =>
-                    {
-                        int intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", true);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_03", true);
-                    },
-                    () =>
-                    {
-                        int intId = RAGE.Game.Interior.GetInteriorAtCoords(520f, -2625f, -50f);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_tint_01", false);
-                        Utils.Game.Misc.ToggleInteriorEntitySet(intId, "entity_set_shell_03", false);
-                    }
-                );
-
-                foreach (Dictionary<byte, Style> x in All.Values)
-                {
-                    foreach (Style y in x.Values)
-                    {
-                        y.OffAction?.Invoke();
-                    }
-                }
-            }
-
-            public static Style Get(Types type, byte variation)
-            {
-                return All.GetValueOrDefault(type).GetValueOrDefault(variation);
-            }
         }
     }
 }

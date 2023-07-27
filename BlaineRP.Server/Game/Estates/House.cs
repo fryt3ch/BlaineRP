@@ -1,8 +1,12 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
-using BlaineRP.Server.EntityData.Vehicles;
+using BlaineRP.Server.Additional;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.GTANetworkAPI;
+using BlaineRP.Server.Game.Management.AntiCheat;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -11,14 +15,14 @@ namespace BlaineRP.Server.Game.Estates
         /// <summary>Словарь всех домов</summary>
         public static Dictionary<uint, House> All { get; private set; } = new Dictionary<uint, House>();
 
-        public Utils.Vector4 GarageOutside { get; set; }
+        public Vector4 GarageOutside { get; set; }
 
         /// <summary>Тип гаража</summary>
         public Garage.Style GarageData { get; private set; }
 
-        public override Utils.Vector4 PositionParams { get; }
+        public override Vector4 PositionParams { get; }
 
-        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, uint Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, Types.House, RoomType)
+        public House(uint HID, Vector4 PositionParams, Style.RoomTypes RoomType, uint Price, Garage.Types? GarageType = null, Vector4 GarageOutside = null) : base(HID, Types.House, RoomType)
         {
             this.PositionParams = PositionParams;
 
@@ -41,7 +45,7 @@ namespace BlaineRP.Server.Game.Estates
         {
             base.UpdateOwner(pInfo);
 
-            Sync.World.SetSharedData($"House::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            World.Service.SetSharedData($"House::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Properties.Settings.Static.MainDimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;
@@ -114,7 +118,7 @@ namespace BlaineRP.Server.Game.Estates
 
             vData.AttachBoatToTrailer();
 
-            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, VehicleTeleportType.All);
 
             vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;

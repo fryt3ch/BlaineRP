@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {

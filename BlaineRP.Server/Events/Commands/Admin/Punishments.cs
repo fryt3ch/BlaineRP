@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Game.Management.Punishments;
 
 namespace BlaineRP.Server.Events.Commands
 {
@@ -31,11 +36,11 @@ namespace BlaineRP.Server.Events.Commands
 
             if (tData == null)
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"NOT_AUTH ({target.Id})");
+                Service.SendGlobal(MessageType.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"NOT_AUTH ({target.Id})");
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Info.Name} {tData.Info.Surname} ({target.Id})");
+                Service.SendGlobal(MessageType.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Info.Name} {tData.Info.Surname} ({target.Id})");
             }
 
             target.Notify("KickA", $"{pData.Info.Name} {pData.Info.Surname} #{pData.CID}", reason);
@@ -94,7 +99,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -103,7 +108,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var allMutes = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Mute).ToList();
+            var allMutes = tInfo.Punishments.Where(x => x.Type == PunishmentType.Mute).ToList();
 
             if (allMutes.Where(x => x.IsActive()).Any())
             {
@@ -114,7 +119,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Mute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
+            var punishment = new Punishment(Punishment.GetNextId(), PunishmentType.Mute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
 
             if (allMutes.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -140,11 +145,11 @@ namespace BlaineRP.Server.Events.Commands
 
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
+                Service.SendGlobal(MessageType.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
+                Service.SendGlobal(MessageType.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
             }
         }
 
@@ -161,7 +166,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -170,7 +175,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var actualMute = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Mute && x.IsActive()).FirstOrDefault();
+            var actualMute = tInfo.Punishments.Where(x => x.Type == PunishmentType.Mute && x.IsActive()).FirstOrDefault();
 
             if (actualMute == null)
             {
@@ -179,7 +184,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            actualMute.AmnestyInfo = new Sync.Punishment.Amnesty()
+            actualMute.AmnestyInfo = new Punishment.Amnesty()
             {
                 CID = pData.CID,
                 Reason = reason,
@@ -194,11 +199,11 @@ namespace BlaineRP.Server.Events.Commands
 
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualMute.Id, (int)actualMute.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Service.SendGlobal(MessageType.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Service.SendGlobal(MessageType.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -215,7 +220,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -224,7 +229,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var allJails = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.NRPPrison).ToList();
+            var allJails = tInfo.Punishments.Where(x => x.Type == PunishmentType.NRPPrison).ToList();
 
             if (allJails.Where(x => x.IsActive()).Any())
             {
@@ -235,7 +240,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) { AdditionalData = "0" };
+            var punishment = new Punishment(Punishment.GetNextId(), PunishmentType.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) { AdditionalData = "0" };
 
             if (allJails.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -259,16 +264,16 @@ namespace BlaineRP.Server.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason, punishment.AdditionalData);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
+                Service.SendGlobal(MessageType.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
 
                 Utils.Demorgan.SetToDemorgan(tInfo.PlayerData, false);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
+                Service.SendGlobal(MessageType.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
             }
 
-            if (tInfo.Fraction != Game.Fractions.Types.None)
+            if (tInfo.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(tInfo.Fraction);
 
@@ -289,7 +294,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -298,7 +303,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var actualJail = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.NRPPrison && x.IsActive()).FirstOrDefault();
+            var actualJail = tInfo.Punishments.Where(x => x.Type == PunishmentType.NRPPrison && x.IsActive()).FirstOrDefault();
 
             if (actualJail == null)
             {
@@ -307,7 +312,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            actualJail.AmnestyInfo = new Sync.Punishment.Amnesty()
+            actualJail.AmnestyInfo = new Punishment.Amnesty()
             {
                 CID = pData.CID,
                 Reason = reason,
@@ -320,16 +325,16 @@ namespace BlaineRP.Server.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualJail.Id, (int)actualJail.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Service.SendGlobal(MessageType.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
 
                 Utils.Demorgan.SetFromDemorgan(tInfo.PlayerData);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Service.SendGlobal(MessageType.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
 
-            if (tInfo.Fraction != Game.Fractions.Types.None)
+            if (tInfo.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(tInfo.Fraction);
 
@@ -350,7 +355,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = (string)args[1];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -359,7 +364,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var allWarns = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Warn).ToList();
+            var allWarns = tInfo.Punishments.Where(x => x.Type == PunishmentType.Warn).ToList();
 
             if (allWarns.Count == Properties.Settings.Static.MAX_WARNS_BEFORE_BAN)
             {
@@ -370,7 +375,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Warn, reason, curTime, curTime.AddDays(Properties.Settings.Static.WARN_DAYS_TO_UNWARN), pData.CID);
+            var punishment = new Punishment(Punishment.GetNextId(), PunishmentType.Warn, reason, curTime, curTime.AddDays(Properties.Settings.Static.WARN_DAYS_TO_UNWARN), pData.CID);
 
             if (allWarns.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -394,11 +399,11 @@ namespace BlaineRP.Server.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Service.SendGlobal(MessageType.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Service.SendGlobal(MessageType.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -415,7 +420,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = args[2];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -424,7 +429,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var actualWarn = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Warn && x.Id == warnId && x.IsActive()).FirstOrDefault();
+            var actualWarn = tInfo.Punishments.Where(x => x.Type == PunishmentType.Warn && x.Id == warnId && x.IsActive()).FirstOrDefault();
 
             if (actualWarn == null)
             {
@@ -433,7 +438,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            actualWarn.AmnestyInfo = new Sync.Punishment.Amnesty()
+            actualWarn.AmnestyInfo = new Punishment.Amnesty()
             {
                 CID = pData.CID,
                 Reason = reason,
@@ -446,11 +451,11 @@ namespace BlaineRP.Server.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualWarn.Id, (int)actualWarn.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Service.SendGlobal(MessageType.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Service.SendGlobal(MessageType.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -467,7 +472,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -476,7 +481,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var allBans = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban).ToList();
+            var allBans = tInfo.Punishments.Where(x => x.Type == PunishmentType.Ban).ToList();
 
             if (allBans.Where(x => x.IsActive()).Any())
             {
@@ -487,7 +492,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Ban, reason, curTime, curTime.AddDays(days), pData.CID);
+            var punishment = new Punishment(Punishment.GetNextId(), PunishmentType.Ban, reason, curTime, curTime.AddDays(days), pData.CID);
 
             if (allBans.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -509,7 +514,7 @@ namespace BlaineRP.Server.Events.Commands
 
             if (tInfo.PlayerData != null)
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{days}");
+                Service.SendGlobal(MessageType.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{days}");
 
                 tInfo.PlayerData.Player.Notify("KickB", $"{pData.Player.Name} #{pData.CID}", reason, punishment.EndDate.ToString("dd.MM.yyyy HH:mm:ss"));
 
@@ -517,10 +522,10 @@ namespace BlaineRP.Server.Events.Commands
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{days}");
+                Service.SendGlobal(MessageType.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{days}");
             }
 
-            if (tInfo.Fraction != Game.Fractions.Types.None)
+            if (tInfo.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(tInfo.Fraction);
 
@@ -541,7 +546,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -550,7 +555,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var actualBan = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban && x.IsActive()).FirstOrDefault();
+            var actualBan = tInfo.Punishments.Where(x => x.Type == PunishmentType.Ban && x.IsActive()).FirstOrDefault();
 
             if (actualBan == null)
             {
@@ -559,7 +564,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            actualBan.AmnestyInfo = new Sync.Punishment.Amnesty()
+            actualBan.AmnestyInfo = new Punishment.Amnesty()
             {
                 CID = pData.CID,
                 Reason = reason,
@@ -568,9 +573,9 @@ namespace BlaineRP.Server.Events.Commands
 
             MySQL.UpdatePunishmentAmnesty(actualBan);
 
-            Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnBan, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+            Service.SendGlobal(MessageType.UnBan, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
 
-            if (tInfo.Fraction != Game.Fractions.Types.None)
+            if (tInfo.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(tInfo.Fraction);
 

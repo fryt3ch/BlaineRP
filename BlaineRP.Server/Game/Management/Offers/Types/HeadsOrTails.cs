@@ -1,8 +1,11 @@
-﻿using BlaineRP.Server.EntityData.Players;
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
-namespace BlaineRP.Server.Sync.Offers
+namespace BlaineRP.Server.Game.Management.Offers
 {
-    [Offer(Types.HeadsOrTails)]
+    [Offer(OfferType.HeadsOrTails)]
     internal class HeadsOrTails : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
@@ -21,11 +24,11 @@ namespace BlaineRP.Server.Sync.Offers
             if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            Sync.Chat.SendLocal(Chat.MessageTypes.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
+            Chat.Service.SendLocal(MessageType.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
 
             var res = SRandom.NextInt32(0, 2) == 0;
 
-            Sync.Chat.SendLocal(Chat.MessageTypes.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
+            Chat.Service.SendLocal(MessageType.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -33,7 +36,7 @@ namespace BlaineRP.Server.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, OfferType type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
             var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 

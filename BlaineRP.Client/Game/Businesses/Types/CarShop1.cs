@@ -8,7 +8,7 @@ namespace BlaineRP.Client.Game.Businesses
     {
         public CarShop1(int id, Vector3 positionInfo, uint price, uint rent, float tax, Utils.Vector4 positionInteract) : base(id,
             positionInfo,
-            BusinessTypes.CarShop1,
+            BusinessType.CarShop1,
             price,
             rent,
             tax

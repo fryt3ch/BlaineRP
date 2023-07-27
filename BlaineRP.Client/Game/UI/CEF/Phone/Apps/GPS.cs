@@ -4,7 +4,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.Helpers.Blips;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -114,7 +113,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             RouteUpdateTask = null;
                         }
 
-                        if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
+                        if (CEF.Phone.Phone.CurrentApp == AppType.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
                             Browser.Window.ExecuteJs("Phone.removeCurRoute();");
 
                         CurrentRouteBlip.Destroy();
@@ -224,10 +223,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show()
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Navigator;
+            CEF.Phone.Phone.CurrentApp = AppType.Navigator;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -295,7 +294,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                 RouteUpdateTask = new AsyncTask(() =>
                     {
-                        if (CEF.Phone.Phone.CurrentApp == AppTypes.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
+                        if (CEF.Phone.Phone.CurrentApp == AppType.Navigator && CEF.Phone.Phone.CurrentAppTab == -1)
                         {
                             if (CurrentRouteBlip?.Exists != true)
                             {

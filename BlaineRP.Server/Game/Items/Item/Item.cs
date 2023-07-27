@@ -11,7 +11,7 @@ namespace BlaineRP.Server.Game.Items
     [JsonConverter(typeof(ItemConverter))]
     public abstract class Item
     {
-        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
+        public static UtilsT.UidHandlers.UInt32 UidHandler { get; private set; } = new UtilsT.UidHandlers.UInt32(1);
 
         public static void Add(Item item)
         {
@@ -172,7 +172,7 @@ namespace BlaineRP.Server.Game.Items
         }
 
         [JsonIgnore]
-        public Sync.World.ItemOnGround OnGroundInstance => Sync.World.GetItemOnGround(UID);
+        public World.Service.ItemOnGround OnGroundInstance => World.Service.GetItemOnGround(UID);
 
         [JsonIgnore]
         public Type Type { get; set; }
@@ -212,7 +212,7 @@ namespace BlaineRP.Server.Game.Items
             if (IsTemp)
                 return;
 
-            if (OnGroundInstance is Sync.World.ItemOnGround iog)
+            if (OnGroundInstance is World.Service.ItemOnGround iog)
             {
                 iog.Delete(false);
             }

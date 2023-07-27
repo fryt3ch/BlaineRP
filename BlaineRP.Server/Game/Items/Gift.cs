@@ -1,8 +1,12 @@
-﻿namespace BlaineRP.Server.Game.Items
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Casino;
+using BlaineRP.Server.UtilsT.UidHandlers;
+
+namespace BlaineRP.Server.Game.Items
 {
     public class Gift
     {
-        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
+        public static UInt32 UidHandler { get; private set; } = new UInt32(1);
 
         public static void AddOnLoad(Gift gift)
         {
@@ -139,7 +143,7 @@
         /// <param name="sType">Источник выдачи</param>
         /// <param name="notify">Уведомить ли игрока?</param>
         /// <param name="spaceHint">Уведомить, но с подсказкой об освобождении места в инвентаре?</param>
-        public static Gift Give(PlayerData.PlayerInfo pInfo, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false)
+        public static Gift Give(PlayerInfo pInfo, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false)
         {
             var gift = new Gift(sType, type, GID, variation, amount);
 
@@ -153,7 +157,7 @@
             return gift;
         }
 
-        public static Gift Give(PlayerData.PlayerInfo pInfo, Prototype prototype, bool notify = false) => Give(pInfo, prototype.Type, prototype.GID, prototype.Variation, prototype.Amount, prototype.SourceType, notify);
+        public static Gift Give(PlayerInfo pInfo, Prototype prototype, bool notify = false) => Give(pInfo, prototype.Type, prototype.GID, prototype.Variation, prototype.Amount, prototype.SourceType, notify);
 
         /// <summary>Метод для распаковки подарка</summary>
         /// <param name="pData">PlayerData игрока</param>
@@ -189,10 +193,10 @@
 
                 uint newBalance;
 
-                if (!Game.Casino.Casino.TryAddCasinoChips(pData.Info, (uint)Amount, out newBalance, true, null))
+                if (!CasinoEntity.TryAddCasinoChips(pData.Info, (uint)Amount, out newBalance, true, null))
                     return false;
 
-                Game.Casino.Casino.SetCasinoChips(pData.Info, newBalance, null);
+                CasinoEntity.SetCasinoChips(pData.Info, newBalance, null);
 
                 return true;
             }

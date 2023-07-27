@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.Game.Management.Phone;
 
-namespace BlaineRP.Server.Sync.Quests.Types
+namespace BlaineRP.Server.Game.Quests.Types
 {
     public class JTR1
     {
         public static void Initialize()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JTR1)
+            new Quest.QuestData(QuestType.JTR1)
             {
                 ProgressUpdateFunc = (pData, questData, data) =>
                 {
@@ -107,9 +108,9 @@ namespace BlaineRP.Server.Sync.Quests.Types
 
                                 MySQL.BusinessUpdateBalances(activeOrder.TargetBusiness, true);
 
-                                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, activeOrder.TargetBusiness.Owner, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessFinishOrder), orderId));
+                                var sms = new SMS((uint)DefaultNumbers.Delivery, activeOrder.TargetBusiness.Owner, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderFinish), orderId));
 
-                                Sync.Phone.SMS.Add(activeOrder.TargetBusiness.Owner, sms, true);
+                                SMS.Add(activeOrder.TargetBusiness.Owner, sms, true);
                             }
                         }
                         else

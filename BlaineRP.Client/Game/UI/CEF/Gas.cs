@@ -288,7 +288,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 },
             };
 
-            Dictionary<string, uint> prices = Shop.GetPrices(Shop.Types.GasStation);
+            Dictionary<string, uint> prices = Shop.GetPrices(Game.Businesses.BusinessType.GasStation);
 
             Browser.Window.ExecuteJs("CarMaint.drawGas",
                 new object[]

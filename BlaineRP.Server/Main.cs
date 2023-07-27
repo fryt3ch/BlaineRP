@@ -11,6 +11,16 @@ using System.Reflection;
 using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.BankSystem;
+using BlaineRP.Server.Game.Casino;
+using BlaineRP.Server.Game.Management.DoorSystem;
+using BlaineRP.Server.Game.Management.Offers;
+using BlaineRP.Server.Game.Misc;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.Game.World;
 
 namespace BlaineRP.Server
 {
@@ -48,11 +58,11 @@ namespace BlaineRP.Server
             Events.Commands.Commands.LoadAll();
             Events.NPC.NPC.LoadAll();
 
-            Sync.World.Initialize();
+            Game.World.Service.Initialize();
 
             var clientSettings = Properties.Settings.Profile.Current.GetClientsideSettings();
 
-            Sync.World.SetSharedData("Settings", clientSettings);
+            Game.World.Service.SetSharedData("Settings", clientSettings);
 
             var currentTime = Utils.GetCurrentTime();
 
@@ -155,11 +165,11 @@ namespace BlaineRP.Server
             Game.Estates.HouseBase.Style.LoadAll();
             Game.Estates.Garage.Style.LoadAll();
 
-            Game.Bank.LoadAll();
+            Bank.LoadAll();
 
-            Sync.Quest.InitializeAll();
+            Quest.InitializeAll();
 
-            Sync.Offers.Offer.Load();
+            Offer.Load();
 
             // DB Load Step
 
@@ -178,13 +188,13 @@ namespace BlaineRP.Server
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Container.All.Count} containers");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerData.PlayerInfo.All.Count} players");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerInfo.All.Count} players");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{VehicleData.VehicleInfo.All.Count} vehicles");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{VehicleInfo.All.Count} vehicles");
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Businesses.Business.All.Count} businesses");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerData.PlayerInfo.All.Values.Select(x => x.Gifts.Count).Sum()} gifts");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerInfo.All.Values.Select(x => x.Gifts.Count).Sum()} gifts");
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.House.All.Count} houses");
 
@@ -208,7 +218,7 @@ namespace BlaineRP.Server
 
             Game.Businesses.Business.ReplaceClientsideLines();
 
-            Game.Autoschool.InitializeAll();
+            DrivingSchool.InitializeAll();
 
             Game.Misc.FishBuyer.InitializeAll();
             Game.Misc.VehicleDestruction.InitializeAll();
@@ -217,13 +227,13 @@ namespace BlaineRP.Server
 
             Game.Misc.Elevator.InitializeAll();
 
-            Sync.DoorSystem.InitializeAll();
+            Game.Management.DoorSystem.Service.InitializeAll();
 
-            Game.Casino.Casino.InitializeAll();
+            CasinoEntity.InitializeAll();
 
             Additional.ConsoleCommands.Activate();
 
-            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin", "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
+            Game.World.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin", "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
 
             _payDayTimer = new Timer((obj) =>
             {
@@ -344,7 +354,7 @@ namespace BlaineRP.Server
                 {
                     uint joblessBenefit = JoblessBenefits, fractionSalary = 0, organisationSalary = 0;
 
-                    if (pData.Fraction != Game.Fractions.Types.None)
+                    if (pData.Fraction != Game.Fractions.FractionType.None)
                     {
                         var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
@@ -369,7 +379,7 @@ namespace BlaineRP.Server
 
         public static void GiveBankSavings()
         {
-            foreach (var x in PlayerData.PlayerInfo.All)
+            foreach (var x in PlayerInfo.All)
             {
                 var bankAccount = x.Value.BankAccount;
 
@@ -390,7 +400,7 @@ namespace BlaineRP.Server
         {
             var currentTime = Utils.GetCurrentTime();
 
-            Sync.World.SetSharedData("cst", currentTime.GetUnixTimestampMil());
+            Game.World.Service.SetSharedData("cst", currentTime.GetUnixTimestampMil());
         }
 
         public static async Task OnServerShutdown()

@@ -11,7 +11,7 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public abstract partial class Job
     {
-        public Job(int Id, JobTypes Type)
+        public Job(int Id, JobType Type)
         {
             this.Type = Type;
             this.Id = Id;
@@ -21,10 +21,10 @@ namespace BlaineRP.Client.Game.Jobs
 
         public static Dictionary<int, Job> AllJobs { get; private set; } = new Dictionary<int, Job>();
 
-        private static Dictionary<JobTypes, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<JobTypes, Action<PlayerData, Job>>()
+        private static Dictionary<JobType, Action<PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<JobType, Action<PlayerData, Job>>()
         {
             {
-                JobTypes.Trucker, (pData, job) =>
+                JobType.Trucker, (pData, job) =>
                 {
                     var truckerJob = job as Trucker;
 
@@ -56,7 +56,7 @@ namespace BlaineRP.Client.Game.Jobs
                 }
             },
             {
-                JobTypes.Collector, (pData, job) =>
+                JobType.Collector, (pData, job) =>
                 {
                     var truckerJob = job as Collector;
 
@@ -88,7 +88,7 @@ namespace BlaineRP.Client.Game.Jobs
                 }
             },
             {
-                JobTypes.Cabbie, (pData, job) =>
+                JobType.Cabbie, (pData, job) =>
                 {
                     var cabbieJob = job as Cabbie;
 
@@ -120,7 +120,7 @@ namespace BlaineRP.Client.Game.Jobs
                 }
             },
             {
-                JobTypes.BusDriver, (pData, job) =>
+                JobType.BusDriver, (pData, job) =>
                 {
                     var busJob = job as BusDriver;
 
@@ -152,9 +152,9 @@ namespace BlaineRP.Client.Game.Jobs
 
         public int SubId => AllJobs.Values.Where(x => x.Type == Type).ToList().IndexOf(this);
 
-        public JobTypes Type { get; set; }
+        public JobType Type { get; set; }
 
-        public string Name => Locale.Property.JobNames.GetValueOrDefault(Type) ?? "null";
+        public string Name => Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(Type.GetType(), Type.ToString(), "NAME_0") ?? "null");
 
         public ExtraBlip Blip { get; set; }
 

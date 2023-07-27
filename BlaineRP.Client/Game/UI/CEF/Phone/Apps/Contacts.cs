@@ -3,7 +3,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
@@ -83,10 +82,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowAll(object list)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Contacts;
+            CEF.Phone.Phone.CurrentApp = AppType.Contacts;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -95,14 +94,14 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowEdit(string number, string name)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.Contacts)
+            if (CEF.Phone.Phone.CurrentApp != AppType.Contacts)
             {
                 Browser.Window.ExecuteJs("Phone.drawContactsApp();");
 
-                CEF.Phone.Phone.CurrentApp = AppTypes.Contacts;
+                CEF.Phone.Phone.CurrentApp = AppType.Contacts;
             }
 
             CEF.Phone.Phone.CurrentAppTab = 0;

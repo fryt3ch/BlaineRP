@@ -1,6 +1,8 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.GTANetworkAPI;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -17,7 +19,7 @@ namespace BlaineRP.Server.Game.Estates
 
         public ushort SubIdx { get; }
 
-        public override Utils.Vector4 PositionParams => ApartmentsRoot.Get(RootId).Shell.GetApartmentsPosition(FloorIdx, SubIdx);
+        public override Vector4 PositionParams => ApartmentsRoot.Get(RootId).Shell.GetApartmentsPosition(FloorIdx, SubIdx);
 
         /// <summary>Данные многоквартирного дома</summary>
         public ApartmentsRoot Root => ApartmentsRoot.Get(RootId);
@@ -42,7 +44,7 @@ namespace BlaineRP.Server.Game.Estates
         {
             base.UpdateOwner(pInfo);
 
-            Sync.World.SetSharedData($"Apartments::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            World.Service.SetSharedData($"Apartments::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Root.Dimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE;

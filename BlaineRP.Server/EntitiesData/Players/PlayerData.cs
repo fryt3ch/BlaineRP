@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntityData.Vehicles;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.System;
 using BlaineRP.Server.Game.Items;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Achievements;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
     public partial class PlayerData
     {
@@ -69,7 +77,7 @@ namespace BlaineRP.Server.EntityData.Players
             }
         }
 
-        public void AddLicense(LicenseTypes lType)
+        public void AddLicense(LicenseType lType)
         {
             if (!Info.Licenses.Add(lType))
                 return;
@@ -79,7 +87,7 @@ namespace BlaineRP.Server.EntityData.Players
             MySQL.CharacterLicensesUpdate(Info);
         }
 
-        public void RemoveLicense(LicenseTypes lType)
+        public void RemoveLicense(LicenseType lType)
         {
             if (!Info.Licenses.Remove(lType))
                 return;
@@ -241,7 +249,7 @@ namespace BlaineRP.Server.EntityData.Players
             return false;
         }
 
-        public bool HasLicense(LicenseTypes lType, bool notifyIfNot = true)
+        public bool HasLicense(LicenseType lType, bool notifyIfNot = true)
         {
             if (Info.Licenses.Contains(lType))
                 return true;
@@ -305,10 +313,10 @@ namespace BlaineRP.Server.EntityData.Players
 
             VoiceRange = 0f;
 
-            AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
-            AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
+            AttachedEntities = new List<AttachmentEntityNet>();
+            AttachedObjects = new List<AttachmentObjectNet>();
 
-            Player.SetData(AttachSystem.AttachedObjectsTimersKey, new Dictionary<AttachSystem.Types, Timer>());
+            Player.SetData(Game.Management.Attachments.Service.AttachedObjectsTimersKey, new Dictionary<AttachmentType, Timer>());
 
             Player.SetData("CharacterNotReady", true);
         }
@@ -365,7 +373,7 @@ namespace BlaineRP.Server.EntityData.Players
             LastData = new LastPlayerData()
             {
                 Dimension = Properties.Settings.Static.MainDimension,
-                Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading),
+                Position = new Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading),
                 Health = 100,
             };
 
@@ -375,7 +383,7 @@ namespace BlaineRP.Server.EntityData.Players
             Sex = sex;
 
             AdminLevel = -1;
-            Fraction = Game.Fractions.Types.None;
+            Fraction = Game.Fractions.FractionType.None;
             OrganisationID = -1;
             BankAccount = null;
             LastJoinDate = Utils.GetCurrentTime();
@@ -408,7 +416,7 @@ namespace BlaineRP.Server.EntityData.Players
             Info.Holster = null;
             Info.Armour = null;
 
-            Info.PhoneNumber = Sync.Players.GenerateNewPhoneNumber();
+            Info.PhoneNumber = Game.Management.Phone.Numbers.GenerateNewPhoneNumber();
             Info.PhoneBalance = 0;
 
             Info.Contacts = new Dictionary<uint, string>();
@@ -462,7 +470,7 @@ namespace BlaineRP.Server.EntityData.Players
 
             foreach (Punishment x in activePunishments)
             {
-                if (x.Type == Punishment.Types.Mute)
+                if (x.Type == PunishmentType.Mute)
                     IsMuted = true;
             }
 
@@ -551,7 +559,7 @@ namespace BlaineRP.Server.EntityData.Players
 
             Player.SetAlpha(255);
 
-            Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
+            Game.Management.AntiCheat.Service.SetPlayerHealth(Player, LastData.Health);
 
             Player.TriggerEvent("Players::CharacterPreload", data);
 
@@ -707,7 +715,7 @@ namespace BlaineRP.Server.EntityData.Players
 
                             foreach (Punishment x in Punishments)
                             {
-                                if (x.Type == Punishment.Types.NRPPrison || x.Type == Punishment.Types.Arrest || x.Type == Punishment.Types.FederalPrison)
+                                if (x.Type == PunishmentType.NRPPrison || x.Type == PunishmentType.Arrest || x.Type == PunishmentType.FederalPrison)
                                 {
                                     if (!x.IsActive())
                                         continue;
@@ -754,7 +762,7 @@ namespace BlaineRP.Server.EntityData.Players
             if (IsWounded)
                 IsWounded = false;
 
-            this.PlayAnim(Animations.GeneralTypes.Knocked);
+            this.PlayAnim(GeneralType.Knocked);
 
             IsKnocked = true;
 
@@ -767,13 +775,13 @@ namespace BlaineRP.Server.EntityData.Players
 
             Player.TriggerEvent("Player::Knocked", false);
 
-            if (GeneralAnim == Animations.GeneralTypes.Knocked)
+            if (GeneralAnim == GeneralType.Knocked)
                 this.StopGeneralAnim();
         }
 
         public bool Uncuff()
         {
-            AttachSystem.AttachmentObjectNet aData = AttachedObjects.Where(x => x.Type == AttachSystem.Types.Cuffs || x.Type == AttachSystem.Types.CableCuffs).FirstOrDefault();
+            AttachmentObjectNet aData = AttachedObjects.Where(x => x.Type == AttachmentType.Cuffs || x.Type == AttachmentType.CableCuffs).FirstOrDefault();
 
             if (aData == null)
                 return false;

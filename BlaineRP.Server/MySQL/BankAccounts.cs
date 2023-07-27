@@ -1,10 +1,12 @@
-﻿using MySqlConnector;
+﻿using BlaineRP.Server.Game;
+using BlaineRP.Server.Game.BankSystem;
+using MySqlConnector;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void BankAccountAdd(Game.Bank.Account account)
+        public static void BankAccountAdd(BankAccount account)
         {
             var cmd = new MySqlCommand();
 
@@ -20,7 +22,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void BankAccountUpdate(Game.Bank.Account account)
+        public static void BankAccountUpdate(BankAccount account)
         {
             var cmd = new MySqlCommand();
 
@@ -33,7 +35,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void BankAccountBalancesUpdate(Game.Bank.Account account)
+        public static void BankAccountBalancesUpdate(BankAccount account)
         {
             var cmd = new MySqlCommand();
 
@@ -47,7 +49,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void BankAccountTariffUpdate(Game.Bank.Account account)
+        public static void BankAccountTariffUpdate(BankAccount account)
         {
             var cmd = new MySqlCommand();
 
@@ -60,7 +62,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void BankAccountDelete(Game.Bank.Account account)
+        public static void BankAccountDelete(BankAccount account)
         {
             var cmd = new MySqlCommand();
 

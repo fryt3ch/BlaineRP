@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.UI.CEF;
 using RAGE.Elements;
@@ -71,7 +71,7 @@ namespace BlaineRP.Client.Game.Management
                     if (pData == null)
                         return false;
 
-                    if (pData.OtherAnim != OtherTypes.None)
+                    if (pData.OtherAnim != OtherType.None)
                         return true;
 
                     return false;
@@ -83,7 +83,7 @@ namespace BlaineRP.Client.Game.Management
                     if (pData == null)
                         return false;
 
-                    if (pData.GeneralAnim != GeneralTypes.None)
+                    if (pData.GeneralAnim != GeneralType.None)
                         return true;
 
                     return false;
@@ -95,7 +95,7 @@ namespace BlaineRP.Client.Game.Management
                     if (pData == null)
                         return false;
 
-                    if (pData.FastAnim != FastTypes.None)
+                    if (pData.FastAnim != FastType.None)
                         return true;
 
                     return false;

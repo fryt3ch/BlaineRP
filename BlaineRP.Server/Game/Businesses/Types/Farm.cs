@@ -1,13 +1,14 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
     public partial class Farm : Business
     {
-        public static BusinessTypes DefaultType => BusinessTypes.Farm;
+        public static BusinessType DefaultType => BusinessType.Farm;
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 9)
         {
@@ -42,7 +43,7 @@ namespace BlaineRP.Server.Game.Businesses
 
         public List<CowData> Cows { get; set; }
 
-        public Farm(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, BusinessTypes.Farm)
+        public Farm(int ID, Vector3 PositionInfo, Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, BusinessType.Farm)
         {
 
         }

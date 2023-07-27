@@ -1,67 +1,33 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Server.Additional;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Businesses;
+using BlaineRP.Server.Game.Management.AntiCheat;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Game.Management.Phone;
 
 namespace BlaineRP.Server.Sync
 {
-    public class Players
+    public static class Players
     {
-        public enum PhoneStateTypes : byte
-        {
-            /// <summary>Телефон не используется</summary>
-            Off = 0,
-            /// <summary>Телефон используется без анимаций</summary>
-            JustOn,
-            /// <summary>Телефон используется c обычной анимацией</summary>
-            Idle,
-            /// <summary>Телефон используется с анимацией разговора</summary>
-            Call,
-            /// <summary>Телефон используется с анимацией камеры 0</summary>
-            Camera,
-        }
-
-        public static HashSet<uint> UsedPhoneNumbers { get; private set; } = new HashSet<uint>();
-
-        public static uint GenerateNewPhoneNumber()
-        {
-            while (true)
-            {
-                var num = (uint)SRandom.NextInt32(100_000, 999_999_999);
-
-                if (!UsedPhoneNumbers.Contains(num))
-                {
-                    UsedPhoneNumbers.Add(num);
-
-                    return num;
-                }
-            }
-        }
-
-        public static void DisableMicrophone(PlayerData pData)
-        {
-            if (pData.VoiceRange <= 0f)
-                return;
-
-            pData.VoiceRange = 0f;
-
-            pData.RemoveAllMicrophoneListeners();
-        }
-
         public static void StopUsePhone(PlayerData pData)
         {
             var player = pData.Player;
 
-            pData.PhoneStateType = PhoneStateTypes.Off;
+            pData.PhoneStateType = PlayerPhoneState.Off;
 
-            if (pData.ActiveCall is Sync.Phone.Call activeCall)
+            if (pData.ActiveCall is Call activeCall)
             {
-                activeCall.Cancel(activeCall.Caller == pData ? Phone.Call.CancelTypes.Caller : Phone.Call.CancelTypes.Receiver);
+                activeCall.Cancel(activeCall.Caller == pData ? Call.CancelTypes.Caller : Call.CancelTypes.Receiver);
             }
 
-            player.DetachObject(AttachSystem.Types.PhoneSync);
+            player.DetachObject(AttachmentType.PhoneSync);
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_OFF"));
+            Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_OFF"));
         }
 
-        public static void ExitFromBuiness(PlayerData pData, bool teleport = true)
+        public static void ExitFromBusiness(PlayerData pData, bool teleport = true)
         {
             var player = pData.Player;
 
@@ -97,13 +63,13 @@ namespace BlaineRP.Server.Sync
                                 player.WarpToVehicleSeat(veh.Vehicle, 0, 5000);
                             }
 
-                            veh.Vehicle.Teleport(t.Position, Properties.Settings.Static.MainDimension, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+                            veh.Vehicle.Teleport(t.Position, Properties.Settings.Static.MainDimension, t.RotationZ, false, VehicleTeleportType.Default);
 
                             veh.AttachBoatToTrailer();
                         }
                         else
                         {
-                            veh.Vehicle.Teleport(t.Position, Properties.Settings.Static.MainDimension, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                            veh.Vehicle.Teleport(t.Position, Properties.Settings.Static.MainDimension, t.RotationZ, true, VehicleTeleportType.OnlyDriver);
 
                             veh.AttachBoatToTrailer();
                         }
@@ -120,9 +86,9 @@ namespace BlaineRP.Server.Sync
 
                     player.TriggerEvent("Shop::Close::Server");
 
-                    if (business.Type == Game.Businesses.Business.Types.BarberShop)
+                    if (business.Type == BusinessType.BarberShop)
                         pData.UpdateCustomization();
-                    else if (business.Type == Game.Businesses.Business.Types.TattooShop)
+                    else if (business.Type == BusinessType.TattooShop)
                         pData.UpdateDecorations();
                 }
             }

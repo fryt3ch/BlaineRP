@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Animations
+namespace BlaineRP.Client.Game.Management.Animations
 {
     [Script(int.MaxValue)]
     public partial class Core
@@ -26,7 +25,7 @@ namespace BlaineRP.Client.Game.Animations
                     if (player == null)
                         return;
 
-                    var type = (FastTypes)(int)args[1];
+                    var type = (FastType)(int)args[1];
 
                     Animation data = FastAnimsList.GetValueOrDefault(type);
 
@@ -80,7 +79,7 @@ namespace BlaineRP.Client.Game.Animations
                         var pData = PlayerData.GetData(Player.LocalPlayer);
 
                         if (pData != null)
-                            pData.FastAnim = FastTypes.None;
+                            pData.FastAnim = FastType.None;
 
                         AsyncTask.Methods.CancelPendingTask("LPFATT");
                     }
@@ -90,12 +89,12 @@ namespace BlaineRP.Client.Game.Animations
             );
         }
 
-        public static void Set(Player player, EmotionTypes emotion)
+        public static void Set(Player player, EmotionType emotion)
         {
             if (player == null)
                 return;
 
-            if (emotion == EmotionTypes.None)
+            if (emotion == EmotionType.None)
             {
                 player.ClearFacialIdleAnimOverride();
 
@@ -107,12 +106,12 @@ namespace BlaineRP.Client.Game.Animations
             }
         }
 
-        public static async void Set(Player player, WalkstyleTypes walkstyle)
+        public static async void Set(Player player, WalkstyleType walkstyle)
         {
             if (player == null)
                 return;
 
-            if (walkstyle == WalkstyleTypes.None)
+            if (walkstyle == WalkstyleType.None)
             {
                 player.ResetMovementClipset(0f);
 
@@ -126,7 +125,7 @@ namespace BlaineRP.Client.Game.Animations
             }
         }
 
-        public static void Play(Player player, GeneralTypes type)
+        public static void Play(Player player, GeneralType type)
         {
             if (player == null)
                 return;
@@ -139,7 +138,7 @@ namespace BlaineRP.Client.Game.Animations
             Play(player, anim);
         }
 
-        public static void Play(Player player, OtherTypes type)
+        public static void Play(Player player, OtherType type)
         {
             if (player == null)
                 return;
@@ -215,7 +214,7 @@ namespace BlaineRP.Client.Game.Animations
                 actualAnim.StopAction?.Invoke(ped, actualAnim);
         }
 
-        public static void PlayFastSync(FastTypes fastType)
+        public static void PlayFastSync(FastType fastType)
         {
             if (LastSent.IsSpam(1000, false, true))
                 return;

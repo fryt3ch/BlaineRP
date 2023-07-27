@@ -2,13 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
-    public class TuningShop : Shop, IEnterable
+    public partial class TuningShop : Shop, IEnterable
     {
-        public static BusinessTypes DefaultType => BusinessTypes.TuningShop;
+        public static BusinessType DefaultType => BusinessType.TuningShop;
 
         private static Regex KeysTagPattern = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s]{1,18}$", RegexOptions.Compiled);
 
@@ -138,9 +139,9 @@ namespace BlaineRP.Server.Game.Businesses
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
 
-        public Utils.Vector4 EnterProperties { get; set; }
+        public Vector4 EnterProperties { get; set; }
 
-        public Utils.Vector4[] ExitProperties { get; set; }
+        public Vector4[] ExitProperties { get; set; }
 
         public int LastExitUsed { get; set; }
 
@@ -173,7 +174,7 @@ namespace BlaineRP.Server.Game.Businesses
             { "seats", 32 },
         };
 
-        public TuningShop(int ID, Vector3 PositionInfo, Utils.Vector4 EnterProperties, Utils.Vector4[] ExitProperties, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, DefaultType)
+        public TuningShop(int ID, Vector3 PositionInfo, Vector4 EnterProperties, Vector4[] ExitProperties, Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {
             this.EnterProperties = EnterProperties;
 
@@ -363,7 +364,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                         if (vData.Tuning.NeonColour == null)
                         {
-                            vData.Tuning.NeonColour = new Utils.Colour(p, g, b, 255);
+                            vData.Tuning.NeonColour = new Colour(p, g, b, 255);
                         }
                         else
                         {
@@ -398,7 +399,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                         if (vData.Tuning.TyresSmokeColour == null)
                         {
-                            vData.Tuning.TyresSmokeColour = new Utils.Colour(p, g, b, 255);
+                            vData.Tuning.TyresSmokeColour = new Colour(p, g, b, 255);
                         }
                         else
                         {

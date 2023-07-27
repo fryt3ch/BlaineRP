@@ -3,80 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Helpers;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Casino
+namespace BlaineRP.Client.Game.Casino.Games
 {
-    public class Roulette
+    public partial class Roulette
     {
-        public enum BetTypes : byte
-        {
-            None = 0,
-
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-            _16,
-            _17,
-            _18,
-            _19,
-            _20,
-            _21,
-            _22,
-            _23,
-            _24,
-            _25,
-            _26,
-            _27,
-            _28,
-            _29,
-            _30,
-            _31,
-            _32,
-            _33,
-            _34,
-            _35,
-            _36,
-            _0,
-            _00,
-
-            Red = 100,
-            Black = 101,
-
-            Even = 110,
-            Odd = 111,
-
-            _1to18 = 120,
-            _19to36 = 121,
-
-
-            First_12 = 130,
-            Second_12 = 131,
-            Third_12 = 132,
-
-            _2to1_1 = 140,
-            _2to1_2 = 141,
-            _2to1_3 = 142,
-        }
-
         public Roulette(int CasinoId, int Id, string Model, float PosX, float PosY, float PosZ, float RotZ)
         {
             TableObject = new MapObject(RAGE.Util.Joaat.Hash(Model), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, RotZ), 255, Settings.App.Static.MainDimension)
@@ -100,13 +38,13 @@ namespace BlaineRP.Client.Game.Casino
 
         public static Roulette CurrentRoulette { get; set; }
 
-        public static Dictionary<BetTypes, HoverData> HoverDatas { get; set; }
+        public static Dictionary<BetType, HoverData> HoverDatas { get; set; }
 
         private static List<MapObject> HoverObjects { get; set; }
 
         public List<BetData> ActiveBets { get; set; }
 
-        public static BetTypes HoveredBet { get; set; }
+        public static BetType HoveredBet { get; set; }
 
         public MapObject TableObject { get; set; }
 
@@ -117,7 +55,7 @@ namespace BlaineRP.Client.Game.Casino
         public uint MinBet { get; set; }
         public uint MaxBet { get; set; }
 
-        public List<BetTypes> LastBets { get; set; }
+        public List<BetType> LastBets { get; set; }
 
         public ExtraLabel TextLabel { get; set; }
 
@@ -125,7 +63,7 @@ namespace BlaineRP.Client.Game.Casino
 
         public int GetIdInCasino(int casino)
         {
-            return Casino.GetById(casino)?.Roulettes is Roulette[] t ? Array.IndexOf(t, this) : -1;
+            return CasinoEntity.GetById(casino)?.Roulettes is Roulette[] t ? Array.IndexOf(t, this) : -1;
         }
 
         public string GetCurrestStateString()
@@ -143,7 +81,7 @@ namespace BlaineRP.Client.Game.Casino
 
         public static void OnCurrentStateDataUpdated(int casinoId, int rouletteId, string stateData, bool onLoad)
         {
-            var casino = Casino.GetById(casinoId);
+            var casino = CasinoEntity.GetById(casinoId);
 
             if (!onLoad && (!casino.MainColshape.IsInside || AsyncTask.Methods.IsTaskStillPending("CASINO_TASK", null)))
                 return;
@@ -174,7 +112,7 @@ namespace BlaineRP.Client.Game.Casino
                     {
                         var lastBallRes = byte.Parse(str.Substring(1));
 
-                        var betType = (BetTypes)lastBallRes;
+                        var betType = (BetType)lastBallRes;
 
                         if (!onLoad)
                         {
@@ -193,7 +131,7 @@ namespace BlaineRP.Client.Game.Casino
 
                             roulette.TextLabel.SetData("StateTask", task);
 
-                            roulette.LastBets?.Add((BetTypes)lastBallRes);
+                            roulette.LastBets?.Add((BetType)lastBallRes);
 
                             if (CurrentRoulette == roulette)
                                 CasinoMinigames.AddLastBet(betType);
@@ -486,7 +424,7 @@ namespace BlaineRP.Client.Game.Casino
                     if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
                         return;
 
-                    NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}",
+                    NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetType._0 ? "0" : targetNumber == (byte)BetType._00 ? "00" : targetNumber.ToString())}",
                         "SPEECH_PARAMS_FORCE_NORMAL_CLEAR",
                         1
                     );
@@ -533,7 +471,7 @@ namespace BlaineRP.Client.Game.Casino
 
             Management.Camera.Core.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
 
-            HoverDatas = new Dictionary<BetTypes, HoverData>();
+            HoverDatas = new Dictionary<BetType, HoverData>();
 
             var counter = (byte)1;
 
@@ -541,7 +479,7 @@ namespace BlaineRP.Client.Game.Casino
             {
                 for (byte j = 0; j < 3; j++)
                 {
-                    HoverDatas.Add((BetTypes)counter,
+                    HoverDatas.Add((BetType)counter,
                         new HoverData("vw_prop_vw_marker_02a")
                         {
                             HoverPosition = TableObject.GetOffsetFromInWorldCoords(0.081f * i - 0.057f, 0.167f * j - 0.192f, 0.9448f),
@@ -559,7 +497,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             }
 
-            HoverDatas.Add(BetTypes._0,
+            HoverDatas.Add(BetType._0,
                 new HoverData("vw_prop_vw_marker_01a")
                 {
                     HoverPosition = TableObject.GetOffsetFromInWorldCoords(-0.137f, -0.148f, 0.9448f),
@@ -568,12 +506,12 @@ namespace BlaineRP.Client.Game.Casino
                     DisplayName = "Zero",
                     HoverNumbers = new byte[]
                     {
-                        (byte)BetTypes._0,
+                        (byte)BetType._0,
                     },
                 }
             );
 
-            HoverDatas.Add(BetTypes._00,
+            HoverDatas.Add(BetType._00,
                 new HoverData("vw_prop_vw_marker_01a")
                 {
                     HoverPosition = TableObject.GetOffsetFromInWorldCoords(-0.137f, 0.107f, 0.9448f),
@@ -582,12 +520,12 @@ namespace BlaineRP.Client.Game.Casino
                     DisplayName = "Double Zero",
                     HoverNumbers = new byte[]
                     {
-                        (byte)BetTypes._00,
+                        (byte)BetType._00,
                     },
                 }
             );
 
-            HoverDatas.Add(BetTypes.Red,
+            HoverDatas.Add(BetType.Red,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.295f, -0.38f, 0.9448f),
@@ -617,7 +555,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.Black,
+            HoverDatas.Add(BetType.Black,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.45f, -0.38f, 0.9448f),
@@ -647,7 +585,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.Even,
+            HoverDatas.Add(BetType.Even,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.13f, -0.38f, 0.9448f),
@@ -677,7 +615,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.Odd,
+            HoverDatas.Add(BetType.Odd,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.65f, -0.38f, 0.9448f),
@@ -707,7 +645,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes._1to18,
+            HoverDatas.Add(BetType._1to18,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(-0.01f, -0.38f, 0.9448f),
@@ -737,7 +675,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes._19to36,
+            HoverDatas.Add(BetType._19to36,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.77f, -0.38f, 0.9448f),
@@ -767,7 +705,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.First_12,
+            HoverDatas.Add(BetType.First_12,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.1f, -0.3f, 0.9448f),
@@ -791,7 +729,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.Second_12,
+            HoverDatas.Add(BetType.Second_12,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.4f, -0.3f, 0.9448f),
@@ -815,7 +753,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes.Third_12,
+            HoverDatas.Add(BetType.Third_12,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.7f, -0.3f, 0.9448f),
@@ -839,7 +777,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes._2to1_1,
+            HoverDatas.Add(BetType._2to1_1,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.92f, -0.2f, 0.9448f),
@@ -863,7 +801,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes._2to1_2,
+            HoverDatas.Add(BetType._2to1_2,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.93f, -0.01f, 0.9448f),
@@ -887,7 +825,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
             );
 
-            HoverDatas.Add(BetTypes._2to1_3,
+            HoverDatas.Add(BetType._2to1_3,
                 new HoverData()
                 {
                     Position = TableObject.GetOffsetFromInWorldCoords(0.94f, 0.17f, 0.9448f),
@@ -937,7 +875,7 @@ namespace BlaineRP.Client.Game.Casino
 
             CurrentRoulette = null;
 
-            HoveredBet = BetTypes.None;
+            HoveredBet = BetType.None;
 
             Main.Render -= Render;
 
@@ -985,7 +923,7 @@ namespace BlaineRP.Client.Game.Casino
 
                 x.MapObject?.Destroy();
 
-                uint chipModel = RAGE.Util.Joaat.Hash(Casino.GetChipPropByAmount(x.Amount));
+                uint chipModel = RAGE.Util.Joaat.Hash(CasinoEntity.GetChipPropByAmount(x.Amount));
 
                 x.MapObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(chipModel,
                         data.ObjectPosition.X,
@@ -1009,9 +947,9 @@ namespace BlaineRP.Client.Game.Casino
             if (!up || right)
                 return;
 
-            BetTypes betType = HoveredBet;
+            BetType betType = HoveredBet;
 
-            if (!Cursor.IsVisible || betType == BetTypes.None)
+            if (!Cursor.IsVisible || betType == BetType.None)
                 return;
 
             Roulette roulette = CurrentRoulette;
@@ -1019,7 +957,7 @@ namespace BlaineRP.Client.Game.Casino
             if (roulette == null)
                 return;
 
-            Casino casino = Casino.All.Where(x => x.Roulettes.Contains(roulette)).FirstOrDefault();
+            CasinoEntity casino = CasinoEntity.All.Where(x => x.Roulettes.Contains(roulette)).FirstOrDefault();
 
             if (casino == null)
                 return;
@@ -1061,10 +999,10 @@ namespace BlaineRP.Client.Game.Casino
                 return;
             }
 
-            if (Casino.LastSent.IsSpam(500, false, false))
+            if (CasinoEntity.LastSent.IsSpam(500, false, false))
                 return;
 
-            Casino.LastSent = World.Core.ServerTime;
+            CasinoEntity.LastSent = World.Core.ServerTime;
 
             var res = (bool)await Events.CallRemoteProc("Casino::RLTSB", casinoIdx, rouletteIdx, (byte)betType, bet);
 
@@ -1096,7 +1034,7 @@ namespace BlaineRP.Client.Game.Casino
             RAGE.Ui.Cursor.Vector2 cursorPos = RAGE.Ui.Cursor.Position;
 
             var detectTolerance = 25f;
-            BetTypes betType = BetTypes.None;
+            BetType betType = BetType.None;
 
             if (CurrentRoulette.ActiveBets != null)
                 foreach (BetData x in CurrentRoulette.ActiveBets)
@@ -1124,7 +1062,7 @@ namespace BlaineRP.Client.Game.Casino
                 }
 
             if (Cursor.IsVisible)
-                foreach (KeyValuePair<BetTypes, HoverData> x in HoverDatas)
+                foreach (KeyValuePair<BetType, HoverData> x in HoverDatas)
                 {
                     if (x.Value.Position == null)
                         continue;
@@ -1170,7 +1108,7 @@ namespace BlaineRP.Client.Game.Casino
                                     HoverObjects.Add(mapObj);
                                 }*/
 
-            if (HoveredBet == BetTypes.None)
+            if (HoveredBet == BetType.None)
                 return;
 
             HoverData data = HoverDatas.GetValueOrDefault(HoveredBet);
@@ -1182,7 +1120,7 @@ namespace BlaineRP.Client.Game.Casino
 
             foreach (byte x in data.HoverNumbers)
             {
-                HoverData t = HoverDatas.GetValueOrDefault((BetTypes)x);
+                HoverData t = HoverDatas.GetValueOrDefault((BetType)x);
 
                 if (t == null)
                     continue;
@@ -1196,34 +1134,6 @@ namespace BlaineRP.Client.Game.Casino
 
                 HoverObjects.Add(mapObj);
             }
-        }
-
-        public class BetData
-        {
-            public BetTypes BetType { get; set; }
-
-            public uint Amount { get; set; }
-
-            public MapObject MapObject { get; set; }
-        }
-
-        public class HoverData
-        {
-            public HoverData(string HoverModel = null)
-            {
-                if (HoverModel != null)
-                    this.HoverModel = RAGE.Util.Joaat.Hash(HoverModel);
-            }
-
-            public uint HoverModel { get; set; }
-
-            public byte[] HoverNumbers { get; set; }
-
-            public Vector3 HoverPosition { get; set; }
-            public Vector3 ObjectPosition { get; set; }
-            public Vector3 Position { get; set; }
-
-            public string DisplayName { get; set; }
         }
     }
 }

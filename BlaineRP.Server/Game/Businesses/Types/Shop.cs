@@ -1,15 +1,16 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
-    public abstract class Shop : Business
+    public abstract partial class Shop : Business
     {
         /// <summary>Все цены в магазинах (бизнесах)</summary>
         /// <remarks>Цены - в материалах, не в долларах</remarks>
-        public static Dictionary<BusinessTypes, MaterialsData> AllPrices { get; private set; } = new Dictionary<BusinessTypes, MaterialsData>();
+        public static Dictionary<BusinessType, MaterialsData> AllPrices { get; private set; } = new Dictionary<BusinessType, MaterialsData>();
 
         public Dictionary<string, uint> Prices => AllPrices[Type].Prices;
 
@@ -188,7 +189,7 @@ namespace BlaineRP.Server.Game.Businesses
             return true;
         }
 
-        public Shop(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, BusinessTypes Type) : base(ID, PositionInfo, PositionInteract, Type)
+        public Shop(int ID, Vector3 PositionInfo, Vector4 PositionInteract, BusinessType Type) : base(ID, PositionInfo, PositionInteract, Type)
         {
 
         }

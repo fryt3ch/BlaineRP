@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Peds
+namespace BlaineRP.Server.EntitiesData.Peds
 {
     public class PedData
     {
@@ -26,27 +28,27 @@ namespace BlaineRP.Server.EntityData.Peds
         /// <summary>Прикрепленные объекты к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<Sync.AttachSystem.AttachmentObjectNet> AttachedObjects { get => Ped.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedObjectsKey).ToList<Sync.AttachSystem.AttachmentObjectNet>(); set { Ped.SetSharedData(Sync.AttachSystem.AttachedObjectsKey, value); } }
+        public List<AttachmentObjectNet> AttachedObjects { get => Ped.GetSharedData<Newtonsoft.Json.Linq.JArray>(Service.AttachedObjectsKey).ToObject<List<AttachmentObjectNet>>(); set { Ped.SetSharedData(Service.AttachedObjectsKey, value); } }
 
         /// <summary>Прикрепленные сущности к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Ped.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Ped.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
+        public List<AttachmentEntityNet> AttachedEntities { get => Ped.GetSharedData<Newtonsoft.Json.Linq.JArray>(Service.AttachedEntitiesKey).ToObject<List<AttachmentEntityNet>>(); set { Ped.SetSharedData(Service.AttachedEntitiesKey, value); } }
 
         public Entity IsAttachedTo => Ped.GetEntityIsAttachedTo();
 
         public bool IsInvincible { get => Ped.GetSharedData<bool?>("GM") == true; set { if (value) Ped.SetSharedData("GM", true); else Ped.ResetSharedData("GM"); } }
 
-        public PedData(uint Model, Utils.Vector4 Position, uint Dimension, Action PostCreationAction = null)
+        public PedData(uint Model, Vector4 Position, uint Dimension, Action PostCreationAction = null)
         {
             Ped = NAPI.Ped.CreatePed(Model, Position.Position, Position.RotationZ, true, false, false, true, Properties.Settings.Static.StuffDimension);
 
             All.Add(Ped.Id, this);
 
-            AttachedObjects = new List<Sync.AttachSystem.AttachmentObjectNet>();
-            AttachedEntities = new List<Sync.AttachSystem.AttachmentEntityNet>();
+            AttachedObjects = new List<AttachmentObjectNet>();
+            AttachedEntities = new List<AttachmentEntityNet>();
 
-            Ped.SetData(Sync.AttachSystem.AttachedObjectsTimersKey, new Dictionary<Sync.AttachSystem.Types, Timer>());
+            Ped.SetData(Service.AttachedObjectsTimersKey, new Dictionary<AttachmentType, Timer>());
 
             NAPI.Task.Run(() =>
             {

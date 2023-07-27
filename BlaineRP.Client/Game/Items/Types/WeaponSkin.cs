@@ -10,7 +10,9 @@ namespace BlaineRP.Client.Game.Items
         {
             public enum Types
             {
+                [Language.Localized("ITEM_WEAPONSKIN_UNIDEF_SUBTEXT_0", "CHOOSE_TEXT_0")]
                 UniDef = 0,
+                [Language.Localized("ITEM_WEAPONSKIN_UNIMK2_SUBTEXT_0", "CHOOSE_TEXT_0")]
                 UniMk2,
             }
 

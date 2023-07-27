@@ -6,6 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Game.Management.Misc;
+using BlaineRP.Server.Game.Management.Offers;
+using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.Game.Management.Reports;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -85,7 +98,7 @@ namespace BlaineRP.Server.Events.Players
                 player.Teleport(new Vector3(-749.78f, 5818.21f, 0), false, Utils.GetPrivateDimension(player));
                 player.Name = player.SocialClubName;
 
-                player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.OutFromPlayer, true, "FadeScreen", false);
+                player.SkyCameraMove(SkyCamera.SwitchType.OutFromPlayer, true, "FadeScreen", false);
 
                 uint aid;
 
@@ -159,18 +172,18 @@ namespace BlaineRP.Server.Events.Players
                 pData.StopUpdateTimer();
 
                 if (pData.CurrentBusiness != null)
-                    Sync.Players.ExitFromBuiness(pData, false);
+                    Sync.Players.ExitFromBusiness(pData, false);
 
-                pData.ActiveOffer?.Cancel(false, true, Sync.Offers.ReplyTypes.AutoCancel, false);
+                pData.ActiveOffer?.Cancel(false, true, ReplyTypes.AutoCancel, false);
 
-                pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
+                pData.ActiveCall?.Cancel(Call.CancelTypes.ServerAuto);
 
                 var policeCall = Game.Fractions.Police.GetCallByCaller(player.Id);
 
                 if (policeCall != null)
                     Game.Fractions.Police.RemoveCall(player.Id, policeCall, 0, null);
 
-                Sync.Report.GetByStarterPlayer(pData.Info)?.Close(pData);
+                Report.GetByStarterPlayer(pData.Info)?.Close(pData);
 
                 var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
 
@@ -191,7 +204,7 @@ namespace BlaineRP.Server.Events.Players
 
                 var attachedObjects = pData.AttachedObjects;
 
-                var cuffsAttachment = attachedObjects.Where(x => x.Type == AttachSystem.Types.Cuffs).FirstOrDefault();
+                var cuffsAttachment = attachedObjects.Where(x => x.Type == AttachmentType.Cuffs).FirstOrDefault();
 
                 if (cuffsAttachment != null)
                 {
@@ -201,7 +214,7 @@ namespace BlaineRP.Server.Events.Players
                     {
                         NAPI.Task.Run(() =>
                         {
-                            var activePunishment = pData.Info.Punishments.Where(x => x.Type == Punishment.Types.Arrest || x.Type == Punishment.Types.FederalPrison || x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
+                            var activePunishment = pData.Info.Punishments.Where(x => x.Type == PunishmentType.Arrest || x.Type == PunishmentType.FederalPrison || x.Type == PunishmentType.NRPPrison).FirstOrDefault();
 
                             if (activePunishment != null)
                                 return;
@@ -225,7 +238,7 @@ namespace BlaineRP.Server.Events.Players
                         Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
                 }
 
-                if (pData.Info.Quests.GetValueOrDefault(Quest.QuestData.Types.DRSCHOOL0) is Sync.Quest driveSchoolQuest && driveSchoolQuest.Step > 0)
+                if (pData.Info.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest driveSchoolQuest && driveSchoolQuest.Step > 0)
                     driveSchoolQuest.Cancel(pData.Info);
 
                 #region Check&Start Deletion of Owned Vehicles
@@ -319,7 +332,7 @@ namespace BlaineRP.Server.Events.Players
                 if (pData.Info.LastData.Health < 0 || pData.IsKnocked)
                     pData.Info.LastData.Health = 0;
 
-                pData.Info.LastData.UpdatePosition(new Utils.Vector4(player.Position, player.Heading), player.Dimension, false);
+                pData.Info.LastData.UpdatePosition(new Vector4(player.Position, player.Heading), player.Dimension, false);
 
                 MySQL.CharacterSaveOnExit(pData.Info);
 
@@ -371,7 +384,7 @@ namespace BlaineRP.Server.Events.Players
 
             foreach (var x in pData.Punishments)
             {
-                if (x.Type == Punishment.Types.NRPPrison)
+                if (x.Type == PunishmentType.NRPPrison)
                 {
                     if (!x.IsActive())
                         continue;
@@ -391,7 +404,7 @@ namespace BlaineRP.Server.Events.Players
 
                     return;
                 }
-                else if (x.Type == Punishment.Types.Arrest)
+                else if (x.Type == PunishmentType.Arrest)
                 {
                     if (!x.IsActive())
                         continue;
@@ -401,7 +414,7 @@ namespace BlaineRP.Server.Events.Players
                         pData.SetAsNotKnocked();
                     }
 
-                    var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(x.AdditionalData.Split('_')[1])) as Game.Fractions.Police;
+                    var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(x.AdditionalData.Split('_')[1])) as Game.Fractions.Police;
 
                     if (fData != null)
                     {
@@ -416,7 +429,7 @@ namespace BlaineRP.Server.Events.Players
 
                     return;
                 }
-                else if (x.Type == Punishment.Types.FederalPrison)
+                else if (x.Type == PunishmentType.FederalPrison)
                 {
                     if (!x.IsActive())
                         continue;
@@ -481,7 +494,7 @@ namespace BlaineRP.Server.Events.Players
             {
                 player.Teleport(null, false, null, null, false);
 
-                pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
+                pData.ActiveCall?.Cancel(Call.CancelTypes.ServerAuto);
 
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
@@ -540,15 +553,15 @@ namespace BlaineRP.Server.Events.Players
 
             pData.ResetUpdateTimer();
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
+            if (!Enum.IsDefined(typeof(EmotionType), emotion))
                 emotion = -1;
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.WalkstyleTypes), walkstyle))
+            if (!Enum.IsDefined(typeof(WalkstyleType), walkstyle))
                 walkstyle = -1;
 
             pData.IsInvalid = isInvalid;
-            pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
-            pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
+            pData.Emotion = (EmotionType)emotion;
+            pData.Walkstyle = (WalkstyleType)walkstyle;
 
             pData.UpdateWeapons();
 
@@ -557,7 +570,7 @@ namespace BlaineRP.Server.Events.Players
                 jobVehicle.Job?.SetPlayerJob(pData, jobVehicle);
             }
 
-            if (pData.Fraction != Game.Fractions.Types.None)
+            if (pData.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
@@ -602,7 +615,7 @@ namespace BlaineRP.Server.Events.Players
             if (!player.IsNearToEntity(veh, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
+            Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
         }
 
         [RemoteEvent("Players::FingerPoint::Player")]
@@ -621,7 +634,7 @@ namespace BlaineRP.Server.Events.Players
             if (!player.IsNearToEntity(target, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
+            Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
         }
 
         [RemoteEvent("Players::FingerPoint::Ped")]
@@ -634,7 +647,7 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_1", null));
+            Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_1", null));
         }
         #endregion
 
@@ -709,9 +722,9 @@ namespace BlaineRP.Server.Events.Players
                 return;
 
             if (isInFront)
-                veh.AttachEntity(player, AttachSystem.Types.PushVehicle, "1");
+                veh.AttachEntity(player, AttachmentType.PushVehicle, "1");
             else
-                veh.AttachEntity(player, AttachSystem.Types.PushVehicle, "0");
+                veh.AttachEntity(player, AttachmentType.PushVehicle, "0");
         }
 
         [RemoteEvent("Players::StopPushingVehicleSync")]
@@ -734,7 +747,7 @@ namespace BlaineRP.Server.Events.Players
             if (attachData == null)
                 return;
 
-            if (attachData.Type != AttachSystem.Types.PushVehicle)
+            if (attachData.Type != AttachmentType.PushVehicle)
                 return;
 
             atVeh.DetachEntity(player);
@@ -779,7 +792,7 @@ namespace BlaineRP.Server.Events.Players
             {
                 //player.SetClothes(5, 81, 0);
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_ON"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_ON"));
             }
             else
             {
@@ -795,7 +808,7 @@ namespace BlaineRP.Server.Events.Players
                                         player.SetClothes(5, 0, 0);
                                 }*/
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
             }
         }
         #endregion
@@ -845,28 +858,28 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Sync.Players.PhoneStateTypes), stateNum))
+            if (!Enum.IsDefined(typeof(PlayerPhoneState), stateNum))
                 return;
 
-            var stateType = (Sync.Players.PhoneStateTypes)stateNum;
+            var stateType = (PlayerPhoneState)stateNum;
 
             var curStateType = pData.PhoneStateType;
 
             if (curStateType == stateType)
                 return;
 
-            if (stateType != Sync.Players.PhoneStateTypes.Off)
+            if (stateType != PlayerPhoneState.Off)
             {
                 if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                     return;
 
                 pData.PhoneStateType = stateType;
 
-                if (curStateType == Sync.Players.PhoneStateTypes.Off)
+                if (curStateType == PlayerPhoneState.Off)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
+                    Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
 
-                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.PhoneSync, -1, null);
+                    player.AttachObject(Game.Management.Attachments.Service.Models.Phone, AttachmentType.PhoneSync, -1, null);
                 }
             }
             else
@@ -899,15 +912,15 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.FastTypes), anim))
+            if (!Enum.IsDefined(typeof(FastType), anim))
                 return;
 
-            var aType = (Sync.Animations.FastTypes)anim;
+            var aType = (FastType)anim;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
                 return;
 
-            if (aType == Animations.FastTypes.Whistle)
+            if (aType == FastType.Whistle)
             {
                 pData.PlayAnim(aType, Properties.Settings.Static.WhistleAnimationTime);
             }
@@ -936,10 +949,10 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.WalkstyleTypes), walkstyle))
+            if (!Enum.IsDefined(typeof(WalkstyleType), walkstyle))
                 return;
 
-            pData.SetWalkstyle((Animations.WalkstyleTypes)walkstyle);
+            pData.SetWalkstyle((WalkstyleType)walkstyle);
         }
 
         [RemoteEvent("Players::SetEmotion")]
@@ -952,10 +965,10 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
+            if (!Enum.IsDefined(typeof(EmotionType), emotion))
                 return;
 
-            pData.SetEmotion((Animations.EmotionTypes)emotion);
+            pData.SetEmotion((EmotionType)emotion);
         }
 
         [RemoteEvent("Players::SetAnim")]
@@ -968,18 +981,18 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Sync.Animations.OtherTypes), anim))
+            if (!Enum.IsDefined(typeof(OtherType), anim))
                 return;
 
-            var aType = (Animations.OtherTypes)anim;
+            var aType = (OtherType)anim;
 
             if (pData.OtherAnim == aType)
                 return;
 
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None)
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.GeneralAnim != GeneralType.None || pData.FastAnim != FastType.None)
                 return;
 
-            pData.PlayAnim((Animations.OtherTypes)anim);
+            pData.PlayAnim((OtherType)anim);
         }
 
         /*        [RemoteEvent("atsdme")]
@@ -1033,7 +1046,7 @@ namespace BlaineRP.Server.Events.Players
             if (punishment.IsActive())
                 return;
 
-            if (punishment.Type == Punishment.Types.Mute)
+            if (punishment.Type == PunishmentType.Mute)
             {
                 pData.IsMuted = false;
 
@@ -1043,7 +1056,7 @@ namespace BlaineRP.Server.Events.Players
 
                 MySQL.UpdatePunishmentAmnesty(punishment);
             }
-            else if (punishment.Type == Punishment.Types.Warn)
+            else if (punishment.Type == PunishmentType.Warn)
             {
                 player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
 
@@ -1051,7 +1064,7 @@ namespace BlaineRP.Server.Events.Players
 
                 MySQL.UpdatePunishmentAmnesty(punishment);
             }
-            else if (punishment.Type == Punishment.Types.FractionMute)
+            else if (punishment.Type == PunishmentType.FractionMute)
             {
                 player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
 

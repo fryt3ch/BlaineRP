@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Misc;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -32,7 +34,7 @@ namespace BlaineRP.Server.Events.Players
             player.Teleport(Position, true);
             player.SetAlpha(255);
 
-            player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, true, "CharacterCreation::StartNew");
+            player.SkyCameraMove(SkyCamera.SwitchType.ToPlayer, true, "CharacterCreation::StartNew");
         }
 
         [RemoteProc("CharacterCreation::SetSex")]
@@ -76,7 +78,7 @@ namespace BlaineRP.Server.Events.Players
 
             player.SetAlpha(0);
 
-            player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::CharSelect::Show", false);
+            player.SkyCameraMove(SkyCamera.SwitchType.Move, true, "Auth::CharSelect::Show", false);
         }
 
         [RemoteEvent("CharacterCreation::Create")]
@@ -100,7 +102,7 @@ namespace BlaineRP.Server.Events.Players
                 if (name == null || surname == null || !CharacterNameRegex.IsMatch(name) || !CharacterSurnameRegex.IsMatch(surname))
                     return 0;
 
-                if (PlayerData.PlayerInfo.All.Where(x => x.Value.Name == name && x.Value.Surname == surname).Any())
+                if (PlayerInfo.All.Where(x => x.Value.Name == name && x.Value.Surname == surname).Any())
                     return 3;
 
                 var hBlend = NAPI.Util.FromJson<Game.Data.Customization.HeadBlend>(hBlendData);

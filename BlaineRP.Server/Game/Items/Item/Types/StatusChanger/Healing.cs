@@ -1,6 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -10,9 +15,9 @@ namespace BlaineRP.Server.Game.Items
         {
             public int MaxAmount { get; set; }
 
-            public Sync.Animations.FastTypes Animation { get; set; }
+            public FastType Animation { get; set; }
 
-            public Sync.AttachSystem.Types AttachType { get; set; }
+            public AttachmentType AttachType { get; set; }
 
             public double ResurrectionChance { get; set; }
 
@@ -24,7 +29,7 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Health}, {MaxAmount}";
 
-            public ItemData(string Name, float Weight, string Model, int Health, bool ClearWoundedState, double ResurrectiondChance, int MaxAmount, TimeSpan UsageTime, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
+            public ItemData(string Name, float Weight, string Model, int Health, bool ClearWoundedState, double ResurrectiondChance, int MaxAmount, TimeSpan UsageTime, FastType Animation, AttachmentType AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
             {
                 this.MaxAmount = MaxAmount;
 
@@ -41,10 +46,10 @@ namespace BlaineRP.Server.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, -1.0d, 64, TimeSpan.FromMilliseconds(4_000), Sync.Animations.FastTypes.ItemBandage, Sync.AttachSystem.Types.ItemBandage) },
+            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, -1.0d, 64, TimeSpan.FromMilliseconds(4_000), FastType.ItemBandage, AttachmentType.ItemBandage) },
 
-            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, 0.50d, 3, TimeSpan.FromMilliseconds(7_000), Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(10), } },
-            { "med_kit_ems_0", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", Properties.Settings.Static.PlayerMaxHealth, true, 0.75d, 64, TimeSpan.FromMilliseconds(7_000), Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(8), } },
+            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, 0.50d, 3, TimeSpan.FromMilliseconds(7_000), FastType.ItemMedKit, AttachmentType.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(10), } },
+            { "med_kit_ems_0", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", Properties.Settings.Static.PlayerMaxHealth, true, 0.75d, 64, TimeSpan.FromMilliseconds(7_000), FastType.ItemMedKit, AttachmentType.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(8), } },
         };
 
         [JsonIgnore]
@@ -92,7 +97,7 @@ namespace BlaineRP.Server.Game.Items
 
             var result = resurrectionChance <= 0d ? false : SRandom.NextDoubleS() <= resurrectionChance;
 
-            pData.Player.AttachEntity(tData.Player, Sync.AttachSystem.Types.PlayerResurrect, $"{(int)data.ResurrectionTime.TotalMilliseconds}_{(result ? 1 : 0)}_{0}");
+            pData.Player.AttachEntity(tData.Player, AttachmentType.PlayerResurrect, $"{(int)data.ResurrectionTime.TotalMilliseconds}_{(result ? 1 : 0)}_{0}");
         }
 
         public Healing(string ID) : base(ID, IDList[ID], typeof(Healing))

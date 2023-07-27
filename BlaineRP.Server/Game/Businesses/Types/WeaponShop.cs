@@ -1,13 +1,14 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
-    public class WeaponShop : Shop
+    public partial class WeaponShop : Shop
     {
-        public static BusinessTypes DefaultType => BusinessTypes.WeaponShop;
+        public static BusinessType DefaultType => BusinessType.WeaponShop;
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
@@ -85,13 +86,13 @@ namespace BlaineRP.Server.Game.Businesses
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}, {PositionShootingRangeEnter.Position.ToCSharpStr()}";
 
-        public Utils.Vector4 PositionShootingRangeEnter { get; set; }
+        public Vector4 PositionShootingRangeEnter { get; set; }
 
-        public static uint ShootingRangePrice { get => Utils.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price")); set => Sync.World.SetSharedData("SRange::Price", value); }
+        public static uint ShootingRangePrice { get => Utils.ToUInt32(World.Service.GetSharedData<object>("SRange::Price")); set => World.Service.SetSharedData("SRange::Price", value); }
 
-        public static Utils.Vector4 ShootingRangePosition { get; private set; } = new Utils.Vector4(13.00517f, -1098.977f, 29.79701f, 337.5131f);
+        public static Vector4 ShootingRangePosition { get; private set; } = new Vector4(13.00517f, -1098.977f, 29.79701f, 337.5131f);
 
-        public WeaponShop(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Utils.Vector4 PositionShootingRangeEnter) : base(ID, PositionInfo, PositionInteract, DefaultType)
+        public WeaponShop(int ID, Vector3 PositionInfo, Vector4 PositionInteract, Vector4 PositionShootingRangeEnter) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {
             PositionShootingRangeEnter.Position.Z -= 0.5f;
 

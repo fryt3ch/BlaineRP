@@ -1,4 +1,7 @@
-﻿namespace BlaineRP.Server.Events.NPC
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Casino;
+
+namespace BlaineRP.Server.Events.NPC
 {
     internal class Casino
     {
@@ -28,7 +31,7 @@
 
             var casinoId = int.Parse(npcIdD[1]);
 
-            var casino = Game.Casino.Casino.GetById(casinoId);
+            var casino = CasinoEntity.GetById(casinoId);
 
             if (casino == null)
                 return null;
@@ -44,12 +47,12 @@
 
                 uint newChipsBalance;
 
-                if (!Game.Casino.Casino.TryAddCasinoChips(pData.Info, amount, out newChipsBalance, true, null))
+                if (!CasinoEntity.TryAddCasinoChips(pData.Info, amount, out newChipsBalance, true, null))
                     return null;
 
                 pData.SetCash(newBalance);
 
-                Game.Casino.Casino.SetCasinoChips(pData.Info, newChipsBalance, null);
+                CasinoEntity.SetCasinoChips(pData.Info, newChipsBalance, null);
             }
             else
             {
@@ -57,7 +60,7 @@
 
                 uint newChipsBalance;
 
-                if (!Game.Casino.Casino.TryRemoveCasinoChips(pData.Info, amount, out newChipsBalance, true, null))
+                if (!CasinoEntity.TryRemoveCasinoChips(pData.Info, amount, out newChipsBalance, true, null))
                     return null;
 
                 ulong newBalance;
@@ -65,7 +68,7 @@
                 if (!pData.TryAddCash(totalPrice, out newBalance, true, null))
                     return null;
 
-                Game.Casino.Casino.SetCasinoChips(pData.Info, newChipsBalance, null);
+                CasinoEntity.SetCasinoChips(pData.Info, newChipsBalance, null);
 
                 pData.SetCash(newBalance);
             }

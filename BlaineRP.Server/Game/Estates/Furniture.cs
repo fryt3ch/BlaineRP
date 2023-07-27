@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.UtilsT;
+using BlaineRP.Server.UtilsT.UidHandlers;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -7,7 +9,7 @@ namespace BlaineRP.Server.Game.Estates
     {
         public static Dictionary<uint, Furniture> All { get; private set; } = new Dictionary<uint, Furniture>();
 
-        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
+        public static UInt32 UidHandler { get; private set; } = new UInt32(1);
 
         public static void AddOnLoad(Furniture f)
         {
@@ -54,7 +56,7 @@ namespace BlaineRP.Server.Game.Estates
         public string ID { get; set; }
 
         [JsonProperty(PropertyName = "D")]
-        public Utils.Vector4 Data { get; set; }
+        public Vector4 Data { get; set; }
 
         [JsonIgnore]
         public ItemData FurnitureData => ItemData.Get(ID);
@@ -62,7 +64,7 @@ namespace BlaineRP.Server.Game.Estates
         [JsonIgnore]
         public Game.Items.Craft.FurnitureWorkbench WorkbenchInstance => Game.Items.Craft.FurnitureWorkbench.Get(UID);
 
-        public Furniture(uint UID, string ID, Utils.Vector4 Data)
+        public Furniture(uint UID, string ID, Vector4 Data)
         {
             this.UID = UID;
 
@@ -75,7 +77,7 @@ namespace BlaineRP.Server.Game.Estates
         {
             this.ID = ID;
 
-            Data = new Utils.Vector4(0f, 0f, 0f, 0f);
+            Data = new Vector4(0f, 0f, 0f, 0f);
 
             Add(this);
         }

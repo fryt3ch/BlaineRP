@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
@@ -9,6 +8,7 @@ using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Jobs;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
@@ -54,7 +54,7 @@ namespace BlaineRP.Client.Game.EntitiesData
 
         public bool IsMuted => VoiceRange < 0f;
 
-        public bool IsCuffed => AttachedObjects?.Where(x => x.Type == AttachmentTypes.Cuffs || x.Type == AttachmentTypes.CableCuffs).Any() == true;
+        public bool IsCuffed => AttachedObjects?.Where(x => x.Type == AttachmentType.Cuffs || x.Type == AttachmentType.CableCuffs).Any() == true;
 
         public bool IsInvalid => Player.GetSharedData<bool>("IsInvalid", false);
 
@@ -86,19 +86,19 @@ namespace BlaineRP.Client.Game.EntitiesData
             }
         }
 
-        public GeneralTypes GeneralAnim => (GeneralTypes)Player.GetSharedData<int>("Anim::General", -1);
+        public GeneralType GeneralAnim => (GeneralType)Player.GetSharedData<int>("Anim::General", -1);
 
-        public FastTypes FastAnim
+        public FastType FastAnim
         {
-            get => Player.GetData<FastTypes>("Anim::Fast");
+            get => Player.GetData<FastType>("Anim::Fast");
             set => Player.SetData("Anim::Fast", value);
         }
 
-        public OtherTypes OtherAnim => (OtherTypes)Player.GetSharedData<int>("Anim::Other", -1);
+        public OtherType OtherAnim => (OtherType)Player.GetSharedData<int>("Anim::Other", -1);
 
-        public WalkstyleTypes Walkstyle => (WalkstyleTypes)Player.GetSharedData<int>("Walkstyle", -1);
+        public WalkstyleType Walkstyle => (WalkstyleType)Player.GetSharedData<int>("Walkstyle", -1);
 
-        public EmotionTypes Emotion => (EmotionTypes)Player.GetSharedData<int>("Emotion", -1);
+        public EmotionType Emotion => (EmotionType)Player.GetSharedData<int>("Emotion", -1);
 
         public bool IsInvisible => Player.GetSharedData<bool>("IsInvisible", false);
 
@@ -234,7 +234,7 @@ namespace BlaineRP.Client.Game.EntitiesData
 
         public Data.Customization.Customization.HairOverlay HairOverlay => Data.Customization.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
 
-        public AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= AttachmentTypes.PedRingLeft3 && x.Type <= AttachmentTypes.PedRingRight3).FirstOrDefault();
+        public AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= AttachmentType.PedRingLeft3 && x.Type <= AttachmentType.PedRingRight3).FirstOrDefault();
 
         public Animation ActualAnimation
         {

@@ -10,9 +10,13 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
     {
         public enum TimeTypes
         {
+            [Language.Localized("DIALOGUE_TIMEWORD_MORNING", "TIMEWORD_KEY")]
             Morning = 0,
+            [Language.Localized("DIALOGUE_TIMEWORD_DAY", "TIMEWORD_KEY")]
             Day,
+            [Language.Localized("DIALOGUE_TIMEWORD_EVENING", "TIMEWORD_KEY")]
             Evening,
+            [Language.Localized("DIALOGUE_TIMEWORD_NIGHT", "TIMEWORD_KEY")]
             Night,
         }
 
@@ -139,7 +143,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     if (!int.TryParse(tArr2[1], out dNum))
                         continue;
 
-                    string textToReplace = Locale.General.NPC.TimeWords.GetValueOrDefault(dType)?.GetValueOrDefault(dNum);
+                    string textToReplace = Locale.Get((Language.Strings.GetKeyFromTypeByMemberName(dType.GetType(), dType.ToString(), "TIMEWORD_KEY") ?? "null") + $"_{dNum}");
 
                     if (textToReplace == null)
                         continue;

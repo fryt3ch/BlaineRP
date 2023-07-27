@@ -3,6 +3,11 @@ using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Misc;
+using BlaineRP.Server.Game.Quests;
 
 namespace BlaineRP.Server.Events.Vehicles
 {
@@ -54,13 +59,13 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (seatId == 0)
             {
-                if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)
+                if (vData.OwnerType == OwnerTypes.PlayerRentJob)
                 {
                     if (vData.OwnerID == 0)
                     {
                         if (pData.RentedJobVehicle == null)
                         {
-                            if (vData.Job is Game.Jobs.Job jobData && jobData is Game.Jobs.IVehicles jobDataVeh)
+                            if (vData.Job is Game.Jobs.Job jobData && jobData is Game.Jobs.IVehicleRelated jobDataVeh)
                             {
                                 player.TriggerEvent("Vehicles::JVRO", jobDataVeh.VehicleRentPrice);
                             }
@@ -71,15 +76,15 @@ namespace BlaineRP.Server.Events.Vehicles
                         }
                     }
                 }
-                else if (vData.OwnerType == VehicleData.OwnerTypes.PlayerDrivingSchool)
+                else if (vData.OwnerType == OwnerTypes.PlayerDrivingSchool)
                 {
-                    if (vData.OwnerID == 0 && pData.Info.Quests.GetValueOrDefault(Quest.QuestData.Types.DRSCHOOL0) is Quest quest && quest.Step == 0)
+                    if (vData.OwnerID == 0 && pData.Info.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest quest && quest.Step == 0)
                     {
-                        PlayerData.LicenseTypes licType;
+                        LicenseType licType;
 
-                        for (int i = 0; i < Game.Autoschool.All.Count; i++)
+                        for (int i = 0; i < DrivingSchool.All.Count; i++)
                         {
-                            var x = Game.Autoschool.All[i];
+                            var x = DrivingSchool.All[i];
 
                             if (x.Vehicles.TryGetValue(vData.Info, out licType))
                             {
@@ -111,7 +116,7 @@ namespace BlaineRP.Server.Events.Vehicles
                 }
             }
 
-            if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)
+            if (vData.OwnerType == OwnerTypes.PlayerRent || vData.OwnerType == OwnerTypes.PlayerRentJob)
             {
                 if (vData.OwnerID == pData.CID)
                     vData.CancelDeletionTask();
@@ -155,7 +160,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vData.EngineOn)
                 vData.EngineOn = false;
 
-            if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob || vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerDrivingSchool)
+            if (vData.OwnerType == OwnerTypes.PlayerRentJob || vData.OwnerType == OwnerTypes.PlayerRent || vData.OwnerType == OwnerTypes.PlayerDrivingSchool)
             {
                 vData.Delete(false);
             }
@@ -190,7 +195,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
                 var atData = atVeh.GetAttachmentData(veh);
 
-                if (atData == null || (atData.Type != AttachSystem.Types.VehicleTrailerObjBoat))
+                if (atData == null || (atData.Type != AttachmentType.VehicleTrailerObjBoat))
                     return;
 
                 atVeh.DetachEntity(veh);
@@ -211,12 +216,12 @@ namespace BlaineRP.Server.Events.Vehicles
 
                 if (tData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
                 {
-                    if (tData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.TrailerObjOnBoat).Any())
+                    if (tData.AttachedObjects.Where(x => x.Type == AttachmentType.TrailerObjOnBoat).Any())
                     {
                         if (!tData.CanManipulate(pData, true))
                             return;
 
-                        if (trailer.AttachEntity(veh, AttachSystem.Types.VehicleTrailerObjBoat, null))
+                        if (trailer.AttachEntity(veh, AttachmentType.VehicleTrailerObjBoat, null))
                         {
                             Console.WriteLine("trailer attached");
                         }

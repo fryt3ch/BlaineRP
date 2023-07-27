@@ -1,45 +1,15 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Quests.Types;
+using Newtonsoft.Json;
 
-namespace BlaineRP.Server.Sync
+namespace BlaineRP.Server.Game.Quests
 {
-    public class Quest
+    public partial class Quest
     {
-        public class QuestData
-        {
-            public enum Types
-            {
-                TQ1 = 0,
-
-                #region Temp Quests
-                JTR1,
-
-                JBD1,
-
-                JCL1,
-
-                JFRM1,
-                JFRM2,
-
-                DRSCHOOL0,
-                #endregion
-            }
-
-            public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>();
-
-            public Func<PlayerData, Sync.Quest, string[], byte> ProgressUpdateFunc { get; set; }
-
-            public QuestData(Types Type)
-            {
-                All.Add(Type, this);
-            }
-        }
-
-        public static Dictionary<QuestData.Types, Quest> GetNewDict() => new Dictionary<QuestData.Types, Quest>()
+        public static Dictionary<QuestType, Quest> GetNewDict() => new Dictionary<QuestType, Quest>()
         {
             //{ QuestData.Types.TQ1, new Quest(QuestData.Types.TQ1) },
         };
@@ -48,7 +18,7 @@ namespace BlaineRP.Server.Sync
         public bool IsTemp => IsQuestTemp(Type);
 
         [JsonIgnore]
-        public QuestData.Types Type { get; set; }
+        public QuestType Type { get; set; }
 
         [JsonIgnore]
         public QuestData Data => QuestData.All.GetValueOrDefault(Type);
@@ -65,19 +35,19 @@ namespace BlaineRP.Server.Sync
         [JsonIgnore]
         public string CurrentData { get; set; }
 
-        public Quest(QuestData.Types Type)
+        public Quest(QuestType Type)
         {
             this.Type = Type;
         }
 
-        public Quest(QuestData.Types Type, bool IsCompleted, byte Step, int StepProgress) : this(Type)
+        public Quest(QuestType Type, bool IsCompleted, byte Step, int StepProgress) : this(Type)
         {
             this.IsCompleted = IsCompleted;
             this.Step = Step;
             this.StepProgress = StepProgress;
         }
 
-        public static void StartQuest(PlayerData pData, QuestData.Types type, byte step = 0, int stepProgress = 0, string currentData = null)
+        public static void StartQuest(PlayerData pData, QuestType type, byte step = 0, int stepProgress = 0, string currentData = null)
         {
             var quest = new Quest(type, false, step, stepProgress);
 
@@ -150,11 +120,11 @@ namespace BlaineRP.Server.Sync
             }
         }
 
-        public static bool IsQuestTemp(QuestData.Types type) => type >= QuestData.Types.JTR1 && type <= QuestData.Types.DRSCHOOL0;
+        public static bool IsQuestTemp(QuestType type) => type >= QuestType.JTR1 && type <= QuestType.DRSCHOOL0;
 
         public static void InitializeAll()
         {
-            var ns = typeof(Sync.Quests.Types.JTR1).Namespace;
+            var ns = typeof(JTR1).Namespace;
 
             foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass))
             {

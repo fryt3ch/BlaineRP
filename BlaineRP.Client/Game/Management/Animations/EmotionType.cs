@@ -1,6 +1,6 @@
-﻿namespace BlaineRP.Client.Game.Animations
+﻿namespace BlaineRP.Client.Game.Management.Animations
 {
-    public enum EmotionTypes
+    public enum EmotionType
     {
         None = -1,
 

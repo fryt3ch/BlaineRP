@@ -3,35 +3,12 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
-    public class MaterialsData
-    {
-        public uint BuyPrice { get; set; }
-
-        public uint SellPrice { get; set; }
-
-        public uint RealPrice { get; set; }
-
-        public uint MaxMaterialsBalance { get; set; }
-
-        public uint MaxMaterialsPerOrder { get; set; }
-
-        public Dictionary<string, uint> Prices { get; set; }
-
-        public MaterialsData(uint BuyPrice, uint SellPrice, uint RealPrice, uint MaxMaterialsBalance = 500_000, uint maxMaterialsPerOrder = 100_000) // todo maxMatBalance&maxMatPerOrder - individual
-        {
-            this.BuyPrice = BuyPrice;
-            this.SellPrice = SellPrice;
-            this.RealPrice = RealPrice;
-
-            this.Prices = Prices;
-            this.MaxMaterialsBalance = MaxMaterialsBalance;
-            this.MaxMaterialsPerOrder = maxMaterialsPerOrder;
-        }
-    }
-
     public abstract partial class Business
     {
         public static int CurrentStatisticsDayIdx { get; set; }
@@ -42,42 +19,6 @@ namespace BlaineRP.Server.Game.Businesses
 
         public const ushort MAX_MARGIN_CLIENT = 150; // 2.5
         public const ushort MAX_MARGIN_CLIENT_FARM = 100; // 2.0
-
-        public enum Types
-        {
-            ClothesShop1 = 0,
-            ClothesShop2,
-            ClothesShop3,
-
-            JewelleryShop,
-
-            MaskShop,
-
-            BagShop,
-
-            BarberShop,
-
-            TattooShop,
-
-            CarShop1,
-            CarShop2,
-            CarShop3,
-            MotoShop,
-            BoatShop,
-            AeroShop,
-
-            FurnitureShop,
-
-            Market,
-
-            GasStation,
-
-            TuningShop,
-
-            WeaponShop,
-
-            Farm,
-        }
 
         public Game.Jobs.Trucker ClosestTruckerJob
         {
@@ -136,13 +77,13 @@ namespace BlaineRP.Server.Game.Businesses
         public static Dictionary<int, Business> All { get; private set; } = new Dictionary<int, Business>();
 
         /// <summary>Тип бизнеса</summary>
-        public Types Type { get; set; }
+        public BusinessType Type { get; set; }
 
         /// <summary>ID бизнеса (уникальный)</summary>
         public int ID { get; set; }
 
         /// <summary>Владельца</summary>
-        public PlayerData.PlayerInfo Owner { get; set; }
+        public PlayerInfo Owner { get; set; }
 
         /// <summary>Наличных в кассе</summary>
         public ulong Cash { get; set; }
@@ -171,7 +112,7 @@ namespace BlaineRP.Server.Game.Businesses
         /// <summary>Позиция бизнеса</summary>
         public Vector3 PositionInfo { get; set; }
 
-        public Utils.Vector4 PositionInteract { get; set; }
+        public Vector4 PositionInteract { get; set; }
 
         /// <summary>Статистика прибыли</summary>
         public ulong[] Statistics { get; set; }
@@ -182,7 +123,7 @@ namespace BlaineRP.Server.Game.Businesses
 
         public bool IsBuyable => PositionInfo != null;
 
-        public Business(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Types Type)
+        public Business(int ID, Vector3 PositionInfo, Vector4 PositionInteract, BusinessType Type)
         {
             this.ID = ID;
 
@@ -207,7 +148,7 @@ namespace BlaineRP.Server.Game.Businesses
             return PositionInteract != null && pData.Player.Dimension == Properties.Settings.Static.MainDimension && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
         }
 
-        public static Utils.Vector4 GetNextExitProperty(IEnterable enterable)
+        public static Vector4 GetNextExitProperty(IEnterable enterable)
         {
             if (enterable.ExitProperties.Length == 1)
                 return enterable.ExitProperties[0];
@@ -220,11 +161,11 @@ namespace BlaineRP.Server.Game.Businesses
 
         public static Business Get(int id) => All.GetValueOrDefault(id);
 
-        public void UpdateOwner(PlayerData.PlayerInfo pInfo)
+        public void UpdateOwner(PlayerInfo pInfo)
         {
             Owner = pInfo;
 
-            Sync.World.SetSharedData($"Business::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            World.Service.SetSharedData($"Business::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public bool TryAddMoneyCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
@@ -522,7 +463,7 @@ namespace BlaineRP.Server.Game.Businesses
 
         public bool BuyFromGov(PlayerData pData)
         {
-            if (Properties.Settings.Static.NEED_BUSINESS_LICENSE && !pData.HasLicense(PlayerData.LicenseTypes.Business))
+            if (Properties.Settings.Static.NEED_BUSINESS_LICENSE && !pData.HasLicense(LicenseType.Business))
                 return false;
 
             ulong newCash;
@@ -544,7 +485,7 @@ namespace BlaineRP.Server.Game.Businesses
             return true;
         }
 
-        public void ChangeOwner(PlayerData.PlayerInfo pInfo, bool buyGov = false)
+        public void ChangeOwner(PlayerInfo pInfo, bool buyGov = false)
         {
             if (Owner != null)
             {
@@ -585,14 +526,5 @@ namespace BlaineRP.Server.Game.Businesses
 
             return obj;
         }
-    }
-
-    public interface IEnterable
-    {
-        public Utils.Vector4 EnterProperties { get; set; }
-
-        public Utils.Vector4[] ExitProperties { get; set; }
-
-        public int LastExitUsed { get; set; }
     }
 }

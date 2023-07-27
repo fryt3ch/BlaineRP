@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Management.Animations
 {
-    public enum WalkstyleTypes
+    public enum WalkstyleType
     {
         None = -1,
 

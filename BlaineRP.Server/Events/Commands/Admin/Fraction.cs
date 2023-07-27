@@ -1,4 +1,5 @@
 ﻿using System;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Events.Commands
 {
@@ -12,10 +13,10 @@ namespace BlaineRP.Server.Events.Commands
 
             int fractionTypeNum;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -44,10 +45,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             uint mats;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !uint.TryParse(args[1], out mats))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !uint.TryParse(args[1], out mats))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -64,10 +65,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             uint mats;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !uint.TryParse(args[1], out mats))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !uint.TryParse(args[1], out mats))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -89,10 +90,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             uint mats;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !uint.TryParse(args[1], out mats))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !uint.TryParse(args[1], out mats))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -114,10 +115,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             ulong balance;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -134,10 +135,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             ulong balance;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;
@@ -159,10 +160,10 @@ namespace BlaineRP.Server.Events.Commands
             int fractionTypeNum;
             ulong balance;
 
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
+            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.FractionType), fractionTypeNum) || !ulong.TryParse(args[1], out balance))
                 return;
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)fractionTypeNum);
 
             if (fData == null)
                 return;

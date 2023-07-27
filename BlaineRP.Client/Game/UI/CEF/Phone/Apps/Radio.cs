@@ -4,7 +4,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.Management.Radio;
 using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using RAGE;
 using RAGE.Elements;
 
@@ -98,10 +97,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show()
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Radio;
+            CEF.Phone.Phone.CurrentApp = AppType.Radio;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -126,7 +125,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void UpdateRadioStation(RadioStationTypes sType)
         {
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.Radio)
+            if (CEF.Phone.Phone.CurrentApp != AppType.Radio)
                 return;
 
             bool mRadioWasEnabled = Core.IsMobilePhoneRadioEnabled;
@@ -148,7 +147,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void UpdateRadioStationState(bool state)
         {
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.Radio)
+            if (CEF.Phone.Phone.CurrentApp != AppType.Radio)
                 return;
 
             Browser.Window.ExecuteJs("Phone.updateRadioPlay", state);

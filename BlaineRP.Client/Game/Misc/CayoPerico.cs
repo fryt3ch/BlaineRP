@@ -1,5 +1,5 @@
 ﻿using BlaineRP.Client.Game.Helpers.Colshapes;
-using BlaineRP.Client.Game.World.Enums;
+using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;
 
 namespace BlaineRP.Client.Game.Misc
@@ -19,7 +19,7 @@ namespace BlaineRP.Client.Game.Misc
             SetToggleMinimapHeistIsland(state);
 
             if (updateCustomWeather)
-                World.Core.SetSpecialWeather(state ? (WeatherTypes?)WeatherTypes.EXTRASUNNY : null);
+                World.Core.SetSpecialWeather(state ? (WeatherType?)WeatherType.EXTRASUNNY : null);
 
             LoadTask?.Cancel();
 

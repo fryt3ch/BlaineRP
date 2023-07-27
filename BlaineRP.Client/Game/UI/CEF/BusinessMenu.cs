@@ -106,7 +106,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     var margin = decimal.Parse(args[0].ToString());
 
-                    if (!margin.IsNumberValid(0, biz.Type == BusinessTypes.Farm ? MAX_MARGIN_FARM : MAX_MARGIN, out margin, true))
+                    if (!margin.IsNumberValid(0, biz.Type == BusinessType.Farm ? MAX_MARGIN_FARM : MAX_MARGIN, out margin, true))
                         return;
 
                     if (LastSent.IsSpam(1000, false, false))
@@ -262,9 +262,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                 new object[]
                 {
                     Math.Round((Utils.Convert.ToDecimal(res["MA"]) - 1m) * 100, 0),
-                    biz.Type == BusinessTypes.Farm ? MAX_MARGIN_FARM : MAX_MARGIN,
+                    biz.Type == BusinessType.Farm ? MAX_MARGIN_FARM : MAX_MARGIN,
                 },
-                biz.Type == BusinessTypes.Farm,
+                biz.Type == BusinessType.Farm,
                 (bool)res["IS"],
                 Math.Round(Utils.Convert.ToDecimal(res["IT"]) * 100, 0),
             };

@@ -13,7 +13,7 @@ namespace BlaineRP.Client.Game.Businesses
     {
         public WeaponShop(int id, Vector3 positionInfo, uint price, uint rent, float tax, Vector4 positionInteract, Vector3 shootingRangePosition) : base(id,
             positionInfo,
-            BusinessTypes.WeaponShop,
+            BusinessType.WeaponShop,
             price,
             rent,
             tax

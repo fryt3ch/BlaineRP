@@ -3,6 +3,7 @@ using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server
 {
@@ -35,7 +36,7 @@ namespace BlaineRP.Server
                         }
                         else
                         {
-                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+                            var pInfo = PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
 
                             pInfo?.OwnedHouses.Add(house);
 
@@ -46,7 +47,7 @@ namespace BlaineRP.Server
 
                         house.StyleType = Convert.ToUInt16(reader["StyleType"]);
 
-                        house.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
+                        house.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerInfo.Get(x.Key), x => x.Value);
 
                         house.IsLocked = (bool)reader["IsLocked"];
                         house.ContainersLocked = (bool)reader["ContainersLocked"];
@@ -142,7 +143,7 @@ namespace BlaineRP.Server
                         }
                         else
                         {
-                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+                            var pInfo = PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
 
                             pInfo?.OwnedApartments.Add(apartments);
 
@@ -153,7 +154,7 @@ namespace BlaineRP.Server
 
                         apartments.StyleType = Convert.ToUInt16(reader["StyleType"]);
 
-                        apartments.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
+                        apartments.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerInfo.Get(x.Key), x => x.Value);
 
                         apartments.IsLocked = (bool)reader["IsLocked"];
                         apartments.ContainersLocked = (bool)reader["ContainersLocked"];

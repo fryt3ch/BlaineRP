@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
         public string SyncData { get; set; }
 
         [JsonProperty(PropertyName = "T")]
-        public AttachmentTypes Type { get; set; }
+        public AttachmentType Type { get; set; }
 
         public override bool Equals(object obj)
         {

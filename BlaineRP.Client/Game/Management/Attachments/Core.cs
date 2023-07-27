@@ -24,52 +24,52 @@ namespace BlaineRP.Client.Game.Management.Attachments
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
 
-        private static Dictionary<uint, Dictionary<AttachmentTypes, AttachmentData>> ModelDependentAttachments =
-            new Dictionary<string, Dictionary<AttachmentTypes, AttachmentData>>()
+        private static Dictionary<uint, Dictionary<AttachmentType, AttachmentData>> ModelDependentAttachments =
+            new Dictionary<string, Dictionary<AttachmentType, AttachmentData>>()
             {
                 {
-                    "brp_p_ring_0_0", new Dictionary<AttachmentTypes, AttachmentData>()
+                    "brp_p_ring_0_0", new Dictionary<AttachmentType, AttachmentData>()
                     {
-                        { AttachmentTypes.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 2, true) },
+                        { AttachmentType.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 2, true) },
                         {
-                            AttachmentTypes.PedRingRight3,
+                            AttachmentType.PedRingRight3,
                             new AttachmentData(58869, new Vector3(0.033f, 0.0007f, 0.0029f), new Vector3(105f, -85f, 15f), false, false, false, 2, true)
                         },
                     }
                 },
                 {
-                    "brp_p_ring_1_0", new Dictionary<AttachmentTypes, AttachmentData>()
+                    "brp_p_ring_1_0", new Dictionary<AttachmentType, AttachmentData>()
                     {
-                        { AttachmentTypes.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(80f, 95f, -5f), false, false, false, 2, true) },
+                        { AttachmentType.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(80f, 95f, -5f), false, false, false, 2, true) },
                         {
-                            AttachmentTypes.PedRingRight3,
+                            AttachmentType.PedRingRight3,
                             new AttachmentData(58869, new Vector3(0.033f, 0.0013f, 0.0029f), new Vector3(115f, -105f, 15f), false, false, false, 2, true)
                         },
                     }
                 },
             }.ToDictionary(x => RAGE.Util.Joaat.Hash(x.Key), x => x.Value);
 
-        public static Dictionary<AttachmentTypes, AttachmentData> Attachments = new Dictionary<AttachmentTypes, AttachmentData>()
+        public static Dictionary<AttachmentType, AttachmentData> Attachments = new Dictionary<AttachmentType, AttachmentData>()
         {
-            { AttachmentTypes.PushVehicle, new AttachmentData(6286, new Vector3(0f, 0f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
-            { AttachmentTypes.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
-            { AttachmentTypes.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
-            { AttachmentTypes.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
-            { AttachmentTypes.WeaponLeftTight, new AttachmentData(58271, new Vector3(0.08f, 0.03f, -0.1f), new Vector3(-80.77f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.WeaponRightTight, new AttachmentData(51826, new Vector3(0.02f, 0.06f, 0.1f), new Vector3(-100f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.WeaponLeftBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, 0.11f), new Vector3(-180f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.WeaponRightBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, -0.13f), new Vector3(0f, 0f, 3.5f), false, false, false, 2, true) },
-            { AttachmentTypes.Carry, new AttachmentData(1_000_000 + 0, new Vector3(0.23f, 0.18f, 0.65f), new Vector3(0.5f, 0.5f, 15f), false, false, false, 2, true) },
-            { AttachmentTypes.PiggyBack, new AttachmentData(0, new Vector3(0f, -0.07f, 0.45f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.Hostage, new AttachmentData(0, new Vector3(-0.24f, 0.11f, 0f), new Vector3(0.5f, 0.5f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
-            { AttachmentTypes.TractorTrailFarmHarv, new AttachmentData(0, new Vector3(0f, -2.7f, 0f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
-            { AttachmentTypes.ItemFishingRodG, new AttachmentData(60309, new Vector3(0.01f, -0.01f, 0.03f), new Vector3(0.1f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemShovel, new AttachmentData(28422, new Vector3(0.05f, -0.03f, -0.9f), new Vector3(2.1f, -4.2f, 5f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemMetalDetector, new AttachmentData(18905, new Vector3(0.15f, 0.1f, 0f), new Vector3(270f, 90f, 80f), false, false, false, 2, true) },
+            { AttachmentType.PushVehicle, new AttachmentData(6286, new Vector3(0f, 0f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
+            { AttachmentType.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
+            { AttachmentType.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
+            { AttachmentType.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
+            { AttachmentType.WeaponLeftTight, new AttachmentData(58271, new Vector3(0.08f, 0.03f, -0.1f), new Vector3(-80.77f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.WeaponRightTight, new AttachmentData(51826, new Vector3(0.02f, 0.06f, 0.1f), new Vector3(-100f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.WeaponLeftBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, 0.11f), new Vector3(-180f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.WeaponRightBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, -0.13f), new Vector3(0f, 0f, 3.5f), false, false, false, 2, true) },
+            { AttachmentType.Carry, new AttachmentData(1_000_000 + 0, new Vector3(0.23f, 0.18f, 0.65f), new Vector3(0.5f, 0.5f, 15f), false, false, false, 2, true) },
+            { AttachmentType.PiggyBack, new AttachmentData(0, new Vector3(0f, -0.07f, 0.45f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.Hostage, new AttachmentData(0, new Vector3(-0.24f, 0.11f, 0f), new Vector3(0.5f, 0.5f, 0f), false, false, false, 2, true) },
+            { AttachmentType.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
+            { AttachmentType.TractorTrailFarmHarv, new AttachmentData(0, new Vector3(0f, -2.7f, 0f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
+            { AttachmentType.ItemFishingRodG, new AttachmentData(60309, new Vector3(0.01f, -0.01f, 0.03f), new Vector3(0.1f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.ItemShovel, new AttachmentData(28422, new Vector3(0.05f, -0.03f, -0.9f), new Vector3(2.1f, -4.2f, 5f), false, false, false, 2, true) },
+            { AttachmentType.ItemMetalDetector, new AttachmentData(18905, new Vector3(0.15f, 0.1f, 0f), new Vector3(270f, 90f, 80f), false, false, false, 2, true) },
             {
-                AttachmentTypes.ItemFishG, new AttachmentData(int.MinValue,
+                AttachmentType.ItemFishG, new AttachmentData(int.MinValue,
                     null,
                     new Vector3(0f, 0f, 0f),
                     false,
@@ -90,7 +90,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCigHand, new AttachmentData(64097,
+                AttachmentType.ItemCigHand, new AttachmentData(64097,
                     new Vector3(0.02f, 0.02f, -0.008f),
                     new Vector3(100f, 0f, 100f),
                     false,
@@ -111,7 +111,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig1Hand, new AttachmentData(64097,
+                AttachmentType.ItemCig1Hand, new AttachmentData(64097,
                     new Vector3(0.02f, 0.02f + 0.0365f, -0.008f),
                     new Vector3(100f, 0f, -80f),
                     false,
@@ -132,7 +132,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig2Hand, new AttachmentData(64097,
+                AttachmentType.ItemCig2Hand, new AttachmentData(64097,
                     new Vector3(0.02f, 0.02f, -0.008f),
                     new Vector3(100f, 0f, -100f),
                     false,
@@ -153,7 +153,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig3Hand, new AttachmentData(64097,
+                AttachmentType.ItemCig3Hand, new AttachmentData(64097,
                     new Vector3(0.02f, 0.02f, -0.008f),
                     new Vector3(100f, 0f, 100f),
                     false,
@@ -174,7 +174,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCigMouth, new AttachmentData(47419,
+                AttachmentType.ItemCigMouth, new AttachmentData(47419,
                     new Vector3(0.015f, -0.009f, 0.003f),
                     new Vector3(55f, 0f, 110f),
                     false,
@@ -195,7 +195,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig1Mouth, new AttachmentData(47419,
+                AttachmentType.ItemCig1Mouth, new AttachmentData(47419,
                     new Vector3(0.001f, 0.036f, 0.005f),
                     new Vector3(55f, 0f, -70f),
                     false,
@@ -216,7 +216,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig2Mouth, new AttachmentData(47419,
+                AttachmentType.ItemCig2Mouth, new AttachmentData(47419,
                     new Vector3(0.01f, 0f, 0f),
                     new Vector3(50f, 0f, -80f),
                     false,
@@ -237,7 +237,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             },
             {
-                AttachmentTypes.ItemCig3Mouth, new AttachmentData(47419,
+                AttachmentType.ItemCig3Mouth, new AttachmentData(47419,
                     new Vector3(0.01f, 0f, 0f),
                     new Vector3(50f, 0f, 80f),
                     false,
@@ -257,25 +257,25 @@ namespace BlaineRP.Client.Game.Management.Attachments
                     }
                 )
             },
-            { AttachmentTypes.ItemBandage, new AttachmentData(36029, new Vector3(-0.04f, 0f, -0.01f), new Vector3(160f, 0f, 90f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemMedKit, new AttachmentData(36029, new Vector3(0.03f, 0.01f, 0.12f), new Vector3(180f, -10f, 90f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemChips, new AttachmentData(28422, new Vector3(-0.04f, 0.02f, -0.04f), new Vector3(15f, 20f, 10f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemBurger, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemHotdog, new AttachmentData(60309, new Vector3(0.05f, 0.02f, -0.01f), new Vector3(0f, 0f, 90f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
-            { AttachmentTypes.Cuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
-            { AttachmentTypes.CableCuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
-            { AttachmentTypes.EmsHealingBedFakeAttach, new AttachmentData(int.MinValue, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
+            { AttachmentType.ItemBandage, new AttachmentData(36029, new Vector3(-0.04f, 0f, -0.01f), new Vector3(160f, 0f, 90f), false, false, false, 2, true) },
+            { AttachmentType.ItemMedKit, new AttachmentData(36029, new Vector3(0.03f, 0.01f, 0.12f), new Vector3(180f, -10f, 90f), false, false, false, 2, true) },
+            { AttachmentType.ItemChips, new AttachmentData(28422, new Vector3(-0.04f, 0.02f, -0.04f), new Vector3(15f, 20f, 10f), false, false, false, 2, true) },
+            { AttachmentType.ItemBurger, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.ItemHotdog, new AttachmentData(60309, new Vector3(0.05f, 0.02f, -0.01f), new Vector3(0f, 0f, 90f), false, false, false, 2, true) },
+            { AttachmentType.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.Cuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
+            { AttachmentType.CableCuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
+            { AttachmentType.EmsHealingBedFakeAttach, new AttachmentData(int.MinValue, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
             {
-                AttachmentTypes.PoliceEscort, new AttachmentData(1_000_000 + 11816, new Vector3(0.30f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true)
+                AttachmentType.PoliceEscort, new AttachmentData(1_000_000 + 11816, new Vector3(0.30f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true)
                 {
                     DisableInteraction = 1,
                 }
             },
             {
-                AttachmentTypes.FarmPlantSmallShovel, new AttachmentData(28422,
+                AttachmentType.FarmPlantSmallShovel, new AttachmentData(28422,
                     new Vector3(0f, 0.01f, -0.03f),
                     new Vector3(0f, 0f, 0f),
                     false,
@@ -296,10 +296,10 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 )
             }, // rot Y -180 prop_buck_spade_09
 
-            { AttachmentTypes.FarmOrangeBoxCarry, new AttachmentData(28422, new Vector3(0f, -0.02f, -0.07f), new Vector3(0f, 320f, 90f), false, false, false, 2, true) },
-            { AttachmentTypes.FarmMilkBucketCarry, new AttachmentData(28422, new Vector3(0.05f, 0f, -0.05f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { AttachmentType.FarmOrangeBoxCarry, new AttachmentData(28422, new Vector3(0f, -0.02f, -0.07f), new Vector3(0f, 320f, 90f), false, false, false, 2, true) },
+            { AttachmentType.FarmMilkBucketCarry, new AttachmentData(28422, new Vector3(0.05f, 0f, -0.05f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             {
-                AttachmentTypes.FarmWateringCan, new AttachmentData(28422,
+                AttachmentType.FarmWateringCan, new AttachmentData(28422,
                     new Vector3(0.09f, 0f, -0.2f),
                     new Vector3(0f, 25f, 0f),
                     false,
@@ -321,20 +321,20 @@ namespace BlaineRP.Client.Game.Management.Attachments
             }, // prop_wateringcan
         };
 
-        private static Dictionary<AttachmentTypes, AttachmentTypes> SameActionsTypes = new Dictionary<AttachmentTypes, AttachmentTypes>()
+        private static Dictionary<AttachmentType, AttachmentType> SameActionsTypes = new Dictionary<AttachmentType, AttachmentType>()
         {
-            { AttachmentTypes.ItemCig1Hand, AttachmentTypes.ItemCigHand },
-            { AttachmentTypes.ItemCig2Hand, AttachmentTypes.ItemCigHand },
-            { AttachmentTypes.ItemCig3Hand, AttachmentTypes.ItemCigHand },
-            { AttachmentTypes.ItemCig1Mouth, AttachmentTypes.ItemCigMouth },
-            { AttachmentTypes.ItemCig2Mouth, AttachmentTypes.ItemCigMouth },
-            { AttachmentTypes.ItemCig3Mouth, AttachmentTypes.ItemCigMouth },
+            { AttachmentType.ItemCig1Hand, AttachmentType.ItemCigHand },
+            { AttachmentType.ItemCig2Hand, AttachmentType.ItemCigHand },
+            { AttachmentType.ItemCig3Hand, AttachmentType.ItemCigHand },
+            { AttachmentType.ItemCig1Mouth, AttachmentType.ItemCigMouth },
+            { AttachmentType.ItemCig2Mouth, AttachmentType.ItemCigMouth },
+            { AttachmentType.ItemCig3Mouth, AttachmentType.ItemCigMouth },
         };
 
-        private static Dictionary<AttachmentTypes, (Action On, Action Off, Action Loop)?> TargetActions = new Dictionary<AttachmentTypes, (Action On, Action Off, Action Loop)?>()
+        private static Dictionary<AttachmentType, (Action On, Action Off, Action Loop)?> TargetActions = new Dictionary<AttachmentType, (Action On, Action Off, Action Loop)?>()
         {
             {
-                AttachmentTypes.PushVehicle, (new Action(() =>
+                AttachmentType.PushVehicle, (new Action(() =>
                     {
                         var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
@@ -404,7 +404,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.VehicleTrunk, (new Action(() =>
+                AttachmentType.VehicleTrunk, (new Action(() =>
                     {
                         Weapons.Core.DisabledFiring = true;
                     }
@@ -454,7 +454,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.Carry, (new Action(() =>
+                AttachmentType.Carry, (new Action(() =>
                     {
                         Weapons.Core.DisabledFiring = true;
                     }
@@ -504,7 +504,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.PoliceEscort, (() =>
+                AttachmentType.PoliceEscort, (() =>
                 {
                 }, () =>
                 {
@@ -549,10 +549,10 @@ namespace BlaineRP.Client.Game.Management.Attachments
             },
         };
 
-        private static Dictionary<AttachmentTypes, (Action On, Action Off, Action Loop)?> RootActions = new Dictionary<AttachmentTypes, (Action On, Action Off, Action Loop)?>()
+        private static Dictionary<AttachmentType, (Action On, Action Off, Action Loop)?> RootActions = new Dictionary<AttachmentType, (Action On, Action Off, Action Loop)?>()
         {
             {
-                AttachmentTypes.Carry, (new Action(() =>
+                AttachmentType.Carry, (new Action(() =>
                     {
                         Weapons.Core.DisabledFiring = true;
                     }
@@ -563,7 +563,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ), new Action(() =>
                     {
                         Player target = Player.LocalPlayer.GetData<List<AttachmentEntity>>(AttachedEntitiesKey)
-                                              .Where(x => x.Type == AttachmentTypes.Carry)
+                                              .Where(x => x.Type == AttachmentType.Carry)
                                               .Select(x => Entities.Players.GetAtRemote(x.RemoteID))
                                               .FirstOrDefault();
 
@@ -597,7 +597,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.ItemCigHand, (new Action(() =>
+                AttachmentType.ItemCigHand, (new Action(() =>
                     {
                         Weapons.Core.DisabledFiring = true;
 
@@ -696,7 +696,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.ItemCigMouth, (new Action(() =>
+                AttachmentType.ItemCigMouth, (new Action(() =>
                     {
                         Player.LocalPlayer.SetData("Temp::Smoke::LastSent", World.Core.ServerTime);
                     }
@@ -768,7 +768,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.FarmPlantSmallShovel, (null, null, new Action(() =>
+                AttachmentType.FarmPlantSmallShovel, (null, null, new Action(() =>
                     {
                         Input.Core.ExtraBind bind = Input.Core.Get(Input.Enums.BindTypes.CancelAnimation);
 
@@ -800,7 +800,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.FarmWateringCan, (null, null, new Action(() =>
+                AttachmentType.FarmWateringCan, (null, null, new Action(() =>
                     {
                         Input.Core.ExtraBind bind = Input.Core.Get(Input.Enums.BindTypes.CancelAnimation);
 
@@ -832,7 +832,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.FarmOrangeBoxCarry, (new Action(() =>
+                AttachmentType.FarmOrangeBoxCarry, (new Action(() =>
                     {
                         Farm farmBusiness = (PlayerData.GetData(Player.LocalPlayer)?.CurrentJob as Farmer)?.FarmBusiness;
 
@@ -909,7 +909,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.FarmMilkBucketCarry, (new Action(() =>
+                AttachmentType.FarmMilkBucketCarry, (new Action(() =>
                     {
                         Farm farmBusiness = (PlayerData.GetData(Player.LocalPlayer)?.CurrentJob as Farmer)?.FarmBusiness;
 
@@ -985,7 +985,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.EmsHealingBedFakeAttach, (null, () =>
+                AttachmentType.EmsHealingBedFakeAttach, (null, () =>
                 {
                     ExtraColshape.All.Where(x => x.Name == "ems_healing_bed").ToList().ForEach(x => x.Destroy());
                 }, new Action(() =>
@@ -1017,7 +1017,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 ))
             },
             {
-                AttachmentTypes.Cuffs, (() =>
+                AttachmentType.Cuffs, (() =>
                 {
                     Weapons.Core.DisabledFiring = true;
 
@@ -1090,7 +1090,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 })
             },
             {
-                AttachmentTypes.PoliceEscort, (() =>
+                AttachmentType.PoliceEscort, (() =>
                 {
                     Weapons.Core.DisabledFiring = true;
 
@@ -1133,7 +1133,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 })
             },
             {
-                AttachmentTypes.PlayerResurrect, (() =>
+                AttachmentType.PlayerResurrect, (() =>
                 {
                     Weapons.Core.DisabledFiring = true;
 
@@ -1144,7 +1144,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                     AsyncTask.Methods.CancelPendingTask(taskKey);
 
-                    AttachmentEntity attach = PlayerData.GetData(Player.LocalPlayer).AttachedEntities.Where(x => x.Type == AttachmentTypes.PlayerResurrect).FirstOrDefault();
+                    AttachmentEntity attach = PlayerData.GetData(Player.LocalPlayer).AttachedEntities.Where(x => x.Type == AttachmentType.PlayerResurrect).FirstOrDefault();
 
                     if (attach == null)
                         return;
@@ -1273,14 +1273,14 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
         private static Dictionary<int, List<int>> StreamedAttachments { get; set; } = new Dictionary<int, List<int>>();
 
-        public static bool IsTypeStaticObject(AttachmentTypes type)
+        public static bool IsTypeStaticObject(AttachmentType type)
         {
-            return type >= AttachmentTypes.PedRingLeft3 && type < AttachmentTypes.VehKey;
+            return type >= AttachmentType.PedRingLeft3 && type < AttachmentType.VehKey;
         }
 
-        public static bool IsTypeObjectInHand(AttachmentTypes type)
+        public static bool IsTypeObjectInHand(AttachmentType type)
         {
-            return type >= AttachmentTypes.VehKey && type < AttachmentTypes.VehicleTrailer;
+            return type >= AttachmentType.VehKey && type < AttachmentType.VehicleTrailer;
         }
 
         public static void AddLocalAttachment(int fromHandle, int toHandle)
@@ -1469,14 +1469,14 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
             if (entity is Vehicle veh)
             {
-                if (attachmentNet.Type == AttachmentTypes.VehicleTrailer)
+                if (attachmentNet.Type == AttachmentType.VehicleTrailer)
                 {
                 }
                 else
                 {
                     entity.GetModelDimensions(out Vector3 min, out Vector3 max);
 
-                    if (attachmentNet.Type == AttachmentTypes.PushVehicle)
+                    if (attachmentNet.Type == AttachmentType.PushVehicle)
                     {
                         if (attachmentNet.SyncData == "1")
                         {
@@ -1495,7 +1495,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                             props.Rotation.Z = 0f;
                         }
                     }
-                    else if (attachmentNet.Type == AttachmentTypes.VehicleTrunk)
+                    else if (attachmentNet.Type == AttachmentType.VehicleTrunk)
                     {
                         positionBase.Y = -(max.Y - min.Y) / 2f;
                     }
@@ -1526,14 +1526,14 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 attachMethod();
             }
 
-            if (attachmentNet.Type == AttachmentTypes.VehicleTrailer)
+            if (attachmentNet.Type == AttachmentType.VehicleTrailer)
             {
                 RAGE.Game.Vehicle.AttachVehicleToTrailer(gEntity.Handle, gTarget.Handle, float.MaxValue);
             }
-            else if (attachmentNet.Type == AttachmentTypes.VehicleTrailerObjBoat)
+            else if (attachmentNet.Type == AttachmentType.VehicleTrailerObjBoat)
             {
                 GameEntity trailerObj = gEntity.GetData<List<AttachmentObject>>(AttachedObjectsKey)
-                                              ?.Where(x => x.Type == AttachmentTypes.TrailerObjOnBoat)
+                                              ?.Where(x => x.Type == AttachmentType.TrailerObjOnBoat)
                                                .FirstOrDefault()
                                               ?.Object;
 
@@ -1559,7 +1559,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             }
         }
 
-        public static void DetachEntity(Entity entity, AttachmentTypes type, ushort remoteId, RAGE.Elements.Type eType)
+        public static void DetachEntity(Entity entity, AttachmentType type, ushort remoteId, RAGE.Elements.Type eType)
         {
             var gEntity = (GameEntity)entity;
 
@@ -1591,7 +1591,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                     gTarget.ResetData("AttachMethod");
                 }
 
-                if (aObj.Type == AttachmentTypes.VehicleTrailer || aObj.Type == AttachmentTypes.VehicleTrailerObjBoat)
+                if (aObj.Type == AttachmentType.VehicleTrailer || aObj.Type == AttachmentType.VehicleTrailerObjBoat)
                     RAGE.Game.Vehicle.DetachVehicleFromTrailer(gTarget.Handle);
             }
 
@@ -1622,7 +1622,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 return;
 
             if (gTarget.Handle == Player.LocalPlayer.Handle)
-                if (attachmentNet.Type == AttachmentTypes.PhoneSync || attachmentNet.Type == AttachmentTypes.ParachuteSync)
+                if (attachmentNet.Type == AttachmentType.PhoneSync || attachmentNet.Type == AttachmentType.ParachuteSync)
                     return;
 
             List<AttachmentObject> list = target.GetData<List<AttachmentObject>>(AttachedObjectsKey);
@@ -1634,7 +1634,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
             Vector3 positionBase = Vector3.Zero;
 
-            if (attachmentNet.Type >= AttachmentTypes.WeaponRightTight && attachmentNet.Type <= AttachmentTypes.WeaponLeftBack)
+            if (attachmentNet.Type >= AttachmentType.WeaponRightTight && attachmentNet.Type <= AttachmentType.WeaponLeftBack)
             {
                 await Streaming.RequestWeaponAsset(attachmentNet.Model);
 
@@ -1643,7 +1643,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 if (attachmentNet.SyncData != null)
                     Weapons.Core.UpdateWeaponObjectComponents(gEntity.Handle, attachmentNet.Model, attachmentNet.SyncData);
             }
-            else if (attachmentNet.Type == AttachmentTypes.TrailerObjOnBoat)
+            else if (attachmentNet.Type == AttachmentType.TrailerObjOnBoat)
             {
                 Vector3 rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
 
@@ -1681,7 +1681,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
                 gEntity.SetData("TrailerSync::Owner", targetVeh);
             }
-            else if (attachmentNet.Type == AttachmentTypes.TractorTrailFarmHarv)
+            else if (attachmentNet.Type == AttachmentType.TractorTrailFarmHarv)
             {
                 var veh = new Vehicle(attachmentNet.Model, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
                 veh.StreamInCustomActionsAdd((entity) =>
@@ -1719,7 +1719,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             {
                 if (props.BoneID == int.MinValue)
                 {
-                    if (attachmentNet.Type == AttachmentTypes.ItemFishG)
+                    if (attachmentNet.Type == AttachmentType.ItemFishG)
                         if (gEntity != null)
                         {
                             string[] pos = attachmentNet.SyncData.Split('&');
@@ -1733,7 +1733,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 {
                     if (gEntity != null)
                     {
-                        if (attachmentNet.Type == AttachmentTypes.TrailerObjOnBoat)
+                        if (attachmentNet.Type == AttachmentType.TrailerObjOnBoat)
                         {
                             AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
@@ -1788,7 +1788,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 RootAction(attachmentNet.Type, gEntity, true);
         }
 
-        public static void DetachObject(Entity target, AttachmentTypes type)
+        public static void DetachObject(Entity target, AttachmentType type)
         {
             List<AttachmentObject> list = target.GetData<List<AttachmentObject>>(AttachedObjectsKey);
 
@@ -1813,7 +1813,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
                 if (gEntity.HasData("PtfxHandle"))
                     RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
 
-                if (type == AttachmentTypes.TrailerObjOnBoat)
+                if (type == AttachmentType.TrailerObjOnBoat)
                 {
                     RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
 
@@ -1903,13 +1903,13 @@ namespace BlaineRP.Client.Game.Management.Attachments
             return entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
         }
 
-        private static (Action On, Action Off, Action Loop)? GetTargetActions(AttachmentTypes type)
+        private static (Action On, Action Off, Action Loop)? GetTargetActions(AttachmentType type)
         {
             (Action On, Action Off, Action Loop)? action = TargetActions.GetValueOrDefault(type);
 
             if (action == null)
             {
-                AttachmentTypes sType;
+                AttachmentType sType;
 
                 if (SameActionsTypes.TryGetValue(type, out sType))
                     return TargetActions.GetValueOrDefault(sType);
@@ -1920,13 +1920,13 @@ namespace BlaineRP.Client.Game.Management.Attachments
             return action;
         }
 
-        private static (Action On, Action Off, Action Loop)? GetRootActions(AttachmentTypes type)
+        private static (Action On, Action Off, Action Loop)? GetRootActions(AttachmentType type)
         {
             (Action On, Action Off, Action Loop)? action = RootActions.GetValueOrDefault(type);
 
             if (action == null)
             {
-                AttachmentTypes sType;
+                AttachmentType sType;
 
                 if (SameActionsTypes.TryGetValue(type, out sType))
                     return RootActions.GetValueOrDefault(sType);
@@ -1937,7 +1937,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             return action;
         }
 
-        public static void TargetAction(AttachmentTypes type, Entity root, bool attach)
+        public static void TargetAction(AttachmentType type, Entity root, bool attach)
         {
             var data = PlayerData.GetData(Player.LocalPlayer);
 
@@ -1974,7 +1974,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             }
         }
 
-        public static void RootAction(AttachmentTypes type, Entity target, bool attach)
+        public static void RootAction(AttachmentType type, Entity target, bool attach)
         {
             var data = PlayerData.GetData(Player.LocalPlayer);
 
@@ -2005,7 +2005,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
             }
         }
 
-        public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, AttachmentTypes type)
+        public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, AttachmentType type)
         {
             var gTarget = (GameEntity)target;
 
@@ -2016,7 +2016,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
             Vector3 positionBase = Vector3.Zero;
 
-            if (type >= AttachmentTypes.WeaponRightTight && type <= AttachmentTypes.WeaponLeftBack)
+            if (type >= AttachmentType.WeaponRightTight && type <= AttachmentType.WeaponLeftBack)
             {
                 await Streaming.RequestWeaponAsset(hash);
 

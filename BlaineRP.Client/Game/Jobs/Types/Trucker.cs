@@ -12,9 +12,9 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Jobs
 {
-    public class Trucker : Job
+    public partial class Trucker : Job
     {
-        public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, JobTypes.Trucker)
+        public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, JobType.Trucker)
         {
             this.MaterialsPositions = MaterialsPositions;
 
@@ -177,21 +177,6 @@ namespace BlaineRP.Client.Game.Jobs
                     }
                 }
             );
-        }
-
-        public class OrderInfo
-        {
-            public OrderInfo()
-            {
-            }
-
-            public uint Id { get; set; }
-
-            public uint Reward { get; set; }
-
-            public int MPIdx { get; set; }
-
-            public Business TargetBusiness { get; set; }
         }
     }
 }

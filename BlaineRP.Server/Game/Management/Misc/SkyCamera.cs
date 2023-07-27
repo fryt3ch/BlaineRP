@@ -1,23 +1,16 @@
 ﻿using GTANetworkAPI;
 
-namespace BlaineRP.Server.Additional
+namespace BlaineRP.Server.Game.Management.Misc
 {
-    public class SkyCamera
+    public static partial class SkyCamera
     {
-        public enum SwitchTypes
-        {
-            ToPlayer = 0,
-            OutFromPlayer,
-            Move,
-        }
-
         /// <summary>Метод для взаимодействия с небесной камерой</summary>
         /// <param name="player">Игрок</param>
         /// <param name="fade">Затемнить изображение?</param>
         /// <param name="switchType">Тип переключения</param>
         /// <param name="eventOnFinish">Выполняемое событие на клиенте по завершении переключения</param>
         /// <param name="args">Аргументы для события</param>
-        public static void Move(Player player, SwitchTypes switchType, bool fade, string eventOnFinish = null, params object[] args)
+        public static void Move(Player player, SwitchType switchType, bool fade, string eventOnFinish = null, params object[] args)
         {
             if (eventOnFinish == null)
             {

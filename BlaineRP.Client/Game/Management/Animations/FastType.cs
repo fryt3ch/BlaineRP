@@ -1,6 +1,6 @@
 ﻿namespace BlaineRP.Client.Game.Management.Animations
 {
-    public enum FastTypes
+    public enum FastType
     {
         None = -1,
 

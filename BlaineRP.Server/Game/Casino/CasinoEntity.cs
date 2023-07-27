@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
-using BlaineRP.Server.Game.CasinoSystem.Games;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Casino.Games;
 
-namespace BlaineRP.Server.Game.CasinoSystem
+namespace BlaineRP.Server.Game.Casino
 {
     public partial class CasinoEntity
     {
@@ -25,7 +26,7 @@ namespace BlaineRP.Server.Game.CasinoSystem
         public ushort BuyChipPrice { get; set; }
         public ushort SellChipPrice { get; set; }
 
-        public WallScreenTypes CurrentWallScreenType { get => (WallScreenTypes)Utils.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST")); set => Sync.World.SetSharedData($"CASINO_{Id}_WST", (byte)value); }
+        public WallScreenTypes CurrentWallScreenType { get => (WallScreenTypes)Utils.ToByte(World.Service.GetSharedData<object>($"CASINO_{Id}_WST")); set => World.Service.SetSharedData($"CASINO_{Id}_WST", (byte)value); }
 
         public CasinoEntity()
         {

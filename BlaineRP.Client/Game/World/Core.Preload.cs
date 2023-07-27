@@ -4,7 +4,6 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
-using BlaineRP.Client.Game.World.Enums;
 using RAGE;
 using RAGE.Elements;
 
@@ -53,7 +52,7 @@ namespace BlaineRP.Client.Game.World
             AddDataHandler("Weather",
                 (value, oldValue) =>
                 {
-                    var weather = (WeatherTypes)(int)value;
+                    var weather = (WeatherType)(int)value;
 
                     if (CurrentWeatherCustom != null || CurrentWeatherSpecial != null)
                         return;

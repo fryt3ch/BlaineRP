@@ -961,6 +961,51 @@ namespace BlaineRP.Server.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Заказ №{0} для Вашего бизнеса был отменен.\nВозвращено средств: ${1}.
+        /// </summary>
+        public static string GEN_SMS_DELIVERY_BUSINESS_ORDER_CANCEL_0 {
+            get {
+                return ResourceManager.GetString("GEN_SMS_DELIVERY_BUSINESS_ORDER_CANCEL_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Заказ №{0} для Вашего бизнеса задерживается, идет поиск нового курьера.
+        /// </summary>
+        public static string GEN_SMS_DELIVERY_BUSINESS_ORDER_DELAY_0 {
+            get {
+                return ResourceManager.GetString("GEN_SMS_DELIVERY_BUSINESS_ORDER_DELAY_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Заказ №{0} для Вашего бизнеса был доставлен!.
+        /// </summary>
+        public static string GEN_SMS_DELIVERY_BUSINESS_ORDER_FINISH_0 {
+            get {
+                return ResourceManager.GetString("GEN_SMS_DELIVERY_BUSINESS_ORDER_FINISH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Создан заказ №{0} для Вашего бизнеса, идет поиск курьера.\nКол-во материалов: {1}\nСумма оплаты: ${2}.
+        /// </summary>
+        public static string GEN_SMS_DELIVERY_BUSINESS_ORDER_NEW_0 {
+            get {
+                return ResourceManager.GetString("GEN_SMS_DELIVERY_BUSINESS_ORDER_NEW_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Заказ №{0} для Вашего бизнеса в пути, Вы получите SMS по факту доставки или при возникновении проблем с ней.
+        /// </summary>
+        public static string GEN_SMS_DELIVERY_BUSINESS_ORDER_TAKEN_0 {
+            get {
+                return ResourceManager.GetString("GEN_SMS_DELIVERY_BUSINESS_ORDER_TAKEN_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Незнакомка.
         /// </summary>
         public static string NPC_NOTFAM_FEMALE {

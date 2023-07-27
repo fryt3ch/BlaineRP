@@ -103,7 +103,7 @@ namespace BlaineRP.Client.Game.EntitiesData
         }
 
         public Vehicle IsAttachedToLocalTrailer =>
-            Vehicle.GetData<List<AttachmentObject>>(Core.AttachedObjectsKey)?.Where(x => x.Type == AttachmentTypes.TrailerObjOnBoat).FirstOrDefault()?.Object as Vehicle;
+            Vehicle.GetData<List<AttachmentObject>>(Core.AttachedObjectsKey)?.Where(x => x.Type == AttachmentType.TrailerObjOnBoat).FirstOrDefault()?.Object as Vehicle;
 
         public void Reset()
         {

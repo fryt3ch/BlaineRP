@@ -1,4 +1,7 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Additional;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.AntiCheat;
+using GTANetworkAPI;
 
 namespace BlaineRP.Server.Events.Commands
 {
@@ -34,7 +37,7 @@ namespace BlaineRP.Server.Events.Commands
             if (tData.Player.Vehicle == null)
                 tData.Player.Teleport(new Vector3(x, y, z), toGround, null, null, false);
             else
-                tData.Player.Vehicle.Teleport(new Vector3(x, y, z), null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All, toGround);
+                tData.Player.Vehicle.Teleport(new Vector3(x, y, z), null, null, false, VehicleTeleportType.All, toGround);
         }
 
         [Command("p_tppl", 1)]
@@ -100,7 +103,7 @@ namespace BlaineRP.Server.Events.Commands
 
             if (here)
             {
-                vData.Vehicle.Teleport(pData.Player.Position, pData.Player.Dimension, null, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+                vData.Vehicle.Teleport(pData.Player.Position, pData.Player.Dimension, null, false, VehicleTeleportType.Default);
             }
             else
             {

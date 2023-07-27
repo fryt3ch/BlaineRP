@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Server.Extensions.System;
 
-namespace BlaineRP.Server.Sync.Quests.Types
+namespace BlaineRP.Server.Game.Quests.Types
 {
     public class JFRM2
     {
         public static void Initialize()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JFRM2)
+            new Quest.QuestData(QuestType.JFRM2)
             {
                 ProgressUpdateFunc = (pData, questData, data) =>
                 {

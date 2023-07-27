@@ -2,12 +2,16 @@
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Achievements;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void CharacterAdd(PlayerData.PlayerInfo pInfo)
+        public static void CharacterAdd(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -71,7 +75,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterUpdateLastData(PlayerData.PlayerInfo pInfo)
+        public static void CharacterUpdateLastData(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -83,7 +87,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterUpdateOnEnter(PlayerData.PlayerInfo pInfo)
+        public static void CharacterUpdateOnEnter(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -95,7 +99,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterSaveOnExit(PlayerData.PlayerInfo pInfo)
+        public static void CharacterSaveOnExit(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -117,7 +121,7 @@ namespace BlaineRP.Server
             CharacterArmourUpdate(pInfo);
         }
 
-        public static void CharacterCustomizationFullUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterCustomizationFullUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -132,7 +136,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterHeadOverlaysUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterHeadOverlaysUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -144,7 +148,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterHairStyleUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterHairStyleUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -156,7 +160,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterDecorationsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterDecorationsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -168,7 +172,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterCashUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterCashUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -180,7 +184,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterCasinoChipsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterCasinoChipsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -192,7 +196,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterPhoneBalanceUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterPhoneBalanceUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -204,7 +208,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterPhoneNumberUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterPhoneNumberUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -216,7 +220,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterItemsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterItemsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -229,7 +233,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterClothesUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterClothesUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -242,7 +246,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterAccessoriesUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterAccessoriesUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -255,7 +259,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterWeaponsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterWeaponsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -268,7 +272,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterBagUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterBagUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -281,7 +285,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterHolsterUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterHolsterUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -294,7 +298,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterArmourUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterArmourUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -307,7 +311,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterFurnitureUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterFurnitureUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -320,7 +324,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterWeaponSkinsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterWeaponSkinsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -333,7 +337,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterSkillsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterSkillsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -346,7 +350,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterAchievementUpdate(PlayerData.PlayerInfo pInfo, PlayerData.Achievement achievement)
+        public static void CharacterAchievementUpdate(PlayerInfo pInfo, Achievement achievement)
         {
             var cmd = new MySqlCommand();
 
@@ -359,7 +363,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterQuestUpdate(PlayerData.PlayerInfo pInfo, Sync.Quest.QuestData.Types type, Sync.Quest quest)
+        public static void CharacterQuestUpdate(PlayerInfo pInfo, QuestType type, Quest quest)
         {
             var cmd = new MySqlCommand();
 
@@ -375,7 +379,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterMedicalCardUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterMedicalCardUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -391,7 +395,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterLicensesUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterLicensesUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -404,7 +408,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterContactsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterContactsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -417,7 +421,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterPhoneBlacklistUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterPhoneBlacklistUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -430,7 +434,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterFamiliarsUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterFamiliarsUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -443,7 +447,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterFractionAndRankUpdate(PlayerData.PlayerInfo pInfo)
+        public static void CharacterFractionAndRankUpdate(PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -451,7 +455,7 @@ namespace BlaineRP.Server
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
-            if (pInfo.Fraction == Game.Fractions.Types.None)
+            if (pInfo.Fraction == Game.Fractions.FractionType.None)
                 cmd.Parameters.AddWithValue("@F", DBNull.Value);
             else
                 cmd.Parameters.AddWithValue("@F", $"{(int)pInfo.Fraction}_{pInfo.FractionRank}");

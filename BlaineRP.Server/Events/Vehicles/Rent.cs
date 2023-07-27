@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Events.Vehicles
 {
@@ -26,7 +27,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vData.OwnerID != pData.CID)
                 return;
 
-            if (vData.OwnerType != VehicleData.OwnerTypes.PlayerRent && vData.OwnerType != VehicleData.OwnerTypes.PlayerRentJob)
+            if (vData.OwnerType != OwnerTypes.PlayerRent && vData.OwnerType != OwnerTypes.PlayerRentJob)
                 return;
 
             vData.Delete(false);
@@ -47,21 +48,21 @@ namespace BlaineRP.Server.Events.Vehicles
 
             var vData = player.Vehicle?.GetMainData();
 
-            if (vData == null || vData.OwnerType != VehicleData.OwnerTypes.PlayerRentJob)
+            if (vData == null || vData.OwnerType != OwnerTypes.PlayerRentJob)
                 return 0;
 
             if (pData.VehicleSeat != 0)
                 return 0;
 
             var jobData = vData.Job;
-            var jobDataV = jobData as Game.Jobs.IVehicles;
+            var jobDataV = jobData as Game.Jobs.IVehicleRelated;
 
             if (jobData == null || jobDataV == null)
                 return 0;
 
             if (pData.HasJob(false))
             {
-                if (jobData.Type == Game.Jobs.Types.Farmer)
+                if (jobData.Type == Game.Jobs.JobType.Farmer)
                 {
                     if (pData.CurrentJob != jobData)
                     {

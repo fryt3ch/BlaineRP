@@ -6,34 +6,10 @@ using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Casino
+namespace BlaineRP.Client.Game.Casino.Games
 {
-    public class LuckyWheel
+    public partial class LuckyWheel
     {
-        public enum ZoneTypes : byte
-        {
-            Cash_0 = 0,
-            Vehicle_0 = 1,
-            Mystery_0 = 2,
-            Clothes_0 = 3,
-            Chips_0 = 4,
-            Cash_1 = 5,
-            Mystery_1 = 6,
-            Clothes_1 = 7,
-            Mystery_2 = 8,
-            Chips_1 = 9,
-            Mystery_3 = 10,
-            Clothes_2 = 11,
-            Chips_3 = 12,
-            Cash_2 = 13,
-            Mystery_4 = 14,
-            Donate_0 = 15,
-            Chips_4 = 16,
-            Cash_3 = 17,
-            Mystery_5 = 18,
-            Clothes_3 = 19,
-        }
-
         public LuckyWheel(int CasinoId, int Id, float PosX, float PosY, float PosZ, float Heading)
         {
             WheelObj = new MapObject(RAGE.Util.Joaat.Hash("vw_prop_vw_luckywheel_02a"),
@@ -95,7 +71,7 @@ namespace BlaineRP.Client.Game.Casino
             mObj.SetLightColour(255, 0, 0);
         }
 
-        public void Spin(int casinoId, int wheelId, Player player, ZoneTypes targetZoneType, float? resultOffset = null)
+        public void Spin(int casinoId, int wheelId, Player player, ZoneType targetZoneType, float? resultOffset = null)
         {
             var taskKey = $"CASINO_LUCKYWHEEL_{casinoId}_{wheelId}";
 

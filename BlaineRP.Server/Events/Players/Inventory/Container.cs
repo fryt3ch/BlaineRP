@@ -1,6 +1,8 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.World;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -157,9 +159,9 @@ namespace BlaineRP.Server.Events.Players
             cont.Update();
 
             if (pData.CanPlayAnimNow())
-                pData.PlayAnim(Sync.Animations.FastTypes.Putdown, Properties.Settings.Static.InventoryPutdownAnimationTime);
+                pData.PlayAnim(FastType.Putdown, Properties.Settings.Static.InventoryPutdownAnimationTime);
 
-            Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
+            Game.World.Service.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
 
         [RemoteEvent("Container::Close")]

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Settings.User
@@ -50,17 +50,17 @@ namespace BlaineRP.Client.Settings.User
             Other.FavoriteAnimations = RageStorage.GetData<HashSet<string>>("Settings::Animations::Favorites") ?? Other.Default.FavoriteAnimations;
 
             string tStr = RageStorage.GetData<string>("Settings::Animations::Emotion") ?? Other.Default.CurrentEmotion.ToString();
-            EmotionTypes emotion = EmotionTypes.None;
+            EmotionType emotion = EmotionType.None;
 
-            if (!Enum.TryParse<EmotionTypes>(tStr, out emotion))
+            if (!Enum.TryParse<EmotionType>(tStr, out emotion))
                 Other.CurrentEmotion = Other.Default.CurrentEmotion;
             else
                 Other.CurrentEmotion = emotion;
 
             tStr = RageStorage.GetData<string>("Settings::Animations::Walkstyle") ?? Other.Default.CurrentWalkstyle.ToString();
-            WalkstyleTypes walkstyle = WalkstyleTypes.None;
+            WalkstyleType walkstyle = WalkstyleType.None;
 
-            if (!Enum.TryParse<WalkstyleTypes>(tStr, out walkstyle))
+            if (!Enum.TryParse<WalkstyleType>(tStr, out walkstyle))
                 Other.CurrentWalkstyle = Other.Default.CurrentWalkstyle;
             else
                 Other.CurrentWalkstyle = walkstyle;

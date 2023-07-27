@@ -23,16 +23,6 @@ namespace BlaineRP.Client.Game.Estates
     [Script(int.MaxValue)]
     public class Core
     {
-        /// <summary>Типы домов</summary>
-        public enum HouseTypes
-        {
-            /// <summary>Дом</summary>
-            House = 0,
-
-            /// <summary>Квартира</summary>
-            Apartments,
-        }
-
         private static List<ExtraColshape> TempColshapes;
         private static List<ExtraBlip> TempBlips;
 
@@ -212,14 +202,14 @@ namespace BlaineRP.Client.Game.Estates
 
                             var id = (uint)(int)data["I"];
 
-                            var hType = (HouseTypes)(int)data["T"];
+                            var hType = (HouseBase.Types)(int)data["T"];
 
                             var sType = Utils.Convert.ToUInt16(data["S"]);
 
                             bool[] doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
                             JObject[] lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);
 
-                            HouseBase house = hType == HouseTypes.House ? (HouseBase)House.All[id] : (HouseBase)Apartments.All[id];
+                            HouseBase house = hType == HouseBase.Types.House ? (HouseBase)House.All[id] : (HouseBase)Apartments.All[id];
 
                             var style = Style.Get(sType);
 
@@ -812,13 +802,13 @@ namespace BlaineRP.Client.Game.Estates
                 Doors = RAGE.Util.Json.Deserialize<DoorInfo[]>(doorsJs);
                 Lights = RAGE.Util.Json.Deserialize<LightInfo[][]>(lightsJs);
 
-                SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseTypes>>(supportedHouseTypesJs);
+                SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseBase.Types>>(supportedHouseTypesJs);
                 SupportedRoomTypes = RAGE.Util.Json.Deserialize<HashSet<RoomTypes>>(supportedRoomTypesJs);
                 FamiliarTypes = RAGE.Util.Json.Deserialize<HashSet<ushort>>(familiarTypesJs);
             }
 
             private HashSet<RoomTypes> SupportedRoomTypes { get; }
-            private HashSet<HouseTypes> SupportedHouseTypes { get; }
+            private HashSet<HouseBase.Types> SupportedHouseTypes { get; }
 
             private HashSet<ushort> FamiliarTypes { get; }
 
@@ -844,7 +834,7 @@ namespace BlaineRP.Client.Game.Estates
                 return Locale.Get($"HOUSE_STYLE_{type}@Name");
             }
 
-            public bool IsHouseTypeSupported(HouseTypes hType)
+            public bool IsHouseTypeSupported(HouseBase.Types hType)
             {
                 return SupportedHouseTypes.Contains(hType);
             }

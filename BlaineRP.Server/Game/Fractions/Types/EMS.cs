@@ -4,12 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Fractions
 {
-    public class EMS : Fraction, IUniformable
+    public partial class EMS : Fraction, IUniformable
     {
-        public EMS(Types Type, string Name) : base(Type, Name)
+        public EMS(FractionType Type, string Name) : base(Type, Name)
         {
 
         }
@@ -47,7 +52,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         private BedInfo[] Beds { get; set; }
 
-        public Utils.Vector4[] AfterDeathSpawnPositions { get; set; }
+        public Vector4[] AfterDeathSpawnPositions { get; set; }
 
         public override void PostInitialize()
         {
@@ -55,7 +60,7 @@ namespace BlaineRP.Server.Game.Fractions
 
             Vector3[] bedsPositions = null;
 
-            if (Type == Types.EMS_BLAINE)
+            if (Type == FractionType.EMS_BLAINE)
             {
                 bedsPositions = new Vector3[]
                 {
@@ -81,7 +86,7 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(1823.291f, 3672.224f, 33.83718f),
                 };
             }
-            else if (Type == Types.EMS_LS)
+            else if (Type == FractionType.EMS_LS)
             {
                 bedsPositions = new Vector3[]
                 {
@@ -197,32 +202,6 @@ namespace BlaineRP.Server.Game.Fractions
             }
         }
 
-        public class CallInfo
-        {
-            public byte Type { get; set; }
-
-            public Vector3 Position { get; set; }
-
-            public CallInfo()
-            {
-
-            }
-        }
-
-        public class BedInfo
-        {
-            public ushort RID { get; set; }
-
-            public Timer Timer { get; set; }
-
-            public Vector3 Position { get; set; }
-
-            public BedInfo()
-            {
-
-            }
-        }
-
         public static bool TryGetCurrentPlayerBed(PlayerData pData, out EMS fData, out int idx)
         {
             foreach (var x in All.Values)
@@ -264,7 +243,7 @@ namespace BlaineRP.Server.Game.Fractions
                 bed.Timer = null;
             }
 
-            Sync.World.ResetSharedData($"EMS::{(int)Type}::BED::{idx}");
+            World.Service.ResetSharedData($"EMS::{(int)Type}::BED::{idx}");
         }
 
         public void SetBedAsOccupied(int idx, PlayerData pData)
@@ -279,7 +258,7 @@ namespace BlaineRP.Server.Game.Fractions
             if (bed.Timer != null)
                 bed.Timer.Dispose();
 
-            Sync.World.SetSharedData($"EMS::{(int)Type}::BED::{idx}", true);
+            World.Service.SetSharedData($"EMS::{(int)Type}::BED::{idx}", true);
 
             bed.Timer = new Timer((_) =>
             {
@@ -290,7 +269,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                     if (pData.Player.Position.DistanceTo(bed.Position) > 5f)
                     {
-                        pData.Player.DetachObject(Sync.AttachSystem.Types.EmsHealingBedFakeAttach);
+                        pData.Player.DetachObject(AttachmentType.EmsHealingBedFakeAttach);
 
                         return;
                     }
@@ -317,7 +296,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                     if (stopHealing)
                     {
-                        if (pData.Player.DetachObject(Sync.AttachSystem.Types.EmsHealingBedFakeAttach))
+                        if (pData.Player.DetachObject(AttachmentType.EmsHealingBedFakeAttach))
                         {
                             pData.Player.Notify("EMS::HBEDS");
                         }

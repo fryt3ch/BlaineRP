@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Web.SocketIO.Methods
 {

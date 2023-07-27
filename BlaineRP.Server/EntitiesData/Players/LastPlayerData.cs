@@ -1,7 +1,8 @@
 ﻿using System;
+using BlaineRP.Server.UtilsT;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
     public class LastPlayerData
     {
@@ -11,7 +12,7 @@ namespace BlaineRP.Server.EntityData.Players
 
         [JsonProperty(PropertyName = "L")]
         /// <summary>Последние координаты</summary>
-        public Utils.Vector4 Position { get; set; }
+        public Vector4 Position { get; set; }
 
         [JsonProperty(PropertyName = "H")]
         /// <summary>Последнее здоровье</summary>
@@ -31,7 +32,7 @@ namespace BlaineRP.Server.EntityData.Players
         [JsonProperty(PropertyName = "DA")]
         public byte DrugAddiction { get; set; }
 
-        public void UpdatePosition(Utils.Vector4 position, uint dimension, bool updateDb)
+        public void UpdatePosition(Vector4 position, uint dimension, bool updateDb)
         {
             Position = position;
 

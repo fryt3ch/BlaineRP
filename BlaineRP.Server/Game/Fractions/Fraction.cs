@@ -1,158 +1,78 @@
 ﻿using GTANetworkAPI;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Fractions
 {
-    public enum Types
-    {
-        None = 0,
-
-        COP_BLAINE = 1,
-        COP_LS = 2,
-
-        FIB_LS = 5,
-
-        MEDIA_LS = 10,
-
-        EMS_BLAINE = 20,
-        EMS_LS = 21,
-
-        GOV_LS = 30,
-
-        GANG_MARA = 40,
-        GANG_FAMS = 41,
-        GANG_BALS = 42,
-        GANG_VAGS = 43,
-
-        MAFIA_RUSSIA = 60,
-        MAFIA_ITALY = 61,
-        MAFIA_JAPAN = 62,
-
-        ARMY_FZ = 80,
-
-        PRISON_BB = 90,
-    }
-
-    [Flags]
-    public enum MetaFlagTypes : uint
-    {
-        None = 0,
-
-        /// <summary>Является ли фракция государственной?</summary>
-        IsGov = 1 << 0,
-        /// <summary>Имеют ли члены фракции удостоверения?</summary>
-        MembersHaveDocs = 1 << 1,
-    }
-
-    public interface IUniformable
-    {
-        public List<Game.Data.Customization.UniformTypes> UniformTypes { get; set; }
-
-        public Vector3[] LockerRoomPositions { get; set; }
-
-        public bool IsPlayerInAnyUniform(PlayerData pData, bool notifyIfNot = false);
-    }
-
-    public class RankData
-    {
-        [JsonProperty(PropertyName = "N")]
-        public string Name { get; set; }
-
-        /// <summary>Стандарные Id прав для всех фракций</summary>
-        /// <remarks>0 - Доступ к складу, 1 - Приглашение, 2 - Повышение/понижение<br/>3 - Увольнение, 4 - Респавн транспорта</remarks>
-        [JsonProperty(PropertyName = "P")]
-        public Dictionary<uint, byte> Permissions { get; set; }
-
-        [JsonProperty(PropertyName = "S")]
-        public uint Salary { get; set; }
-    }
-
-    public class VehicleProps
-    {
-        [JsonProperty(PropertyName = "R")]
-        public byte MinimalRank { get; set; }
-
-        [JsonIgnore]
-        public DateTime LastRespawnedTime { get; set; }
-    }
-
-    public class NewsData
-    {
-        [JsonProperty(PropertyName = "A")]
-        public Dictionary<int, string> All { get; set; }
-
-        [JsonProperty(PropertyName = "P")]
-        public int PinnedId { get; set; }
-
-        [JsonIgnore]
-        public Queue<int> FreeIdxes { get; set; } = new Queue<int>();
-    }
-
     public abstract partial class Fraction
     {
         public static TimeSpan VehicleRespawnCooldownTime { get; } = TimeSpan.FromMinutes(2);
 
-        public static Dictionary<Types, Fraction> All { get; set; } = new Dictionary<Types, Fraction>();
+        public static Dictionary<FractionType, Fraction> All { get; set; } = new Dictionary<FractionType, Fraction>();
 
-        public static Fraction Get(Types type) => All.GetValueOrDefault(type);
+        public static Fraction Get(FractionType type) => All.GetValueOrDefault(type);
 
-        public Types Type { get; set; }
+        public FractionType Type { get; set; }
 
         public string Name { get; set; }
 
-        public uint Materials { get => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}")); set => Sync.World.SetSharedData($"FRAC::M_{(int)Type}", value); }
+        public uint Materials { get => Utils.ToUInt32(World.Service.GetSharedData<object>($"FRAC::M_{(int)Type}")); set => World.Service.SetSharedData($"FRAC::M_{(int)Type}", value); }
 
         public ulong Balance { get; set; }
 
-        public bool ContainerLocked { get => Sync.World.GetSharedData<bool?>($"FRAC::SL_{(int)Type}") ?? false; set { if (value) Sync.World.SetSharedData($"FRAC::SL_{(int)Type}", true); else Sync.World.ResetSharedData($"FRAC::SL_{(int)Type}"); } }
+        public bool ContainerLocked { get => World.Service.GetSharedData<bool?>($"FRAC::SL_{(int)Type}") ?? false; set { if (value) World.Service.SetSharedData($"FRAC::SL_{(int)Type}", true); else World.Service.ResetSharedData($"FRAC::SL_{(int)Type}"); } }
 
-        public bool CreationWorkbenchLocked { get => Sync.World.GetSharedData<bool?>($"FRAC::CWL_{(int)Type}") ?? false; set { if (value) Sync.World.SetSharedData($"FRAC::CWL_{(int)Type}", true); else Sync.World.ResetSharedData($"FRAC::CWL_{(int)Type}"); } }
+        public bool CreationWorkbenchLocked { get => World.Service.GetSharedData<bool?>($"FRAC::CWL_{(int)Type}") ?? false; set { if (value) World.Service.SetSharedData($"FRAC::CWL_{(int)Type}", true); else World.Service.ResetSharedData($"FRAC::CWL_{(int)Type}"); } }
 
         public uint ContainerId { get; set; }
 
         public Game.Items.Container Container => Game.Items.Container.Get(ContainerId);
 
-        public Utils.Vector4[] ContainerPositions { get; set; }
+        public Vector4[] ContainerPositions { get; set; }
 
-        public Utils.Vector4[] CreationWorkbenchPositions { get; set; }
+        public Vector4[] CreationWorkbenchPositions { get; set; }
 
         public Dictionary<string, uint> CreationWorkbenchPrices { get; set; }
 
         public NewsData News { get; set; }
 
-        public Dictionary<VehicleData.VehicleInfo, VehicleProps> AllVehicles { get; set; }
+        public Dictionary<VehicleInfo, VehicleProps> AllVehicles { get; set; }
 
-        public List<PlayerData.PlayerInfo> AllMembers { get; set; } = new List<PlayerData.PlayerInfo>();
+        public List<PlayerInfo> AllMembers { get; set; } = new List<PlayerInfo>();
 
-        public List<PlayerData.PlayerInfo> MembersOnline => AllMembers.Where(x => x.PlayerData != null).ToList();
+        public List<PlayerInfo> MembersOnline => AllMembers.Where(x => x.PlayerData != null).ToList();
 
-        public PlayerData.PlayerInfo Leader { get; set; }
+        public PlayerInfo Leader { get; set; }
 
         public List<RankData> Ranks { get; set; }
 
-        public Utils.Vector4[] SpawnPositions { get; set; }
+        public Vector4[] SpawnPositions { get; set; }
 
         public abstract string ClientData { get; }
 
         public string ItemTag { get; set; }
 
-        public MetaFlagTypes MetaFlags { get; set; }
+        public FlagTypes MetaFlags { get; set; }
 
         public void SetRankName(byte rank, string rankName, bool updateDb)
         {
             Ranks[rank].Name = rankName;
 
-            Sync.World.SetSharedData($"FRAC::RN_{(int)Type}_{rank}", rankName);
+            World.Service.SetSharedData($"FRAC::RN_{(int)Type}_{rank}", rankName);
 
             if (updateDb)
                 MySQL.FractionUpdateRanks(this);
         }
 
-        public void SetVehicleMinRank(VehicleData.VehicleInfo vInfo, VehicleProps vProps, byte minRank, bool updateDb)
+        public void SetVehicleMinRank(VehicleInfo vInfo, VehicleProps vProps, byte minRank, bool updateDb)
         {
             vProps.MinimalRank = minRank;
 
@@ -162,7 +82,7 @@ namespace BlaineRP.Server.Game.Fractions
                 MySQL.FractionUpdateVehicles(this);
         }
 
-        public void SetLeader(PlayerData.PlayerInfo pInfo, bool onStart)
+        public void SetLeader(PlayerInfo pInfo, bool onStart)
         {
             if (onStart)
             {
@@ -170,11 +90,11 @@ namespace BlaineRP.Server.Game.Fractions
 
                 if (pInfo == null)
                 {
-                    Sync.World.ResetSharedData($"FRAC::L_{(int)Type}");
+                    World.Service.ResetSharedData($"FRAC::L_{(int)Type}");
                 }
                 else
                 {
-                    Sync.World.SetSharedData($"FRAC::L_{(int)Type}", pInfo.CID);
+                    World.Service.SetSharedData($"FRAC::L_{(int)Type}", pInfo.CID);
                 }
             }
             else
@@ -319,7 +239,7 @@ namespace BlaineRP.Server.Game.Fractions
             NAPI.ClientEvent.TriggerClientEventToPlayers(t, eventName, args);
         }
 
-        public bool HasMemberPermission(PlayerData.PlayerInfo pInfo, uint permissionId, bool notify)
+        public bool HasMemberPermission(PlayerInfo pInfo, uint permissionId, bool notify)
         {
             if (Ranks[pInfo.FractionRank].Permissions.GetValueOrDefault(permissionId) == 0)
             {
@@ -337,7 +257,7 @@ namespace BlaineRP.Server.Game.Fractions
             return true;
         }
 
-        public bool IsLeader(PlayerData.PlayerInfo pInfo, bool notify)
+        public bool IsLeader(PlayerInfo pInfo, bool notify)
         {
             if (Leader == null || Leader != pInfo)
             {
@@ -355,7 +275,7 @@ namespace BlaineRP.Server.Game.Fractions
             return true;
         }
 
-        public bool IsLeaderOrWarden(PlayerData.PlayerInfo pInfo, bool notify)
+        public bool IsLeaderOrWarden(PlayerInfo pInfo, bool notify)
         {
             if (pInfo.FractionRank < Ranks.Count - 1 && !IsLeader(pInfo, false))
             {
@@ -385,12 +305,12 @@ namespace BlaineRP.Server.Game.Fractions
             TriggerEventToMembers("Fraction::UMO", pData.CID, false);
         }
 
-        public virtual void OnMemberStatusChange(PlayerData.PlayerInfo pInfo, byte status)
+        public virtual void OnMemberStatusChange(PlayerInfo pInfo, byte status)
         {
             TriggerEventToMembers("Fraction::UMS", pInfo.CID, status);
         }
 
-        public virtual void SetPlayerRank(PlayerData.PlayerInfo pInfo, byte rank)
+        public virtual void SetPlayerRank(PlayerInfo pInfo, byte rank)
         {
             pInfo.FractionRank = rank;
 
@@ -404,7 +324,7 @@ namespace BlaineRP.Server.Game.Fractions
             pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}").ToList(), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}").ToList());
         }
 
-        public virtual void SetPlayerFraction(PlayerData.PlayerInfo pInfo, byte rank)
+        public virtual void SetPlayerFraction(PlayerInfo pInfo, byte rank)
         {
             pInfo.FractionRank = rank;
 
@@ -426,17 +346,17 @@ namespace BlaineRP.Server.Game.Fractions
             MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
-        public virtual void SetPlayerNoFraction(PlayerData.PlayerInfo pInfo)
+        public virtual void SetPlayerNoFraction(PlayerInfo pInfo)
         {
             if (pInfo.PlayerData != null)
             {
-                pInfo.PlayerData.Fraction = Types.None;
+                pInfo.PlayerData.Fraction = FractionType.None;
 
                 pInfo.PlayerData.Player.TriggerEvent("Player::SCF");
             }
             else
             {
-                pInfo.Fraction = Types.None;
+                pInfo.Fraction = FractionType.None;
             }
 
             pInfo.FractionRank = 0;
@@ -505,7 +425,7 @@ namespace BlaineRP.Server.Game.Fractions
                 MySQL.FractionUpdateNews(this);
         }
 
-        public Fraction(Types Type, string Name)
+        public Fraction(FractionType Type, string Name)
         {
             this.Type = Type;
 
@@ -514,9 +434,9 @@ namespace BlaineRP.Server.Game.Fractions
             All.Add(Type, this);
         }
 
-        public static bool IsMember(PlayerData pData, Types type, bool notify)
+        public static bool IsMember(PlayerData pData, FractionType type, bool notify)
         {
-            if (type == Types.None || pData.Fraction != type)
+            if (type == FractionType.None || pData.Fraction != type)
             {
                 if (notify)
                 {
@@ -531,7 +451,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         public static bool IsMemberOfAnyFraction(PlayerData pData, bool notify)
         {
-            if (pData.Fraction == Types.None)
+            if (pData.Fraction == FractionType.None)
             {
                 if (notify)
                 {
@@ -544,18 +464,18 @@ namespace BlaineRP.Server.Game.Fractions
             return true;
         }
 
-        public virtual byte GetMemberStatus(PlayerData.PlayerInfo pInfo)
+        public virtual byte GetMemberStatus(PlayerInfo pInfo)
         {
             byte status = 0;
 
             foreach (var x in pInfo.Punishments)
             {
-                if (x.Type == Sync.Punishment.Types.Ban)
+                if (x.Type == PunishmentType.Ban)
                 {
                     if (x.IsActive())
                         return 1;
                 }
-                else if (x.Type == Sync.Punishment.Types.NRPPrison)
+                else if (x.Type == PunishmentType.NRPPrison)
                 {
                     if (x.IsActive())
                         status = 2;
@@ -570,10 +490,10 @@ namespace BlaineRP.Server.Game.Fractions
             TriggerEventToMembers("Chat::ShowServerMessage", $"[Фракция] {msg}");
         }
 
-        public Utils.Vector4 GetSpawnPosition(byte idx) => idx >= SpawnPositions.Length ? null : SpawnPositions[idx];
-        public Utils.Vector4 GetCreationWorkbenchPosition(byte idx) => idx >= CreationWorkbenchPositions.Length ? null : CreationWorkbenchPositions[idx];
-        public Utils.Vector4 GetContainerPosition(byte idx) => idx >= ContainerPositions.Length ? null : ContainerPositions[idx];
+        public Vector4 GetSpawnPosition(byte idx) => idx >= SpawnPositions.Length ? null : SpawnPositions[idx];
+        public Vector4 GetCreationWorkbenchPosition(byte idx) => idx >= CreationWorkbenchPositions.Length ? null : CreationWorkbenchPositions[idx];
+        public Vector4 GetContainerPosition(byte idx) => idx >= ContainerPositions.Length ? null : ContainerPositions[idx];
 
-        public static bool IsFractionGov(Types type) => type >= Types.COP_BLAINE;
+        public static bool IsFractionGov(FractionType type) => type >= FractionType.COP_BLAINE;
     }
 }

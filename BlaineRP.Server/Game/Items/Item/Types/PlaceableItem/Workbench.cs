@@ -2,6 +2,7 @@
 using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -43,7 +44,7 @@ namespace BlaineRP.Server.Game.Items
             base.Delete();
         }
 
-        public override Sync.World.ItemOnGround Install(PlayerData pData, Vector3 pos, Vector3 rot)
+        public override World.Service.ItemOnGround Install(PlayerData pData, Vector3 pos, Vector3 rot)
         {
             var iog = base.Install(pData, pos, rot);
 

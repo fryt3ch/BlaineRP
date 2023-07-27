@@ -33,7 +33,7 @@ namespace BlaineRP.Client.Language
             return Get(key, null, formatArgs);
         }
 
-        public static string GetKeyFromTypeByMemberName(System.Type type, string memberName, string localKey = null)
+        public static string? GetKeyFromTypeByMemberName(System.Type type, string memberName, string localKey = null)
         {
             MemberInfo member = type.GetMember(memberName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault();
 

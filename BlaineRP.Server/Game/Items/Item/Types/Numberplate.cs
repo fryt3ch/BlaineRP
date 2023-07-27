@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {

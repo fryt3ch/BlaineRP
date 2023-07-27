@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
         public ushort Id { get; set; }
 
         [JsonProperty(PropertyName = "T")]
-        public AttachmentTypes Type { get; set; }
+        public AttachmentType Type { get; set; }
 
         [JsonProperty(PropertyName = "D")]
         public string SyncData { get; set; }

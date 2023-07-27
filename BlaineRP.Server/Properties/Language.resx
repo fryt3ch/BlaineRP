@@ -574,4 +574,19 @@
   <data name="OFFER_GIVE_HEALINGITEM_TEXT" xml:space="preserve">
     <value>{0} предлагает вам взять у него и использовать {1}</value>
   </data>
+  <data name="GEN_SMS_DELIVERY_BUSINESS_ORDER_NEW_0" xml:space="preserve">
+    <value>Создан заказ №{0} для Вашего бизнеса, идет поиск курьера.\nКол-во материалов: {1}\nСумма оплаты: ${2}</value>
+  </data>
+  <data name="GEN_SMS_DELIVERY_BUSINESS_ORDER_CANCEL_0" xml:space="preserve">
+    <value>Заказ №{0} для Вашего бизнеса был отменен.\nВозвращено средств: ${1}</value>
+  </data>
+  <data name="GEN_SMS_DELIVERY_BUSINESS_ORDER_TAKEN_0" xml:space="preserve">
+    <value>Заказ №{0} для Вашего бизнеса в пути, Вы получите SMS по факту доставки или при возникновении проблем с ней</value>
+  </data>
+  <data name="GEN_SMS_DELIVERY_BUSINESS_ORDER_DELAY_0" xml:space="preserve">
+    <value>Заказ №{0} для Вашего бизнеса задерживается, идет поиск нового курьера</value>
+  </data>
+  <data name="GEN_SMS_DELIVERY_BUSINESS_ORDER_FINISH_0" xml:space="preserve">
+    <value>Заказ №{0} для Вашего бизнеса был доставлен!</value>
+  </data>
 </root>

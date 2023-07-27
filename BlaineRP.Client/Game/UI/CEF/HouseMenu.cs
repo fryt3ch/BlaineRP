@@ -532,7 +532,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             await Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
             Browser.Window.ExecuteJs("MenuHome.draw",
-                house.Type == Estates.Core.HouseTypes.Apartments ? 1 : 0,
+                house.Type == Estates.HouseBase.Types.Apartments ? 1 : 0,
                 new object[]
                 {
                     info,

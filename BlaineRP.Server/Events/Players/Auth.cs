@@ -4,6 +4,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Misc;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.UtilsT;
+using BlaineRP.Server.UtilsT.Cryptography;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -236,14 +243,14 @@ namespace BlaineRP.Server.Events.Players
 
                 int idx = 0;
 
-                foreach (var pInfo in PlayerData.PlayerInfo.GetAllByAID(aData.ID))
+                foreach (var pInfo in PlayerInfo.GetAllByAID(aData.ID))
                 {
                     if (idx >= tData.Characters.Length)
                         break;
 
                     tData.Characters[idx] = pInfo;
 
-                    var lastBan = pInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban && x.IsActive()).FirstOrDefault();
+                    var lastBan = pInfo.Punishments.Where(x => x.Type == PunishmentType.Ban && x.IsActive()).FirstOrDefault();
 
                     var charArr = new object[14]
                     {
@@ -300,12 +307,12 @@ namespace BlaineRP.Server.Events.Players
 
             if (tData.Characters[charNum] != null) // character exists
             {
-                var activePunishment = tData.Characters[charNum].Punishments.Where(x => (x.Type == Sync.Punishment.Types.Ban || x.Type == Sync.Punishment.Types.NRPPrison || x.Type == Sync.Punishment.Types.FederalPrison || x.Type == Sync.Punishment.Types.Arrest) && x.IsActive()).FirstOrDefault();
+                var activePunishment = tData.Characters[charNum].Punishments.Where(x => (x.Type == PunishmentType.Ban || x.Type == PunishmentType.NRPPrison || x.Type == PunishmentType.FederalPrison || x.Type == PunishmentType.Arrest) && x.IsActive()).FirstOrDefault();
 
-                if (activePunishment?.Type == Sync.Punishment.Types.Ban || tData.Characters[charNum].IsOnline)
+                if (activePunishment?.Type == PunishmentType.Ban || tData.Characters[charNum].IsOnline)
                     return 1;
 
-                var data = PlayerData.PlayerInfo.Get(tData.Characters[charNum].CID);
+                var data = PlayerInfo.Get(tData.Characters[charNum].CID);
 
                 if (data == null)
                     return 0;
@@ -320,18 +327,18 @@ namespace BlaineRP.Server.Events.Players
 
                 if (activePunishment != null)
                 {
-                    if (activePunishment.Type == Sync.Punishment.Types.NRPPrison)
+                    if (activePunishment.Type == PunishmentType.NRPPrison)
                     {
                         var pos = Utils.Demorgan.GetNextPos();
 
                         data.LastData.Dimension = Properties.Settings.Static.DemorganDimension;
                         data.LastData.Position.Position = pos;
                     }
-                    else if (activePunishment.Type == Sync.Punishment.Types.Arrest)
+                    else if (activePunishment.Type == PunishmentType.Arrest)
                     {
                         var aData = activePunishment.AdditionalData.Split('_');
 
-                        var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(aData[1])) as Game.Fractions.Police;
+                        var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(aData[1])) as Game.Fractions.Police;
 
                         var pos = fData.GetNextArrestCellPosition();
 
@@ -410,14 +417,14 @@ namespace BlaineRP.Server.Events.Players
                 }
                 else if (sType == TempData.StartPlaceTypes.SpawnBlaineCounty)
                 {
-                    tData.PositionToSpawn = new Utils.Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
+                    tData.PositionToSpawn = new Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
                     tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                     player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
                 else if (sType == TempData.StartPlaceTypes.Fraction)
                 {
-                    if (tData.PlayerData.Fraction != Game.Fractions.Types.None)
+                    if (tData.PlayerData.Fraction != Game.Fractions.FractionType.None)
                     {
                         var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
 
@@ -426,7 +433,7 @@ namespace BlaineRP.Server.Events.Players
                         if (pos == null)
                             return false;
 
-                        tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
+                        tData.PositionToSpawn = new Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
                         tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
@@ -436,7 +443,7 @@ namespace BlaineRP.Server.Events.Players
                 }
                 else if (sType == TempData.StartPlaceTypes.FractionBranch)
                 {
-                    if (tData.PlayerData.Fraction != Game.Fractions.Types.None)
+                    if (tData.PlayerData.Fraction != Game.Fractions.FractionType.None)
                     {
                         var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
 
@@ -445,7 +452,7 @@ namespace BlaineRP.Server.Events.Players
                         if (pos == null)
                             return false;
 
-                        tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
+                        tData.PositionToSpawn = new Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
                         tData.DimensionToSpawn = Properties.Settings.Static.MainDimension;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
@@ -461,7 +468,7 @@ namespace BlaineRP.Server.Events.Players
                     {
                         var hPos = house.StyleData.Position;
 
-                        tData.PositionToSpawn = new Utils.Vector4(hPos.X, hPos.Y, hPos.Z, house.StyleData.Heading);
+                        tData.PositionToSpawn = new Vector4(hPos.X, hPos.Y, hPos.Z, house.StyleData.Heading);
                         tData.DimensionToSpawn = house.Dimension;
 
                         player.Teleport(house.PositionParams.Position, true, Utils.GetPrivateDimension(player));
@@ -477,7 +484,7 @@ namespace BlaineRP.Server.Events.Players
                     {
                         var hPos = aps.StyleData.Position;
 
-                        tData.PositionToSpawn = new Utils.Vector4(hPos.X, hPos.Y, hPos.Z, aps.StyleData.Heading);
+                        tData.PositionToSpawn = new Vector4(hPos.X, hPos.Y, hPos.Z, aps.StyleData.Heading);
                         tData.DimensionToSpawn = aps.Dimension;
 
                         player.Teleport(aps.Root.EnterParams.Position, true, Utils.GetPrivateDimension(player));
@@ -488,14 +495,14 @@ namespace BlaineRP.Server.Events.Players
                 else
                     return false;
 
-                player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, false, "Auth::StartPlace::Allow", type);
+                player.SkyCameraMove(SkyCamera.SwitchType.Move, false, "Auth::StartPlace::Allow", type);
             }
 
             return true;
         }
 
-        public static string GenerateToken(string password, string hwid) => Cryptography.AesEncryptString(password, Cryptography.MD5EncryptString(hwid));
+        public static string GenerateToken(string password, string hwid) => Aes.AesEncryptString(password, MD5.MD5EncryptString(hwid));
 
-        private static string DecryptToken(string token, string hwid) => Cryptography.AesDecryptString(token, Cryptography.MD5EncryptString(hwid));
+        private static string DecryptToken(string token, string hwid) => Aes.AesDecryptString(token, MD5.MD5EncryptString(hwid));
     }
 }

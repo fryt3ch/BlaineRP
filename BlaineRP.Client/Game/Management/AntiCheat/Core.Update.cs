@@ -216,7 +216,7 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                 {
                     AttachmentEntity actualAttach = vData.IsAttachedToVehicle;
 
-                    if (actualAttach != null && actualAttach.Type == AttachmentTypes.VehicleTrailerObjBoat)
+                    if (actualAttach != null && actualAttach.Type == AttachmentType.VehicleTrailerObjBoat)
                         Events.CallRemote("votc", veh, null);
                 }
             }

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -52,7 +56,7 @@ namespace BlaineRP.Server.Game.Items
 
                                     player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
 
-                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
+                                    Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
                                 else
                                 {
@@ -81,7 +85,7 @@ namespace BlaineRP.Server.Game.Items
 
                                         player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
 
-                                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
+                                        Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                     }
                                 }
 
@@ -95,7 +99,7 @@ namespace BlaineRP.Server.Game.Items
 
                                     player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
 
-                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
+                                    Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
                                 else
                                 {
@@ -113,7 +117,7 @@ namespace BlaineRP.Server.Game.Items
 
                                     player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
 
-                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
+                                    Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
 
                                 return ResultTypes.Success;
@@ -886,7 +890,7 @@ namespace BlaineRP.Server.Game.Items
                             }
                             else
                             {
-                                if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ParachuteSync).Any() || pData.HasAnyItemInUse())
+                                if (pData.AttachedObjects.Where(x => x.Type == AttachmentType.ParachuteSync).Any() || pData.HasAnyItemInUse())
                                 {
                                     player.Notify("ASP::ARN");
 

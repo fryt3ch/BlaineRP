@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData.Components;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Helpers;
@@ -11,6 +10,8 @@ using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -379,13 +380,13 @@ namespace BlaineRP.Client.Game.Fractions
                 return;
             }
 
-            if (Animations.Core.LastSent.IsSpam(500, false, true))
+            if (Management.Animations.Core.LastSent.IsSpam(500, false, true))
                 return;
 
             float heading = obj.GetHeading();
             Vector3 pos = obj.GetCoords(false);
 
-            Animations.Core.LastSent = World.Core.ServerTime;
+            Management.Animations.Core.LastSent = World.Core.ServerTime;
 
             var res = (bool)await RAGE.Events.CallRemoteProc("EMS::BedOcc", fTypeNum, bedIdx);
 
@@ -395,7 +396,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                 Player.LocalPlayer.SetHeading(heading + 240f);
 
-                Animations.Core.Play(Player.LocalPlayer, GeneralTypes.BedLie0);
+                Management.Animations.Core.Play(Player.LocalPlayer, GeneralType.BedLie0);
 
                 ExtraColshape cs = null;
 

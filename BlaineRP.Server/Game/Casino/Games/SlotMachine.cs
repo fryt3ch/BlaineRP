@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.CasinoSystem.Games
+namespace BlaineRP.Server.Game.Casino.Games
 {
     public partial class SlotMachine
     {
@@ -27,14 +29,14 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
 
         public void SetPlayerTo(PlayerData pData)
         {
-            pData.PlayAnim(Sync.Animations.GeneralTypes.CasinoSlotMachineIdle0);
+            pData.PlayAnim(GeneralType.CasinoSlotMachineIdle0);
 
             CurrentCID = pData.CID;
         }
 
         public void SetPlayerFrom(PlayerData pData)
         {
-            if (pData.GeneralAnim == Sync.Animations.GeneralTypes.CasinoSlotMachineIdle0)
+            if (pData.GeneralAnim == GeneralType.CasinoSlotMachineIdle0)
             {
                 pData.StopGeneralAnim();
             }
@@ -119,8 +121,8 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
                         {
                             uint newBalance;
 
-                            if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
-                                Casino.SetCasinoChips(pInfo, newBalance, null);
+                            if (CasinoEntity.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                                CasinoEntity.SetCasinoChips(pInfo, newBalance, null);
                         }
                     }
                 });

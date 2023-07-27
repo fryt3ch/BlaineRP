@@ -2,12 +2,14 @@
 using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
 
 namespace BlaineRP.Server.Game.Fractions
 {
     public class Prison : Fraction, IUniformable
     {
-        public Prison(Types Type, string Name) : base(Type, Name)
+        public Prison(FractionType Type, string Name) : base(Type, Name)
         {
 
         }

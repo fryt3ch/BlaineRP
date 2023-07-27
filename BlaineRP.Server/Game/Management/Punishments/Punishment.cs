@@ -1,7 +1,9 @@
 ﻿using System;
 using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.UtilsT;
 
-namespace BlaineRP.Server.Game.Management
+namespace BlaineRP.Server.Game.Management.Punishments
 {
     public partial class Punishment
     {
@@ -11,7 +13,7 @@ namespace BlaineRP.Server.Game.Management
         public uint Id { get; set; }
 
         /// <summary>Тип наказания</summary>
-        public Types Type { get; set; }
+        public PunishmentType Type { get; set; }
 
         /// <summary>Причина наказания</summary>
         public string Reason { get; set; }
@@ -29,7 +31,7 @@ namespace BlaineRP.Server.Game.Management
 
         public string AdditionalData { get; set; }
 
-        public Punishment(uint Id, Types Type, string Reason, DateTime StartDate, DateTime EndDate, uint PunisherID)
+        public Punishment(uint Id, PunishmentType Type, string Reason, DateTime StartDate, DateTime EndDate, uint PunisherID)
         {
             this.Id = Id;
             this.Type = Type;
@@ -45,7 +47,7 @@ namespace BlaineRP.Server.Game.Management
         {
             var curTime = Utils.GetCurrentTime();
 
-            if (Type == Types.NRPPrison || Type == Types.Arrest || Type == Types.FederalPrison)
+            if (Type == PunishmentType.NRPPrison || Type == PunishmentType.Arrest || Type == PunishmentType.FederalPrison)
             {
                 var timeEnd = EndDate.GetUnixTimestamp();
 
@@ -81,7 +83,7 @@ namespace BlaineRP.Server.Game.Management
 
         public void OnFinish(PlayerInfo pInfo, params object[] args)
         {
-            if (Type == Types.NRPPrison)
+            if (Type == PunishmentType.NRPPrison)
             {
                 var finishType = (int)args[0];
 
@@ -109,7 +111,7 @@ namespace BlaineRP.Server.Game.Management
                     MySQL.UpdatePunishmentAmnesty(this);
                 }
             }
-            else if (Type == Types.Arrest)
+            else if (Type == PunishmentType.Arrest)
             {
                 var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(AdditionalData.Split('_')[1])) as Game.Fractions.Police;
 
@@ -132,7 +134,7 @@ namespace BlaineRP.Server.Game.Management
                     fData.SetPlayerFromPrison(pInfo.PlayerData);
                 }
 
-                pInfo.LastData.Position = new Utils.Vector4(fData.ArrestFreePosition.X, fData.ArrestFreePosition.Y, fData.ArrestFreePosition.Z, fData.ArrestFreePosition.RotationZ);
+                pInfo.LastData.Position = new Vector4(fData.ArrestFreePosition.X, fData.ArrestFreePosition.Y, fData.ArrestFreePosition.Z, fData.ArrestFreePosition.RotationZ);
 
                 fData.RemoveActiveArrest(Id);
 

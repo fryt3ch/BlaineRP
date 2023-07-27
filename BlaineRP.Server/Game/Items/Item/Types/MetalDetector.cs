@@ -1,5 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -33,9 +37,9 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = true;
 
-            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemMetalDetector, -1, null);
+            pData.Player.AttachObject(Model, AttachmentType.ItemMetalDetector, -1, null);
 
-            pData.PlayAnim(Sync.Animations.GeneralTypes.MetalDetectorProcess0);
+            pData.PlayAnim(GeneralType.MetalDetectorProcess0);
 
             if (needUpdate && slot >= 0)
             {
@@ -52,7 +56,7 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = false;
 
-            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemMetalDetector);
+            pData.Player.DetachObject(AttachmentType.ItemMetalDetector);
 
             pData.StopGeneralAnim();
 

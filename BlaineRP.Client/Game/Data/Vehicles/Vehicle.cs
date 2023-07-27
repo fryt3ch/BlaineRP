@@ -89,7 +89,7 @@ namespace BlaineRP.Client.Game.Data.Vehicles
 
         public ClassTypes Class { get; private set; }
 
-        public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault<VehicleTypes, string>(Type) ?? "null";
+        public string TypeName => Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(Type.GetType(), Type.ToString(), "NAME_0") ?? "null");
 
         public string GetEstateSvgName()
         {

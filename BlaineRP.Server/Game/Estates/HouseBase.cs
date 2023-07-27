@@ -2,7 +2,9 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -83,7 +85,7 @@ namespace BlaineRP.Server.Game.Estates
         /// <summary>Налог</summary>
         public uint Tax => GetTax(Class);
 
-        public abstract Utils.Vector4 PositionParams { get; }
+        public abstract Vector4 PositionParams { get; }
 
         public uint Locker { get; set; }
 

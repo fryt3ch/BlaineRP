@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.CasinoSystem.Games
+namespace BlaineRP.Server.Game.Casino.Games
 {
     public partial class Roulette
     {
@@ -169,9 +171,9 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
                 {
                     uint newBalance;
 
-                    if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                    if (CasinoEntity.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
                     {
-                        Casino.SetCasinoChips(pInfo, newBalance, null);
+                        CasinoEntity.SetCasinoChips(pInfo, newBalance, null);
                     }
                 }
             }

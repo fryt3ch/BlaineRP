@@ -1,6 +1,9 @@
 ﻿using BlaineRP.Server;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Events.NPC
 {
@@ -47,7 +50,7 @@ namespace BlaineRP.Server.Events.NPC
 
             vInfo.LastData.GarageSlot = -1;
 
-            var newPos = new Utils.Vector4(vPoundData.GetNextVehicleSpawnPosition());
+            var newPos = new Vector4(vPoundData.GetNextVehicleSpawnPosition());
 
             vInfo.LastData.Position = newPos.Position;
             vInfo.LastData.Heading = newPos.RotationZ;
@@ -99,7 +102,7 @@ namespace BlaineRP.Server.Events.NPC
 
             var vTypeData = Game.Data.Vehicles.GetData("faggio");
 
-            var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Properties.Settings.Static.MainDimension);
+            var vData = VehicleData.NewRent(pData, vTypeData, new Colour(255, 0, 0, 255), new Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Properties.Settings.Static.MainDimension);
 
             return true;
         }

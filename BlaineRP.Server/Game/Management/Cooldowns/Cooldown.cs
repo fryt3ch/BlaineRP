@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlaineRP.Server.Game.Management
+namespace BlaineRP.Server.Game.Management.Cooldowns
 {
     public class Cooldown
     {

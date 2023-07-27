@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Events.NPC
 {

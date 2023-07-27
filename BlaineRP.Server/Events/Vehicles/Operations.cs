@@ -1,5 +1,12 @@
 ﻿using GTANetworkAPI;
 using System;
+using BlaineRP.Server.Additional;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.AntiCheat;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Events.Vehicles
 {
@@ -33,7 +40,7 @@ namespace BlaineRP.Server.Events.Vehicles
                 if (!vData.EngineOn)
                     return 1;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
 
                 vData.EngineOn = false;
 
@@ -50,13 +57,13 @@ namespace BlaineRP.Server.Events.Vehicles
                     if (house.GarageOutside == null)
                         return 3;
 
-                    veh.Teleport(house.GarageOutside.Position, Properties.Settings.Static.MainDimension, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(house.GarageOutside.Position, Properties.Settings.Static.MainDimension, house.GarageOutside.RotationZ, true, VehicleTeleportType.OnlyDriver);
                 }
                 else if (pData.CurrentGarage is Game.Estates.Garage garage)
                 {
                     var ePos = garage.Root.GetNextVehicleExit();
 
-                    veh.Teleport(ePos.Position, Properties.Settings.Static.MainDimension, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(ePos.Position, Properties.Settings.Static.MainDimension, ePos.RotationZ, true, VehicleTeleportType.OnlyDriver);
                 }
                 else
                 {
@@ -73,7 +80,7 @@ namespace BlaineRP.Server.Events.Vehicles
             {
                 if (vData.IsDead || vData.Vehicle.Health <= -4000f)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
+                    Game.Management.Chat.Service.SendLocal(MessageType.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     return 5;
                 }
@@ -82,13 +89,13 @@ namespace BlaineRP.Server.Events.Vehicles
                 {
                     vData.EngineOn = true;
 
-                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
+                    Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
 
                     return 255;
                 }
                 else
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
+                    Game.Management.Chat.Service.SendLocal(MessageType.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     return 6;
                 }
@@ -97,7 +104,7 @@ namespace BlaineRP.Server.Events.Vehicles
             {
                 vData.EngineOn = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
 
                 return 255;
             }
@@ -132,22 +139,22 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
+                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
+                pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)
             {
                 vData.Locked = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
             }
             else
             {
                 vData.Locked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
             }
 
             return 255;
@@ -212,13 +219,13 @@ namespace BlaineRP.Server.Events.Vehicles
             {
                 vData.LightsOn = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_ON"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_ON"));
             }
             else
             {
                 vData.LightsOn = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_OFF"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_OFF"));
             }
 
             return 255;
@@ -234,7 +241,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(VehicleData.StationTypes), stationNum))
+            if (!Enum.IsDefined(typeof(RadioStationTypes), stationNum))
                 return;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
@@ -252,7 +259,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vehSeat != 0 && vehSeat != 1)
                 return;
 
-            var stationType = (VehicleData.StationTypes)stationNum;
+            var stationType = (RadioStationTypes)stationNum;
 
             vData.Radio = stationType;
         }
@@ -286,9 +293,9 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
+                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
+                pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)
@@ -302,13 +309,13 @@ namespace BlaineRP.Server.Events.Vehicles
                     cont.ClearAllWrongObservers();
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
             }
             else
             {
                 vData.TrunkLocked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
             }
 
             return 255;
@@ -343,22 +350,22 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, Sync.AttachSystem.Types.VehKey, 1250, null);
+                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
-                pData.PlayAnim(Sync.Animations.FastTypes.VehLocking, VehicleLockAnimationTime);
+                pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
 
             if (state)
             {
                 vData.HoodLocked = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
             }
             else
             {
                 vData.HoodLocked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
             }
 
             return 255;
@@ -411,7 +418,7 @@ namespace BlaineRP.Server.Events.Vehicles
                     {
                         vData.EngineOn = false;
 
-                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
+                        Game.Management.Chat.Service.SendLocal(MessageType.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
                     }
                 }
             }
@@ -486,13 +493,13 @@ namespace BlaineRP.Server.Events.Vehicles
             {
                 vData.IsPlaneChassisOff = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_OFF"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_OFF"));
             }
             else
             {
                 vData.IsPlaneChassisOff = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_ON"));
+                Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_ON"));
             }
 
             return 255;

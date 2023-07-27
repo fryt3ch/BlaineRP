@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Web.SocketIO.Events.Auth
 {

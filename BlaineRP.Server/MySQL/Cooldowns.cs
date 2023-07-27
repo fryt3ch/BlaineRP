@@ -1,11 +1,14 @@
 ﻿using MySqlConnector;
 using System;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Cooldowns;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void CharacterCooldownSet(PlayerData.PlayerInfo pInfo, uint hash, Sync.Cooldown cooldown, bool insert)
+        public static void CharacterCooldownSet(PlayerInfo pInfo, uint hash, Cooldown cooldown, bool insert)
         {
             var cmd = new MySqlCommand();
 
@@ -31,7 +34,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void CharacterCooldownRemoveByGuid(PlayerData.PlayerInfo pInfo, Guid guid)
+        public static void CharacterCooldownRemoveByGuid(PlayerInfo pInfo, Guid guid)
         {
             var cmd = new MySqlCommand();
 

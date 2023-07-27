@@ -1,5 +1,7 @@
 ﻿using GTANetworkAPI;
 using System.Linq;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -25,7 +27,7 @@ namespace BlaineRP.Server.Events.Players
             {
                 if (item is Game.Items.FishingRod fRod)
                 {
-                    if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ItemFishG).Any())
+                    if (pData.AttachedObjects.Where(x => x.Type == AttachmentType.ItemFishG).Any())
                         return;
 
                     fRod.StartCatchProcess(pData, 10000, 0.00095f, 3, fishZCoord);
@@ -118,7 +120,7 @@ namespace BlaineRP.Server.Events.Players
             if (itemIdx < 0 || itemIdx >= pData.Items.Length)
                 return 0;
 
-            var cuffAttach = pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs).FirstOrDefault();
+            var cuffAttach = pData.AttachedObjects.Where(x => x.Type == AttachmentType.Cuffs).FirstOrDefault();
 
             if (cuffAttach == null)
                 return 1;

@@ -4,7 +4,7 @@ using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.World
 {
-    public partial class World
+    public partial class Service
     {
         /// <summary>Время для запроса синхронизации у Controller предмета в мс.</summary>
         public const int TimeToSync = 5000; // 5 secs

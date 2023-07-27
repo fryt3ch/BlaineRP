@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -40,7 +40,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         private static bool _isPlayingAnimFlag;
 
-        private static EmotionTypes _currentCameraEmotion;
+        private static EmotionType _currentCameraEmotion;
 
         private static string[] _cameraFilters = new string[]
         {
@@ -196,7 +196,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData != null)
-                Game.Animations.Core.Set(Player.LocalPlayer, pData.Emotion);
+                Management.Animations.Core.Set(Player.LocalPlayer, pData.Emotion);
 
             if (_currentAnimationDict.Length > 0)
             {
@@ -395,17 +395,17 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 {
                     int curCamEmotionNum = (int)_currentCameraEmotion + (RAGE.Game.Pad.IsControlJustPressed(32, 89) ? -1 : 1);
 
-                    if (!Enum.IsDefined(typeof(EmotionTypes), curCamEmotionNum))
+                    if (!Enum.IsDefined(typeof(EmotionType), curCamEmotionNum))
                     {
                         if (curCamEmotionNum < 0)
-                            curCamEmotionNum = (int)EmotionTypes.Electrocuted;
+                            curCamEmotionNum = (int)EmotionType.Electrocuted;
                         else
                             curCamEmotionNum = -1;
                     }
 
-                    _currentCameraEmotion = (EmotionTypes)curCamEmotionNum;
+                    _currentCameraEmotion = (EmotionType)curCamEmotionNum;
 
-                    Game.Animations.Core.Set(Player.LocalPlayer, _currentCameraEmotion);
+                    Management.Animations.Core.Set(Player.LocalPlayer, _currentCameraEmotion);
 
                     UpdateInstructionButtons();
 
@@ -492,10 +492,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 _scaleform.CallFunction("SET_DATA_SLOT",
                     btnsCount++,
                     RAGE.Game.Pad.GetControlInstructionalButton(32, 73, true),
-                    $"{Locale.General.PhoneCamera.Bokeh} [{(BokehModeIsActive ? Locale.General.PhoneCamera.On : Locale.General.PhoneCamera.Off)}]"
+                    $"{Locale.Get("PHONE_CAMERA_BOKEH_0")} [{(BokehModeIsActive ? Locale.Get("GEN_ON_1") : Locale.Get("GEN_OFF_1"))}]"
                 );
-                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 69, true), Locale.General.PhoneCamera.CamOffset);
-                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 68, true), Locale.General.PhoneCamera.HeadOffset);
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 69, true), Locale.Get("PHONE_CAMERA_CAM_OFFSET_0"));
+                _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 68, true), Locale.Get("PHONE_CAMERA_HEAD_OFFSET_0"));
 
                 if (_currentAnimationIdx >= 0)
                     _scaleform.CallFunction("SET_DATA_SLOT",
@@ -507,12 +507,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 _scaleform.CallFunction("SET_DATA_SLOT",
                     btnsCount++,
                     $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 188, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 187, true)}",
-                    Locale.General.PhoneCamera.Animation
+                    Locale.Get("PHONE_CAMERA_ANIMATION_0")
                 );
                 _scaleform.CallFunction("SET_DATA_SLOT",
                     btnsCount++,
                     $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 90, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 89, true)}",
-                    $"{Locale.General.PhoneCamera.Emotion} [{Locale.General.Animations.Emotions.GetValueOrDefault(_currentCameraEmotion) ?? "null"}]"
+                    $"{Locale.Get("PHONE_CAMERA_EMOTION_0")} [{Locale.General.Animations.Emotions.GetValueOrDefault(_currentCameraEmotion) ?? "null"}]"
                 );
             }
             else
@@ -520,23 +520,23 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                 _scaleform.CallFunction("SET_DATA_SLOT",
                     btnsCount++,
                     $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 181, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 180, true)}",
-                    Locale.General.PhoneCamera.Zoom
+                    Locale.Get("PHONE_CAMERA_ZOOM_0")
                 );
             }
 
             _scaleform.CallFunction("SET_DATA_SLOT",
                 btnsCount++,
                 $"{RAGE.Game.Pad.GetControlInstructionalButton(32, 190, true)}%{RAGE.Game.Pad.GetControlInstructionalButton(32, 189, true)}",
-                $"{Locale.General.PhoneCamera.Filter} [{(_currentFilter < 0 ? Locale.General.PhoneCamera.Off : (_currentFilter + 1).ToString())}]"
+                $"{Locale.Get("PHONE_CAMERA_FILTER_0")} [{(_currentFilter < 0 ? Locale.Get("GEN_OFF_1") : (_currentFilter + 1).ToString())}]"
             );
 
             _scaleform.CallFunction("SET_DATA_SLOT",
                 btnsCount++,
                 RAGE.Game.Pad.GetControlInstructionalButton(32, 0, true),
-                FrontCamIsActive ? Locale.General.PhoneCamera.BackCam : Locale.General.PhoneCamera.FrontCam
+                FrontCamIsActive ? Locale.Get("PHONE_CAMERA_CAM_BACK_0") : Locale.Get("PHONE_CAMERA_CAM_FRONT_0")
             );
-            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, "w_Enter", Locale.General.PhoneCamera.Photo);
-            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 200, true), Locale.General.PhoneCamera.Exit);
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, "w_Enter", Locale.Get("PHONE_CAMERA_SHOOT_0"));
+            _scaleform.CallFunction("SET_DATA_SLOT", btnsCount++, RAGE.Game.Pad.GetControlInstructionalButton(32, 200, true), Locale.Get("PHONE_CAMERA_EXIT_0"));
 
             _scaleform.CallFunction("DRAW_INSTRUCTIONAL_BUTTONS", -1);
         }

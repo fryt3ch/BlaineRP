@@ -1,8 +1,11 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
-using BlaineRP.Server.EntityData.Vehicles;
+using BlaineRP.Server.Additional;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management.AntiCheat;
 
 namespace BlaineRP.Server.Game.Estates
 {
@@ -121,7 +124,7 @@ namespace BlaineRP.Server.Game.Estates
         {
             Owner = pInfo;
 
-            Sync.World.SetSharedData($"Garages::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            World.Service.SetSharedData($"Garages::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public bool BuyFromGov(PlayerData pData)
@@ -239,7 +242,7 @@ namespace BlaineRP.Server.Game.Estates
 
             vData.AttachBoatToTrailer();
 
-            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, VehicleTeleportType.All);
 
             vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;

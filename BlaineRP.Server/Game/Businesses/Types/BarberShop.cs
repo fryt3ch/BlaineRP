@@ -1,12 +1,13 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
     public class BarberShop : ClothesShop
     {
-        public static BusinessTypes DefaultType => BusinessTypes.BarberShop;
+        public static BusinessType DefaultType => BusinessType.BarberShop;
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
@@ -145,7 +146,7 @@ namespace BlaineRP.Server.Game.Businesses
             }
         };
 
-        public BarberShop(int ID, Vector3 Position, Utils.Vector4 PositionInteract, Utils.Vector4 ViewPosition) : base(ID, Position, ViewPosition, DefaultType, PositionInteract)
+        public BarberShop(int ID, Vector3 Position, Vector4 PositionInteract, Vector4 ViewPosition) : base(ID, Position, ViewPosition, DefaultType, PositionInteract)
         {
 
         }

@@ -1,11 +1,12 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
     public class Market : Shop
     {
-        public static BusinessTypes DefaultType => BusinessTypes.Market;
+        public static BusinessType DefaultType => BusinessType.Market;
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
@@ -26,7 +27,7 @@ namespace BlaineRP.Server.Game.Businesses
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
 
-        public Market(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, DefaultType)
+        public Market(int ID, Vector3 PositionInfo, Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {
 
         }

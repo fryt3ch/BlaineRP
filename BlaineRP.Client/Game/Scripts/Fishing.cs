@@ -86,7 +86,7 @@ namespace BlaineRP.Client.Game.Scripts
                                 {
                                     await RAGE.Game.Invoker.WaitAsync(25);
 
-                                    fakeFishObj = pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.ItemFishG).Select(x => x.Object).FirstOrDefault();
+                                    fakeFishObj = pData.AttachedObjects.Where(x => x.Type == AttachmentType.ItemFishG).Select(x => x.Object).FirstOrDefault();
                                 }
 
                                 if (task?.IsCancelled != false)

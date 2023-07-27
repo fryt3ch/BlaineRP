@@ -880,7 +880,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             bool useCash = rType == ActionBox.ReplyTypes.OK;
 
-            object resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Core.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
+            object resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == HouseBase.Types.House, house.Id, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;

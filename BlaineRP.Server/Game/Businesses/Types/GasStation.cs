@@ -1,13 +1,14 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
 {
-    public class GasStation : Shop
+    public partial class GasStation : Shop
     {
-        public static BusinessTypes DefaultType => BusinessTypes.GasStation;
+        public static BusinessType DefaultType => BusinessType.GasStation;
 
         public static MaterialsData InitMaterialsData => new MaterialsData(1, 2, 5)
         {
@@ -21,9 +22,9 @@ namespace BlaineRP.Server.Game.Businesses
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {GasolinesPosition.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}";
 
-        public Utils.Vector4 GasolinesPosition { get; set; }
+        public Vector4 GasolinesPosition { get; set; }
 
-        public GasStation(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Utils.Vector4 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, DefaultType)
+        public GasStation(int ID, Vector3 PositionInfo, Vector4 PositionInteract, Vector4 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {
             this.GasolinesPosition = GasolinesPosition;
         }

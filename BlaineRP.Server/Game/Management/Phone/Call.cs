@@ -1,13 +1,13 @@
-﻿using GTANetworkAPI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using BlaineRP.Server.EntitiesData.Players;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Sync.Phone
+namespace BlaineRP.Server.Game.Management.Phone
 {
-    public class Call
+    public partial class Call
     {
         private static List<Call> AllCalls { get; set; } = new List<Call>();
 
@@ -16,26 +16,6 @@ namespace BlaineRP.Server.Sync.Phone
         public static Call GetByCaller(PlayerData pData) => AllCalls.Where(x => x.Caller == pData).FirstOrDefault();
 
         public static Call GetByReceiver(PlayerData pData) => AllCalls.Where(x => x.Receiver == pData).FirstOrDefault();
-
-        public enum StatusTypes : byte
-        {
-            /// <summary>Вызов начат, но еще не принят вторым игроком</summary>
-            Outgoing = 0,
-            /// <summary>Второй игрок принял вызов, идет процесс разговора</summary>
-            Process,
-        }
-
-        public enum CancelTypes : byte
-        {
-            /// <summary>Вызов отменен сервером</summary>
-            ServerAuto = 0,
-            /// <summary>Вызов отменен первым игроком</summary>
-            Caller,
-            /// <summary>Вызов отменен вторым игроком</summary>
-            Receiver,
-            /// <summary>Вызов отменен по причине недостатка средств</summary>
-            NotEnoughBalance,
-        }
 
         public PlayerData Caller { get; private set; }
 

@@ -1,4 +1,8 @@
 ﻿using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Punishments;
 
 namespace BlaineRP.Server.Events.Commands
 {
@@ -30,7 +34,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -53,7 +57,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var allMutes = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.FractionMute).ToList();
+            var allMutes = tInfo.Punishments.Where(x => x.Type == PunishmentType.FractionMute).ToList();
 
             if (allMutes.Where(x => x.IsActive()).Any())
             {
@@ -64,7 +68,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.FractionMute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
+            var punishment = new Punishment(Punishment.GetNextId(), PunishmentType.FractionMute, reason, curTime, curTime.AddMinutes(mins), pData.CID);
 
             if (allMutes.Count >= Properties.Settings.Static.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -117,7 +121,7 @@ namespace BlaineRP.Server.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Properties.Settings.Profile.Current.Game.CIDBaseOffset ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -140,7 +144,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            var actualMute = tInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.FractionMute && x.IsActive()).FirstOrDefault();
+            var actualMute = tInfo.Punishments.Where(x => x.Type == PunishmentType.FractionMute && x.IsActive()).FirstOrDefault();
 
             if (actualMute == null)
             {
@@ -149,7 +153,7 @@ namespace BlaineRP.Server.Events.Commands
                 return;
             }
 
-            actualMute.AmnestyInfo = new Sync.Punishment.Amnesty()
+            actualMute.AmnestyInfo = new Punishment.Amnesty()
             {
                 CID = pData.CID,
                 Reason = reason,

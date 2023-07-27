@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BlaineRP.Server.EntitiesData.Players;
+using Newtonsoft.Json;
 
 namespace BlaineRP.Server.Game.Items
 {

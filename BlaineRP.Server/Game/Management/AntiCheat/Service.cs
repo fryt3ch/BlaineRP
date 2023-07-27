@@ -1,12 +1,11 @@
-﻿using GTANetworkAPI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Offers;
-using BlaineRP.Server.Sync;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Additional
+namespace BlaineRP.Server.Game.Management.AntiCheat
 {
-    public static class AntiCheat
+    public static partial class Service
     {
         public static void TeleportVehicle(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportType tpType = VehicleTeleportType.Default, bool toGround = false)
         {

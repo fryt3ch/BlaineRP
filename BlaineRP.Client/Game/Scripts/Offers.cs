@@ -9,7 +9,7 @@ using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.EntitiesData.Components
+namespace BlaineRP.Client.Game.Scripts
 {
     [Script(int.MaxValue)]
     public class Offers

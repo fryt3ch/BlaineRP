@@ -1,6 +1,6 @@
-﻿namespace BlaineRP.Client.Game.World.Enums
+﻿namespace BlaineRP.Client.Game.World
 {
-    public enum WeatherTypes : byte
+    public enum WeatherType : byte
     {
         BLIZZARD = 0,
         CLEAR,

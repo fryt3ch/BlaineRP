@@ -1,10 +1,16 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs
 {
-    public class Trucker : Job, IVehicles
+    public partial class Trucker : Job, IVehicleRelated
     {
         public const int MinimalRewardX = 1500;
         public const int MaximalRewardX = 2000;
@@ -34,24 +40,6 @@ namespace BlaineRP.Server.Game.Jobs
                 LastMaxOrderId = id;
 
             FreeOrderIds.Enqueue(id);
-        }
-
-        public class OrderInfo
-        {
-            public bool IsCustom => Reward >= MinimalRewardX;
-
-            public PlayerData.PlayerInfo CurrentWorker { get; set; }
-
-            public uint Reward { get; set; }
-
-            public int MPIdx { get; set; }
-
-            public Game.Businesses.Business TargetBusiness { get; set; }
-
-            public OrderInfo(Game.Businesses.Business TargetBusiness)
-            {
-                this.TargetBusiness = TargetBusiness;
-            }
         }
 
         public Dictionary<uint, OrderInfo> ActiveOrders { get; private set; } = new Dictionary<uint, OrderInfo>();
@@ -119,11 +107,11 @@ namespace BlaineRP.Server.Game.Jobs
 
             TriggerEventToWorkers("Job::TR::OC", orderId);
 
-            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerData.PlayerInfo pInfo)
+            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerInfo pInfo)
             {
-                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pInfo, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessTakenOrder), orderId));
+                var sms = new SMS((uint)DefaultNumbers.Delivery, pInfo, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderTaken), orderId));
 
-                Sync.Phone.SMS.Add(pInfo, sms, true);
+                SMS.Add(pInfo, sms, true);
             }
         }
 
@@ -133,23 +121,23 @@ namespace BlaineRP.Server.Game.Jobs
 
             TriggerEventToWorkers("Job::TR::OC", $"{orderId}_{oInfo.TargetBusiness.ID}_{oInfo.MPIdx}_{oInfo.Reward}");
 
-            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerData.PlayerInfo pInfo)
+            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerInfo pInfo)
             {
-                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pInfo, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessTakenCOrder), orderId));
+                var sms = new SMS((uint)DefaultNumbers.Delivery, pInfo, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderDelay), orderId));
 
-                Sync.Phone.SMS.Add(pInfo, sms, true);
+                SMS.Add(pInfo, sms, true);
             }
         }
 
         public List<Vector3> MaterialsPositions { get; set; }
 
-        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
+        public List<VehicleInfo> Vehicles { get; set; } = new List<VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
         public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new System.Collections.Generic.List<RAGE.Vector3>(){{{string.Join(',', MaterialsPositions.Select(x => x.ToCSharpStr()))}}}";
 
-        public Trucker(Utils.Vector4 Position) : base(Types.Trucker, Position)
+        public Trucker(Vector4 Position) : base(JobType.Trucker, Position)
         {
 
         }
@@ -183,14 +171,14 @@ namespace BlaineRP.Server.Game.Jobs
 
             pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentWorker == null).Select(x => $"{x.Key}_{x.Value.TargetBusiness.ID}_{x.Value.MPIdx}_{x.Value.Reward}").ToList());
 
-            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JTR1, 0, 0);
+            Quest.StartQuest(pData, QuestType.JTR1, 0, 0);
         }
 
-        public override void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
+        public override void SetPlayerNoJob(PlayerInfo pInfo)
         {
             base.SetPlayerNoJob(pInfo);
 
-            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JTR1)?.Cancel(pInfo);
+            pInfo.Quests.GetValueOrDefault(QuestType.JTR1)?.Cancel(pInfo);
 
             var orderPair = ActiveOrders.Where(x => x.Value.CurrentWorker == pInfo).FirstOrDefault();
 
@@ -204,26 +192,10 @@ namespace BlaineRP.Server.Game.Jobs
 
         public override bool CanPlayerDoThisJob(PlayerData pData)
         {
-            if (!pData.HasLicense(PlayerData.LicenseTypes.C, true))
+            if (!pData.HasLicense(LicenseType.C, true))
                 return false;
 
             return true;
-        }
-
-        public override void Initialize()
-        {
-            var numberplateText = "TRUCK";
-
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefWhite, Utils.Colour.DefBlack, new Utils.Vector4(36.48936f, 6342.64f, 31.30971f, 14.86628f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefWhite, Utils.Colour.DefBlack, new Utils.Vector4(30.00755f, 6338.54f, 31.3096f, 15.64089f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefWhite, Utils.Colour.DefBlack, new Utils.Vector4(23.15289f, 6334.313f, 31.30952f, 15.82415f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefWhite, Utils.Colour.DefBlack, new Utils.Vector4(16.22741f, 6331.058f, 31.30931f, 16.68959f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefWhite, Utils.Colour.DefBlack, new Utils.Vector4(9.375045f, 6326.348f, 31.30978f, 16.85452f), Properties.Settings.Static.MainDimension));
-
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefBlack, Utils.Colour.DefBlack, new Utils.Vector4(13.45169f, 6349.37f, 31.30666f, 211.8596f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefBlack, Utils.Colour.DefBlack, new Utils.Vector4(18.80654f, 6355.293f, 31.30764f, 213.5229f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefBlack, Utils.Colour.DefBlack, new Utils.Vector4(24.34281f, 6360.932f, 31.30667f, 213.5152f), Properties.Settings.Static.MainDimension));
-            Vehicles.Add(VehicleData.NewJob(Id, numberplateText, Data.Vehicles.GetData("pounder"), Utils.Colour.DefBlack, Utils.Colour.DefBlack, new Utils.Vector4(29.61494f, 6366.637f, 31.30571f, 214.6733f), Properties.Settings.Static.MainDimension));
         }
 
         public override void PostInitialize()
@@ -236,7 +208,7 @@ namespace BlaineRP.Server.Game.Jobs
             }
         }
 
-        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
+        public void OnVehicleRespawned(VehicleInfo vInfo, PlayerInfo pInfo)
         {
             if (pInfo != null)
             {

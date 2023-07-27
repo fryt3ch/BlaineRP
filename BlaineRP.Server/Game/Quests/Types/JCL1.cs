@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Server.Sync.Quests.Types
+namespace BlaineRP.Server.Game.Quests.Types
 {
     public class JCL1
     {
         public static void Initialize()
         {
-            new Quest.QuestData(Quest.QuestData.Types.JCL1)
+            new Quest.QuestData(QuestType.JCL1)
             {
                 ProgressUpdateFunc = (pData, questData, data) =>
                 {

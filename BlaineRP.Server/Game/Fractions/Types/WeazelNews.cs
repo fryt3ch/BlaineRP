@@ -1,11 +1,13 @@
 ﻿using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
 
 namespace BlaineRP.Server.Game.Fractions
 {
     // -556.5839f, -924.9739f, 23.88925f, 269.3907f
     public class WeazelNews : Fraction
     {
-        public WeazelNews(Types Type, string Name) : base(Type, Name)
+        public WeazelNews(FractionType Type, string Name) : base(Type, Name)
         {
 
         }

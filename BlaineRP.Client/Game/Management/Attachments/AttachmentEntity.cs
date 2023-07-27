@@ -15,7 +15,7 @@
 
         public RAGE.Elements.Type EntityType { get; set; }
 
-        public AttachmentTypes Type { get; set; }
+        public AttachmentType Type { get; set; }
 
         public bool WasAttached { get; set; }
 

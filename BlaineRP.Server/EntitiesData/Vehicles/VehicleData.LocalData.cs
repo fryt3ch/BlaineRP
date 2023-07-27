@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace BlaineRP.Server.EntityData.Vehicles
+namespace BlaineRP.Server.EntitiesData.Vehicles
 {
     public partial class VehicleData
     {

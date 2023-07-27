@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Blips;
@@ -12,6 +11,7 @@ using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
@@ -66,7 +66,7 @@ namespace BlaineRP.Client.Game.Businesses
                     string orangeTreesStr,
                     string cowsStr,
                     string orangeTreeBoxPositionsStr,
-                    string cowBucketPositionsStr) : base(id, positionInfo, BusinessTypes.Farm, price, rent, tax)
+                    string cowBucketPositionsStr) : base(id, positionInfo, BusinessType.Farm, price, rent, tax)
         {
             CropFields = RAGE.Util.Json.Deserialize<List<CropField>>(cropFieldsStr);
 
@@ -190,7 +190,7 @@ namespace BlaineRP.Client.Game.Businesses
                                             if (pData == null)
                                                 return;
 
-                                            if (!pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.FarmOrangeBoxCarry).Any())
+                                            if (!pData.AttachedObjects.Where(x => x.Type == AttachmentType.FarmOrangeBoxCarry).Any())
                                                 return;
 
                                             Events.CallRemote("Job::FARM::OTF", idx);
@@ -225,7 +225,7 @@ namespace BlaineRP.Client.Game.Businesses
                                             if (pData == null)
                                                 return;
 
-                                            if (!pData.AttachedObjects.Where(x => x.Type == AttachmentTypes.FarmMilkBucketCarry).Any())
+                                            if (!pData.AttachedObjects.Where(x => x.Type == AttachmentType.FarmMilkBucketCarry).Any())
                                                 return;
 
                                             Events.CallRemote("Job::FARM::COWF", idx);
@@ -1812,7 +1812,7 @@ namespace BlaineRP.Client.Game.Businesses
 
                     Player.LocalPlayer.Position = pPos;
 
-                    Animations.Core.Play(Player.LocalPlayer, GeneralTypes.MilkCow0);
+                    Management.Animations.Core.Play(Player.LocalPlayer, GeneralType.MilkCow0);
 
                     Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
 

@@ -4,7 +4,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.UI.CEF;
-using BlaineRP.Client.Game.World.Enums;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -72,11 +71,11 @@ namespace BlaineRP.Client.Game.World
 
         public static bool Preloaded { get; private set; }
 
-        public static WeatherTypes CurrentWeatherServer => (WeatherTypes)GetSharedData<int>("Weather");
+        public static WeatherType CurrentWeatherServer => (WeatherType)GetSharedData<int>("Weather");
 
-        public static WeatherTypes? CurrentWeatherCustom { get; set; }
+        public static WeatherType? CurrentWeatherCustom { get; set; }
 
-        public static WeatherTypes? CurrentWeatherSpecial { get; set; }
+        public static WeatherType? CurrentWeatherSpecial { get; set; }
 
         /// <summary>Ближайший к игроку предмет на земле</summary>
         public static ItemOnGround ClosestItemOnGround { get; set; }
@@ -251,15 +250,15 @@ namespace BlaineRP.Client.Game.World
             }
         }
 
-        public static void SetSpecialWeather(WeatherTypes? weather)
+        public static void SetSpecialWeather(WeatherType? weather)
         {
             if (weather == null)
                 InvokeHandler("Weather", GetSharedData<int>("Weather"), null);
             else
-                SetWeatherNow((WeatherTypes)weather);
+                SetWeatherNow((WeatherType)weather);
         }
 
-        public static void SetWeatherNow(WeatherTypes weather)
+        public static void SetWeatherNow(WeatherType weather)
         {
             var str = weather.ToString();
 

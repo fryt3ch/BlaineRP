@@ -107,7 +107,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
                         Player.LocalPlayer,
-                        args[0] as bool? ?? false ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3
+                        args[0] as bool? ?? false ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3
                     );
 
                     if (ringObj == null)
@@ -311,7 +311,7 @@ namespace BlaineRP.Client.Game.Data.Customization
 
                     GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
                         Player.LocalPlayer,
-                        args[0] as bool? ?? false ? AttachmentTypes.PedRingLeft3 : AttachmentTypes.PedRingRight3
+                        args[0] as bool? ?? false ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3
                     );
 
                     if (ringObj == null)

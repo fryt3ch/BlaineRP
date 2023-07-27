@@ -5,6 +5,7 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Casino;
+using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Estates;
@@ -35,7 +36,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     var casinoId = int.Parse(casinoStrData[0]);
                     var tableId = int.Parse(casinoStrData[1]);
 
-                    var casino = Casino.Casino.GetById(casinoId);
+                    var casino = Casino.CasinoEntity.GetById(casinoId);
 
                     Blackjack table = casino.GetBlackjackById(tableId);
 
@@ -73,7 +74,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     var casinoId = int.Parse(casinoStrData[0]);
                     var slotMachineId = int.Parse(casinoStrData[1]);
 
-                    var casino = Casino.Casino.GetById(casinoId);
+                    var casino = Casino.CasinoEntity.GetById(casinoId);
 
                     SlotMachine slotMachine = casino.GetSlotMachineById(slotMachineId);
 
@@ -110,7 +111,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     var casinoId = int.Parse(casinoStrData[0]);
                     var luckyWheelId = int.Parse(casinoStrData[1]);
 
-                    var casino = Casino.Casino.GetById(casinoId);
+                    var casino = Casino.CasinoEntity.GetById(casinoId);
 
                     LuckyWheel luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
@@ -143,7 +144,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     var chipsBalance = decimal.Parse(res[0]);
                     var stateData = (string)res[1];
 
-                    var casino = Casino.Casino.GetById(casinoId);
+                    var casino = Casino.CasinoEntity.GetById(casinoId);
 
                     Roulette roulette = casino.GetRouletteById(rouletteId);
 

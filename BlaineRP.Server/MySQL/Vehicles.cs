@@ -1,11 +1,12 @@
 ﻿using MySqlConnector;
 using System;
+using BlaineRP.Server.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void VehicleAdd(VehicleData.VehicleInfo vInfo)
+        public static void VehicleAdd(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -27,7 +28,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleKeysUidUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleKeysUidUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -43,7 +44,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleNumberplateUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleNumberplateUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -56,7 +57,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleRegisteredNumberplateUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleRegisteredNumberplateUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -72,7 +73,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleOwnerUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleOwnerUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -86,7 +87,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleDeletionUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleDeletionUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -99,7 +100,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleTuningUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleTuningUpdate(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -112,7 +113,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void VehicleDelete(VehicleData.VehicleInfo vInfo)
+        public static void VehicleDelete(VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 

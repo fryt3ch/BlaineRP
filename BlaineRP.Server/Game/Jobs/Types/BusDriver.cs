@@ -1,28 +1,18 @@
-﻿using GTANetworkAPI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Quests;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs
 {
-    public class BusDriver : Job, IVehicles
+    public partial class BusDriver : Job, IVehicleRelated
     {
-        public class RouteData
-        {
-            public List<Vector3> Positions { get; set; }
-
-            public uint Reward { get; set; }
-
-            public RouteData(uint Reward, List<Vector3> Positions)
-            {
-                this.Reward = Reward;
-
-                this.Positions = Positions;
-            }
-        }
-
         public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new System.Collections.Generic.List<(uint, System.Collections.Generic.List<RAGE.Vector3>)>(){{{string.Join(',', Routes.Select(x => $"({x.Reward}, new System.Collections.Generic.List<RAGE.Vector3>(){{{string.Join(',', x.Positions.Select(y => y.ToCSharpStr()))}}})"))}}}";
 
-        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
+        public List<VehicleInfo> Vehicles { get; set; } = new List<VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
@@ -36,50 +26,24 @@ namespace BlaineRP.Server.Game.Jobs
 
             pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id);
 
-            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JBD1, 0, 0);
+            Quest.StartQuest(pData, QuestType.JBD1, 0, 0);
         }
 
-        public override void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
+        public override void SetPlayerNoJob(PlayerInfo pInfo)
         {
             base.SetPlayerNoJob(pInfo);
 
-            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JBD1)?.Cancel(pInfo);
+            pInfo.Quests.GetValueOrDefault(QuestType.JBD1)?.Cancel(pInfo);
 
             Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
         }
 
         public override bool CanPlayerDoThisJob(PlayerData pData)
         {
-            if (!pData.HasLicense(PlayerData.LicenseTypes.D, true))
+            if (!pData.HasLicense(LicenseType.D, true))
                 return false;
 
             return true;
-        }
-
-        public override void Initialize()
-        {
-            if (SubId == 0)
-            {
-                var numberplateText = "BUSBC";
-
-                var vType = Game.Data.Vehicles.GetData("coach");
-
-                var colour1 = new Utils.Colour(255, 255, 255, 255);
-                var colour2 = new Utils.Colour(255, 0, 0, 255);
-
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-766.2029f, 5524.796f, 34.31338f, 28.3842f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-762.9031f, 5526.446f, 34.31443f, 29.5885f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-759.7948f, 5528.181f, 34.31483f, 30.55079f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-756.5928f, 5529.695f, 34.31594f, 29.94526f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-753.6445f, 5532.07f, 34.31636f, 29.10272f), Properties.Settings.Static.MainDimension));
-                Vehicles.Add(VehicleData.NewJob(Id, numberplateText, vType, colour1, colour2, new Utils.Vector4(-750.3279f, 5533.969f, 34.31674f, 29.43421f), Properties.Settings.Static.MainDimension));
-            }
-            else
-            {
-                var numberplateText = "BUSLS";
-
-                var vType = Game.Data.Vehicles.GetData("bus");
-            }
         }
 
         public override void OnWorkerExit(PlayerData pData)
@@ -92,7 +56,7 @@ namespace BlaineRP.Server.Game.Jobs
 
         }
 
-        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
+        public void OnVehicleRespawned(VehicleInfo vInfo, PlayerInfo pInfo)
         {
             if (pInfo != null)
             {
@@ -100,7 +64,7 @@ namespace BlaineRP.Server.Game.Jobs
             }
         }
 
-        public BusDriver(Utils.Vector4 Position) : base(Types.BusDriver, Position)
+        public BusDriver(Vector4 Position) : base(JobType.BusDriver, Position)
         {
 
         }

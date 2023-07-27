@@ -4,7 +4,7 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public class Farmer : Job
     {
-        public Farmer(int Id, int BuisnessId) : base(Id, JobTypes.Farmer)
+        public Farmer(int Id, int BuisnessId) : base(Id, JobType.Farmer)
         {
             BusinessId = BuisnessId;
         }

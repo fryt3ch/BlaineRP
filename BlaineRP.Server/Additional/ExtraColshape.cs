@@ -1,6 +1,8 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Server.Extensions.GTANetworkAPI;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Additional
 {
@@ -273,19 +275,19 @@ namespace BlaineRP.Server.Additional
                         angleSum += Math.Acos((p1.X * p2.X + p1.Y * p2.Y + p1.Z * p2.Z) / (m1 * m2));
                 }
 
-                var polygonPoints2d = new List<Utils.Vector2>();
+                var polygonPoints2d = new List<Vector2>();
 
                 if (Height == 0)
                 {
                     for (int i = 0; i < Vertices.Count; i++)
-                        polygonPoints2d.Add(new Utils.Vector2(Vertices[i].X, Vertices[i].Y));
+                        polygonPoints2d.Add(new Vector2(Vertices[i].X, Vertices[i].Y));
                 }
                 else
                 {
                     for (int i = 0; i < Vertices.Count; i++)
                     {
                         if (Position.Z >= Vertices[i].Z && Position.Z <= (Vertices[i].Z + Height) || angleSum >= 5.8f)
-                            polygonPoints2d.Add(new Utils.Vector2(Vertices[i].X, Vertices[i].Y));
+                            polygonPoints2d.Add(new Vector2(Vertices[i].X, Vertices[i].Y));
                         else
                             return false;
                     }

@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Game.Businesses
     {
         public static Dictionary<int, Business> All = new Dictionary<int, Business>();
 
-        public Business(int Id, Vector3 PositionInfo, BusinessTypes Type, uint Price, uint Rent, float Tax)
+        public Business(int Id, Vector3 PositionInfo, BusinessType Type, uint Price, uint Rent, float Tax)
         {
             this.Type = Type;
 
@@ -59,7 +59,7 @@ namespace BlaineRP.Client.Game.Businesses
             All.Add(Id, this);
         }
 
-        public BusinessTypes Type { get; set; }
+        public BusinessType Type { get; set; }
 
         public int Id { get; set; }
 

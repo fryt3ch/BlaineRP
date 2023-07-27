@@ -6,6 +6,7 @@ using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
 using BlaineRP.Client.Utils;

@@ -13,6 +13,7 @@ using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
 using Newtonsoft.Json.Linq;
@@ -498,7 +499,7 @@ namespace BlaineRP.Client.Game.Fractions
             if (tData == null)
                 return;
 
-            AttachmentObject cuffAttach = tData.AttachedObjects?.Where(x => x.Type == AttachmentTypes.Cuffs || x.Type == AttachmentTypes.CableCuffs).FirstOrDefault();
+            AttachmentObject cuffAttach = tData.AttachedObjects?.Where(x => x.Type == AttachmentType.Cuffs || x.Type == AttachmentType.CableCuffs).FirstOrDefault();
 
             bool cuffState = state == null ? cuffAttach == null : (bool)state;
 
@@ -506,7 +507,7 @@ namespace BlaineRP.Client.Game.Fractions
             {
                 if (cuffAttach != null)
                 {
-                    if (cuffAttach.Type == AttachmentTypes.Cuffs)
+                    if (cuffAttach.Type == AttachmentType.Cuffs)
                     {
                         Notification.ShowError(Locale.Get("POLICE_CUFFS_E_0"), -1);
 
@@ -522,7 +523,7 @@ namespace BlaineRP.Client.Game.Fractions
             }
             else
             {
-                if (cuffAttach == null || cuffAttach.Type != AttachmentTypes.Cuffs)
+                if (cuffAttach == null || cuffAttach.Type != AttachmentType.Cuffs)
                 {
                     Notification.ShowError(Locale.Get("POLICE_CUFFS_E_1"), -1);
 
@@ -564,7 +565,7 @@ namespace BlaineRP.Client.Game.Fractions
             if (tData == null)
                 return;
 
-            AttachmentEntity escortAttach = tData.AttachedEntities?.Where(x => x.Type == AttachmentTypes.PoliceEscort).FirstOrDefault();
+            AttachmentEntity escortAttach = tData.AttachedEntities?.Where(x => x.Type == AttachmentType.PoliceEscort).FirstOrDefault();
 
             bool escortState = state == null ? escortAttach == null : (bool)state;
 
@@ -611,7 +612,7 @@ namespace BlaineRP.Client.Game.Fractions
             }
             else
             {
-                if (escortAttach == null || escortAttach.Type != AttachmentTypes.PoliceEscort || tData.IsAttachedTo != Player.LocalPlayer)
+                if (escortAttach == null || escortAttach.Type != AttachmentType.PoliceEscort || tData.IsAttachedTo != Player.LocalPlayer)
                 {
                     Notification.ShowError(Locale.Get("POLICE_ESCORT_E_1"), -1);
 
@@ -1429,7 +1430,7 @@ namespace BlaineRP.Client.Game.Fractions
                 return;
 
             AttachmentEntity attachData = pData.AttachedEntities?.Where(x =>
-                                                    (x.Type == AttachmentTypes.PoliceEscort || x.Type == AttachmentTypes.Hostage || x.Type == AttachmentTypes.Carry) &&
+                                                    (x.Type == AttachmentType.PoliceEscort || x.Type == AttachmentType.Hostage || x.Type == AttachmentType.Carry) &&
                                                     x.EntityType == RAGE.Elements.Type.Player
                                                 )
                                                .FirstOrDefault();
@@ -1449,7 +1450,7 @@ namespace BlaineRP.Client.Game.Fractions
                     freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
             }
 
-            AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == AttachmentTypes.VehicleTrunk).FirstOrDefault();
+            AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == AttachmentType.VehicleTrunk).FirstOrDefault();
 
             if (trunkAttach == null && vehicle.DoesHaveDoor(5) > 0)
                 freeSeats.Add((255, Locale.Get("POLICE_PTOVEH_L_1")));
@@ -1528,7 +1529,7 @@ namespace BlaineRP.Client.Game.Fractions
             }
 
             AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(vehicle)
-                                                    ?.Where(x => x.Type == AttachmentTypes.VehicleTrunk && x.EntityType == RAGE.Elements.Type.Player)
+                                                    ?.Where(x => x.Type == AttachmentType.VehicleTrunk && x.EntityType == RAGE.Elements.Type.Player)
                                                      .FirstOrDefault();
 
             if (trunkAttach != null)

@@ -1,37 +1,13 @@
-﻿using GTANetworkAPI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Sync.Phone
+namespace BlaineRP.Server.Game.Management.Phone
 {
-    public class SMS
+    public partial class SMS
     {
-        public enum DefaultTypes
-        {
-            DeliveryBusinessNewOrder = 0,
-            DeliveryBusinessCancelOrder,
-            DeliveryBusinessTakenOrder,
-            DeliveryBusinessTakenCOrder,
-            DeliveryBusinessFinishOrder,
-        }
-
-        public enum DefaultNumbers : uint
-        {
-            Bank = 900,
-
-            Delivery = 873,
-        }
-
-        private static Dictionary<DefaultTypes, string> DefaultSmsMessages = new Dictionary<DefaultTypes, string>()
-        {
-            { DefaultTypes.DeliveryBusinessNewOrder, "Создан заказ №{0} для Вашего бизнеса, идет поиск курьера.\nКол-во материалов: {1}\nСумма оплаты: ${2}" },
-            { DefaultTypes.DeliveryBusinessCancelOrder, "Заказ №{0} для Вашего бизнеса был отменен.\nВозвращено средств: ${1}" },
-            { DefaultTypes.DeliveryBusinessTakenOrder, "Заказ №{0} для Вашего бизнеса в пути, Вы получите SMS по факту доставки или при возникновении проблем с ней" },
-            { DefaultTypes.DeliveryBusinessTakenCOrder, "Заказ №{0} для Вашего бизнеса задерживается, идет поиск нового курьера" },
-            { DefaultTypes.DeliveryBusinessFinishOrder, "Заказ №{0} для Вашего бизнеса был доставлен!" },
-        };
-
-        public static string GetDefaultSmsMessage(DefaultTypes type) => DefaultSmsMessages.GetValueOrDefault(type);
+        public static string GetDefaultSmsMessage(PredefinedTypes type) => Language.Strings.Get(Language.Strings.GetKeyFromTypeByMemberName(type.GetType(), type.ToString(), "SMS_TEXT") ?? "null");
 
         public string Data { get; set; }
 

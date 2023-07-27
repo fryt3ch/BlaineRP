@@ -1,5 +1,6 @@
 ﻿using MySqlConnector;
 using System;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server
 {
@@ -72,7 +73,7 @@ namespace BlaineRP.Server
                             garage.UpdateOwner(null);
                         else
                         {
-                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+                            var pInfo = PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
 
                             pInfo?.OwnedGarages.Add(garage);
 

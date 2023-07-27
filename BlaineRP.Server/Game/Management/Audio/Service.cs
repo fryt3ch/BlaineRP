@@ -1,23 +1,15 @@
-﻿using GTANetworkAPI;
+﻿using BlaineRP.Server.Extensions.System;
+using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Management.Audio
 {
-    public class Audio
+    public static class Service
     {
         // Audio Shared Data = "/TrackType/&/Range/&/BaseVolume/&/StartTimestamp (0 - paused)/&TrackData (string.Empty if not needed)/"
 
-        public enum TrackTypes
-        {
-            None = 0,
+        public static string GetEntityAudioData(Entity entity) => entity.GetSharedData<string>("AUD");
 
-            Auth1, Auth2, Auth3,
-
-            RadioRetroFM, RadioEuropaPlus, RadioClassicFM, RadioRecord, RadioSynthwave,
-        }
-
-        public string GetEntityAudioData(Entity entity) => entity.GetSharedData<string>("AUD");
-
-        public string SetEntityAudioData(Entity entity, TrackTypes trackType, float range, float baseVolume, int offset, string trackData)
+        public static string SetEntityAudioData(Entity entity, TrackType trackType, float range, float baseVolume, int offset, string trackData)
         {
             var audioData = $"{(int)trackType}&{range}&{baseVolume}&{Utils.GetCurrentTime().GetUnixTimestamp() + offset}&{trackData ?? string.Empty}";
 
@@ -26,7 +18,7 @@ namespace BlaineRP.Server.Game.Management.Audio
             return audioData;
         }
 
-        public string SetEntityAudioVolume(Entity entity, string audioData, float volume)
+        public static string SetEntityAudioVolume(Entity entity, string audioData, float volume)
         {
             var audioDataArr = audioData.Split('&');
 
@@ -37,7 +29,7 @@ namespace BlaineRP.Server.Game.Management.Audio
             return audioData;
         }
 
-        public string SetEntityAudioPaused(Entity entity, string audioData)
+        public static string SetEntityAudioPaused(Entity entity, string audioData)
         {
             var audioDataArr = audioData.Split('&');
 

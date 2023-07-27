@@ -1,4 +1,8 @@
-﻿namespace BlaineRP.Server.Events.Commands
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.UtilsT;
+
+namespace BlaineRP.Server.Events.Commands
 {
     partial class Commands
     {
@@ -38,7 +42,7 @@
                 }
             }
 
-            var vData = VehicleData.NewTemp(tData, vType, new Utils.Colour(0, 0, 0), new Utils.Colour(0, 0, 0), tData.Player.Position, tData.Player.Heading, tData.Player.Dimension);
+            var vData = VehicleData.NewTemp(tData, vType, new Colour(0, 0, 0), new Colour(0, 0, 0), tData.Player.Position, tData.Player.Heading, tData.Player.Dimension);
 
             if (vData == null)
                 return;
@@ -80,7 +84,7 @@
                 }
             }
 
-            var vData = VehicleData.New(tData, vType, new Utils.Colour(0, 0, 0), new Utils.Colour(0, 0, 0), tData.Player.Position, tData.Player.Heading, tData.Player.Dimension, true);
+            var vData = VehicleData.New(tData, vType, new Colour(0, 0, 0), new Colour(0, 0, 0), tData.Player.Position, tData.Player.Heading, tData.Player.Dimension, true);
 
             if (vData == null)
                 return;

@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Sync;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
     public partial class PlayerData
     {
@@ -44,7 +48,7 @@ namespace BlaineRP.Server.EntityData.Players
         /// <summary>Текущая анимация игрока (Fast)</summary>
         /// <remarks>НЕ синхронизуется с игроками ВНЕ зоны стрима (т.к. проигрывается быстро)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.FastTypes FastAnim { get => (Sync.Animations.FastTypes)(Player.GetData<int?>("Anim::Fast") ?? -1); set { if (value > Sync.Animations.FastTypes.None) Player.SetData("Anim::Fast", (int)value); else Player.ResetData("Anim::Fast"); } }
+        public FastType FastAnim { get => (FastType)(Player.GetData<int?>("Anim::Fast") ?? -1); set { if (value > FastType.None) Player.SetData("Anim::Fast", (int)value); else Player.ResetData("Anim::Fast"); } }
 
         /// <summary>CID игрока</summary>
         /// <remarks>Т.к. может использоваться для сохранения данных в БД, set - в основном потоке, get - в любом</remarks>
@@ -59,7 +63,7 @@ namespace BlaineRP.Server.EntityData.Players
         /// <summary>Фракция игрока</summary>
         /// <remarks>Также вызывает событие Players::SetFraction на клиенте игроков в зоне стрима</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Game.Fractions.Types Fraction { get => Info.Fraction; set { if (value == Game.Fractions.Types.None) Player.ResetSharedData("Fraction"); else Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
+        public Game.Fractions.FractionType Fraction { get => Info.Fraction; set { if (value == Game.Fractions.FractionType.None) Player.ResetSharedData("Fraction"); else Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
 
         /// <summary>В маске ли игрок?</summary>
         public Game.Items.Mask WearedMask => Accessories[1] as Game.Items.Mask;
@@ -70,7 +74,7 @@ namespace BlaineRP.Server.EntityData.Players
 
         public bool IsFrozen { get => Player.GetOwnSharedData<bool?>("IsFrozen") ?? false; set { if (value) Player.SetOwnSharedData("IsFrozen", value); else Player.ResetOwnSharedData("IsFrozen"); } }
 
-        public bool IsCuffed => AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs || x.Type == Sync.AttachSystem.Types.CableCuffs).Any();
+        public bool IsCuffed => AttachedObjects.Where(x => x.Type == AttachmentType.Cuffs || x.Type == AttachmentType.CableCuffs).Any();
 
         public int VehicleSeat { get => Player.GetSharedData<int?>("VehicleSeat") ?? -1; set { if (value >= 0) Player.SetSharedData("VehicleSeat", value); else Player.ResetSharedData("VehicleSeat"); } }
 
@@ -85,13 +89,13 @@ namespace BlaineRP.Server.EntityData.Players
 
         /// <summary>В муте ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsMuted { get => VoiceRange < 0f; set { if (value) { Sync.Players.DisableMicrophone(this); VoiceRange = -1; } else { VoiceRange = 0f; } } }
+        public bool IsMuted { get => VoiceRange < 0f; set { if (value) { Game.Management.Audio.Microphone.DisableMicrophone(this); VoiceRange = -1; } else { VoiceRange = 0f; } } }
 
         /// <summary>Проблемы ли у игрока со слухом/речью?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsInvalid { get => Player.GetSharedData<bool?>("IsInvalid") ?? false; set { if (value) Player.SetSharedData("IsInvalid", value); else Player.ResetSharedData("IsInvalid"); } }
 
-        public Sync.Players.PhoneStateTypes PhoneStateType { get => (Sync.Players.PhoneStateTypes)(Player.GetSharedData<int?>("PST") ?? 0); set { if (value == Sync.Players.PhoneStateTypes.Off) Player.ResetSharedData("PST"); else Player.SetSharedData("PST", (byte)value); } }
+        public PlayerPhoneState PhoneStateType { get => (PlayerPhoneState)(Player.GetSharedData<int?>("PST") ?? 0); set { if (value == PlayerPhoneState.Off) Player.ResetSharedData("PST"); else Player.SetSharedData("PST", (byte)value); } }
 
         public string WeaponComponents { get => Player.GetSharedData<string>("WCD"); set { if (value != null) Player.SetSharedData("WCD", value); else Player.ResetSharedData("WCD"); } }
 
@@ -115,33 +119,33 @@ namespace BlaineRP.Server.EntityData.Players
 
         /// <summary>Текущая анимация игрока (General)</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.GeneralTypes GeneralAnim { get => (Sync.Animations.GeneralTypes)(Player.GetSharedData<int?>("Anim::General") ?? -1); set { if (value > Sync.Animations.GeneralTypes.None) Player.SetSharedData("Anim::General", (int)value); else Player.ResetSharedData("Anim::General"); } }
+        public GeneralType GeneralAnim { get => (GeneralType)(Player.GetSharedData<int?>("Anim::General") ?? -1); set { if (value > GeneralType.None) Player.SetSharedData("Anim::General", (int)value); else Player.ResetSharedData("Anim::General"); } }
 
         /// <summary>Текущая анимация игрока (Other)</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.OtherTypes OtherAnim { get => (Sync.Animations.OtherTypes)(Player.GetSharedData<int?>("Anim::Other") ?? -1); set { if (value > Sync.Animations.OtherTypes.None) Player.SetSharedData("Anim::Other", (int)value); else Player.ResetSharedData("Anim::Other"); } }
+        public OtherType OtherAnim { get => (OtherType)(Player.GetSharedData<int?>("Anim::Other") ?? -1); set { if (value > OtherType.None) Player.SetSharedData("Anim::Other", (int)value); else Player.ResetSharedData("Anim::Other"); } }
 
         /// <summary>Текущая походка игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.WalkstyleTypes Walkstyle { get => (Sync.Animations.WalkstyleTypes)(Player.GetSharedData<int?>("Walkstyle") ?? -1); set { if (value > Sync.Animations.WalkstyleTypes.None) Player.SetSharedData("Walkstyle", (int)value); else Player.ResetSharedData("Walkstyle"); } }
+        public WalkstyleType Walkstyle { get => (WalkstyleType)(Player.GetSharedData<int?>("Walkstyle") ?? -1); set { if (value > WalkstyleType.None) Player.SetSharedData("Walkstyle", (int)value); else Player.ResetSharedData("Walkstyle"); } }
 
         /// <summary>Текущая эмоция игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.EmotionTypes Emotion { get => (Sync.Animations.EmotionTypes)(Player.GetSharedData<int?>("Emotion") ?? -1); set { if (value > Sync.Animations.EmotionTypes.None) Player.SetSharedData("Emotion", (int)value); else Player.ResetSharedData("Emotion"); } }
+        public EmotionType Emotion { get => (EmotionType)(Player.GetSharedData<int?>("Emotion") ?? -1); set { if (value > EmotionType.None) Player.SetSharedData("Emotion", (int)value); else Player.ResetSharedData("Emotion"); } }
 
         /// <summary>Прикрепленные объекты к игроку</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<Sync.AttachSystem.AttachmentObjectNet> AttachedObjects { get => Player.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedObjectsKey).ToList<Sync.AttachSystem.AttachmentObjectNet>(); set { Player.SetSharedData(Sync.AttachSystem.AttachedObjectsKey, value); } }
+        public List<AttachmentObjectNet> AttachedObjects { get => Player.GetSharedData<Newtonsoft.Json.Linq.JArray>(Game.Management.Attachments.Service.AttachedObjectsKey).ToObject<List<AttachmentObjectNet>>(); set { Player.SetSharedData(Game.Management.Attachments.Service.AttachedObjectsKey, value); } }
 
         /// <summary>Прикрепленные сущности к игроку</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Player.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Player.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
+        public List<AttachmentEntityNet> AttachedEntities { get => Player.GetSharedData<Newtonsoft.Json.Linq.JArray>(Game.Management.Attachments.Service.AttachedEntitiesKey).ToObject<List<AttachmentEntityNet>>(); set { Player.SetSharedData(Game.Management.Attachments.Service.AttachedEntitiesKey, value); } }
 
         /// <summary>Прикрепленные объекты к игроку, которые находятся в руках</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public bool HasAnyHandAttachedObject => AttachedObjects.Where(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)).Any();
+        public bool HasAnyHandAttachedObject => AttachedObjects.Where(x => Game.Management.Attachments.Service.IsTypeObjectInHand(x.Type)).Any();
     }
 }

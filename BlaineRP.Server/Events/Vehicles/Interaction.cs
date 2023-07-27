@@ -1,4 +1,7 @@
-﻿using BlaineRP.Server.Game.Items;
+﻿using BlaineRP.Server.Additional;
+using BlaineRP.Server.Game.Items;
+using BlaineRP.Server.Game.Management.AntiCheat;
+using BlaineRP.Server.Game.Management.Chat;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Events.Vehicles
@@ -324,7 +327,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (target.Vehicle != player.Vehicle)
                 return;
 
-            if (Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Try, player, Language.Strings.Get("CHAT_VEHICLE_PSGR_KICKED"), target, tData.IsKnocked || tData.IsCuffed ? true : (object)null))
+            if (Game.Management.Chat.Service.SendLocal(MessageType.Try, player, Language.Strings.Get("CHAT_VEHICLE_PSGR_KICKED"), target, tData.IsKnocked || tData.IsCuffed ? true : (object)null))
             {
                 target.WarpOutOfVehicle();
             }
@@ -404,7 +407,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
                 if (vData.DetachBoatFromTrailer())
                 {
-                    vData.Vehicle.Teleport(placePos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
+                    vData.Vehicle.Teleport(placePos, null, null, false, VehicleTeleportType.All);
                 }
             }
         }

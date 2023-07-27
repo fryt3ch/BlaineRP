@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -221,9 +223,9 @@ namespace BlaineRP.Server.Game.Items
             }
 
             if (pData.CanPlayAnimNow())
-                pData.PlayAnim(Sync.Animations.FastTypes.Putdown, Properties.Settings.Static.InventoryPutdownAnimationTime);
+                pData.PlayAnim(FastType.Putdown, Properties.Settings.Static.InventoryPutdownAnimationTime);
 
-            Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
+            World.Service.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
         #endregion
 

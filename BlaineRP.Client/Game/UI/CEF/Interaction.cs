@@ -12,6 +12,7 @@ using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.World;
@@ -189,7 +190,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (Player.LocalPlayer.Vehicle != veh)
                     {
                         AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(veh)
-                                                                ?.Where(x => x.Type == AttachmentTypes.VehicleTrunk)
+                                                                ?.Where(x => x.Type == AttachmentType.VehicleTrunk)
                                                                  .FirstOrDefault();
 
                         if (trunkAttach == null && veh.DoesHaveDoor(5) > 0)

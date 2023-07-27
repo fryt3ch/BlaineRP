@@ -11,9 +11,9 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Jobs
 {
-    public class Collector : Job
+    public partial class Collector : Job
     {
-        public Collector(int Id, Utils.Vector4 Position, int BankId) : base(Id, JobTypes.Collector)
+        public Collector(int Id, Utils.Vector4 Position, int BankId) : base(Id, JobType.Collector)
         {
             this.Position = Position.Position;
 
@@ -159,19 +159,6 @@ namespace BlaineRP.Client.Game.Jobs
                     }
                 }
             );
-        }
-
-        public class OrderInfo
-        {
-            public OrderInfo()
-            {
-            }
-
-            public uint Id { get; set; }
-
-            public uint Reward { get; set; }
-
-            public Business TargetBusiness { get; set; }
         }
     }
 }

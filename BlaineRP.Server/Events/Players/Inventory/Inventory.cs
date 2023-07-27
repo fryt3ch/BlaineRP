@@ -1,7 +1,14 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Chat;
+using BlaineRP.Server.Game.World;
+using BlaineRP.Server.Sync;
 using static BlaineRP.Server.Game.Items.Inventory;
+using static BlaineRP.Server.Game.World.Service;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -80,12 +87,12 @@ namespace BlaineRP.Server.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null)
                 return;
 
-            var item = Sync.World.GetItemOnGround(UID);
+            var item = Game.World.Service.GetItemOnGround(UID);
 
             if (item?.Item == null)
                 return;
 
-            if (item.Type == Sync.World.ItemOnGround.Types.PlacedItem && !item.PlayerHasAccess(pData, false, true))
+            if (item.Type == ItemOnGround.Types.PlacedItem && !item.PlayerHasAccess(pData, false, true))
                 return;
 
             if (!player.IsNearToEntity(item.Object, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
@@ -147,7 +154,7 @@ namespace BlaineRP.Server.Events.Players
             }
 
             if (pData.CanPlayAnimNow())
-                pData.PlayAnim(Sync.Animations.FastTypes.Pickup, Properties.Settings.Static.InventoryPickupAnimationTime);
+                pData.PlayAnim(FastType.Pickup, Properties.Settings.Static.InventoryPickupAnimationTime);
 
             if (amount == curAmount)
             {
@@ -161,7 +168,7 @@ namespace BlaineRP.Server.Events.Players
                 }
                 else
                 {
-                    if (item.Type == Sync.World.ItemOnGround.Types.PlacedItem && item.Item is Game.Items.PlaceableItem placeableItem)
+                    if (item.Type == ItemOnGround.Types.PlacedItem && item.Item is Game.Items.PlaceableItem placeableItem)
                     {
                         placeableItem.Remove(pData);
                     }
@@ -209,9 +216,9 @@ namespace BlaineRP.Server.Events.Players
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            var iog = Sync.World.GetItemOnGround(uid);
+            var iog = Game.World.Service.GetItemOnGround(uid);
 
-            if (iog == null || iog.Type != Sync.World.ItemOnGround.Types.PlacedItem)
+            if (iog == null || iog.Type != ItemOnGround.Types.PlacedItem)
                 return;
 
             if (!iog.PlayerHasAccess(pData, false, true))
@@ -440,7 +447,7 @@ namespace BlaineRP.Server.Events.Players
 
                             MySQL.CharacterItemsUpdate(pData.Info);
 
-                            player.AttachObject(Sync.AttachSystem.Models.ParachuteSync, Sync.AttachSystem.Types.ParachuteSync, -1, null);
+                            player.AttachObject(Game.Management.Attachments.Service.Models.ParachuteSync, AttachmentType.ParachuteSync, -1, null);
 
                             return;
                         }
@@ -449,7 +456,7 @@ namespace BlaineRP.Server.Events.Players
             }
             else
             {
-                player.DetachObject(Sync.AttachSystem.Types.ParachuteSync);
+                player.DetachObject(AttachmentType.ParachuteSync);
             }
         }
 
@@ -566,7 +573,7 @@ namespace BlaineRP.Server.Events.Players
 
             pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, itemIdx, Game.Items.Item.ToClientJson(pData.Items[itemIdx], Game.Items.Inventory.GroupTypes.Items));
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_0"), tData.Player);
+            Game.Management.Chat.Service.SendLocal(MessageType.Me, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_0"), tData.Player);
 
             return 255;
         }
@@ -581,7 +588,7 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            var attach = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.PlayerResurrect && x.EntityType == EntityType.Player).FirstOrDefault();
+            var attach = pData.AttachedEntities.Where(x => x.Type == AttachmentType.PlayerResurrect && x.EntityType == EntityType.Player).FirstOrDefault();
 
             if (attach == null)
                 return;
@@ -615,7 +622,7 @@ namespace BlaineRP.Server.Events.Players
                 targetPlayer.NotifySuccess(Language.Strings.Get("NTFC_PLAYER_RESURRECT_3", pData.GetNameForPlayer(tData)));
             }
 
-            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Try, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_1"), tData.Player, resurrect);
+            Game.Management.Chat.Service.SendLocal(MessageType.Try, pData.Player, Language.Strings.Get("CHAT_PLAYER_RESURRECT_1"), tData.Player, resurrect);
         }
     }
 }

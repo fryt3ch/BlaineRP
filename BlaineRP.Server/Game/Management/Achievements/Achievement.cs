@@ -1,108 +1,89 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Game.Items;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.Management.Achievements
 {
-    public class Achievement
+    public partial class Achievement
     {
-            public enum Types
+        private static Dictionary<AchievementType, Data> TypesData = new Dictionary<AchievementType, Data>()
+        {
+            { AchievementType.SR1, new Data(80, Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
+            { AchievementType.SR2, new Data(100, Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
+        };
+
+        public static Dictionary<AchievementType, Achievement> GetNewDict()
+        {
+            return Enum.GetValues(typeof(AchievementType)).Cast<AchievementType>().ToDictionary(x => x, y => new Achievement(y));
+        }
+
+        [JsonProperty(PropertyName = "IR")]
+        public bool IsRecieved { get; set; }
+
+        [JsonProperty(PropertyName = "P")]
+        public uint Progress { get; set; }
+
+        [JsonIgnore]
+        public AchievementType Type { get; set; }
+
+        [JsonIgnore]
+        public Data TypeData => TypesData[Type];
+
+        public Achievement(AchievementType Type)
+        {
+            this.Type = Type;
+        }
+
+        public Achievement(AchievementType Type, uint Progress, bool IsRecieved) : this(Type)
+        {
+            this.Progress = Progress;
+            this.IsRecieved = IsRecieved;
+        }
+
+        public bool UpdateProgress(PlayerInfo pInfo, uint newProgress)
+        {
+            if (IsRecieved)
+                return true;
+
+            if (newProgress <= Progress)
+                return false;
+
+            Data data = TypeData;
+
+            if (newProgress > data.Goal)
+                newProgress = data.Goal;
+
+            if (newProgress == Progress)
+                return false;
+
+            Progress = newProgress;
+
+            if (pInfo.PlayerData != null)
+                pInfo.PlayerData.Player.TriggerEvent("Player::Achievements::Update", (int)Type, Progress, data.Goal);
+
+            if (Progress >= data.Goal)
             {
-                SR1,
-                SR2,
+                if (Progress > data.Goal)
+                    Progress = data.Goal;
+
+                IsRecieved = true;
+
+                if (data.Reward != null)
+                    Gift.Give(pInfo, data.Reward, true);
+
+                MySQL.CharacterAchievementUpdate(pInfo, this);
+
+                return true;
             }
-
-            private static Dictionary<Types, Data> TypesData = new Dictionary<Types, Data>()
+            else
             {
-                { Types.SR1, new Data(80, Game.Items.Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
-                { Types.SR2, new Data(100, Game.Items.Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
-            };
+                MySQL.CharacterAchievementUpdate(pInfo, this);
 
-            public class Data
-            {
-                public uint Goal { get; set; }
-
-                public bool IsHidden { get; set; }
-
-                public Game.Items.Gift.Prototype Reward { get; set; }
-
-                public Data(uint Goal, Game.Items.Gift.Prototype Reward)
-                {
-                    this.Goal = Goal;
-                    this.Reward = Reward;
-                }
+                return false;
             }
-
-            public static Dictionary<Types, Achievement> GetNewDict() => Enum.GetValues(typeof(Types)).Cast<Types>().ToDictionary(x => x, y => new Achievement(y));
-
-            [JsonProperty(PropertyName = "IR")]
-            public bool IsRecieved { get; set; }
-
-            [JsonProperty(PropertyName = "P")]
-            public uint Progress { get; set; }
-
-            [JsonIgnore]
-            public Types Type { get; set; }
-
-            [JsonIgnore]
-            public Data TypeData => TypesData[Type];
-
-            public Achievement(Types Type)
-            {
-                this.Type = Type;
-            }
-
-            public Achievement(Types Type, uint Progress, bool IsRecieved) : this(Type)
-            {
-                this.Progress = Progress;
-                this.IsRecieved = IsRecieved;
-            }
-
-            public bool UpdateProgress(PlayerInfo pInfo, uint newProgress)
-            {
-                if (IsRecieved)
-                    return true;
-
-                if (newProgress <= Progress)
-                    return false;
-
-                var data = TypeData;
-
-                if (newProgress > data.Goal)
-                    newProgress = data.Goal;
-
-                if (newProgress == Progress)
-                    return false;
-
-                Progress = newProgress;
-
-                if (pInfo.PlayerData != null)
-                {
-                    pInfo.PlayerData.Player.TriggerEvent("Player::Achievements::Update", (int)Type, Progress, data.Goal);
-                }
-
-                if (Progress >= data.Goal)
-                {
-                    if (Progress > data.Goal)
-                        Progress = data.Goal;
-
-                    IsRecieved = true;
-
-                    if (data.Reward != null)
-                        Game.Items.Gift.Give(pInfo, data.Reward, true);
-
-                    MySQL.CharacterAchievementUpdate(pInfo, this);
-
-                    return true;
-                }
-                else
-                {
-                    MySQL.CharacterAchievementUpdate(pInfo, this);
-
-                    return false;
-                }
-            }
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace BlaineRP.Client.Game.Businesses
     {
         public GasStation(int id, Vector3 positionInfo, uint price, uint rent, float tax, Utils.Vector4 positionGas, Utils.Vector4 positionInteract) : base(id,
             positionInfo,
-            BusinessTypes.GasStation,
+            BusinessType.GasStation,
             price,
             rent,
             tax

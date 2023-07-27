@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.CasinoSystem.Games
+namespace BlaineRP.Server.Game.Casino.Games
 {
     public partial class LuckyWheel
     {
@@ -56,7 +58,7 @@ namespace BlaineRP.Server.Game.CasinoSystem.Games
 
             CurrentCID = pData.CID;
 
-            pData.PlayAnim(Sync.Animations.FastTypes.FakeAnim, SpinWheelAnimationTime);
+            pData.PlayAnim(FastType.FakeAnim, SpinWheelAnimationTime);
 
             Utils.TriggerEventInDistance(Position, Properties.Settings.Static.MainDimension, 50f, "Casino::LCWS", casinoId, wheelId, pData.Player.Id, (byte)zoneType, spinOffset);
 

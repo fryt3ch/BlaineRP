@@ -1,6 +1,5 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.RAGE.Ui;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 
 namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 {
@@ -11,10 +10,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void Show(string tariffName, decimal bankBalance, decimal savingsBalance)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Bank;
+            CEF.Phone.Phone.CurrentApp = AppType.Bank;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -33,7 +32,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void UpdateBalance(decimal balance)
         {
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.Bank)
+            if (CEF.Phone.Phone.CurrentApp != AppType.Bank)
                 return;
 
             Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tariff-info", 1, balance);

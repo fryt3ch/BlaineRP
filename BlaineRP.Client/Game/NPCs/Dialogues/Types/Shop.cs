@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.World;
@@ -50,13 +51,13 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
             AllDialogues["seller_furn_c_0"]
                .Buttons.InsertRange(0,
-                    Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]",
+                    System.Enum.GetValues(typeof(UI.CEF.Shop.FurnitureSubTypes)).Cast<UI.CEF.Shop.FurnitureSubTypes>().Select(x => new Button($"[{Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(x.GetType(), x.ToString(), "TITLE_0") ?? "null")}]",
                             () =>
                             {
                                 if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false))
                                     return;
                                 NPC.LastSent = Core.ServerTime;
-                                Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Business)?.Id ?? -1, (int)x.Key);
+                                Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Business)?.Id ?? -1, (int)x);
                             }
                         )
                     )

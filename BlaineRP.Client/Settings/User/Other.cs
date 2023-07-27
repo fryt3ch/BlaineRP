@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Settings.User
@@ -8,8 +8,8 @@ namespace BlaineRP.Client.Settings.User
     public static class Other
     {
         private static HashSet<string> _FavoriteAnimations;
-        private static EmotionTypes _CurrentEmotion;
-        private static WalkstyleTypes _CurrentWalkstyle;
+        private static EmotionType _CurrentEmotion;
+        private static WalkstyleType _CurrentWalkstyle;
 
         private static List<BlipsMenu.LocalBlip> _LocalBlips;
 
@@ -109,7 +109,7 @@ namespace BlaineRP.Client.Settings.User
             }
         }
 
-        public static EmotionTypes CurrentEmotion
+        public static EmotionType CurrentEmotion
         {
             get => _CurrentEmotion;
             set
@@ -120,7 +120,7 @@ namespace BlaineRP.Client.Settings.User
             }
         }
 
-        public static WalkstyleTypes CurrentWalkstyle
+        public static WalkstyleType CurrentWalkstyle
         {
             get => _CurrentWalkstyle;
             set
@@ -151,8 +151,8 @@ namespace BlaineRP.Client.Settings.User
 
             public static int PhoneWallpaperNum = 1;
             public static bool PhoneNotDisturb = false;
-            public static EmotionTypes CurrentEmotion = EmotionTypes.None;
-            public static WalkstyleTypes CurrentWalkstyle = WalkstyleTypes.None;
+            public static EmotionType CurrentEmotion = EmotionType.None;
+            public static WalkstyleType CurrentWalkstyle = WalkstyleType.None;
 
             public static HashSet<string> FavoriteAnimations => new HashSet<string>();
 

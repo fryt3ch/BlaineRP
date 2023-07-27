@@ -27,37 +27,37 @@ namespace BlaineRP.Client.Game.UI.CEF
     {
         public enum FurnitureSubTypes
         {
-            /// <summary>Кресла, стулья</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_CHAIRS_0", "TITLE_0")]
             Chairs = 0,
 
-            /// <summary>Столы</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_TABLES_0", "TITLE_0")]
             Tables,
 
-            /// <summary>Кровати</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_BEDS_0", "TITLE_0")]
             Beds,
 
-            /// <summary>Шкафы</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_CLOSETS_0", "TITLE_0")]
             Closets,
 
-            /// <summary>Растения</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_PLANTS_0", "TITLE_0")]
             Plants,
 
-            /// <summary>Лампы</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_LAMPS_0", "TITLE_0")]
             Lamps,
 
-            /// <summary>Электроника</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_ELECTRONICS_0", "TITLE_0")]
             Electronics,
 
-            /// <summary>Все для кухни</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_KITCHEN_0", "TITLE_0")]
             Kitchen,
 
-            /// <summary>Все для ванной</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_BATH_0", "TITLE_0")]
             Bath,
 
-            /// <summary>Картины</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_PICTURES_0", "TITLE_0")]
             Pictures,
 
-            /// <summary>Прочий декор</summary>
+            [Language.Localized("SHOP_FURNITURE_SUBTYPE_DECORES_0", "TITLE_0")]
             Decores,
         }
 
@@ -78,44 +78,6 @@ namespace BlaineRP.Client.Game.UI.CEF
             Shotguns,
             Ammo,
             Components,
-        }
-
-        public enum Types
-        {
-            None = -1,
-
-            ClothesShop1 = 0,
-            ClothesShop2,
-            ClothesShop3,
-
-            JewelleryShop,
-
-            MaskShop,
-
-            BagShop,
-
-            BarberShop,
-
-            TattooShop,
-
-            CarShop1,
-            CarShop2,
-            CarShop3,
-            MotoShop,
-            BoatShop,
-            AeroShop,
-
-            FurnitureShop,
-
-            Market,
-
-            GasStation,
-
-            TuningShop,
-
-            WeaponShop,
-
-            Farm,
         }
 
         private static Management.Camera.Core.StateTypes[] AllowedCameraStates;
@@ -142,35 +104,35 @@ namespace BlaineRP.Client.Game.UI.CEF
         private static Dictionary<int, (int, int)> RealClothes;
         private static Dictionary<int, (int, int)> RealAccessories;
 
-        private static Dictionary<Types, string> RetailJsTypes = new Dictionary<Types, string>()
+        private static Dictionary<Game.Businesses.BusinessType, string> RetailJsTypes = new Dictionary<Game.Businesses.BusinessType, string>()
         {
-            { Types.Market, "convenience" },
-            { Types.GasStation, "gas" },
-            { Types.WeaponShop, "weapon" },
+            { Game.Businesses.BusinessType.Market, "convenience" },
+            { Game.Businesses.BusinessType.GasStation, "gas" },
+            { Game.Businesses.BusinessType.WeaponShop, "weapon" },
 
-/*            { Types.FishingShop, "fish" },
+/*            { Game.Businesses.BusinessType.FishingShop, "fish" },
 
-            { Types.Bar, "bar" },*/
-            { Types.FurnitureShop, "furniture" },
+            { Game.Businesses.BusinessType.Bar, "bar" },*/
+            { Game.Businesses.BusinessType.FurnitureShop, "furniture" },
         };
 
-        private static Dictionary<Types, int> ShopJsTypes = new Dictionary<Types, int>()
+        private static Dictionary<Game.Businesses.BusinessType, int> ShopJsTypes = new Dictionary<Game.Businesses.BusinessType, int>()
         {
-            { Types.ClothesShop1, 0 },
-            { Types.ClothesShop2, 1 },
-            { Types.ClothesShop3, 2 },
-            { Types.JewelleryShop, 4 },
-            { Types.MaskShop, 3 },
-            { Types.BagShop, 5 },
-            { Types.CarShop1, 6 },
-            { Types.CarShop2, 7 },
-            { Types.CarShop3, 8 },
-            { Types.MotoShop, 9 },
-            { Types.BoatShop, 10 },
-            { Types.AeroShop, 11 },
+            { Game.Businesses.BusinessType.ClothesShop1, 0 },
+            { Game.Businesses.BusinessType.ClothesShop2, 1 },
+            { Game.Businesses.BusinessType.ClothesShop3, 2 },
+            { Game.Businesses.BusinessType.JewelleryShop, 4 },
+            { Game.Businesses.BusinessType.MaskShop, 3 },
+            { Game.Businesses.BusinessType.BagShop, 5 },
+            { Game.Businesses.BusinessType.CarShop1, 6 },
+            { Game.Businesses.BusinessType.CarShop2, 7 },
+            { Game.Businesses.BusinessType.CarShop3, 8 },
+            { Game.Businesses.BusinessType.MotoShop, 9 },
+            { Game.Businesses.BusinessType.BoatShop, 10 },
+            { Game.Businesses.BusinessType.AeroShop, 11 },
         };
 
-        private static Dictionary<Types, Dictionary<string, uint>> Prices = new Dictionary<Types, Dictionary<string, uint>>();
+        private static Dictionary<Game.Businesses.BusinessType, Dictionary<string, uint>> Prices = new Dictionary<Game.Businesses.BusinessType, Dictionary<string, uint>>();
 
         private static Dictionary<FurnitureSubTypes, Furniture.Types[]> FurnitureSections = new Dictionary<FurnitureSubTypes, Furniture.Types[]>()
         {
@@ -249,10 +211,10 @@ namespace BlaineRP.Client.Game.UI.CEF
             },
         };
 
-        private static Dictionary<Types, Dictionary<SectionTypes, string[]>> RetailSections = new Dictionary<Types, Dictionary<SectionTypes, string[]>>()
+        private static Dictionary<Game.Businesses.BusinessType, Dictionary<SectionTypes, string[]>> RetailSections = new Dictionary<Game.Businesses.BusinessType, Dictionary<SectionTypes, string[]>>()
         {
             {
-                Types.Market, new Dictionary<SectionTypes, string[]>()
+                Game.Businesses.BusinessType.Market, new Dictionary<SectionTypes, string[]>()
                 {
                     {
                         SectionTypes.Food, new string[]
@@ -290,7 +252,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
             },
             {
-                Types.WeaponShop, new Dictionary<SectionTypes, string[]>()
+                Game.Businesses.BusinessType.WeaponShop, new Dictionary<SectionTypes, string[]>()
                 {
                     {
                         SectionTypes.Melee, new string[]
@@ -391,7 +353,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             Events.Add("Shop::Show",
                 async (object[] args) =>
                 {
-                    var type = (Types)(int)args[0];
+                    var type = (Game.Businesses.BusinessType)(int)args[0];
                     var margin = Utils.Convert.ToDecimal(args[1]);
 
                     CurrentMargin = margin;
@@ -407,7 +369,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     CurrentMargin = Utils.Convert.ToDecimal(args[0]);
 
-                    if (CurrentType == Types.None)
+                    if (CurrentType == null)
                         return;
 
                     UpdateMargin();
@@ -438,7 +400,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     //Utils.ConsoleOutputLimited(id);
 
-                    if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+                    if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                     {
                         if (TempVehicle == null)
                             return;
@@ -456,7 +418,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             TempVehicle.SetCustomSecondaryColour(colour.Red, colour.Green, colour.Blue);
                         }
                     }
-                    else if (CurrentType == Types.TuningShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.TuningShop)
                     {
                         if (TempVehicle == null)
                             return;
@@ -492,7 +454,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             Events.Add("Shop::TestDrive",
                 async (object[] args) =>
                 {
-                    if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+                    if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                     {
                         if (TempVehicle?.Exists != true || TestDriveActive)
                             return;
@@ -554,7 +516,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (pData == null)
                         return;
 
-                    if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.BagShop)
+                    if (CurrentType >= Game.Businesses.BusinessType.ClothesShop1 && CurrentType <= Game.Businesses.BusinessType.BagShop)
                     {
                         var newItem = false;
 
@@ -592,7 +554,7 @@ namespace BlaineRP.Client.Game.UI.CEF
     
                                             Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
                     }
-                    else if (CurrentType == Types.TattooShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.TattooShop)
                     {
                         var mainId = (string)args[0];
 
@@ -623,7 +585,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                         }
                     }
-                    else if (CurrentType == Types.BarberShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.BarberShop)
                     {
                         if (args.Length == 1)
                         {
@@ -842,7 +804,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                         }
                     }
-                    else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+                    else if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                     {
                         TempVehicle?.Destroy();
 
@@ -892,7 +854,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         TempVehicle.FreezePosition(true);
                     }
-                    else if (CurrentType == Types.TuningShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.TuningShop)
                     {
                         if (TempVehicle == null)
                             return;
@@ -1029,9 +991,9 @@ namespace BlaineRP.Client.Game.UI.CEF
             Events.Add("Shop::Action",
                 (object[] args) =>
                 {
-                    if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
+                    if (CurrentType >= Game.Businesses.BusinessType.ClothesShop1 && CurrentType <= Game.Businesses.BusinessType.ClothesShop3)
                         Data.Customization.Clothes.Action(CurrentItem, CurrentVariation);
-                    else if (CurrentType == Types.JewelleryShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.JewelleryShop)
                         if (CurrentItem?.StartsWith("ring") == true)
                         {
                             bool isLeft = Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft");
@@ -1085,7 +1047,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (pData == null)
                         return;
 
-                    if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
+                    if (CurrentType >= Game.Businesses.BusinessType.ClothesShop1 && CurrentType <= Game.Businesses.BusinessType.ClothesShop3)
                     {
                         if (id == 0 || id == 1)
                             ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
@@ -1100,7 +1062,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         else if (id == 9)
                             ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHand));
                     }
-                    else if (CurrentType == Types.JewelleryShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.JewelleryShop)
                     {
                         if (id == 0)
                             ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
@@ -1114,7 +1076,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 )
                             );
                     }
-                    else if (CurrentType == Types.TattooShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.TattooShop)
                     {
                         if (id >= 0 && id <= 3)
                             ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
@@ -1131,7 +1093,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         else if (id == 10)
                             ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightLeg));
                     }
-                    else if (CurrentType == Types.BarberShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.BarberShop)
                     {
                         if (Player.LocalPlayer.HasData("TempAppearance::Chest"))
                         {
@@ -1180,7 +1142,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     CurrentItem = null;
                     CurrentVariation = 0;
 
-                    if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
+                    if (CurrentType >= Game.Businesses.BusinessType.ClothesShop1 && CurrentType <= Game.Businesses.BusinessType.ClothesShop3)
                     {
                         if (CurrentNavigation == 0)
                             Data.Customization.Clothes.Unwear(typeof(Hat));
@@ -1203,7 +1165,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         else if (CurrentNavigation == 9)
                             Data.Customization.Clothes.Unwear(typeof(Bracelet));
                     }
-                    else if (CurrentType == Types.JewelleryShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.JewelleryShop)
                     {
                         if (CurrentNavigation == 0)
                             Data.Customization.Clothes.Unwear(typeof(Accessory));
@@ -1218,7 +1180,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             Events.Add("Shop::Buy",
                 async (object[] args) =>
                 {
-                    if (CurrentType == Types.None)
+                    if (CurrentType == null)
                         return;
 
                     var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -1233,7 +1195,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     LastSent = World.Core.ServerTime;
 
-                    if (CurrentType == Types.TuningShop)
+                    if (CurrentType == Game.Businesses.BusinessType.TuningShop)
                     {
                         if (TempVehicle == null)
                             return;
@@ -1449,7 +1411,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                     Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
-                    else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+                    else if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                     {
                         if (TempVehicle == null)
                             return;
@@ -1466,7 +1428,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                         }
                     }
-                    else if (CurrentType == Types.TattooShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.TattooShop)
                     {
                         Dictionary<int, Customization.TattooData> decors = Player.LocalPlayer.GetData<Dictionary<int, Customization.TattooData>>("TempDecorations");
 
@@ -1495,7 +1457,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                     Browser.Window.ExecuteJs("Tattoo.buyVariant", mainId, boughtItemId);
                         }
                     }
-                    else if (CurrentType == Types.BarberShop)
+                    else if (CurrentType == Game.Businesses.BusinessType.BarberShop)
                     {
                         var itemMainId = (string)args[1];
 
@@ -1563,7 +1525,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (itemId == null)
                             return;
 
-                        if (CurrentType == Types.FurnitureShop)
+                        if (CurrentType == Game.Businesses.BusinessType.FurnitureShop)
                         {
                             if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{itemId}", useCash))
                             {
@@ -1586,7 +1548,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (!IsRenderedRetail)
                         return;
 
-                    if (CurrentType == Types.FurnitureShop)
+                    if (CurrentType == Game.Businesses.BusinessType.FurnitureShop)
                     {
                         var itemId = (string)args[0];
 
@@ -1648,8 +1610,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static decimal CurrentMargin { get; set; }
 
-        /// <summary>Тип текущего магазина</summary>
-        private static Types CurrentType { get; set; } = Types.None;
+        private static Game.Businesses.BusinessType? CurrentType { get; set; }
 
         private static ExtraColshape CloseColshape { get; set; }
 
@@ -1663,7 +1624,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static int CurrentCameraStateNum { get; set; }
 
-        public static async System.Threading.Tasks.Task Show(Types type, float? heading, object[] args)
+        public static async System.Threading.Tasks.Task Show(Game.Businesses.BusinessType type, float? heading, object[] args)
         {
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
@@ -1702,7 +1663,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Input.Core.DisableAll(Input.Enums.BindTypes.Cursor);
 
-                        if (type == Types.BarberShop)
+                        if (type == Game.Businesses.BusinessType.BarberShop)
                         {
                             Dictionary<string, uint> prices = GetPrices(type);
 
@@ -1941,7 +1902,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
                         }
-                        else if (type == Types.TattooShop)
+                        else if (type == Game.Businesses.BusinessType.TattooShop)
                         {
                             Dictionary<string, uint> prices = GetPrices(type);
 
@@ -2022,7 +1983,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                                            )
                             );
                         }
-                        else if (type >= Types.ClothesShop1 && type <= Types.ClothesShop3)
+                        else if (type >= Game.Businesses.BusinessType.ClothesShop1 && type <= Game.Businesses.BusinessType.ClothesShop3)
                         {
                             await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -2076,7 +2037,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false);
 
-                            Dictionary<string, uint> prices = GetPrices(CurrentType);
+                            Dictionary<string, uint> prices = CurrentType is Game.Businesses.BusinessType curType ? GetPrices(curType) : null;
 
                             if (prices == null)
                                 return;
@@ -2187,7 +2148,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Switch(Browser.IntTypes.Shop, true);
                         }
-                        else if (type == Types.BagShop)
+                        else if (type == Game.Businesses.BusinessType.BagShop)
                         {
                             await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -2210,7 +2171,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
 
-                            Dictionary<string, uint> prices = GetPrices(CurrentType);
+                            Dictionary<string, uint> prices = CurrentType is Game.Businesses.BusinessType curType ? GetPrices(curType) : null;
 
                             var bags = new List<object>();
 
@@ -2240,7 +2201,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.fillContainer", 0, bags);
                         }
-                        else if (type == Types.JewelleryShop)
+                        else if (type == Game.Businesses.BusinessType.JewelleryShop)
                         {
                             await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -2251,7 +2212,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
                             if (pData.WearedRing is AttachmentObject atObj)
-                                Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", atObj.Type == AttachmentTypes.PedRingLeft3);
+                                Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", atObj.Type == AttachmentType.PedRingLeft3);
                             else
                                 Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", false);
 
@@ -2276,7 +2237,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             RealAccessories = Data.Customization.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
-                            Dictionary<string, uint> prices = GetPrices(CurrentType);
+                            Dictionary<string, uint> prices = CurrentType is Game.Businesses.BusinessType curType ? GetPrices(curType) : null;
 
                             var clearingItem = new object[]
                             {
@@ -2345,7 +2306,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             Browser.Window.ExecuteJs("Shop.fillContainer", 1, earrings);
                             Browser.Window.ExecuteJs("Shop.fillContainer", 2, rings);
                         }
-                        else if (type == Types.MaskShop)
+                        else if (type == Game.Businesses.BusinessType.MaskShop)
                         {
                             await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -2368,7 +2329,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
 
-                            Dictionary<string, uint> prices = GetPrices(CurrentType);
+                            Dictionary<string, uint> prices = CurrentType is Game.Businesses.BusinessType curType ? GetPrices(curType) : null;
 
                             var masks = new List<object>();
 
@@ -2394,7 +2355,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.fillContainer", 0, masks);
                         }
-                        else if (type >= Types.CarShop1 && type <= Types.AeroShop)
+                        else if (type >= Game.Businesses.BusinessType.CarShop1 && type <= Game.Businesses.BusinessType.AeroShop)
                         {
                             await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -2450,11 +2411,14 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 )
                             );
                         }
-                        else if (type == Types.TuningShop)
+                        else if (type == Game.Businesses.BusinessType.TuningShop)
                         {
                             var vClassMargin = (float)args[0];
 
-                            var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vClassMargin);
+                            var prices = (CurrentType is Game.Businesses.BusinessType curType ? GetPrices(curType) : null)?.ToDictionary(x => x.Key, x => x.Value * vClassMargin);
+
+                            if (prices == null)
+                                return;
 
                             Player.LocalPlayer.ClearTasksImmediately();
 
@@ -2960,7 +2924,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 if (prices == null)
                     return;
 
-                if (type == Types.FurnitureShop)
+                if (type == Game.Businesses.BusinessType.FurnitureShop)
                 {
                     var subTypeNum = (int)args[0];
 
@@ -3122,7 +3086,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         public static async void Close(bool ignoreTimeout = false, bool request = true)
         {
-            if (CurrentType == Types.None)
+            if (CurrentType == null)
                 return;
 
             var pData = PlayerData.GetData(Player.LocalPlayer);
@@ -3130,7 +3094,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            if (CurrentType == Types.TuningShop &&
+            if (CurrentType == Game.Businesses.BusinessType.TuningShop &&
                 ActionBox.CurrentContextStr != null &&
                 (ActionBox.CurrentContextStr == "TuningShopDeleteMod" || ActionBox.CurrentContextStr == "TuningShopKeysTag"))
                 ActionBox.Close(true);
@@ -3190,21 +3154,21 @@ namespace BlaineRP.Client.Game.UI.CEF
                     Player.LocalPlayer.ResetData("TempDecorations");
                 }
 
-                if (CurrentType == Types.JewelleryShop)
+                if (CurrentType == Game.Businesses.BusinessType.JewelleryShop)
                 {
                     Player.LocalPlayer.ResetData("Temp::JewelShop::RingIsLeft");
 
                     Data.Customization.Clothes.Unwear(typeof(Ring));
                 }
 
-                if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
+                if (CurrentType == Game.Businesses.BusinessType.ClothesShop1 || CurrentType == Game.Businesses.BusinessType.ClothesShop2 || CurrentType == Game.Businesses.BusinessType.ClothesShop3)
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Top");
                     Player.LocalPlayer.ResetData("TempClothes::Under");
                     Player.LocalPlayer.ResetData("TempClothes::Gloves");
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
                 }
-                else if (CurrentType == Types.BarberShop)
+                else if (CurrentType == Game.Businesses.BusinessType.BarberShop)
                 {
                     Player.LocalPlayer.ResetData("TempAppearance::Hair");
                     Player.LocalPlayer.ResetData("TempAppearance::Beard");
@@ -3214,7 +3178,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     Player.LocalPlayer.ResetData("TempAppearance::Blush");
                     Player.LocalPlayer.ResetData("TempAppearance::Makeup");
                 }
-                else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+                else if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                 {
                     StopTestDrive();
 
@@ -3224,7 +3188,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     TempVehicle = null;
                 }
-                else if (CurrentType == Types.TuningShop)
+                else if (CurrentType == Game.Businesses.BusinessType.TuningShop)
                 {
                     TempVehicle = null;
                 }
@@ -3272,7 +3236,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     StopRetailPreview();
                 }
 
-                CurrentType = Types.None;
+                CurrentType = null;
 
                 foreach (int x in TempBinds)
                 {
@@ -3288,12 +3252,12 @@ namespace BlaineRP.Client.Game.UI.CEF
         /// <summary>Получить цены по типу магазина</summary>
         /// <typeparam name="T">Тип выходных данных (Dictionary(string, int) or Dictionary(SectionTypes, Dictionary(string, int))></typeparam>
         /// <param name="type">Тип магазина</param>
-        public static Dictionary<string, uint> GetPrices(Types type)
+        public static Dictionary<string, uint> GetPrices(Game.Businesses.BusinessType type)
         {
             return Prices.GetValueOrDefault(type);
         }
 
-        private static Dictionary<SectionTypes, string[]> GetSections(Types type)
+        private static Dictionary<SectionTypes, string[]> GetSections(Game.Businesses.BusinessType type)
         {
             return RetailSections.GetValueOrDefault(type);
         }
@@ -3427,7 +3391,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (AllowedCameraStates == null)
                 return;
 
-            if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+            if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                 if (TempVehicle == null || TestDriveActive)
                     return;
 
@@ -3481,7 +3445,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (AllowedCameraStates == null)
                 return;
 
-            if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
+            if (CurrentType >= Game.Businesses.BusinessType.CarShop1 && CurrentType <= Game.Businesses.BusinessType.AeroShop)
                 if (TempVehicle == null || TestDriveActive)
                     return;
 

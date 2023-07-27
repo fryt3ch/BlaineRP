@@ -1,10 +1,12 @@
 ﻿using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
 
 namespace BlaineRP.Server.Game.Fractions
 {
     public class Mafia : Fraction
     {
-        public Mafia(Types Type, string Name) : base(Type, Name)
+        public Mafia(FractionType Type, string Name) : base(Type, Name)
         {
 
         }

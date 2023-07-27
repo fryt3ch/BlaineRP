@@ -4,7 +4,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
@@ -16,11 +15,12 @@ using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Items;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.UI.CEF;
+using BlaineRP.Client.Game.UI.CEF.Phone;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Language;
 using BlaineRP.Client.Settings.App;
 using BlaineRP.Client.Settings.User;
@@ -71,7 +71,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                         if (pData.ActualAnimation is Animation anim)
                             if (!pData.Player.IsPlayingAnim(anim.Dict, anim.Name, 3))
-                                Animations.Core.Play(pData.Player, anim);
+                                Management.Animations.Core.Play(pData.Player, anim);
 
                         if (players[i].GetData<Action>("AttachMethod") is Action act)
                             act.Invoke();
@@ -120,7 +120,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                     var data = new PlayerData(RAGE.Elements.Player.LocalPlayer);
 
-                    data.FastAnim = FastTypes.None;
+                    data.FastAnim = FastType.None;
 
                     var sData = (JObject)args[0];
 
@@ -193,7 +193,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                     {
                         string[] shbData = ((string)value10).Split('_');
 
-                        data.SettledHouseBase = (Estates.Core.HouseTypes)int.Parse(shbData[0]) == Estates.Core.HouseTypes.House
+                        data.SettledHouseBase = (Estates.HouseBase.Types)int.Parse(shbData[0]) == Estates.HouseBase.Types.House
                             ? House.All[uint.Parse(shbData[1])]
                             : (HouseBase)Apartments.All[uint.Parse(shbData[1])];
                     }
@@ -620,8 +620,8 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         }
                     }
 
-                    if (UI.CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
-                        UI.CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
+                    if (UI.CEF.Phone.Phone.CurrentApp == AppType.Vehicles)
+                        UI.CEF.Phone.Phone.ShowApp(null, AppType.Vehicles);
                 }
             );
 
@@ -904,13 +904,13 @@ namespace BlaineRP.Client.Game.Scripts.Sync
             Events.Add("Player::SettledHB",
                 args =>
                 {
-                    var pType = (Estates.Core.HouseTypes)(int)args[0];
+                    var pType = (Estates.HouseBase.Types)(int)args[0];
 
                     var pId = (uint)(int)args[1];
 
                     var state = (bool)args[2];
 
-                    HouseBase house = pType == Estates.Core.HouseTypes.House ? House.All[pId] : (HouseBase)Apartments.All[pId];
+                    HouseBase house = pType == Estates.HouseBase.Types.House ? House.All[pId] : (HouseBase)Apartments.All[pId];
 
                     house.ToggleOwnerBlip(state);
 
@@ -922,7 +922,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         {
                             Notification.Show(Notification.Types.Information,
                                 Locale.Get("NOTIFICATION_HEADER_DEF"),
-                                string.Format(pType == Estates.Core.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments,
+                                string.Format(pType == Estates.HouseBase.Types.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments,
                                     playerInit.GetName(true, false, true)
                                 )
                             );
@@ -932,12 +932,12 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                             if (playerInit?.Handle == RAGE.Elements.Player.LocalPlayer.Handle)
                                 Notification.Show(Notification.Types.Information,
                                     Locale.Get("NOTIFICATION_HEADER_DEF"),
-                                    pType == Estates.Core.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf
+                                    pType == Estates.HouseBase.Types.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf
                                 );
                             else
                                 Notification.Show(Notification.Types.Information,
                                     Locale.Get("NOTIFICATION_HEADER_DEF"),
-                                    string.Format(pType == Estates.Core.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments,
+                                    string.Format(pType == Estates.HouseBase.Types.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments,
                                         playerInit.GetName(true, false, true)
                                     )
                                 );
@@ -948,12 +948,12 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         if (state)
                             Notification.Show(Notification.Types.Information,
                                 Locale.Get("NOTIFICATION_HEADER_DEF"),
-                                pType == Estates.Core.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto
+                                pType == Estates.HouseBase.Types.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto
                             );
                         else
                             Notification.Show(Notification.Types.Information,
                                 Locale.Get("NOTIFICATION_HEADER_DEF"),
-                                pType == Estates.Core.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto
+                                pType == Estates.HouseBase.Types.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto
                             );
                     }
                 }
@@ -992,8 +992,8 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                             data.OwnedVehicles.RemoveAt(idx);
                         }
 
-                        if (UI.CEF.Phone.Phone.CurrentApp == AppTypes.Vehicles)
-                            UI.CEF.Phone.Phone.ShowApp(null, AppTypes.Vehicles);
+                        if (UI.CEF.Phone.Phone.CurrentApp == AppType.Vehicles)
+                            UI.CEF.Phone.Phone.ShowApp(null, AppType.Vehicles);
                     }
                     else if (pType == PropertyTypes.House)
                     {
@@ -1394,7 +1394,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 {
                     RAGE.Elements.Player player = pData.Player;
 
-                    var emotion = (EmotionTypes)((int?)value ?? -1);
+                    var emotion = (EmotionType)((int?)value ?? -1);
 
                     if (player.Handle == RAGE.Elements.Player.LocalPlayer.Handle)
                     {
@@ -1403,7 +1403,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         UI.CEF.Animations.ToggleAnim("e-" + emotion, true);
                     }
 
-                    Animations.Core.Set(player, emotion);
+                    Management.Animations.Core.Set(player, emotion);
                 }
             );
 
@@ -1412,7 +1412,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 {
                     RAGE.Elements.Player player = pData.Player;
 
-                    var wStyle = (WalkstyleTypes)((int?)value ?? -1);
+                    var wStyle = (WalkstyleType)((int?)value ?? -1);
 
                     if (player.Handle == RAGE.Elements.Player.LocalPlayer.Handle)
                     {
@@ -1422,7 +1422,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                     }
 
                     if (!pData.CrouchOn)
-                        Animations.Core.Set(player, wStyle);
+                        Management.Animations.Core.Set(player, wStyle);
                 }
             );
 
@@ -1431,14 +1431,14 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 {
                     RAGE.Elements.Player player = pData.Player;
 
-                    var anim = (OtherTypes)((int?)value ?? -1);
+                    var anim = (OtherType)((int?)value ?? -1);
 
                     if (player.Handle == RAGE.Elements.Player.LocalPlayer.Handle)
                     {
-                        if (anim == OtherTypes.None)
+                        if (anim == OtherType.None)
                         {
                             if (oldValue is int oldAnim)
-                                UI.CEF.Animations.ToggleAnim("a-" + (OtherTypes)oldAnim, false);
+                                UI.CEF.Animations.ToggleAnim("a-" + (OtherType)oldAnim, false);
 
                             Main.Render -= UI.CEF.Animations.Render;
 
@@ -1453,17 +1453,17 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         }
                     }
 
-                    if (anim == OtherTypes.None)
+                    if (anim == OtherType.None)
                     {
-                        Animations.Core.Stop(player);
+                        Management.Animations.Core.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        Animation animData = Animations.Core.OtherAnimsList[anim];
+                        Animation animData = Management.Animations.Core.OtherAnimsList[anim];
 
-                        Animations.Core.Play(player, animData);
+                        Management.Animations.Core.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1475,19 +1475,19 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 {
                     RAGE.Elements.Player player = pData.Player;
 
-                    var anim = (GeneralTypes)((int?)value ?? -1);
+                    var anim = (GeneralType)((int?)value ?? -1);
 
-                    if (anim == GeneralTypes.None)
+                    if (anim == GeneralType.None)
                     {
-                        Animations.Core.Stop(player);
+                        Management.Animations.Core.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        Animation animData = Animations.Core.GeneralAnimsList[anim];
+                        Animation animData = Management.Animations.Core.GeneralAnimsList[anim];
 
-                        Animations.Core.Play(player, animData);
+                        Management.Animations.Core.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1843,9 +1843,9 @@ namespace BlaineRP.Client.Game.Scripts.Sync
             if (phoneStateType != Misc.Phone.PhoneStateTypes.Off)
                 Misc.Phone.SetState(player, phoneStateType);
 
-            if (data.GeneralAnim != GeneralTypes.None)
+            if (data.GeneralAnim != GeneralType.None)
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim);
-            else if (data.OtherAnim != OtherTypes.None)
+            else if (data.OtherAnim != OtherType.None)
                 InvokeHandler("Anim::Other", data, (int)data.OtherAnim);
         }
 
@@ -1955,7 +1955,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
             await ActionBox.ShowSelect("WeaponSkinsMenuSelect",
                 Locale.Actions.WeaponSkinsMenuSelectHeader,
-                wSkins.Select(x => ((decimal)x.Key, $"{Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null"} | {Items.Core.GetName(x.Value).Split(' ')[0]}"))
+                wSkins.Select(x => ((decimal)x.Key, $"{Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(x.Key.GetType(), x.Key.ToString(), "CHOOSE_TEXT_0") ?? "null")} | {Items.Core.GetName(x.Value).Split(' ')[0]}"))
                       .ToArray(),
                 Locale.Actions.SelectOkBtn1,
                 Locale.Actions.SelectCancelBtn1,

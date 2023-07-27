@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Extensions.System;
 
 namespace BlaineRP.Server.Game.Items.Craft
 {
@@ -376,7 +378,7 @@ namespace BlaineRP.Server.Game.Items.Craft
                 if (Items[i] == null || Items[i] is Game.Items.WorkbenchTool)
                     continue;
 
-                Sync.World.AddItemOnGround(null, Items[i], pos, rot, dim, Sync.World.ItemOnGround.Types.Default);
+                World.Service.AddItemOnGround(null, Items[i], pos, rot, dim, World.Service.ItemOnGround.Types.Default);
 
 
                 Items[i] = null;
@@ -384,7 +386,7 @@ namespace BlaineRP.Server.Game.Items.Craft
 
             if (ResultItem != null)
             {
-                Sync.World.AddItemOnGround(null, ResultItem, pos, rot, dim, Sync.World.ItemOnGround.Types.Default);
+                World.Service.AddItemOnGround(null, ResultItem, pos, rot, dim, World.Service.ItemOnGround.Types.Default);
 
                 ResultItem = null;
             }
@@ -401,7 +403,7 @@ namespace BlaineRP.Server.Game.Items.Craft
     {
         public static ItemWorkbench Get(uint uid) => Workbench.Get(Types.ItemWorkbench, uid) as ItemWorkbench;
 
-        public Sync.World.ItemOnGround OwnerEntity { get; set; }
+        public World.Service.ItemOnGround OwnerEntity { get; set; }
 
         public override bool IsNear(PlayerData pData)
         {
@@ -425,7 +427,7 @@ namespace BlaineRP.Server.Game.Items.Craft
             return OwnerEntity.PlayerHasAccess(pData, true, true);
         }
 
-        public ItemWorkbench(uint Uid, WorkbenchTypes Workbenchtype, Sync.World.ItemOnGround OwnerEntity) : base(Uid, Types.ItemWorkbench, Workbenchtype)
+        public ItemWorkbench(uint Uid, WorkbenchTypes Workbenchtype, World.Service.ItemOnGround OwnerEntity) : base(Uid, Types.ItemWorkbench, Workbenchtype)
         {
             this.OwnerEntity = OwnerEntity;
         }

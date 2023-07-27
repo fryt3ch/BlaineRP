@@ -1,5 +1,8 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Sync
 {
@@ -7,16 +10,16 @@ namespace BlaineRP.Server.Sync
     {
         public class VehicleSpawnData
         {
-            public List<Utils.Vector4> SpawnPositions { get; set; }
+            public List<Vector4> SpawnPositions { get; set; }
 
             public int LastSpawnUsed { get; set; }
 
-            public VehicleSpawnData(List<Utils.Vector4> spawnPositions)
+            public VehicleSpawnData(List<Vector4> spawnPositions)
             {
                 SpawnPositions = spawnPositions;
             }
 
-            public Utils.Vector4 GetNextVehicleSpawnPosition()
+            public Vector4 GetNextVehicleSpawnPosition()
             {
                 var idx = LastSpawnUsed + 1;
 
@@ -32,15 +35,15 @@ namespace BlaineRP.Server.Sync
         private static Dictionary<string, VehicleSpawnData> VehiclePoundsData = new Dictionary<string, VehicleSpawnData>()
         {
             {
-                "vpound_w_0", new VehicleSpawnData(new List<Utils.Vector4>()
+                "vpound_w_0", new VehicleSpawnData(new List<Vector4>()
                 {
-                    new Utils.Vector4(496.2596f, -60.01876f, 77.08006f, 151.5f),
-                    new Utils.Vector4(472.8677f, -61.93843f, 77.08006f, 151.5f),
-                    new Utils.Vector4(476.3974f, -63.99604f, 77.08006f, 151.5f),
+                    new Vector4(496.2596f, -60.01876f, 77.08006f, 151.5f),
+                    new Vector4(472.8677f, -61.93843f, 77.08006f, 151.5f),
+                    new Vector4(476.3974f, -63.99604f, 77.08006f, 151.5f),
 
-                    new Utils.Vector4(463.2267f, -70.33319f, 77.08006f, 337.8f),
-                    new Utils.Vector4(466.5417f, -71.52922f, 77.08006f, 339.2f),
-                    new Utils.Vector4(469.9377f, -73.03962f, 77.08006f, 339.9f),
+                    new Vector4(463.2267f, -70.33319f, 77.08006f, 337.8f),
+                    new Vector4(466.5417f, -71.52922f, 77.08006f, 339.2f),
+                    new Vector4(469.9377f, -73.03962f, 77.08006f, 339.9f),
                 })
             },
         };
@@ -48,9 +51,9 @@ namespace BlaineRP.Server.Sync
         private static Dictionary<string, VehicleSpawnData> VehicleRentSData = new Dictionary<string, VehicleSpawnData>()
         {
             {
-                "vrent_s_0", new VehicleSpawnData(new List<Utils.Vector4>()
+                "vrent_s_0", new VehicleSpawnData(new List<Vector4>()
                 {
-                    new Utils.Vector4(-723.2322f, 5822.186f, 16.72265f, 178.3725f),
+                    new Vector4(-723.2322f, 5822.186f, 16.72265f, 178.3725f),
                 })
             },
         };
@@ -79,7 +82,7 @@ namespace BlaineRP.Server.Sync
             }
         }
 
-        public static bool TryLocateOwnedVehicle(PlayerData pData, VehicleData.VehicleInfo vInfo)
+        public static bool TryLocateOwnedVehicle(PlayerData pData, VehicleInfo vInfo)
         {
             if (vInfo.IsOnVehiclePound)
             {
@@ -170,7 +173,7 @@ namespace BlaineRP.Server.Sync
 
             pData.VehicleSeat = -1;
 
-            if (vData.OwnerID == pData.CID && (vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob))
+            if (vData.OwnerID == pData.CID && (vData.OwnerType == OwnerTypes.PlayerRent || vData.OwnerType == OwnerTypes.PlayerRentJob))
             {
                 vData.StartDeletionTask(Properties.Settings.Static.RENTED_VEHICLE_TIME_TO_AUTODELETE);
             }

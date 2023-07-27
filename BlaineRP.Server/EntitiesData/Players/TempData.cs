@@ -1,47 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
-    public class TempData
+    public partial class TempData
     {
         public static Dictionary<Player, TempData> Players = new Dictionary<Player, TempData>();
-
-        public enum StepTypes : byte
-        {
-            /// <summary>Регистрация/вход</summary>
-            None = 0,
-            /// <summary>Выбор персонажа</summary>
-            CharacterSelection,
-            /// <summary>Создание персонажа</summary>
-            CharacterCreation,
-            /// <summary>Выбор места спавна</summary>
-            StartPlace,
-
-            AuthRegistration,
-            AuthLogin,
-        }
-
-        public enum StartPlaceTypes : byte
-        {
-            /// <summary>Последнее место на сервере</summary>
-            Last = 0,
-            /// <summary>Спавн (Округ Блэйн)</summary>
-            SpawnBlaineCounty,
-            /// <summary>Дом</summary>
-            House,
-            /// <summary>Квартира</summary>
-            Apartments,
-            /// <summary>Фракция</summary>
-            Fraction,
-            /// <summary>Организация</summary>
-            Organisation,
-            /// <summary>Спавн (Лос-Сантос)</summary>
-            SpawnLosSantos,
-            /// <summary>Фракция (филиал)</summary>
-            FractionBranch,
-        }
 
         /// <summary>Получить TempData игрока</summary>
         /// <returns>Объект класса TempData если существует, иначе - null</returns>
@@ -98,7 +64,7 @@ namespace BlaineRP.Server.EntityData.Players
 
         public PlayerData PlayerData { get; set; }
 
-        public Utils.Vector4 PositionToSpawn { get; set; }
+        public Vector4 PositionToSpawn { get; set; }
 
         public uint DimensionToSpawn { get; set; }
 
@@ -181,7 +147,7 @@ namespace BlaineRP.Server.EntityData.Players
                 sTypes.Add(PlayerData.SettledHouseBase.Type == Game.Estates.HouseBase.Types.House ? StartPlaceTypes.House : StartPlaceTypes.Apartments);
             }
 
-            if (PlayerData.Fraction != Game.Fractions.Types.None)
+            if (PlayerData.Fraction != Game.Fractions.FractionType.None)
             {
                 var fData = Game.Fractions.Fraction.Get(PlayerData.Fraction);
 

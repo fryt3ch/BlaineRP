@@ -24,7 +24,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
 
                     NPC npc = NPC.CurrentNPC;
 
-                    var casino = npc?.Data as Game.Casino.Casino;
+                    var casino = npc?.Data as Game.Casino.CasinoEntity;
 
                     if (casino == null)
                         return;
@@ -190,7 +190,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     {
                         NPC npc = NPC.CurrentNPC;
 
-                        var casino = npc?.Data as Game.Casino.Casino;
+                        var casino = npc?.Data as Game.Casino.CasinoEntity;
 
                         if (casino == null)
                             return;
@@ -231,7 +231,7 @@ namespace BlaineRP.Client.Game.NPCs.Dialogues
                     {
                         NPC npc = NPC.CurrentNPC;
 
-                        var casino = npc?.Data as Game.Casino.Casino;
+                        var casino = npc?.Data as Game.Casino.CasinoEntity;
 
                         if (casino == null)
                             return;

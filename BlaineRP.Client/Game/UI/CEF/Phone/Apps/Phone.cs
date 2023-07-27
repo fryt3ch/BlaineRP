@@ -8,7 +8,6 @@ using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Input.Enums;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -161,8 +160,8 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                                     ShowIncomingCall(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number));
                                 else
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationIncCallSubj,
-                                        string.Format(Locale.General.FiveNotificationIncCallText, Input.Core.Get(BindTypes.Phone).GetKeyString())
+                                        Locale.Get("PHONE_CALL_INCOMING_0"),
+                                        string.Format(Locale.Get("PHONE_CALL_INCOMING_HINT_0"), Input.Core.Get(BindTypes.Phone).GetKeyString())
                                     );
                             }
                         }
@@ -181,20 +180,20 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                         CancelActiveCallUpdateTask();
 
                         if (CEF.Phone.Phone.IsActive)
-                            CEF.Phone.Phone.ShowApp(pData, AppTypes.None);
+                            CEF.Phone.Phone.ShowApp(pData, AppType.None);
 
                         if (callInfo.Player != null)
                         {
                             callInfo.Player.VoiceVolume = 0f;
 
-                            var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT,
+                            var callDurationText = string.Format(Locale.Get("PHONE_CALL_END_INFO_0"),
                                 World.Core.ServerTime.Subtract(callInfo.StartDate).GetBeautyString()
                             );
 
                             if (cancelType == CancelTypes.ServerAuto)
                             {
                                 Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                    Locale.General.FiveNotificationEndCallSubj0,
+                                    Locale.Get("PHONE_CALL_END_0"),
                                     callDurationText
                                 );
                             }
@@ -202,12 +201,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             {
                                 if (callInfo.IsMeCaller)
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj10,
+                                        Locale.Get("PHONE_CALL_END_3"),
                                         callDurationText
                                     );
                                 else
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj20,
+                                        Locale.Get("PHONE_CALL_END_4"),
                                         callDurationText
                                     );
                             }
@@ -215,12 +214,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             {
                                 if (callInfo.IsMeCaller)
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj1,
+                                        Locale.Get("PHONE_CALL_END_1"),
                                         callDurationText
                                     );
                                 else
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj2,
+                                        Locale.Get("PHONE_CALL_END_2"),
                                         callDurationText
                                     );
                             }
@@ -228,12 +227,12 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             {
                                 if (callInfo.IsMeCaller)
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj2,
+                                        Locale.Get("PHONE_CALL_END_2"),
                                         callDurationText
                                     );
                                 else
                                     Notification.ShowFiveCallNotification(CEF.Phone.Phone.GetContactNameByNumber(callInfo.Number),
-                                        Locale.General.FiveNotificationEndCallSubj1,
+                                        Locale.Get("PHONE_CALL_END_1"),
                                         callDurationText
                                     );
                             }
@@ -601,7 +600,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                     if (res == byte.MaxValue)
                     {
-                        ShowActiveCall(number, Locale.General.PhoneOutgoingCall);
+                        ShowActiveCall(number, Locale.Get("PHONE_CALL_OUTGOING_0"));
 
                         StartOutgoingCallUpdateTask();
 
@@ -629,10 +628,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowDefault(string number = null)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppType.Phone;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -659,10 +658,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowIncomingCall(string number)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppType.Phone;
 
             CEF.Phone.Phone.CurrentAppTab = 999;
 
@@ -680,10 +679,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowActiveCall(string number, string text)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppType.Phone;
 
             CEF.Phone.Phone.CurrentAppTab = 999;
 
@@ -702,10 +701,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowCallHistory(object list)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppType.Phone;
             CEF.Phone.Phone.CurrentAppTab = 0;
 
             Browser.Window.ExecuteJs("Phone.drawCallList", list);
@@ -713,10 +712,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowBlacklist(object list, string number = null)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.Phone;
+            CEF.Phone.Phone.CurrentApp = AppType.Phone;
             CEF.Phone.Phone.CurrentAppTab = 1;
 
             Browser.Window.ExecuteJs("Phone.drawBlackList", list);
@@ -742,7 +741,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                     activeCallPlayer.VoiceVolume = 1f;
 
-                    if (CEF.Phone.Phone.CurrentApp != AppTypes.Phone)
+                    if (CEF.Phone.Phone.CurrentApp != AppType.Phone)
                         return;
 
                     Browser.Window.ExecuteJs("Phone.updatePhoneStatus", DateTime.UtcNow.Subtract(dateTime).GetBeautyString());
@@ -765,16 +764,16 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
             ActiveCallUpdateTask = new AsyncTask(() =>
                 {
-                    if (CEF.Phone.Phone.CurrentApp != AppTypes.Phone)
+                    if (CEF.Phone.Phone.CurrentApp != AppType.Phone)
                         return;
 
                     if (dotsUsed == 3)
                         dotsUsed = 0;
 
                     if (dotsUsed == 0)
-                        Browser.Window.ExecuteJs("Phone.updatePhoneStatus", Locale.General.PhoneOutgoingCall);
+                        Browser.Window.ExecuteJs("Phone.updatePhoneStatus", Locale.Get("PHONE_CALL_OUTGOING_0"));
                     else
-                        Browser.Window.ExecuteJs("Phone.updatePhoneStatus", $"{Locale.General.PhoneOutgoingCall}{new string('.', dotsUsed)}");
+                        Browser.Window.ExecuteJs("Phone.updatePhoneStatus", $"{Locale.Get("PHONE_CALL_OUTGOING_0")}{new string('.', dotsUsed)}");
 
                     dotsUsed++;
                 },

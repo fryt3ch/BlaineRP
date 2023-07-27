@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -19,9 +20,9 @@ namespace BlaineRP.Server.Game.Items
         };
 
         [JsonIgnore]
-        public VehicleData.VehicleInfo VehicleInfo => VehicleData.VehicleInfo.Get(VID);
+        public VehicleInfo VehicleInfo => VehicleInfo.Get(VID);
 
-        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => KeysUid != Guid.Empty && vInfo?.VID == VID && vInfo.KeysUid == KeysUid;
+        public bool IsKeyValid(VehicleInfo vInfo) => KeysUid != Guid.Empty && vInfo?.VID == VID && vInfo.KeysUid == KeysUid;
 
         public string Tag { get; set; }
 

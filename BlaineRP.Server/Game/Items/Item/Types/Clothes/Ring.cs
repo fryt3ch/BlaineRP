@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -45,14 +48,14 @@ namespace BlaineRP.Server.Game.Items
         {
             var player = pData.Player;
 
-            player.AttachObject(Model, Toggled ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3, -1, null);
+            player.AttachObject(Model, Toggled ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3, -1, null);
         }
 
         public override void Unwear(PlayerData pData)
         {
             var player = pData.Player;
 
-            player.DetachObject(Toggled ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3);
+            player.DetachObject(Toggled ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3);
         }
 
         public Ring(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Ring), Variation)

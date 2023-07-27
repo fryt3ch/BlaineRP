@@ -615,7 +615,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         PropertyTypes.Business.ToString(),
                         x.Name,
                         Utils.Game.Misc.GetStreetName(x.InfoColshape.Position),
-                        Locale.General.PropertyBusinessClass,
+                        Locale.Get("GEN_PROPERTY_BUSINESS_TEXT_1"),
                         x.Price,
                         x.SubId,
                     }
@@ -626,7 +626,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     {
                         "est",
                         PropertyTypes.House.ToString(),
-                        Locale.General.PropertyHouseString,
+                        Locale.Get("GEN_PROPERTY_HOUSE_TEXT_0"),
                         Utils.Game.Misc.GetStreetName(x.Position),
                         x.Class.ToString(),
                         x.Price,
@@ -639,7 +639,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     {
                         "est",
                         PropertyTypes.Apartments.ToString(),
-                        Locale.General.PropertyApartmentsString,
+                        Locale.Get("GEN_PROPERTY_APARTMENTS_TEXT_0"),
                         ApartmentsRoot.All[x.RootId].Name,
                         x.Class.ToString(),
                         x.Price,
@@ -652,7 +652,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     {
                         "est",
                         PropertyTypes.Garage.ToString(),
-                        Locale.General.PropertyGarageString,
+                        Locale.Get("GEN_PROPERTY_GARAGE_TEXT_0"),
                         GarageRoot.All[x.RootId].Name,
                         x.ClassType.ToString(),
                         x.Price,

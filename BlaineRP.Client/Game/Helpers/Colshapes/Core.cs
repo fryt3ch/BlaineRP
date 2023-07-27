@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
+
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
@@ -297,8 +299,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (interactionText != null)
                         OverrideInteractionText = null;
                     else
-                        interactionText = Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ??
-                                          Locale.Interaction.Names.GetValueOrDefault(InteractionTypes.Interact) ?? "null";
+                        interactionText = Locale.Get(Language.Strings.GetKeyFromTypeByMemberName(data.InteractionType.GetType(), data.InteractionType.ToString(), "INTERACTION_TEXT_0") ?? "INTERACTION_L_GEN_0");
 
                     HUD.SwitchInteractionText(true, interactionText);
                 }

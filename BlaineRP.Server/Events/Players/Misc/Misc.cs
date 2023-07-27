@@ -1,6 +1,13 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Linq;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.DoorSystem;
+using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.Game.World;
+using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Events.Players.Misc
 {
@@ -12,7 +19,7 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (player?.Exists != true)
                 return null;
 
-            return Sync.World.GetRetrievableData<object>(key, null);
+            return Game.World.Service.GetRetrievableData<object>(key, null);
         }
 
         [RemoteEvent("Players::StopCarry")]
@@ -29,7 +36,7 @@ namespace BlaineRP.Server.Events.Players.Misc
 
             if (atPlayer?.Exists != true)
             {
-                var aData = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.Carry).FirstOrDefault();
+                var aData = pData.AttachedEntities.Where(x => x.Type == AttachmentType.Carry).FirstOrDefault();
 
                 if (aData == null)
                     return;
@@ -45,7 +52,7 @@ namespace BlaineRP.Server.Events.Players.Misc
             {
                 var atData = atPlayer.GetAttachmentData(pData.Player);
 
-                if (atData != null && atData.Type == Sync.AttachSystem.Types.Carry)
+                if (atData != null && atData.Type == AttachmentType.Carry)
                 {
                     atPlayer.DetachEntity(player);
                 }
@@ -73,10 +80,10 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (vData.TrunkLocked)
                 return 1;
 
-            if (vData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk).Any())
+            if (vData.AttachedObjects.Where(x => x.Type == AttachmentType.VehicleTrunk).Any())
                 return 2;
 
-            vehicle.AttachEntity(player, Sync.AttachSystem.Types.VehicleTrunk, null);
+            vehicle.AttachEntity(player, AttachmentType.VehicleTrunk, null);
 
             return 255;
         }
@@ -98,7 +105,7 @@ namespace BlaineRP.Server.Events.Players.Misc
 
             var atData = atVeh.GetAttachmentData(player);
 
-            if (atData == null || atData.Type != Sync.AttachSystem.Types.VehicleTrunk)
+            if (atData == null || atData.Type != AttachmentType.VehicleTrunk)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed)
@@ -144,7 +151,7 @@ namespace BlaineRP.Server.Events.Players.Misc
             {
                 if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
                 {
-                    pData.PlayAnim(Sync.Animations.FastTypes.SmokePuffCig, Game.Items.Cigarette.SmokePuffAnimationTime);
+                    pData.PlayAnim(FastType.SmokePuffCig, Game.Items.Cigarette.SmokePuffAnimationTime);
 
                     player.TriggerEvent("Player::Smoke::Puff");
 
@@ -163,13 +170,13 @@ namespace BlaineRP.Server.Events.Players.Misc
 
             var pData = sRes.Data;
 
-            Sync.AttachSystem.AttachmentObjectNet attachData = null;
+            AttachmentObjectNet attachData = null;
 
             foreach (var x in pData.AttachedObjects)
             {
                 if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
                 {
-                    pData.PlayAnim(Sync.Animations.FastTypes.SmokeTransitionCig, Game.Items.Cigarette.SmokeTransitionAnimationTime);
+                    pData.PlayAnim(FastType.SmokeTransitionCig, Game.Items.Cigarette.SmokeTransitionAnimationTime);
 
                     attachData = x;
 
@@ -224,14 +231,14 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (pData.IsFrozen)
                 return;
 
-            var punishment = pData.Punishments.Where(x => x.Type == Sync.Punishment.Types.Arrest && x.IsActive()).FirstOrDefault();
+            var punishment = pData.Punishments.Where(x => x.Type == PunishmentType.Arrest && x.IsActive()).FirstOrDefault();
 
             if (punishment == null)
                 return;
 
             var dataS = punishment.AdditionalData.Split('_');
 
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(dataS[1])) as Game.Fractions.Police;
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(dataS[1])) as Game.Fractions.Police;
 
             if (fData == null)
                 return;
@@ -351,7 +358,7 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
-            var door = Sync.DoorSystem.GetDoorById(doorId);
+            var door = Game.Management.DoorSystem.Service.GetDoorById(doorId);
 
             if (door == null)
                 return false;
@@ -359,13 +366,13 @@ namespace BlaineRP.Server.Events.Players.Misc
             if (door.Dimension != player.Dimension || player.Position.DistanceTo(door.Position) > 5f)
                 return false;
 
-            if (Sync.DoorSystem.Door.GetLockState(doorId) == state)
+            if (Door.GetLockState(doorId) == state)
                 return false;
 
             if (!door.GetCheckFunctionResult(pData))
                 return false;
 
-            Sync.DoorSystem.Door.SetLockState(doorId, state, true);
+            Door.SetLockState(doorId, state, true);
 
             return true;
         }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlaineRP.Server.EntityData.Players
+namespace BlaineRP.Server.EntitiesData.Players
 {
     public class AccountData
     {

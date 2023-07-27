@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino.Games;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -172,33 +172,6 @@ namespace BlaineRP.Client.Game.Casino
                         luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                     }
                 );
-
-                Animation casinoSlotMachineIdle0Anim = Core.GeneralAnimsList.GetValueOrDefault(GeneralTypes.CasinoSlotMachineIdle0);
-
-                if (casinoSlotMachineIdle0Anim != null)
-                {
-                    casinoSlotMachineIdle0Anim.StartAction = (entity, anim) =>
-                    {
-                        var ped = entity as PedBase;
-
-                        if (ped?.Exists != true)
-                            return;
-
-                        ped.FreezePosition(true);
-                        ped.SetCollision(false, true);
-                    };
-
-                    casinoSlotMachineIdle0Anim.StopAction = (entity, anim) =>
-                    {
-                        var ped = entity as PedBase;
-
-                        if (ped?.Exists != true)
-                            return;
-
-                        ped.FreezePosition(false);
-                        ped.SetCollision(true, false);
-                    };
-                }
             }
         }
     }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -11,7 +12,7 @@ namespace BlaineRP.Server.Game.Items
         /// <value>Словарь, где ключ - UID контейнера, а значение - объект класса Container</value>
         public static Dictionary<uint, Container> All { get; private set; } = new Dictionary<uint, Container>();
 
-        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
+        public static UtilsT.UidHandlers.UInt32 UidHandler { get; private set; } = new UtilsT.UidHandlers.UInt32(1);
 
         public static void AddOnLoad(Container cont)
         {

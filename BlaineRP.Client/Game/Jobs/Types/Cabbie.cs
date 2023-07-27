@@ -13,9 +13,9 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Jobs
 {
-    public class Cabbie : Job
+    public partial class Cabbie : Job
     {
-        public Cabbie(int Id, Utils.Vector4 Position) : base(Id, JobTypes.Cabbie)
+        public Cabbie(int Id, Utils.Vector4 Position) : base(Id, JobType.Cabbie)
         {
             Blip = new ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
         }
@@ -205,17 +205,6 @@ namespace BlaineRP.Client.Game.Jobs
             GetCurrentData<ExtraColshape>("CS")?.Destroy();
 
             base.OnEndJob();
-        }
-
-        public class OrderInfo
-        {
-            public OrderInfo()
-            {
-            }
-
-            public uint Id { get; set; }
-
-            public Vector3 Position { get; set; }
         }
     }
 }

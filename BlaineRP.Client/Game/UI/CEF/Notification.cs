@@ -168,7 +168,6 @@ namespace BlaineRP.Client.Game.UI.CEF
             { "PayDay::FailTime", new Instance(Types.Error, Locale.Notifications.General.PayDay.FailTime, Locale.Notifications.General.PayDay.Header) },
             { "PayDay::Fail", new Instance(Types.Error, Locale.Notifications.General.PayDay.Fail, Locale.Notifications.General.PayDay.Header) },
             { "PayDay::FailBank", new Instance(Types.Error, Locale.Notifications.General.PayDay.FailBank, Locale.Notifications.General.PayDay.Header) },
-            { "Park::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.Park.NotAllowed, Locale.Notifications.Vehicles.Header) },
             { "Cash::NotEnough", new Instance(Types.Error, Locale.Notifications.Money.Cash.NotEnough, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Bank::NotEnough", new Instance(Types.Error, Locale.Notifications.Money.Bank.NotEnough, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Bank::NoAccount", new Instance(Types.Error, Locale.Notifications.Money.Bank.NoAccount, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
@@ -701,7 +700,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (tName == null)
                 return;
 
-            ShowFiveNotification(tName, tName, 2, senderName, Locale.General.FiveNotificationDefSubj, content, 140, 0.5f);
+            ShowFiveNotification(tName, tName, 2, senderName, Locale.Get("PHONE_SMS_RECEIVED_0"), content, 140, 0.5f);
         }
 
         public static void ShowFiveCallNotification(string phoneNumber, string subject, string content)

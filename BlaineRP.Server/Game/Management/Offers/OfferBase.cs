@@ -1,26 +1,16 @@
-﻿using System;
-using BlaineRP.Server.EntityData.Players;
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Sync;
 
-namespace BlaineRP.Server.Sync.Offers
+namespace BlaineRP.Server.Game.Management.Offers
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class OfferAttribute : Attribute
-    {
-        public Types Type { get; set; }
-
-        public OfferAttribute(Types type)
-        {
-            this.Type = type;
-        }
-    }
-
     public abstract class OfferBase
     {
         public abstract void OnAccept(PlayerData pData, PlayerData tData, Offer offer);
 
         public abstract void OnCancel(PlayerData pData, PlayerData tData, Offer offer);
 
-        public virtual bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
+        public virtual bool IsRequestCorrect(PlayerData pData, PlayerData tData, OfferType type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
             offer = null;
             text = string.Empty;
@@ -39,7 +29,7 @@ namespace BlaineRP.Server.Sync.Offers
                 return false;
             }
 
-            if (tData.PhoneStateType != Sync.Players.PhoneStateTypes.Off || tData.CurrentWorkbench != null || tData.CurrentContainer != null || tData.IsAttachedToEntity != null || tData.CurrentBusiness != null || tData.IsFrozen)
+            if (tData.PhoneStateType != PlayerPhoneState.Off || tData.CurrentWorkbench != null || tData.CurrentContainer != null || tData.IsAttachedToEntity != null || tData.CurrentBusiness != null || tData.IsFrozen)
             {
                 returnObj = 1;
 

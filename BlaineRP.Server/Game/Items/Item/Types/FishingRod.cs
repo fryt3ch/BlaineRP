@@ -1,6 +1,11 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Sync;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -129,9 +134,9 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = true;
 
-            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemFishingRodG, -1, null, 5_000);
+            pData.Player.AttachObject(Model, AttachmentType.ItemFishingRodG, -1, null, 5_000);
 
-            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingIdle0);
+            pData.PlayAnim(GeneralType.FishingIdle0);
 
             if (needUpdate && slot >= 0)
             {
@@ -148,8 +153,8 @@ namespace BlaineRP.Server.Game.Items
 
             InUse = false;
 
-            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishingRodG);
-            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishG);
+            pData.Player.DetachObject(AttachmentType.ItemFishingRodG);
+            pData.Player.DetachObject(AttachmentType.ItemFishG);
 
             pData.StopGeneralAnim();
 
@@ -168,11 +173,11 @@ namespace BlaineRP.Server.Game.Items
 
             var fPos = pData.Player.GetFrontOf(7.5f);
 
-            pData.Player.AttachObject(ItemData.FakeFishModel, Sync.AttachSystem.Types.ItemFishG, -1, $"{fPos.X}&{fPos.Y}&{fishZCoord}", maxCatchTime, fishSpeed, catchCount);
+            pData.Player.AttachObject(ItemData.FakeFishModel, AttachmentType.ItemFishG, -1, $"{fPos.X}&{fPos.Y}&{fishZCoord}", maxCatchTime, fishSpeed, catchCount);
 
-            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingIdle0);
+            pData.PlayAnim(GeneralType.FishingIdle0);
 
-            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingProcess0);
+            pData.PlayAnim(GeneralType.FishingProcess0);
         }
 
         public FishingRod(string ID) : base(ID, IDList[ID], typeof(FishingRod))

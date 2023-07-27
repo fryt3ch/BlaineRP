@@ -1,6 +1,8 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management.Phone;
 
 namespace BlaineRP.Server.Events.Players
 {
@@ -96,7 +98,7 @@ namespace BlaineRP.Server.Events.Players
             if (tData.ActiveCall != null)
                 return 2;
 
-            var newCall = new Sync.Phone.Call(pData, tData);
+            var newCall = new Call(pData, tData);
 
             return byte.MaxValue;
         }
@@ -113,9 +115,9 @@ namespace BlaineRP.Server.Events.Players
 
             if (ans)
             {
-                var activeCall = Sync.Phone.Call.GetByReceiver(pData);
+                var activeCall = Call.GetByReceiver(pData);
 
-                if (activeCall == null || activeCall.StatusType == Sync.Phone.Call.StatusTypes.Process)
+                if (activeCall == null || activeCall.StatusType == Call.StatusTypes.Process)
                     return;
 
                 if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -130,7 +132,7 @@ namespace BlaineRP.Server.Events.Players
                 if (activeCall == null)
                     return;
 
-                activeCall.Cancel(activeCall.Caller == pData ? Sync.Phone.Call.CancelTypes.Caller : Sync.Phone.Call.CancelTypes.Receiver);
+                activeCall.Cancel(activeCall.Caller == pData ? Call.CancelTypes.Caller : Call.CancelTypes.Receiver);
             }
         }
 
@@ -252,7 +254,7 @@ namespace BlaineRP.Server.Events.Players
             if (!pData.Info.TryRemovePhoneBalance(symbolsCount * Properties.Settings.Static.PHONE_SMS_COST_PER_CHAR, out newPhoneBalance, true))
                 return null;
 
-            if (Sync.Phone.Call.GetByCaller(pData) != null)
+            if (Call.GetByCaller(pData) != null)
                 return null;
 
             var tData = PlayerData.All.Values.Where(x => x.Info.PhoneNumber == phoneNumber).FirstOrDefault();
@@ -263,12 +265,12 @@ namespace BlaineRP.Server.Events.Players
             if (attachPos)
                 text += $"<GEOL>{player.Position.X}_{player.Position.Y}</GEOL>";
 
-            var smsData = new Sync.Phone.SMS(pData.Info, tData.Info, text);
+            var smsData = new SMS(pData.Info, tData.Info, text);
 
-            Sync.Phone.SMS.Add(pData.Info, smsData, false);
+            SMS.Add(pData.Info, smsData, false);
 
             if (!tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber))
-                Sync.Phone.SMS.Add(tData.Info, smsData, true);
+                SMS.Add(tData.Info, smsData, true);
 
             return smsData.Data;
         }
@@ -286,7 +288,7 @@ namespace BlaineRP.Server.Events.Players
             if (nums == null || nums.Length == 0 || nums.Length > pData.Info.AllSMS.Count)
                 return false;
 
-            var toDelList = new List<Sync.Phone.SMS>();
+            var toDelList = new List<SMS>();
 
             for (int i = 0; i < nums.Length; i++)
             {
@@ -323,7 +325,7 @@ namespace BlaineRP.Server.Events.Players
             if (Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).Any())
                 return false;
 
-            if (pData.CurrentJob?.Type == Game.Jobs.Types.Cabbie)
+            if (pData.CurrentJob?.Type == Game.Jobs.JobType.Cabbie)
                 return false;
 
             Game.Jobs.Cabbie.AddPlayerOrder(pData);

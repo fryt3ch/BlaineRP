@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using BlaineRP.Server.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -173,7 +174,7 @@ namespace BlaineRP.Server.Game.Items
                 }
                 else
                 {
-                    Sync.World.AddItemOnGround(pData, item, pData.Player.Position, pData.Player.Rotation, pData.Player.Dimension);
+                    World.Service.AddItemOnGround(pData, item, pData.Player.Position, pData.Player.Rotation, pData.Player.Dimension);
                 }
             }
 

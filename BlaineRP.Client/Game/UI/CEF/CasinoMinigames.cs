@@ -4,9 +4,10 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino;
+using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -46,9 +47,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         int casinoId = -1, machineId = -1;
 
-                        for (var i = 0; i < Casino.Casino.All.Count; i++)
+                        for (var i = 0; i < Casino.CasinoEntity.All.Count; i++)
                         {
-                            machineId = Array.IndexOf(Casino.Casino.All[i].SlotMachines, curMachine);
+                            machineId = Array.IndexOf(Casino.CasinoEntity.All[i].SlotMachines, curMachine);
 
                             if (machineId < 0)
                                 continue;
@@ -78,10 +79,10 @@ namespace BlaineRP.Client.Game.UI.CEF
                             return;
                         }
 
-                        if (Casino.Casino.LastSent.IsSpam(500, false, true))
+                        if (Casino.CasinoEntity.LastSent.IsSpam(500, false, true))
                             return;
 
-                        Casino.Casino.LastSent = World.Core.ServerTime;
+                        Casino.CasinoEntity.LastSent = World.Core.ServerTime;
 
                         string[] res = ((string)await Events.CallRemoteProc("Casino::SLMB", casinoId, machineId, bet))?.Split('^');
 
@@ -159,9 +160,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         int casinoId = -1, tableId = -1;
 
-                        for (var i = 0; i < Casino.Casino.All.Count; i++)
+                        for (var i = 0; i < Casino.CasinoEntity.All.Count; i++)
                         {
-                            tableId = Array.IndexOf(Casino.Casino.All[i].Blackjacks, table);
+                            tableId = Array.IndexOf(Casino.CasinoEntity.All[i].Blackjacks, table);
 
                             if (tableId < 0)
                                 continue;
@@ -194,10 +195,10 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 return;
                             }
 
-                            if (Casino.Casino.LastSent.IsSpam(500, false, true))
+                            if (Casino.CasinoEntity.LastSent.IsSpam(500, false, true))
                                 return;
 
-                            Casino.Casino.LastSent = World.Core.ServerTime;
+                            Casino.CasinoEntity.LastSent = World.Core.ServerTime;
 
                             var res = (bool)await Events.CallRemoteProc("Casino::BLJSB", casinoId, tableId, bet);
 
@@ -206,10 +207,10 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                         else if (btnIdx == 0 || btnIdx == 1)
                         {
-                            if (Casino.Casino.LastSent.IsSpam(500, false, true))
+                            if (Casino.CasinoEntity.LastSent.IsSpam(500, false, true))
                                 return;
 
-                            Casino.Casino.LastSent = World.Core.ServerTime;
+                            Casino.CasinoEntity.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Casino::BLJD", casinoId, tableId, btnIdx == 0 ? 1 : 0);
                         }
@@ -228,7 +229,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static int EscBindIdx { get; set; } = -1;
 
-        public static async void ShowRoulette(Game.Casino.Casino casino, Roulette roulette, decimal chipsBalance)
+        public static async void ShowRoulette(Game.Casino.CasinoEntity casino, Roulette roulette, decimal chipsBalance)
         {
             if (IsActive)
                 return;
@@ -264,7 +265,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             roulette.StartGame();
 
             if (roulette.LastBets != null)
-                foreach (Roulette.BetTypes x in roulette.LastBets)
+                foreach (Roulette.BetType x in roulette.LastBets)
                 {
                     AddLastBet(x);
                 }
@@ -272,7 +273,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
-        public static async void ShowSlotMachine(Game.Casino.Casino casino, SlotMachine slotMachine, decimal chipsBalance, decimal jackpot)
+        public static async void ShowSlotMachine(Game.Casino.CasinoEntity casino, SlotMachine slotMachine, decimal chipsBalance, decimal jackpot)
         {
             if (IsActive)
                 return;
@@ -332,7 +333,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             EscBindIdx = Input.Core.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
-        public static async void ShowBlackjack(Game.Casino.Casino casino, Blackjack blackJack, byte seatIdx, decimal chipsBalance)
+        public static async void ShowBlackjack(Game.Casino.CasinoEntity casino, Blackjack blackJack, byte seatIdx, decimal chipsBalance)
         {
             if (IsActive)
                 return;
@@ -448,9 +449,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 int casinoId = -1, machineId = -1;
 
-                for (var i = 0; i < Casino.Casino.All.Count; i++)
+                for (var i = 0; i < Casino.CasinoEntity.All.Count; i++)
                 {
-                    machineId = Array.IndexOf(Casino.Casino.All[i].SlotMachines, curMachine);
+                    machineId = Array.IndexOf(Casino.CasinoEntity.All[i].SlotMachines, curMachine);
 
                     if (machineId < 0)
                         continue;
@@ -485,9 +486,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 int casinoId = -1, tableId = -1;
 
-                for (var i = 0; i < Casino.Casino.All.Count; i++)
+                for (var i = 0; i < Casino.CasinoEntity.All.Count; i++)
                 {
-                    tableId = Array.IndexOf(Casino.Casino.All[i].Blackjacks, curTable);
+                    tableId = Array.IndexOf(Casino.CasinoEntity.All[i].Blackjacks, curTable);
 
                     if (tableId < 0)
                         continue;
@@ -545,7 +546,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             EscBindIdx = -1;
         }
 
-        public static void AddLastBet(Roulette.BetTypes betType)
+        public static void AddLastBet(Roulette.BetType betType)
         {
             if (!IsActive)
                 return;
@@ -555,13 +556,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             var colourNum = 0;
 
-            if (betType == Roulette.BetTypes._0 || betType == Roulette.BetTypes._00)
+            if (betType == Roulette.BetType._0 || betType == Roulette.BetType._00)
             {
                 colourNum = 2;
             }
             else
             {
-                byte[] blackNumbers = Roulette.HoverDatas.GetValueOrDefault(Roulette.BetTypes.Black)?.HoverNumbers;
+                byte[] blackNumbers = Roulette.HoverDatas.GetValueOrDefault(Roulette.BetType.Black)?.HoverNumbers;
 
                 if (blackNumbers != null)
                     if (Array.IndexOf(blackNumbers, (byte)betType) >= 0)

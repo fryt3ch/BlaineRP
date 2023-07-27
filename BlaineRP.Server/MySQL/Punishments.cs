@@ -1,11 +1,14 @@
 ﻿using MySqlConnector;
 using System;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Management;
+using BlaineRP.Server.Game.Management.Punishments;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void AddPunishment(PlayerData.PlayerInfo punishedInfo, PlayerData.PlayerInfo punisherInfo, Sync.Punishment punishment)
+        public static void AddPunishment(PlayerInfo punishedInfo, PlayerInfo punisherInfo, Punishment punishment)
         {
             var cmd = new MySqlCommand();
 
@@ -27,7 +30,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void UpdatePunishmentAmnesty(Sync.Punishment punishment)
+        public static void UpdatePunishmentAmnesty(Punishment punishment)
         {
             var cmd = new MySqlCommand();
 
@@ -43,7 +46,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void UpdatePunishmentAdditionalData(Sync.Punishment punishment)
+        public static void UpdatePunishmentAdditionalData(Punishment punishment)
         {
             var cmd = new MySqlCommand();
 
@@ -59,7 +62,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void UpdatePunishmentEndDate(Sync.Punishment punishment)
+        public static void UpdatePunishmentEndDate(Punishment punishment)
         {
             var cmd = new MySqlCommand();
 

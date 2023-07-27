@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
@@ -61,11 +61,11 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (prefix == "a-")
                     {
-                        var anim = (OtherTypes)Enum.Parse(typeof(OtherTypes), id);
+                        var anim = (OtherType)Enum.Parse(typeof(OtherType), id);
 
                         if (anim == pData.OtherAnim)
                         {
-                            Events.CallRemote("Players::SetAnim", (int)OtherTypes.None);
+                            Events.CallRemote("Players::SetAnim", (int)OtherType.None);
                         }
                         else
                         {
@@ -98,11 +98,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else if (prefix == "s-")
                     {
-                        var scenario = (ScenarioTypes)Enum.Parse(typeof(ScenarioTypes), id);
+                        var scenario = (ScenarioType)Enum.Parse(typeof(ScenarioType), id);
                     }
                     else if (prefix == "e-")
                     {
-                        var emotion = (EmotionTypes)Enum.Parse(typeof(EmotionTypes), id);
+                        var emotion = (EmotionType)Enum.Parse(typeof(EmotionType), id);
 
                         if (pData.Emotion == emotion)
                             return;
@@ -111,7 +111,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     }
                     else if (prefix == "w-")
                     {
-                        var walkstyle = (WalkstyleTypes)Enum.Parse(typeof(WalkstyleTypes), id);
+                        var walkstyle = (WalkstyleType)Enum.Parse(typeof(WalkstyleType), id);
 
                         if (pData.Walkstyle == walkstyle)
                             return;
@@ -198,7 +198,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            if (pData.OtherAnim != OtherTypes.None)
+            if (pData.OtherAnim != OtherType.None)
             {
                 Main.Render -= Render;
                 Main.Render += Render;
@@ -214,13 +214,13 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (pData == null)
                 return;
 
-            if (pData.OtherAnim == OtherTypes.None)
+            if (pData.OtherAnim == OtherType.None)
                 return;
 
             if (LastSent.IsSpam(500, false, false))
                 return;
 
-            Events.CallRemote("Players::SetAnim", (int)OtherTypes.None);
+            Events.CallRemote("Players::SetAnim", (int)OtherType.None);
         }
 
         public static void ToggleAnim(string animId, bool state)

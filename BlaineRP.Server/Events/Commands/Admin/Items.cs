@@ -1,4 +1,7 @@
-﻿namespace BlaineRP.Server.Events.Commands
+﻿using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.World;
+
+namespace BlaineRP.Server.Events.Commands
 {
     partial class Commands
     {
@@ -95,12 +98,12 @@
             }
             else if (delay < 0)
             {
-                Sync.World.ClearAllItemsCancel();
+                Service.ClearAllItemsCancel();
 
                 return;
             }
 
-            Sync.World.ClearAllItems(delay);
+            Service.ClearAllItems(delay);
         }
     }
 }

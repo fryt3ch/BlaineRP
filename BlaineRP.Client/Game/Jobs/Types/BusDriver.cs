@@ -12,7 +12,7 @@ namespace BlaineRP.Client.Game.Jobs
 {
     public class BusDriver : Job
     {
-        public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, JobTypes.BusDriver)
+        public BusDriver(int Id, Utils.Vector4 Position, List<(uint, List<Vector3>)> Routes) : base(Id, JobType.BusDriver)
         {
             var blip = new ExtraBlip(513, Position.Position, "Автовокзал", 1f, 2, 255, 0f, true, 0, 0f, Settings.App.Static.MainDimension);
 

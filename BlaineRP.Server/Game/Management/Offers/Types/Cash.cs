@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using BlaineRP.Server.EntityData.Players;
+﻿using System;
+using BlaineRP.Server.EntitiesData.Players;
+using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Sync.Offers
+namespace BlaineRP.Server.Game.Management.Offers
 {
-    [Offer(Types.Cash)]
+    [Offer(OfferType.Cash)]
     internal class Cash : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
@@ -45,7 +45,7 @@ namespace BlaineRP.Server.Sync.Offers
 
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, OfferType type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
             var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 

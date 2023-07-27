@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.NPCs.Dialogues;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
@@ -198,13 +198,13 @@ namespace BlaineRP.Client.Game.NPCs
                 {
                     Ped.SetData("CurrentAnim", value);
                     if (IsStreamed)
-                        Animations.Core.Play(Ped, value, -1);
+                        Management.Animations.Core.Play(Ped, value, -1);
                 }
                 else
                 {
                     Ped.ResetData("CurrentAnim");
                     if (IsStreamed)
-                        Animations.Core.Stop(Ped);
+                        Management.Animations.Core.Stop(Ped);
                 }
             }
         }
@@ -305,7 +305,7 @@ namespace BlaineRP.Client.Game.NPCs
             data.Ped.SetHeading(data.DefaultHeading);
 
             if (data.CurrentAnimation is Animation curAnim)
-                Animations.Core.Play(ped, curAnim, -1);
+                Management.Animations.Core.Play(ped, curAnim, -1);
         }
 
         public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)

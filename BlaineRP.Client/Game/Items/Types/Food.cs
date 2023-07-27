@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Management.Attachments;
 
 namespace BlaineRP.Client.Game.Items
@@ -15,9 +15,9 @@ namespace BlaineRP.Client.Game.Items
                 MaxAmount = maxAmount;
             }
 
-            public FastTypes Animation { get; set; }
+            public FastType Animation { get; set; }
 
-            public AttachmentTypes AttachType { get; set; }
+            public AttachmentType AttachType { get; set; }
             public int MaxAmount { get; set; }
         }
     }

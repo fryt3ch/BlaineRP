@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
+using BlaineRP.Server.EntitiesData.Players;
+using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Sync.Offers
+namespace BlaineRP.Server.Game.Management.Offers
 {
-    [Offer(Types.SellBusiness)]
+    [Offer(OfferType.SellBusiness)]
     internal class SellBusiness : OfferBase
     {
         public override void OnAccept(PlayerData pData, PlayerData tData, Offer offer)
@@ -35,7 +35,7 @@ namespace BlaineRP.Server.Sync.Offers
 
                     tPlayer.TriggerEvent("Estate::Show", 1, 1, businessInfo.ID, sPlayer, psData.Price);
 
-                    offer.TradeData = new Offer.Trade()
+                    offer.TradeData = new Trade()
                     {
                         SenderReady = true,
 
@@ -59,7 +59,7 @@ namespace BlaineRP.Server.Sync.Offers
             }
         }
 
-        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, Types type, string dataStr, out Offer offer, out object returnObj, out string text)
+        public override bool IsRequestCorrect(PlayerData pData, PlayerData tData, OfferType type, string dataStr, out Offer offer, out object returnObj, out string text)
         {
             var baseRes = base.IsRequestCorrect(pData, tData, type, dataStr, out offer, out returnObj, out text);
 

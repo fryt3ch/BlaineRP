@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Casino;
+using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
@@ -69,7 +70,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                             {
                                 string[] d = str.Split('_');
 
-                                var casino = Casino.Casino.GetById(int.Parse(d[0]));
+                                var casino = Casino.CasinoEntity.GetById(int.Parse(d[0]));
                                 Roulette roulette = casino.GetRouletteById(int.Parse(d[1]));
 
                                 Player.LocalPlayer.SetData("CurrentCasinoGameData", str);
@@ -359,9 +360,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                         {
                             if (cs.Data is WeaponShop ws)
                             {
-                                Core.OverrideInteractionText = string.Format(Locale.Interaction.Names.GetValueOrDefault(InteractionTypes.ShootingRangeEnter, "null"),
-                                    WeaponShop.ShootingRangePrice
-                                );
+                                Core.OverrideInteractionText = string.Format(Locale.Get("INTERACTION_L_SHOOTING_RANGE_0"), Locale.Get("GEN_MONEY_0", WeaponShop.ShootingRangePrice));
 
                                 Player.LocalPlayer.SetData("CurrentShootingRange", ws);
                             }

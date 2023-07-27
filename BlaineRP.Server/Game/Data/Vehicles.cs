@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Data
 {
@@ -199,11 +200,11 @@ namespace BlaineRP.Server.Game.Data
 
             /// <summary>Основной цвет</summary>
             [JsonProperty(PropertyName = "C1")]
-            public Utils.Colour Colour1 { get; set; }
+            public Colour Colour1 { get; set; }
 
             /// <summary>Второстепенный цвет</summary>
             [JsonProperty(PropertyName = "C2")]
-            public Utils.Colour Colour2 { get; set; }
+            public Colour Colour2 { get; set; }
 
             [JsonProperty(PropertyName = "WC")]
             public byte WheelsColour { get; set; }
@@ -212,10 +213,10 @@ namespace BlaineRP.Server.Game.Data
             public byte ColourType { get; set; }
 
             [JsonProperty(PropertyName = "NC")]
-            public Utils.Colour NeonColour { get; set; }
+            public Colour NeonColour { get; set; }
 
             [JsonProperty(PropertyName = "TSC")]
-            public Utils.Colour TyresSmokeColour { get; set; }
+            public Colour TyresSmokeColour { get; set; }
 
             [JsonProperty(PropertyName = "PC")]
             public byte PearlescentColour { get; set; }
@@ -240,7 +241,7 @@ namespace BlaineRP.Server.Game.Data
 
             }
 
-            public static Tuning CreateNew(Utils.Colour Colour1, Utils.Colour Colour2)
+            public static Tuning CreateNew(Colour Colour1, Colour Colour2)
             {
                 var res = new Tuning();
 

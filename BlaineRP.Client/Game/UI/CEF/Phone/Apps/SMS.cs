@@ -4,7 +4,6 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.UI.CEF.Phone.Enums;
 using BlaineRP.Client.Game.World;
 using RAGE;
 using RAGE.Elements;
@@ -131,7 +130,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                     if (chatList != null)
                         ShowChat(smsObj.ReceiverNumber, chatList, CEF.Phone.Phone.GetContactNameByNumberNull(smsObj.ReceiverNumber));
                     else
-                        CEF.Phone.Phone.ShowApp(pData, AppTypes.SMS);
+                        CEF.Phone.Phone.ShowApp(pData, AppType.SMS);
                 }
             );
 
@@ -191,7 +190,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             allSms.Remove(x);
                         }
 
-                        CEF.Phone.Phone.ShowApp(pData, AppTypes.SMS);
+                        CEF.Phone.Phone.ShowApp(pData, AppType.SMS);
                     }
                 }
             );
@@ -214,7 +213,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                         string contName = CEF.Phone.Phone.GetContactNameByNumberNull(smsObj.SenderNumber);
 
-                        if (CEF.Phone.Phone.CurrentApp == AppTypes.SMS)
+                        if (CEF.Phone.Phone.CurrentApp == AppType.SMS)
                         {
                             uint pNumber = pData.PhoneNumber;
 
@@ -231,7 +230,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             }
                             else if (CEF.Phone.Phone.CurrentAppTab == -1)
                             {
-                                CEF.Phone.Phone.ShowApp(pData, AppTypes.SMS);
+                                CEF.Phone.Phone.ShowApp(pData, AppType.SMS);
                             }
                         }
 
@@ -262,7 +261,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                         allSms.Remove(smsObj);
 
-                        if (CEF.Phone.Phone.CurrentApp == AppTypes.SMS)
+                        if (CEF.Phone.Phone.CurrentApp == AppType.SMS)
                         {
                             uint pNumber = pData.PhoneNumber;
 
@@ -285,7 +284,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
                             }
 
                             if (CEF.Phone.Phone.CurrentAppTab == -1 || b)
-                                CEF.Phone.Phone.ShowApp(pData, AppTypes.SMS);
+                                CEF.Phone.Phone.ShowApp(pData, AppType.SMS);
                         }
                     }
                 }
@@ -299,10 +298,10 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
         //messages[i] = [phone_number, 'contact' || null, 'date', 'message']
         public static void ShowPreviews(object messages)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            CEF.Phone.Phone.CurrentApp = AppTypes.SMS;
+            CEF.Phone.Phone.CurrentApp = AppType.SMS;
 
             CEF.Phone.Phone.CurrentAppTab = -1;
 
@@ -314,14 +313,14 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowWriteNew(string pNumber)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.SMS)
+            if (CEF.Phone.Phone.CurrentApp != AppType.SMS)
             {
                 Browser.Window.ExecuteJs("Phone.drawSmsApp();");
 
-                CEF.Phone.Phone.CurrentApp = AppTypes.SMS;
+                CEF.Phone.Phone.CurrentApp = AppType.SMS;
             }
 
             AttachPos = false;
@@ -336,14 +335,14 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
         public static void ShowChat(uint tNumber, object chatList, string tContactName)
         {
-            if (CEF.Phone.Phone.CurrentApp == AppTypes.None)
+            if (CEF.Phone.Phone.CurrentApp == AppType.None)
                 CEF.Phone.Phone.SwitchMenu(false);
 
-            if (CEF.Phone.Phone.CurrentApp != AppTypes.SMS)
+            if (CEF.Phone.Phone.CurrentApp != AppType.SMS)
             {
                 Browser.Window.ExecuteJs("Phone.drawSmsApp();");
 
-                CEF.Phone.Phone.CurrentApp = AppTypes.SMS;
+                CEF.Phone.Phone.CurrentApp = AppType.SMS;
             }
 
             CEF.Phone.Phone.CurrentAppTab = 1;

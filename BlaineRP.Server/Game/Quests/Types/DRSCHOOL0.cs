@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntityData.Players;
-using BlaineRP.Server.EntityData.Vehicles;
+using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Misc;
 
-namespace BlaineRP.Server.Sync.Quests.Types
+namespace BlaineRP.Server.Game.Quests.Types
 {
     public class DRSCHOOL0
     {
         public static void Initialize()
         {
-            new Quest.QuestData(Quest.QuestData.Types.DRSCHOOL0)
+            new Quest.QuestData(QuestType.DRSCHOOL0)
             {
                 ProgressUpdateFunc = (pData, questData, data) =>
                 {
@@ -46,7 +46,7 @@ namespace BlaineRP.Server.Sync.Quests.Types
                     {
                         var school = DrivingSchool.Get(int.Parse(questCurrentData[1]));
 
-                        var licType = (LicenseTypes)int.Parse(questCurrentData[2]);
+                        var licType = (LicenseType)int.Parse(questCurrentData[2]);
 
                         var rLicType = DrivingSchool.GetLicenseTypeForPracticeRoute(licType);
 
@@ -74,7 +74,7 @@ namespace BlaineRP.Server.Sync.Quests.Types
                         if (pData.Player.Position.DistanceTo(vData.LastData.Position) > 10f)
                             return 0;
 
-                        var licType = (LicenseTypes)int.Parse(questCurrentData[4]);
+                        var licType = (LicenseType)int.Parse(questCurrentData[4]);
 
                         questData.Cancel(pData.Info, true);
 

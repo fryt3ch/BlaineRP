@@ -17,7 +17,7 @@ namespace BlaineRP.Client.Game.Management.Attachments
 
         public GameEntity Object { get; set; }
 
-        public AttachmentTypes Type { get; set; }
+        public AttachmentType Type { get; set; }
 
         public uint Model { get; set; }
     }

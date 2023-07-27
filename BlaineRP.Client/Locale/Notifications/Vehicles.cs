@@ -54,23 +54,6 @@
 
                     public static string Unsupported = "В текущем транспорте нет этой системы!";
                 }
-
-                public static class SeatBelt
-                {
-                    public static string Header = "Ремень безопасности";
-
-                    public static string TakeOffToLeave = "Вы пристегнуты!\nОтстегните ремень, чтобы выйти";
-                    public static string TakeOffToSeat = "Вы пристегнуты!\nОтстегните ремень, чтобы пересесть";
-                }
-
-                public static class Park
-                {
-                    public static string Success = "Вы успешно припарковали свой транспорт!";
-                    public static string WrongPlace = "Здесь нельзя парковаться!";
-                    public static string NotAllowed = "Этот транспорт нельзя парковать!";
-
-                    public static string Warning = "Ваше Т/С не припарковано!\nОно может оказаться на штрафстоянке";
-                }
             }
         }
     }

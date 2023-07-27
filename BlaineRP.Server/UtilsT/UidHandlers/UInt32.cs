@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BlaineRP.Server
+namespace BlaineRP.Server.UtilsT.UidHandlers
 {
     public class UInt32
     {

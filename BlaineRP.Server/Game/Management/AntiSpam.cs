@@ -1,8 +1,8 @@
-﻿using GTANetworkAPI;
-using System;
+﻿using System;
 using BlaineRP.Server.EntitiesData.Players;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Additional
+namespace BlaineRP.Server.Game.Management
 {
     class AntiSpam
     {

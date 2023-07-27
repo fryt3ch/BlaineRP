@@ -9,7 +9,7 @@ namespace BlaineRP.Client.Game.Estates
     {
         public static Dictionary<uint, Apartments> All = new Dictionary<uint, Apartments>();
 
-        public Apartments(uint id, uint rootId, ushort floorIdx, ushort subIdx, int roomType, uint price, int @class, uint tax) : base(Core.HouseTypes.Apartments,
+        public Apartments(uint id, uint rootId, ushort floorIdx, ushort subIdx, int roomType, uint price, int @class, uint tax) : base(HouseBase.Types.Apartments,
             id,
             price,
             roomType,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace BlaineRP.Server
+namespace BlaineRP.Server.UtilsT
 {
     public static class SRandom
     {

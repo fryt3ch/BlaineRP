@@ -1,5 +1,5 @@
-﻿using BlaineRP.Client.Game.Animations;
-using BlaineRP.Client.Game.Input.Enums;
+﻿using BlaineRP.Client.Game.Input.Enums;
+using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
@@ -413,7 +413,7 @@ namespace BlaineRP.Client.Game.Input
                     () =>
                     {
                         if (Utils.Misc.CanShowCEF(true, true))
-                            Game.Animations.Core.PlayFastSync(FastTypes.Whistle);
+                            Management.Animations.Core.PlayFastSync(FastType.Whistle);
                     },
                     true,
                     true
