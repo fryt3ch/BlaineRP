@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class CigarettesPack : StatusChanger, IConsumable
+    public partial class CigarettesPack : StatusChanger, IConsumable
     {
-        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
+        public new class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
         {
             public const int UseCigModelIdx = 1;
 
@@ -22,26 +22,19 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
 
-            public ItemData(string Name, string[] Models, int Mood, int MaxPuffs, int MaxTime, AttachmentType AttachType, int MaxAmount) : base(Name, 0.1f, Models, 0, Mood, 0)
+            public ItemData(string name, string[] models, int mood, int maxPuffs, int maxTime, AttachmentType attachType, int maxAmount) : base(name, 0.1f, models, 0, mood, 0)
             {
-                this.MaxAmount = MaxAmount;
+                MaxAmount = maxAmount;
 
-                this.MaxPuffs = MaxPuffs;
-                this.MaxTime = MaxTime;
+                MaxPuffs = maxPuffs;
+                MaxTime = maxTime;
 
-                this.AttachType = AttachType;
+                AttachType = attachType;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "cigs_0", new ItemData("Сигареты Redwood", new string[] { "v_ret_ml_cigs", "ng_proc_cigarette01a" }, 25, 15, 300000, AttachmentType.ItemCigMouth, 20) },
-
-            { "cigs_1", new ItemData("Сигареты Chartman", new string[] { "prop_cigar_pack_01", "prop_sh_cigar_01" }, 25, 15, 300000, AttachmentType.ItemCig1Mouth, 20) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; }
+        public new ItemData Data { get => (ItemData)base.Data; }
 
         [JsonIgnore]
         public int MaxAmount => Data.MaxAmount;
@@ -64,9 +57,9 @@ namespace BlaineRP.Server.Game.Items
             }
         }
 
-        public CigarettesPack(string ID) : base(ID, IDList[ID], typeof(CigarettesPack))
+        public CigarettesPack(string id) : base(id, IdList[id], typeof(CigarettesPack))
         {
-            this.Amount = MaxAmount;
+            Amount = MaxAmount;
         }
     }
 }

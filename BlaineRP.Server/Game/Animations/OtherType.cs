@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.Management.Animations
+﻿namespace BlaineRP.Server.Game.Animations
 {
     public enum OtherType
     {

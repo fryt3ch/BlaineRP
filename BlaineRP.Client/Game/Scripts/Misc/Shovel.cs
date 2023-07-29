@@ -1,4 +1,5 @@
 ﻿using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;

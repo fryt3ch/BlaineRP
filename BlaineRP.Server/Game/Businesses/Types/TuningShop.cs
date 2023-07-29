@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
@@ -145,12 +147,12 @@ namespace BlaineRP.Server.Game.Businesses
 
         public int LastExitUsed { get; set; }
 
-        private static Dictionary<Game.Data.Vehicles.Vehicle.ClassTypes, float> VehicleClassMargins = new Dictionary<Data.Vehicles.Vehicle.ClassTypes, float>()
+        private static Dictionary<EntitiesData.Vehicles.Static.Vehicle.ClassTypes, float> VehicleClassMargins = new Dictionary<EntitiesData.Vehicles.Static.Vehicle.ClassTypes, float>()
         {
-            { Data.Vehicles.Vehicle.ClassTypes.Classic, 1f },
-            { Data.Vehicles.Vehicle.ClassTypes.Premium, 1.5f },
-            { Data.Vehicles.Vehicle.ClassTypes.Luxe, 2f },
-            { Data.Vehicles.Vehicle.ClassTypes.Elite, 2.5f },
+            { EntitiesData.Vehicles.Static.Vehicle.ClassTypes.Classic, 1f },
+            { EntitiesData.Vehicles.Static.Vehicle.ClassTypes.Premium, 1.5f },
+            { EntitiesData.Vehicles.Static.Vehicle.ClassTypes.Luxe, 2f },
+            { EntitiesData.Vehicles.Static.Vehicle.ClassTypes.Elite, 2.5f },
         };
 
         private static Dictionary<string, byte> ModSlots = new Dictionary<string, byte>()
@@ -181,7 +183,7 @@ namespace BlaineRP.Server.Game.Businesses
             this.ExitProperties = ExitProperties;
         }
 
-        public float GetVehicleClassMargin(Data.Vehicles.Vehicle.ClassTypes cType) => VehicleClassMargins[cType];
+        public float GetVehicleClassMargin(EntitiesData.Vehicles.Static.Vehicle.ClassTypes cType) => VehicleClassMargins[cType];
 
         public byte? GetModSlot(string id)
         {
@@ -299,12 +301,12 @@ namespace BlaineRP.Server.Game.Businesses
                             return false;
 
                         keyItem.Tag = tag;
-                        keyItem.VID = vData.VID;
+                        keyItem.Vid = vData.VID;
                         keyItem.KeysUid = vData.Info.KeysUid;
 
                         keyItem.Update();
 
-                        pData.Player.InventoryUpdate(Items.Inventory.GroupTypes.Items, keyItemIdx, keyItem.ToClientJson(Items.Inventory.GroupTypes.Items));
+                        pData.Player.InventoryUpdate(GroupTypes.Items, keyItemIdx, keyItem.ToClientJson(GroupTypes.Items));
                     }
                     else
                     {
@@ -324,7 +326,7 @@ namespace BlaineRP.Server.Game.Businesses
                     if (!TryProceedPayment(pData, useCash, $"{iData[0]}_{iData[1]}", 1, out newMats, out newBalance, out newPlayerBalance))
                         return false;
 
-                    if (vData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Motorcycle)
+                    if (vData.Data.Type == VehicleTypes.Motorcycle)
                     {
                         vData.Tuning.WheelsType = 6;
                     }

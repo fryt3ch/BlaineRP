@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Management.Attachments
+﻿namespace BlaineRP.Client.Game.Attachments
 {
     public class AttachmentEntity
     {

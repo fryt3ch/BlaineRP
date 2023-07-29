@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.Management.Attachments
+﻿namespace BlaineRP.Server.Game.Attachments
 {
     public enum AttachmentType
     {

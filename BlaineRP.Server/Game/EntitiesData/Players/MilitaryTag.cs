@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
     public class MilitaryTag
     {

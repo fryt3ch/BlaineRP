@@ -1,6 +1,6 @@
 ﻿using MySqlConnector;
 using System;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server
 {

@@ -1,27 +1,26 @@
-﻿using BlaineRP.Server;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.UtilsT;
 
-namespace BlaineRP.Server.Events.NPC
+namespace BlaineRP.Server.Game.NPCs.Types
 {
     internal class Misc
     {
-        [NPC.Action("vpound_d", "vpound_w_0")]
+        [RemoteAction("vpound_d", "vpound_w_0")]
         private static object VehiclePoundGetData(PlayerData pData, string npcId, string[] data)
         {
-            var vehsOnPound = pData.Info.VehiclesOnPound.ToList();
+            var vehsOnPound = pData.Info.VehiclesOnPound.Select(x => x.VID).ToList();
 
             if (vehsOnPound.Count == 0)
                 return null;
 
-            return $"{Properties.Settings.Static.VEHICLEPOUND_PAY_PRICE}_{string.Join('_', vehsOnPound.Select(x => x.VID))}";
+            return $"{Properties.Settings.Static.VEHICLEPOUND_PAY_PRICE}_{string.Join('_', vehsOnPound)}";
         }
 
-        [NPC.Action("vpound_p", "vpound_w_0")]
+        [RemoteAction("vpound_p", "vpound_w_0")]
         private static object VehiclePoundPay(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length < 1)
@@ -69,13 +68,13 @@ namespace BlaineRP.Server.Events.NPC
             return true;
         }
 
-        [NPC.Action("vrent_s_d", "vrent_s_0")]
+        [RemoteAction("vrent_s_d", "vrent_s_0")]
         private static object VehicleRentSGetData(PlayerData pData, string npcId, string[] data)
         {
             return Properties.Settings.Static.VEHICLERENT_S_PAY_PRICE;
         }
 
-        [NPC.Action("vrent_s_p", "vrent_s_0")]
+        [RemoteAction("vrent_s_p", "vrent_s_0")]
         private static object VehicleRentSPay(PlayerData pData, string npcId, string[] data)
         {
             var curRentedVeh = pData.RentedVehicle;
@@ -108,7 +107,7 @@ namespace BlaineRP.Server.Events.NPC
             return true;
         }
 
-        [NPC.Action("fishbuyer_s", "fishbuyer_0")]
+        [RemoteAction("fishbuyer_s", "fishbuyer_0")]
         private static object FishBuyerSell(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 2)

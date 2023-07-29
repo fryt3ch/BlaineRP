@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Estates

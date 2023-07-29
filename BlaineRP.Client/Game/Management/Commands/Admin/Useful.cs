@@ -4,7 +4,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("invisibility", true, "Включить/выключить невидимость", "inv", "invis")]
         public static void Invisibility(bool? state = null)

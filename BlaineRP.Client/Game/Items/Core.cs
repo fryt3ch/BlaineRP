@@ -232,7 +232,7 @@ namespace BlaineRP.Client.Game.Items
                     }
 
                     Materials.Types materialType = Materials.GetTypeByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f),
-                        Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f),
+                        Management.Camera.Service.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f),
                         Player.LocalPlayer.Handle,
                         31
                     );
@@ -409,7 +409,7 @@ namespace BlaineRP.Client.Game.Items
             if (itemData == null)
                 return;
 
-            Vector3 coords = Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+            Vector3 coords = Management.Camera.Service.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
             if (MapEditor.IsActive)
                 return;

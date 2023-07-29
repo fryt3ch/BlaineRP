@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Management.AntiCheat;
 
 namespace BlaineRP.Server.Game.Estates

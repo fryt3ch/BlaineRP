@@ -13,7 +13,7 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Management.AntiCheat
 {
     [Script(int.MaxValue)]
-    public partial class Core
+    public partial class Service
     {
         public const string TeleportTaskKey = "AC_TP_T";
         public const string TeleportGroundTaskKey = "AC_TPG_T";
@@ -25,7 +25,7 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
 
         public const string AlphaTaskKey = "AC_ALPHA_T";
 
-        public Core()
+        public Service()
         {
             Events.Add("AC::Ped::TP",
                 async (args) =>

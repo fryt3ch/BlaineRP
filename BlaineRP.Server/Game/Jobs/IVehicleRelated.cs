@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Game.Jobs
 {

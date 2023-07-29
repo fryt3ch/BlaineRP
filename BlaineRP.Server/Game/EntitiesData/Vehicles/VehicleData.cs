@@ -2,23 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
+
+using BlaineRP.Server.Extensions.System.Collections.Generic;
 using BlaineRP.Server.Game.Attachments;
 using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Management.Audio;
 using BlaineRP.Server.Game.Misc;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Vehicles
+namespace BlaineRP.Server.Game.EntitiesData.Vehicles
 {
     public partial class VehicleData
     {
-        public static Dictionary<Vehicle, VehicleData> All { get; private set; } = new Dictionary<Vehicle, VehicleData>();
+        public static Dictionary<GTANetworkAPI.Vehicle, VehicleData> _all { get; private set; } = new Dictionary<GTANetworkAPI.Vehicle, VehicleData>();
+
+        public static IReadOnlyDictionary<GTANetworkAPI.Vehicle, VehicleData> All => _all.AsReadOnly();
 
         /// <summary>Получить VehicleData транспорта</summary>
         /// <returns>Объект класса PlayerData если существует, иначе - null</returns>
-        public static VehicleData GetData(Vehicle vehicle)
+        public static VehicleData GetData(GTANetworkAPI.Vehicle vehicle)
         {
             if (vehicle == null)
                 return null;
@@ -27,12 +33,12 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
         }
 
         /// <summary>Назначить объект класса VehicleData транспорту</summary>
-        public static void SetData(Vehicle vehicle, VehicleData data)
+        public static void SetData(GTANetworkAPI.Vehicle vehicle, VehicleData data)
         {
             if (vehicle == null)
                 return;
 
-            All.Add(vehicle, data);
+            _all.Add(vehicle, data);
         }
 
         public static void Remove(VehicleData vData)
@@ -68,7 +74,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
             vData.Info.VehicleData = null;
 
-            All.Remove(vData.Vehicle);
+            _all.Remove(vData.Vehicle);
 
             vData.Vehicle.Delete();
 
@@ -91,9 +97,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
         /// <summary>Сущность транспорта</summary>
         /// <value>Объект класса Vehicle, если транспорт существует на сервере, null - в противном случае</value>
-        public Vehicle Vehicle { get; set; }
+        public GTANetworkAPI.Vehicle Vehicle { get; set; }
 
-        public VehicleData(Vehicle Vehicle)
+        public VehicleData(GTANetworkAPI.Vehicle Vehicle)
         {
             this.Vehicle = Vehicle;
 
@@ -115,12 +121,12 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             AttachedObjects = new List<AttachmentObjectNet>();
             AttachedEntities = new List<AttachmentEntityNet>();
 
-            Vehicle.SetData(Service.AttachedObjectsTimersKey, new Dictionary<AttachmentType, Timer>());
+            Vehicle.SetData(Attachments.Service.AttachedObjectsTimersKey, new Dictionary<AttachmentType, Timer>());
 
             SetData(Vehicle, this);
         }
 
-        public VehicleData(Vehicle Vehicle, VehicleInfo Info) : this(Vehicle)
+        public VehicleData(GTANetworkAPI.Vehicle Vehicle, VehicleInfo Info) : this(Vehicle)
         {
             this.Info = Info;
 
@@ -142,15 +148,15 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
         public bool AttachBoatToTrailer()
         {
-            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+            if (Data.Type != VehicleTypes.Boat)
                 return false;
 
-            return Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
+            return Vehicle.AttachObject(Static.Service.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
         }
 
         public bool DetachBoatFromTrailer()
         {
-            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+            if (Data.Type != VehicleTypes.Boat)
                 return false;
 
             return Vehicle.DetachObject(AttachmentType.TrailerObjOnBoat);
@@ -158,7 +164,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
         public bool IsBoatAttachedToTrailer()
         {
-            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+            if (Data.Type != VehicleTypes.Boat)
                 return false;
 
             return AttachedObjects.Where(x => x.Type == AttachmentType.TrailerObjOnBoat).Any();
@@ -340,7 +346,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             }
         }
         
-        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension, bool setInto = false)
+        public static VehicleData New(PlayerData pData, Static.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension, bool setInto = false)
         {
             var player = pData.Player;
 
@@ -349,14 +355,14 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.Player,
                 OwnerID = pData.CID,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
-            var cont = vType.TrunkData == null ? null : Container.Create($"vt_{vType.ID}", null);
+            var cont = vType.TrunkData == null ? null : Container.Create($"vt_{vType.Id}", null);
 
             if (cont != null)
             {
@@ -391,7 +397,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewTemp(PlayerData pData, Static.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 
@@ -402,9 +408,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.PlayerTemp,
                 OwnerID = pData.CID,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
@@ -431,7 +437,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewTemp(Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewTemp(Static.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var vInfo = new VehicleInfo()
             {
@@ -440,9 +446,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.AlwaysFree,
                 OwnerID = 0,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
@@ -464,7 +470,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             return vData;
         }
 
-        public static VehicleData NewRent(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewRent(PlayerData pData, Static.Vehicle vType, Colour color1, Colour color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 
@@ -475,9 +481,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.PlayerRent,
                 OwnerID = pData.CID,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = int.MinValue },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
@@ -508,7 +514,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             return vData;
         }
 
-        public static VehicleInfo NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
+        public static VehicleInfo NewJob(int jobId, string numberplateText, Static.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
         {
             var job = Game.Jobs.Job.Get(jobId);
 
@@ -519,9 +525,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.PlayerRentJob,
                 OwnerID = 0,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position.Position, Dimension = dimension, Heading = position.RotationZ, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
@@ -550,7 +556,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
             return vInfo;
         }
 
-        public static VehicleInfo NewAutoschool(int autoschoolId, Game.Data.Vehicles.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
+        public static VehicleInfo NewAutoschool(int autoschoolId, Static.Vehicle vType, Colour color1, Colour color2, Vector4 position, uint dimension)
         {
             var autoschool = DrivingSchool.Get(autoschoolId);
 
@@ -561,9 +567,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
                 Data = vType,
                 OwnerType = OwnerTypes.PlayerDrivingSchool,
                 OwnerID = 0,
-                ID = vType.ID,
+                ID = vType.Id,
                 Numberplate = null,
-                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                Tuning = Tuning.CreateNew(color1, color2),
                 LastData = new LastVehicleData() { Position = position.Position, Dimension = dimension, Heading = position.RotationZ, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };

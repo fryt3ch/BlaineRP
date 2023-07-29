@@ -1,8 +1,8 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.Handshake)]
     internal class Handshake : OfferBase
@@ -34,8 +34,8 @@ namespace BlaineRP.Server.Game.Management.Offers
                 tData.PlayAnim(FastType.Handshake, AnimationTime);
             }
 
-            pData.AddFamiliar(tData.Info);
-            tData.AddFamiliar(pData.Info);
+            pData.Info.AddFamiliar(tData.Info);
+            tData.Info.AddFamiliar(pData.Info);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)

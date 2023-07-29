@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Helpers;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -192,7 +192,7 @@ namespace BlaineRP.Client.Game.Casino.Games
                 ped.SetComponentVariation(11, 1, 0, 0);
             }
 
-            Core.Play(ped, new Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+            Service.Play(ped, new Animation("anim_casino_b@amb@casino@games@blackjack@dealer", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
         }
 
         public string GetCurrestStateString()

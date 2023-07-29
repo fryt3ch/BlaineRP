@@ -5,7 +5,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("eval", true, "js eval", "jseval", "jse")]
         public static void JsEval(string cmd)

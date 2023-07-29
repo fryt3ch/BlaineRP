@@ -1,12 +1,12 @@
-﻿using BlaineRP.Server.Game.Data;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 
@@ -46,7 +46,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         private static Dictionary<ushort, CallInfo> AllCalls { get; set; } = new Dictionary<ushort, CallInfo>();
 
-        public List<Customization.UniformTypes> UniformTypes { get; set; }
+        public List<UniformTypes> UniformTypes { get; set; }
 
         public Vector3[] LockerRoomPositions { get; set; }
 

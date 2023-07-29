@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
 using RAGE.Elements;

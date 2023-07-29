@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Phone;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
@@ -255,7 +255,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 var sms = new SMS((uint)DefaultNumbers.Delivery, pData.Info, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderNew), orderId, amount, totalPrice));
 
-                SMS.Add(pData.Info, sms, true);
+                pData.Info.AddSms(sms, true);
 
                 return business.Bank;
             }
@@ -318,7 +318,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 var sms = new SMS((uint)DefaultNumbers.Delivery, pData.Info, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderCancel), currentOrderPair.Key, totalPrice));
 
-                SMS.Add(pData.Info, sms, true);
+                pData.Info.AddSms(sms, true);
 
                 return business.Bank;
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
 using Newtonsoft.Json.Linq;

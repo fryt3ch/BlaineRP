@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Server.UtilsT;
 
-namespace BlaineRP.Server.Game.Management.Phone
+namespace BlaineRP.Server.Game.Phone
 {
     public static class Numbers
     {

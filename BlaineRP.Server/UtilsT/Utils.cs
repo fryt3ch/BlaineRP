@@ -10,14 +10,16 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.GTANetworkAPI;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Estates;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Management;
-using BlaineRP.Server.Game.Management.Animations;
 using BlaineRP.Server.Game.Management.AntiCheat;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Game.Management.Misc;
 using BlaineRP.Server.UtilsT;
@@ -277,7 +279,7 @@ namespace BlaineRP.Server
         /// <remarks>Если ID причёски не существует, то будет установлена стандартная причёска!</remarks>
         /// <param name="player">Сущность игрока</param>
         /// <param name="id">ID причёски (см. Game.Data.Customization.AllHairs</param>
-        public static void SetHair(this Player player, int id) => player?.SetClothes(2, Game.Data.Customization.GetHair(player.Model == (uint)PedHash.FreemodeMale01, id), 0);
+        public static void SetHair(this Player player, int id) => player?.SetClothes(2, Game.EntitiesData.Players.Customization.Service.GetHair(player.Model == (uint)PedHash.FreemodeMale01, id), 0);
 
         /// <summary>Получить сущность игрока по ID</summary>
         /// <param name="id">Remote ID</param>
@@ -321,16 +323,16 @@ namespace BlaineRP.Server
         /// <inheritdoc cref="AntiSpam.CheckTemp(Player, int)"/>
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => AntiSpam.CheckTemp(player, decreaseDelay);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Replace(PlayerData, Game.Items.Inventory.GroupTypes, int, Game.Items.Inventory.GroupTypes, int, int)"/>
-        public static Game.Items.Inventory.ResultTypes InventoryReplace(this PlayerData pData, Game.Items.Inventory.GroupTypes to, int slotTo, Game.Items.Inventory.GroupTypes from, int slotFrom, int amount = -1) => Game.Items.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
+        /// <inheritdoc cref="Game.Inventory.Service.Replace(PInventorys.Inventory.GroupTInventorys.Inventory.GroupTypes, int, int)"/>
+        public static Game.Inventory.Service.ResultTypes InventoryReplace(this PlayerData pData, GroupTypes to, int slotTo, GroupTypes from, int slotFrom, int amount = -1) => Game.Inventory.Service.Replace(pData, to, slotTo, from, slotFrom, amount);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Action(PlayerData, Game.Items.Inventory.GroupTypes, int, int, object[])"/>
-        public static Game.Items.Inventory.ResultTypes InventoryAction(this PlayerData pData, Game.Items.Inventory.GroupTypes slotStr, int slot, int action = 5, params string[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
+        /// <inheritdoc cref="Game.Inventory.Service.Action(PInventorys.Inventory.GroupTypes, int, int, object[])"/>
+        public static Game.Inventory.Service.ResultTypes InventoryAction(this PlayerData pData, GroupTypes slotStr, int slot, int action = 5, params string[] args) => Game.Inventory.Service.Action(pData, slotStr, slot, action, args);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Drop(PlayerData, Game.Items.Inventory.GroupTypes, int, int)"/>
-        public static void InventoryDrop(this PlayerData pData, Game.Items.Inventory.GroupTypes slotStr, int slot, int amount) => Game.Items.Inventory.Drop(pData, slotStr, slot, amount);
+        /// <inheritdoc cref="Game.Inventory.Service.Drop(PInventorys.Inventory.GroupTypes, int, int)"/>
+        public static void InventoryDrop(this PlayerData pData, GroupTypes slotStr, int slot, int amount) => Game.Inventory.Service.Drop(pData, slotStr, slot, amount);
 
-        public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
+        public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Inventory.Service.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
         public static bool GiveItem(this PlayerData pData, out Game.Items.Item item, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItem(pData, out item, id, variation, amount, notifyOnSuccess, notifyOnFault);
 
@@ -345,7 +347,7 @@ namespace BlaineRP.Server
         {
             pData.UnequipActiveWeapon();
 
-            var updList = new List<(Game.Items.Inventory.GroupTypes Group, int Slot)>();
+            var updList = new List<(GroupTypes Group, int Slot)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
@@ -357,7 +359,7 @@ namespace BlaineRP.Server
 
                     pData.Weapons[i] = null;
 
-                    updList.Add((Game.Items.Inventory.GroupTypes.Weapons, i));
+                    updList.Add((GroupTypes.Weapons, i));
                 }
             }
 
@@ -367,7 +369,7 @@ namespace BlaineRP.Server
             {
                 pData.Holster.Items[0].Delete();
 
-                updList.Add((Game.Items.Inventory.GroupTypes.Holster, 2));
+                updList.Add((GroupTypes.Holster, 2));
 
                 pData.Holster.Update();
             }
@@ -382,7 +384,7 @@ namespace BlaineRP.Server
 
                         pData.Items[i] = null;
 
-                        updList.Add((Game.Items.Inventory.GroupTypes.Items, i));
+                        updList.Add((GroupTypes.Items, i));
                     }
                 }
 
@@ -399,7 +401,7 @@ namespace BlaineRP.Server
 
                         pData.Bag.Items[i] = null;
 
-                        updList.Add((Game.Items.Inventory.GroupTypes.Bag, i));
+                        updList.Add((GroupTypes.Bag, i));
                     }
                 }
 
@@ -411,14 +413,14 @@ namespace BlaineRP.Server
         }
 
 
-        public static List<(Game.Items.Item Item, Game.Items.Inventory.GroupTypes Group, int Slot)> TakeWeapons(this PlayerData pData)
+        public static List<(Game.Items.Item Item, GroupTypes Group, int Slot)> TakeWeapons(this PlayerData pData)
         {
             pData.UnequipActiveWeapon();
 
             var tempItems = pData.TempItems;
 
             if (tempItems == null)
-                tempItems = new List<(Game.Items.Item, Game.Items.Inventory.GroupTypes, int)>();
+                tempItems = new List<(Game.Items.Item, GroupTypes, int)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
@@ -426,9 +428,9 @@ namespace BlaineRP.Server
                 {
                     pData.Weapons[i] = null;
 
-                    tempItems.Add((weapon, Game.Items.Inventory.GroupTypes.Weapons, i));
+                    tempItems.Add((weapon, GroupTypes.Weapons, i));
 
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Weapons));
+                    pData.Player.InventoryUpdate(GroupTypes.Weapons, i, Game.Items.Item.ToClientJson(null, GroupTypes.Weapons));
                 }
             }
 
@@ -449,7 +451,7 @@ namespace BlaineRP.Server
 
             foreach (var x in takenItems)
             {
-                if (x.Group == Game.Items.Inventory.GroupTypes.Weapons)
+                if (x.Group == GroupTypes.Weapons)
                 {
                     pData.Weapons[x.Slot] = x.Item as Game.Items.Weapon;
                 }
@@ -472,7 +474,7 @@ namespace BlaineRP.Server
             if (ammo < 0)
                 weapon.Ammo = -1;
 
-            pData.InventoryAction(Game.Items.Inventory.GroupTypes.Weapons, 0, 5);
+            pData.InventoryAction(GroupTypes.Weapons, 0, 5);
 
             return weapon;
         }
@@ -663,55 +665,55 @@ namespace BlaineRP.Server
             return currentTime.Month == dateTime.Month && currentTime.Day == dateTime.Day;
         }
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.AttachObject(Entity, string, AttachmentType, int)"/>
-        public static bool AttachObject(this Entity entity, uint model, AttachmentType type, int detachAfter, string syncData, params object[] args) => Game.Management.Attachments.Service.AttachObject(entity, model, type, detachAfter, syncData, args);
+        /// <inheritdoc cref="Game.Attachments.Service.AttachObject(Entity, string, AttachmentType, int)"/>
+        public static bool AttachObject(this Entity entity, uint model, AttachmentType type, int detachAfter, string syncData, params object[] args) => Game.Attachments.Service.AttachObject(entity, model, type, detachAfter, syncData, args);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.DetachObject(Entity, string)"/>
-        public static bool DetachObject(this Entity entity, AttachmentType type, params object[] args) => Game.Management.Attachments.Service.DetachObject(entity, type, args);
+        /// <inheritdoc cref="Game.Attachments.Service.DetachObject(Entity, string)"/>
+        public static bool DetachObject(this Entity entity, AttachmentType type, params object[] args) => Game.Attachments.Service.DetachObject(entity, type, args);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.AttachEntity(Entity, int, AttachmentType)"/>
-        public static bool AttachEntity(this Entity entity, Entity target, AttachmentType type, string syncData, params object[] args) => Game.Management.Attachments.Service.AttachEntity(entity, target, type, syncData, args);
+        /// <inheritdoc cref="Game.Attachments.Service.AttachEntity(Entity, int, AttachmentType)"/>
+        public static bool AttachEntity(this Entity entity, Entity target, AttachmentType type, string syncData, params object[] args) => Game.Attachments.Service.AttachEntity(entity, target, type, syncData, args);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.DetachEntity(Entity, int)"/>
-        public static bool DetachEntity(this Entity entity, Entity target) => Game.Management.Attachments.Service.DetachEntity(entity, target);
+        /// <inheritdoc cref="Game.Attachments.Service.DetachEntity(Entity, int)"/>
+        public static bool DetachEntity(this Entity entity, Entity target) => Game.Attachments.Service.DetachEntity(entity, target);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.DetachAllEntities(Entity)"/>
-        public static bool DetachAllEntities(this Entity entity) => Game.Management.Attachments.Service.DetachAllEntities(entity);
+        /// <inheritdoc cref="Game.Attachments.Service.DetachAllEntities(Entity)"/>
+        public static bool DetachAllEntities(this Entity entity) => Game.Attachments.Service.DetachAllEntities(entity);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.DetachAllObjects(Entity)"/>
-        public static bool DetachAllObjects(this Entity entity) => Game.Management.Attachments.Service.DetachAllObjects(entity);
+        /// <inheritdoc cref="Game.Attachments.Service.DetachAllObjects(Entity)"/>
+        public static bool DetachAllObjects(this Entity entity) => Game.Attachments.Service.DetachAllObjects(entity);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.DetachAllObjectsInHand(Entity)"/>
-        public static bool DetachAllObjectsInHand(this Entity entity) => Game.Management.Attachments.Service.DetachAllObjectsInHand(entity);
+        /// <inheritdoc cref="Game.Attachments.Service.DetachAllObjectsInHand(Entity)"/>
+        public static bool DetachAllObjectsInHand(this Entity entity) => Game.Attachments.Service.DetachAllObjectsInHand(entity);
 
-        /// <inheritdoc cref="Game.Management.Attachments.Service.GetEntityAttachmentData(Entity, Entity)"/>
-        public static AttachmentEntityNet GetAttachmentData(this Entity entity, Entity target) => Game.Management.Attachments.Service.GetEntityAttachmentData(entity, target);
+        /// <inheritdoc cref="Game.Attachments.Service.GetEntityAttachmentData(Entity, Entity)"/>
+        public static AttachmentEntityNet GetAttachmentData(this Entity entity, Entity target) => Game.Attachments.Service.GetEntityAttachmentData(entity, target);
 
-        public static Entity GetEntityIsAttachedTo(this Entity entity) => Game.Management.Attachments.Service.GetEntityIsAttachedToEntity(entity);
+        public static Entity GetEntityIsAttachedTo(this Entity entity) => Game.Attachments.Service.GetEntityIsAttachedToEntity(entity);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.Play(PlayerDAnimationstions.GeneralTypes)"/>
-        public static void PlayAnim(this PlayerData pData, GeneralType type) => Game.Management.Animations.Service.Play(pData, type);
+        /// <inheritdoc cref="Game.Animations.Service.Play(PlayerDAnimationstions.GeneralTypes)"/>
+        public static void PlayAnim(this PlayerData pData, GeneralType type) => Game.Animations.Service.Play(pData, type);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.Play(PlaAnimationstions.FastTypes)"/>
-        public static void PlayAnim(this PlayerData pData, FastType type, TimeSpan timeout) => Game.Management.Animations.Service.Play(pData, type, timeout);
+        /// <inheritdoc cref="Game.Animations.Service.Play(PlaAnimationstions.FastTypes)"/>
+        public static void PlayAnim(this PlayerData pData, FastType type, TimeSpan timeout) => Game.Animations.Service.Play(pData, type, timeout);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.Play(PlaAnimationstions.OtherTypes)"/>
-        public static void PlayAnim(this PlayerData pData, OtherType type) => Game.Management.Animations.Service.Play(pData, type);
+        /// <inheritdoc cref="Game.Animations.Service.Play(PlaAnimationstions.OtherTypes)"/>
+        public static void PlayAnim(this PlayerData pData, OtherType type) => Game.Animations.Service.Play(pData, type);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.StopAll(pData)"/>
-        public static void StopAllAnims(this PlayerData pData) => Game.Management.Animations.Service.StopAll(pData);
+        /// <inheritdoc cref="Game.Animations.Service.StopAll(pData)"/>
+        public static void StopAllAnims(this PlayerData pData) => Game.Animations.Service.StopAll(pData);
 
-        public static bool StopFastAnim(this PlayerData pData) => Game.Management.Animations.Service.StopFastAnim(pData);
+        public static bool StopFastAnim(this PlayerData pData) => Game.Animations.Service.StopFastAnim(pData);
 
-        public static bool StopGeneralAnim(this PlayerData pData) => Game.Management.Animations.Service.StopGeneralAnim(pData);
+        public static bool StopGeneralAnim(this PlayerData pData) => Game.Animations.Service.StopGeneralAnim(pData);
 
-        public static bool StopOtherAnim(this PlayerData pData) => Game.Management.Animations.Service.StopOtherAnim(pData);
+        public static bool StopOtherAnim(this PlayerData pData) => Game.Animations.Service.StopOtherAnim(pData);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.Set(PlayerDAnimationstions.EmotionTypes, bool)"/>
-        public static void SetEmotion(this PlayerData pData, EmotionType type) => Game.Management.Animations.Service.Set(pData, type);
+        /// <inheritdoc cref="Game.Animations.Service.Set(PlayerDAnimationstions.EmotionTypes, bool)"/>
+        public static void SetEmotion(this PlayerData pData, EmotionType type) => Game.Animations.Service.Set(pData, type);
 
-        /// <inheritdoc cref="Game.Management.Animations.Service.Set(PlayerDAnimationstions.WalkstyleTypes, bool)"/>
-        public static void SetWalkstyle(this PlayerData pData, WalkstyleType type) => Game.Management.Animations.Service.Set(pData, type);
+        /// <inheritdoc cref="Game.Animations.Service.Set(PlayerDAnimationstions.WalkstyleTypes, bool)"/>
+        public static void SetWalkstyle(this PlayerData pData, WalkstyleType type) => Game.Animations.Service.Set(pData, type);
 
         /// <inheritdoc cref="SkyCamera.MoSkyCameral.SkyCamera.SwitchTypes, bool, string, object[])"></inheritdoc>
         public static void SkyCameraMove(this Player player, SkyCamera.SwitchType switchType, bool fade, string eventOnFinish = null, params object[] args) => SkyCamera.Move(player, switchType, fade, eventOnFinish, args);
@@ -746,7 +748,7 @@ namespace BlaineRP.Server
             var rid = pData.Player.Id;
             var ip = pData.Player.Address;
 
-            var date = pData.LastJoinDate;
+            var date = pData.Info.LastJoinDate;
 
             //todo
         }
@@ -757,7 +759,7 @@ namespace BlaineRP.Server
         /// <param name="item">Предмет</param>
         /// <param name="amount"></param>
         /// <param name="take">Получил игрок предмет или отдал?</param>
-        public static void LogInventory(PlayerData pData, Game.Items.Container cont, Game.Items.Item item, int amount, bool take)
+        public static void LogInventory(PlayerData pData, Container cont, Game.Items.Item item, int amount, bool take)
         {
             var cid = pData.CID;
 
@@ -880,17 +882,17 @@ namespace BlaineRP.Server
         public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new RAGE.Vector3({v.X}f, {v.Y}f, {v.Z}f)";
         public static string ToCSharpStr(this Vector4 v) => v == null ? "null" : $"new {typeof(BlaineRP.Client.Utils.Vector4).FullName}({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
+        public static void InventoryUpdate(this Player player, GroupTypes group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group1, int slot1, string updStr1, Game.Items.Inventory.GroupTypes group2, int slot2, string updStr2) => player.TriggerEvent("Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+        public static void InventoryUpdate(this Player player, GroupTypes group1, int slot1, string updStr1, GroupTypes group2, int slot2, string updStr2) => player.TriggerEvent("Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
 
-        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group1, int slot1, string updStr1, Game.Items.Inventory.GroupTypes group2, int slot2, string updStr2, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+        public static void InventoryUpdate(GroupTypes group1, int slot1, string updStr1, GroupTypes group2, int slot2, string updStr2, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
 
-        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group, int slot, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, slot, updStr);
+        public static void InventoryUpdate(GroupTypes group, int slot, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, slot, updStr);
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, 0, updStr);
+        public static void InventoryUpdate(this Player player, GroupTypes group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, 0, updStr);
 
-        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
+        public static void InventoryUpdate(GroupTypes group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
 
         public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh.Id, seatId, timeout);
 

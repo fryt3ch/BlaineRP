@@ -1,8 +1,9 @@
 ﻿using System.Linq;
-using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Management.Punishments;
 using RAGE;
 using RAGE.Elements;
 
@@ -77,10 +78,10 @@ namespace BlaineRP.Client.Game.Misc
                             ApproveType = ApproveTypes.None,
                             OnExit = (cancel) =>
                             {
-                                Punishment demorganData = Punishment.All.Where(x => x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
+                                Punishment demorganData = Punishment.All.Where(x => x.Type == PunishmentType.NRPPrison).FirstOrDefault();
 
                                 if (demorganData != null)
-                                    Events.CallRemote("Player::NRPP::TPME");
+                                    RAGE.Events.CallRemote("Player::NRPP::TPME");
                             },
                         };
 

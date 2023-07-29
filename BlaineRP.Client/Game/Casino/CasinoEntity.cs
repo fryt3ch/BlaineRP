@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.NPCs;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -110,7 +110,7 @@ namespace BlaineRP.Client.Game.Casino
                         if (ped == null)
                             return;
 
-                        Management.Animations.Core.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
+                        Service.Play(ped, new Animation("mini@strip_club@leaning@base", "base_female", 8f, 0f, -1, 0, 0f, false, false, false), -1);
                     }
                 );
 

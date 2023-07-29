@@ -1,8 +1,8 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     public partial class Offer
     {

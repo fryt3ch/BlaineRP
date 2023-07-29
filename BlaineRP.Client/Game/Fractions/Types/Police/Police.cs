@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Offers;
 using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils.Game;
@@ -888,7 +888,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                     ActionBox.Close(true);
 
-                    Offers.Request(player,
+                    Offers.Service.Request(player,
                         OfferTypes.PoliceFine,
                         new
                         {
@@ -1419,7 +1419,7 @@ namespace BlaineRP.Client.Game.Fractions
 
         public async void PlayerToVehicle(Vehicle vehicle)
         {
-            var vData = Game.EntitiesData.VehicleData.GetData(vehicle);
+            var vData = EntitiesData.Vehicles.VehicleData.GetData(vehicle);
 
             if (vData == null)
                 return;
@@ -1450,7 +1450,7 @@ namespace BlaineRP.Client.Game.Fractions
                     freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
             }
 
-            AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == AttachmentType.VehicleTrunk).FirstOrDefault();
+            AttachmentEntity trunkAttach = Attachments.Service.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == AttachmentType.VehicleTrunk).FirstOrDefault();
 
             if (trunkAttach == null && vehicle.DoesHaveDoor(5) > 0)
                 freeSeats.Add((255, Locale.Get("POLICE_PTOVEH_L_1")));
@@ -1508,7 +1508,7 @@ namespace BlaineRP.Client.Game.Fractions
 
         public async void PlayerFromVehicle(Vehicle vehicle)
         {
-            var vData = Game.EntitiesData.VehicleData.GetData(vehicle);
+            var vData = EntitiesData.Vehicles.VehicleData.GetData(vehicle);
 
             if (vData == null)
                 return;
@@ -1528,9 +1528,9 @@ namespace BlaineRP.Client.Game.Fractions
                     players.Add(player);
             }
 
-            AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(vehicle)
-                                                    ?.Where(x => x.Type == AttachmentType.VehicleTrunk && x.EntityType == RAGE.Elements.Type.Player)
-                                                     .FirstOrDefault();
+            AttachmentEntity trunkAttach = Attachments.Service.GetEntityEntityAttachments(vehicle)
+                                                     ?.Where(x => x.Type == AttachmentType.VehicleTrunk && x.EntityType == RAGE.Elements.Type.Player)
+                                                      .FirstOrDefault();
 
             if (trunkAttach != null)
             {

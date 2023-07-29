@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;

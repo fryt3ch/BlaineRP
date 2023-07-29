@@ -1,7 +1,7 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntitiesData.Vehicles
+namespace BlaineRP.Server.Game.EntitiesData.Vehicles
 {
     public class LastVehicleData
     {

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Items;
-using BlaineRP.Server.Game.Management.Animations;
 
 namespace BlaineRP.Server.Game.Inventory
 {
-    public partial class Inventory
+    public partial class Service
     {
         /// <summary>Слоты одежды</summary>
         public static Dictionary<Type, int> ClothesSlots = new Dictionary<Type, int>()
@@ -31,35 +31,6 @@ namespace BlaineRP.Server.Game.Inventory
             { typeof(Game.Items.Ring), 6 },
             { typeof(Game.Items.Gloves), 7 },
         };
-
-        /// <summary>Секции инвентаря</summary>
-        public enum GroupTypes
-        {
-            /// <summary>Карманы</summary>
-            Items = 0,
-            /// <summary>Сумка</summary>
-            Bag = 1,
-            /// <summary>Оружие</summary>
-            Weapons = 2,
-            /// <summary>Кобура (оружие)</summary>
-            Holster = 3,
-            /// <summary>Одежда</summary>
-            Clothes = 4,
-            /// <summary>Аксессуары</summary>
-            Accessories = 5,
-            /// <summary>Предмет сумки</summary>
-            BagItem = 6,
-            /// <summary>Предмет кобуры</summary>
-            HolsterItem = 7,
-            /// <summary>Бронежилет</summary>
-            Armour = 8,
-            /// <summary>Контейнер</summary>
-            Container = 9,
-
-            CraftItems = 20,
-            CraftTools = 21,
-            CraftResult = 22,
-        }
 
         /// <summary>Типы результатов</summary>
         public enum ResultTypes
@@ -331,6 +302,6 @@ namespace BlaineRP.Server.Game.Inventory
             return true;
         }
 
-        public static void ClearSlot(PlayerData pData, GroupTypes group, int slot) => pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(null, Inventory.GroupTypes.Items));
+        public static void ClearSlot(PlayerData pData, GroupTypes group, int slot) => pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Items));
     }
 }

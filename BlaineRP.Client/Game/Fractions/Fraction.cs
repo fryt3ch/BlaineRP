@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
+using BlaineRP.Client.Game.Offers;
 using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.World;
@@ -488,7 +488,7 @@ namespace BlaineRP.Client.Game.Fractions
                 return;
             }
 
-            Offers.Request(player, OfferTypes.InviteFraction, null);
+            Offers.Service.Request(player, OfferTypes.InviteFraction, null);
         }
 
         public void PlayerShowDocs(Player player)
@@ -496,7 +496,7 @@ namespace BlaineRP.Client.Game.Fractions
             if (!MetaFlags.HasFlag(MetaFlagTypes.MembersHaveDocs))
                 return;
 
-            Offers.Request(player, OfferTypes.ShowFractionDocs, null);
+            Offers.Service.Request(player, OfferTypes.ShowFractionDocs, null);
         }
     }
 }

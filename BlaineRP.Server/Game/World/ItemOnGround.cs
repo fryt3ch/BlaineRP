@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Items;
 using BlaineRP.Server.Game.Management.Chat;
 using GTANetworkAPI;
@@ -10,7 +10,7 @@ namespace BlaineRP.Server.Game.World
 {
     public partial class Service
     {
-        public class ItemOnGround
+        public partial class ItemOnGround
         {
             public enum Types : byte
             {

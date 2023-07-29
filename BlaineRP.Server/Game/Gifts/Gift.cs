@@ -1,10 +1,10 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Casino;
+﻿using BlaineRP.Server.Game.Casino;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.UtilsT.UidHandlers;
 
-namespace BlaineRP.Server.Game.Items
+namespace BlaineRP.Server.Game.Gifts
 {
-    public class Gift
+    public partial class Gift
     {
         public static UInt32 UidHandler { get; private set; } = new UInt32(1);
 
@@ -38,59 +38,11 @@ namespace BlaineRP.Server.Game.Items
             MySQL.GiftDelete(gift);
         }
 
-        public class Prototype
-        {
-            public Types Type { get; set; }
-
-            public SourceTypes SourceType { get; set; }
-
-            public string GID { get; set; }
-
-            public int Variation { get; set; }
-
-            public int Amount { get; set; }
-
-            public Prototype(Types Type, SourceTypes SourceType, string GID, int Vatiation, int Amount)
-            {
-                this.Type = Type;
-                this.SourceType = SourceType;
-                this.GID = GID;
-                this.Variation = Variation;
-                this.Amount = Amount;
-            }
-
-            public static Prototype CreateAchievement(Types Type, string GID, int Variation, int Amount) => new Prototype(Type, SourceTypes.Achievement, GID, Variation, Amount);
-
-            public static Prototype CreateCasino(Types Type, string GID, int Variation, int Amount) => new Prototype(Type, SourceTypes.Casino, GID, Variation, Amount);
-        }
-
-        public enum Types
-        {
-            /// <summary>Предмет</summary>
-            Item = 0,
-            /// <summary>Транспорт</summary>
-            Vehicle,
-            /// <summary>Деньги</summary>
-            Money,
-            CasinoChips,
-        }
-
-        public enum SourceTypes
-        {
-            /// <summary>Сервер</summary>
-            Server = 0,
-            /// <summary>Магазин</summary>
-            Shop,
-            /// <summary>Выполненное достижение</summary>
-            Achievement,
-            Casino,
-        }
-
         /// <summary>ID подарка</summary>
         public uint ID { get; set; }
 
         /// <summary>Тип подарка</summary>
-        public Types Type { get; set; }
+        public GiftTypes Type { get; set; }
 
         /// <summary>Good ID - ID предмета/транспорта</summary>
         /// <remarks>Если тип предмета не подразумевает таковой - null</remarks>
@@ -104,10 +56,10 @@ namespace BlaineRP.Server.Game.Items
         public int Amount { get; set; }
 
         /// <summary>Источник выдачи подарка</summary>
-        public SourceTypes SourceType { get; set; }
+        public GiftSourceTypes SourceType { get; set; }
 
         /// <summary>Конструктор для MySQL</summary>
-        public Gift(uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(SourceType, Type, GID, Variation, Amount)
+        public Gift(uint ID, GiftSourceTypes SourceType, GiftTypes Type, string GID = null, int Variation = 0, int Amount = 1) : this(SourceType, Type, GID, Variation, Amount)
         {
             this.ID = ID;
 
@@ -120,7 +72,7 @@ namespace BlaineRP.Server.Game.Items
             this.SourceType = SourceType;
         }
 
-        public Gift(SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
+        public Gift(GiftSourceTypes SourceType, GiftTypes Type, string GID = null, int Variation = 0, int Amount = 1)
         {
             this.Amount = Amount;
             this.Type = Type;
@@ -143,7 +95,7 @@ namespace BlaineRP.Server.Game.Items
         /// <param name="sType">Источник выдачи</param>
         /// <param name="notify">Уведомить ли игрока?</param>
         /// <param name="spaceHint">Уведомить, но с подсказкой об освобождении места в инвентаре?</param>
-        public static Gift Give(PlayerInfo pInfo, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false)
+        public static Gift Give(PlayerInfo pInfo, GiftTypes type, string GID = null, int variation = 0, int amount = 1, GiftSourceTypes sType = GiftSourceTypes.Server, bool notify = false)
         {
             var gift = new Gift(sType, type, GID, variation, amount);
 
@@ -157,22 +109,22 @@ namespace BlaineRP.Server.Game.Items
             return gift;
         }
 
-        public static Gift Give(PlayerInfo pInfo, Prototype prototype, bool notify = false) => Give(pInfo, prototype.Type, prototype.GID, prototype.Variation, prototype.Amount, prototype.SourceType, notify);
+        public static Gift Give(PlayerInfo pInfo, Prototype prototype, bool notify = false) => Give(pInfo, prototype.Type, prototype.Gid, prototype.Variation, prototype.Amount, prototype.SourceType, notify);
 
         /// <summary>Метод для распаковки подарка</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <returns>true - если подарок распакован успешно, false - в противном случае</returns>
         public bool Collect(PlayerData pData)
         {
-            if (Type == Types.Item)
+            if (Type == GiftTypes.Item)
             {
                 return pData.GiveItem(out _, GID, Variation, Amount);
             }
-            else if (Type == Types.Vehicle)
+            else if (Type == GiftTypes.Vehicle)
             {
 
             }
-            else if (Type == Types.Money)
+            else if (Type == GiftTypes.Money)
             {
                 if (Amount < 0)
                     return false;
@@ -186,7 +138,7 @@ namespace BlaineRP.Server.Game.Items
 
                 return true;
             }
-            else if (Type == Types.CasinoChips)
+            else if (Type == GiftTypes.CasinoChips)
             {
                 if (Amount < 0)
                     return false;

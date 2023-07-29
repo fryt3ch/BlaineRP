@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Management.Animations
+namespace BlaineRP.Client.Game.Animations
 {
     [Script(int.MaxValue)]
-    public partial class Core
+    public partial class Service
     {
         public static DateTime LastSent;
 
-        public Core()
+        public Service()
         {
             Events.Add("Players::PlayFastAnim",
                 async (args) =>

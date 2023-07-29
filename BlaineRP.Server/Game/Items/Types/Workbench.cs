@@ -1,35 +1,28 @@
-﻿using BlaineRP.Server.Game.Items.Craft;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Craft;
+using BlaineRP.Server.Game.Craft.Workbenches;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Workbench : PlaceableItem
+    public partial class Workbench : PlaceableItem
     {
-        new public class ItemData : PlaceableItem.ItemData
+        public new class ItemData : PlaceableItem.ItemData
         {
             public override string ClientData => $"\"{Name}\", {Weight}f, {Model}";
 
-            public Craft.Workbench.WorkbenchTypes WorkbenchType { get; set; }
+            public WorkbenchTypes WorkbenchType { get; set; }
 
-            public ItemData(string Name, float Weight, string Model, Craft.Workbench.WorkbenchTypes WorkbenchType) : base(Name, Weight, Model)
+            public ItemData(string name, float weight, string model, WorkbenchTypes workbenchType) : base(name, weight, model)
             {
-                this.WorkbenchType = WorkbenchType;
+                WorkbenchType = workbenchType;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "pwb_bbq_0", new ItemData("Гриль (компактный)", 5f, "prop_bbq_4", Craft.Workbench.WorkbenchTypes.Grill) },
-            { "pwb_bbq_1", new ItemData("Гриль (большой)", 10f, "prop_bbq_5", Craft.Workbench.WorkbenchTypes.Grill) },
-
-            { "pwb_bbq_2", new ItemData("Костёр", 1f, "prop_beach_fire", Craft.Workbench.WorkbenchTypes.Grill) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
         public ItemWorkbench WorkbenchInstance => ItemWorkbench.Get(UID);
@@ -53,7 +46,7 @@ namespace BlaineRP.Server.Game.Items
                 if (WorkbenchInstance != null)
                     return iog;
 
-                var wrInstance = new Craft.ItemWorkbench(UID, Data.WorkbenchType, iog);
+                var wrInstance = new ItemWorkbench(UID, Data.WorkbenchType, iog);
             }
 
             return iog;
@@ -80,7 +73,7 @@ namespace BlaineRP.Server.Game.Items
             return true;
         }
 
-        public Workbench(string ID) : base(ID, IDList[ID], typeof(Workbench))
+        public Workbench(string id) : base(id, IdList[id], typeof(Workbench))
         {
 
         }

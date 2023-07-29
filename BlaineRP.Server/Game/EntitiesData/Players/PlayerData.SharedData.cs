@@ -3,10 +3,9 @@ using System.Linq;
 using BlaineRP.Server.Game.Animations;
 using BlaineRP.Server.Game.Attachments;
 using BlaineRP.Server.Game.Phone;
-using BlaineRP.Server.Sync;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
     public partial class PlayerData
     {
@@ -53,12 +52,12 @@ namespace BlaineRP.Server.EntitiesData.Players
         /// <summary>CID игрока</summary>
         /// <remarks>Т.к. может использоваться для сохранения данных в БД, set - в основном потоке, get - в любом</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public uint CID { get => Info.CID; set { Player.SetSharedData("CID", value); Info.CID = value; } }
+        public uint CID { get => Info.CID; set { Player.SetSharedData("CID", value); } }
 
         /// <summary>Пол игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>true - мужчина, false - женщина</value>
-        public bool Sex { get => Info.Sex; set { Player.SetSharedData("Sex", value); Player.SetSkin(value ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01); Info.Sex = value; } }
+        public bool Sex { get => Info.Sex; set { Player.SetSharedData("Sex", value); Player.SetSkin(value ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01); } }
 
         /// <summary>Фракция игрока</summary>
         /// <remarks>Также вызывает событие Players::SetFraction на клиенте игроков в зоне стрима</remarks>
@@ -101,7 +100,7 @@ namespace BlaineRP.Server.EntitiesData.Players
 
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int AdminLevel { get => Info.AdminLevel; set { if (value <= 0) Player.ResetSharedData("AdminLevel"); else Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
+        public int AdminLevel { get => Info.AdminLevel; set { if (value <= 0) Player.ResetSharedData("AdminLevel"); else Player.SetSharedData("AdminLevel", value); } }
 
         /// <summary>Текущая шапка игрока, необходимо для нормального отображения в игре при входе/выходе из транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

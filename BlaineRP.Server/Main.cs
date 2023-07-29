@@ -11,14 +11,16 @@ using System.Reflection;
 using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
 using BlaineRP.Server.Game.BankSystem;
 using BlaineRP.Server.Game.Casino;
-using BlaineRP.Server.Game.Management.DoorSystem;
-using BlaineRP.Server.Game.Management.Offers;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using BlaineRP.Server.Game.Misc;
+using BlaineRP.Server.Game.NPCs;
+using BlaineRP.Server.Game.Offers;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Game.World;
 
@@ -56,7 +58,7 @@ namespace BlaineRP.Server
             Properties.Language.Culture = Properties.Settings.Profile.Current.General.CultureInfo;
 
             Events.Commands.Commands.LoadAll();
-            Events.NPC.NPC.LoadAll();
+            Game.NPCs.Service.LoadAll();
 
             Game.World.Service.Initialize();
 
@@ -151,7 +153,7 @@ namespace BlaineRP.Server
             Utils.ConsoleOutput($" | ~Red~[{Game.Estates.Furniture.ItemData.LoadAll()}]~/~", false);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles [DATA]");
-            Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
+            Utils.ConsoleOutput($" | ~Red~[{Game.EntitiesData.Vehicles.Static.Service.LoadAll()}]~/~", false);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all businesses [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Businesses.Business.LoadAll()}]~/~", false);
@@ -186,7 +188,7 @@ namespace BlaineRP.Server
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{loadedItemsAmount} items");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Container.All.Count} containers");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Container.All.Count} containers");
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerInfo.All.Count} players");
 
@@ -227,7 +229,7 @@ namespace BlaineRP.Server
 
             Game.Misc.Elevator.InitializeAll();
 
-            Game.Management.DoorSystem.Service.InitializeAll();
+            Game.DoorSystem.Service.InitializeAll();
 
             CasinoEntity.InitializeAll();
 

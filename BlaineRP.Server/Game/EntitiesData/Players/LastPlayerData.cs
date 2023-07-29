@@ -2,7 +2,7 @@
 using BlaineRP.Server.UtilsT;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
     public class LastPlayerData
     {

@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.EntitiesData.Vehicles
+﻿namespace BlaineRP.Server.Game.EntitiesData.Vehicles
 {
     public enum OwnerTypes
     {

@@ -3,7 +3,8 @@ using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server
 {
@@ -38,8 +39,6 @@ namespace BlaineRP.Server
                         {
                             var pInfo = PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
 
-                            pInfo?.OwnedHouses.Add(house);
-
                             house.UpdateOwner(pInfo);
                         }
 
@@ -56,7 +55,7 @@ namespace BlaineRP.Server
 
                         if (reader["Locker"] == DBNull.Value)
                         {
-                            house.Locker = Game.Items.Container.Create("h_locker", null).ID;
+                            house.Locker = Container.Create("h_locker", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Locker={house.Locker} WHERE ID={house.Id};";
                         }
@@ -65,7 +64,7 @@ namespace BlaineRP.Server
 
                         if (reader["Wardrobe"] == DBNull.Value)
                         {
-                            house.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
+                            house.Wardrobe = Container.Create("h_wardrobe", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Wardrobe={house.Wardrobe} WHERE ID={house.Id};";
                         }
@@ -74,7 +73,7 @@ namespace BlaineRP.Server
 
                         if (reader["Fridge"] == DBNull.Value)
                         {
-                            house.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
+                            house.Fridge = Container.Create("h_fridge", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Fridge={house.Fridge} WHERE ID={house.Id};";
                         }
@@ -145,8 +144,6 @@ namespace BlaineRP.Server
                         {
                             var pInfo = PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
 
-                            pInfo?.OwnedApartments.Add(apartments);
-
                             apartments.UpdateOwner(pInfo);
                         }
 
@@ -163,7 +160,7 @@ namespace BlaineRP.Server
 
                         if (reader["Locker"] == DBNull.Value)
                         {
-                            apartments.Locker = Game.Items.Container.Create("a_locker", null).ID;
+                            apartments.Locker = Container.Create("a_locker", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.Id};";
                         }
@@ -172,7 +169,7 @@ namespace BlaineRP.Server
 
                         if (reader["Wardrobe"] == DBNull.Value)
                         {
-                            apartments.Wardrobe = Game.Items.Container.Create("a_wardrobe", null).ID;
+                            apartments.Wardrobe = Container.Create("a_wardrobe", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.Id};";
                         }
@@ -181,7 +178,7 @@ namespace BlaineRP.Server
 
                         if (reader["Fridge"] == DBNull.Value)
                         {
-                            apartments.Fridge = Game.Items.Container.Create("a_fridge", null).ID;
+                            apartments.Fridge = Container.Create("a_fridge", null).ID;
 
                             nextCmdStr += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.Id};";
                         }

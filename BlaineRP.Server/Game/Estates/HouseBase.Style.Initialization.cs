@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using BlaineRP.Server.Game.Containers;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -2148,17 +2149,17 @@ namespace BlaineRP.Server.Game.Estates
                 new Style(1093, 1090, new Vector3(0f, 0f, 90f), 10_000);
                 new Style(1094, 1090, new Vector3(0f, 0f, 120f), 10_000);
 
-                Game.Items.Container.AllSIDs.Add("h_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
-                Game.Items.Container.AllSIDs.Add("h_wardrobe",
-                    new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe)
+                Container.AllSIDs.Add("h_locker", new Container.Data(50, 150f, Container.AllowedItemTypes.All, ContainerTypes.Locker));
+                Container.AllSIDs.Add("h_wardrobe",
+                    new Container.Data(50, 80f, Container.AllowedItemTypes.Wardrobe, ContainerTypes.Wardrobe)
                 );
-                Game.Items.Container.AllSIDs.Add("h_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
+                Container.AllSIDs.Add("h_fridge", new Container.Data(50, 100f, Container.AllowedItemTypes.Fridge, ContainerTypes.Fridge));
 
-                Game.Items.Container.AllSIDs.Add("a_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
-                Game.Items.Container.AllSIDs.Add("a_wardrobe",
-                    new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe)
+                Container.AllSIDs.Add("a_locker", new Container.Data(50, 150f, Container.AllowedItemTypes.All, ContainerTypes.Locker));
+                Container.AllSIDs.Add("a_wardrobe",
+                    new Container.Data(50, 80f, Container.AllowedItemTypes.Wardrobe, ContainerTypes.Wardrobe)
                 );
-                Game.Items.Container.AllSIDs.Add("a_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
+                Container.AllSIDs.Add("a_fridge", new Container.Data(50, 100f, Container.AllowedItemTypes.Fridge, ContainerTypes.Fridge));
 
                 var lines = new List<string>();
 

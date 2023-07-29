@@ -2,7 +2,7 @@
 using BlaineRP.Client.Game.Fractions;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Client.Game.EntitiesData.Components
+namespace BlaineRP.Client.Game.EntitiesData.Players
 {
     public class MedicalCard
     {

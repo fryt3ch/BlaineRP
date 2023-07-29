@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Note : Item
+    public partial class Note : Item
     {
-        new public class ItemData : Item.ItemData
+        public new class ItemData : Item.ItemData
         {
             [Flags]
             public enum Types : byte
@@ -28,29 +28,21 @@ namespace BlaineRP.Server.Game.Items
 
             public string DefaultText { get; set; }
 
-            public ItemData(string Name, string Model, Types Type, string DefaultText) : base(Name, 0.01f, Model)
+            public ItemData(string name, string model, Types type, string defaultText) : base(name, 0.01f, model)
             {
-                this.Type = Type;
+                Type = type;
 
-                this.DefaultText = DefaultText;
+                DefaultText = defaultText;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "note_0", new ItemData("Записка", "xm_prop_x17_note_paper_01a", ItemData.Types.Read | ItemData.Types.WriteTextNullOnly, null) },
-            { "note_1", new ItemData("Вечная записка", "xm_prop_x17_note_paper_01a", ItemData.Types.Read | ItemData.Types.Write, null) },
-
-            //{ "note_q_j123", new ItemData("Вечная записка", "xm_prop_x17_note_paper_01a", ItemData.Types.Read | ItemData.Types.DefaultTextIsStatic, "Статичный текст, который не хранится в БД") },
-        };
-
         [JsonIgnore]
-        new public ItemData Data => (ItemData)base.Data;
+        public new ItemData Data => (ItemData)base.Data;
 
         [JsonProperty(PropertyName = "T")]
         public string Text { get; set; }
 
-        public Note(string ID) : base(ID, IDList[ID], typeof(Note))
+        public Note(string id) : base(id, IdList[id], typeof(Note))
         {
             var data = Data;
 

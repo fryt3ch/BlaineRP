@@ -1,5 +1,8 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
+using BlaineRP.Server.Game.NPCs;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Fractions
@@ -8,7 +11,7 @@ namespace BlaineRP.Server.Game.Fractions
     {
         public static int InitializeAll()
         {
-            Game.Items.Container.AllSIDs.Add("f_storage", new Items.Container.Data(125, 100_000f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
+            Container.AllSIDs.Add("f_storage", new Container.Data(125, 100_000f, Container.AllowedItemTypes.All, ContainerTypes.Storage));
 
             new Police(FractionType.COP_BLAINE, Language.Strings.Get("FRACTION_COP_BLAINE_NAME"))
             {
@@ -39,11 +42,11 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(1857.349f, 3689.408f, 33.26704f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoPolice_0,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_1,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_2,
+                    UniformTypes.FractionPaletoPolice_0,
+                    UniformTypes.FractionPaletoPolice_1,
+                    UniformTypes.FractionPaletoPolice_2,
                 },
 
                 ArrestCellsPositions = new Vector4[]
@@ -95,11 +98,11 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(451.3782f, -992.9793f, 29.68934f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoPolice_0,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_1,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_2,
+                    UniformTypes.FractionPaletoPolice_0,
+                    UniformTypes.FractionPaletoPolice_1,
+                    UniformTypes.FractionPaletoPolice_2,
                 },
 
                 ArrestCellsPositions = new Vector4[]
@@ -176,11 +179,11 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(1836.598f, 3685.146f, 33.27487f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
-                    Data.Customization.UniformTypes.FractionPaletoEMS_2,
-                    Data.Customization.UniformTypes.FractionPaletoEMS_1,
+                    UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_2,
+                    UniformTypes.FractionPaletoEMS_1,
                 },
 
                 ContainerPositions = new Vector4[]
@@ -226,9 +229,9 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(302.8677f, -572.0403f, 42.28407f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_0,
                 },
 
                 ContainerPositions = new Vector4[]
@@ -268,9 +271,9 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(-541.5637f, -192.8628f, 46.42308f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_0,
                 },
 
                 CreationWorkbenchPositions = new Vector4[]
@@ -320,9 +323,9 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(146.2185f, -771.2402f, 241.1521f),
     },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_0,
                 },
 
                 ItemTag = "FIB",
@@ -357,9 +360,9 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(1778.769f, 2548.869f, 44.79782f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_0,
                 },
 
                 ItemTag = "SASPA",
@@ -394,9 +397,9 @@ namespace BlaineRP.Server.Game.Fractions
                     new Vector3(-1748.607f, 3171.312f, 31.90697f),
                 },
 
-                UniformTypes = new List<Data.Customization.UniformTypes>()
+                UniformTypes = new List<UniformTypes>()
                 {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    UniformTypes.FractionPaletoEMS_0,
                 },
 
                 ItemTag = "ARMY",
@@ -593,7 +596,7 @@ namespace BlaineRP.Server.Game.Fractions
                 MetaFlags = FlagTypes.None,
             };
 
-            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.FractionType.COP_BLAINE}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
+            NPCs.Service.AddNpc($"cop0_{(int)Game.Fractions.FractionType.COP_BLAINE}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
 
             foreach (var x in All.Values)
             {

@@ -1,11 +1,12 @@
-﻿using GTANetworkAPI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Inventory;
+using BlaineRP.Server.Game.Items;
+using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Items
+namespace BlaineRP.Server.Game.Containers
 {
     public partial class Container
     {
@@ -54,37 +55,6 @@ namespace BlaineRP.Server.Game.Items
         public enum AllowedItemTypes
         {
             All = 0, Wardrobe, Fridge
-        }
-
-        public enum ContainerTypes
-        {
-            None = -1,
-
-            Trunk,
-            Locker,
-            Storage,
-            Crate,
-            Fridge,
-            Wardrobe
-        }
-
-        public class Data
-        {
-            public int Slots { get; set; }
-
-            public float MaxWeight { get; set; }
-
-            public AllowedItemTypes AllowedItemsType { get; set; }
-
-            public ContainerTypes ContainerType { get; set; }
-
-            public Data(int Slots, float MaxWeight, AllowedItemTypes AllowedItemsType, ContainerTypes ContainerType)
-            {
-                this.Slots = Slots;
-                this.MaxWeight = MaxWeight;
-                this.AllowedItemsType = AllowedItemsType;
-                this.ContainerType = ContainerType;
-            }
         }
 
         /// <summary>Доступные типы предметов для хранения в контейнере</summary>

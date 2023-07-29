@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;

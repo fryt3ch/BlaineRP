@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Misc;
 
 namespace BlaineRP.Server.Game.Quests.Types
@@ -78,7 +78,7 @@ namespace BlaineRP.Server.Game.Quests.Types
 
                         questData.Cancel(pData.Info, true);
 
-                        pData.AddLicense(licType);
+                        pData.Info.AddLicense(licType);
 
                         pData.Player.Notify("DriveS::PES", licType.ToString());
 

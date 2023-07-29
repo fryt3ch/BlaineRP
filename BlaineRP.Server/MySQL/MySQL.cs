@@ -8,14 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Game;
+using BlaineRP.Server.Game.Achievements;
 using BlaineRP.Server.Game.BankSystem;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Gifts;
 using BlaineRP.Server.Game.Management;
-using BlaineRP.Server.Game.Management.Achievements;
 using BlaineRP.Server.Game.Management.Cooldowns;
 using BlaineRP.Server.Game.Management.Punishments;
+using BlaineRP.Server.Game.Phone;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
@@ -397,9 +402,9 @@ namespace BlaineRP.Server
 
                                 var items = ((string)reader["Items"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x)).ToArray();
 
-                                var cont = new Game.Items.Container(sid, id, items);
+                                var cont = new Container(sid, id, items);
 
-                                Game.Items.Container.AddOnLoad(cont);
+                                Container.AddOnLoad(cont);
                             }
                         }
                     }
@@ -425,7 +430,7 @@ namespace BlaineRP.Server
 
                                 var numberplateUid = Convert.ToUInt32(reader["Numberplate"]);
 
-                                var tuning = ((string)reader["Tuning"]).DeserializeFromJson<Game.Data.Vehicles.Tuning>();
+                                var tuning = ((string)reader["Tuning"]).DeserializeFromJson<Tuning>();
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<LastVehicleData>();
 
@@ -457,7 +462,7 @@ namespace BlaineRP.Server
 
                                     LastData = lastData,
 
-                                    Data = Game.Data.Vehicles.All[sid],
+                                    Data = Game.EntitiesData.Vehicles.Static.Service.All[sid],
 
                                     OwnersCount = ownersCount,
 
@@ -481,11 +486,11 @@ namespace BlaineRP.Server
                             {
                                 var cid = Convert.ToUInt32(reader["ID"]);
 
-                                var hBlend = ((string)reader["HeadBlend"]).DeserializeFromJson<Game.Data.Customization.HeadBlend>();
-                                var hOverlays = ((string)reader["HeadOverlays"]).DeserializeFromJson<Dictionary<int, Game.Data.Customization.HeadOverlay>>();
+                                var hBlend = ((string)reader["HeadBlend"]).DeserializeFromJson<Game.EntitiesData.Players.Customization.HeadBlend>();
+                                var hOverlays = ((string)reader["HeadOverlays"]).DeserializeFromJson<Dictionary<int, Game.EntitiesData.Players.Customization.HeadOverlay>>();
                                 var fFeatures = ((string)reader["FaceFeatures"]).DeserializeFromJson<float[]>();
                                 var decors = ((string)reader["Decorations"]).DeserializeFromJson<List<int>>();
-                                var hStyle = ((string)reader["HairStyle"]).DeserializeFromJson<Game.Data.Customization.HairStyle>();
+                                var hStyle = ((string)reader["HairStyle"]).DeserializeFromJson<HairStyle>();
                                 var eyeColour = Convert.ToByte(reader["EyeColor"]);
 
                                 customizations.Add(cid, new object[] { hBlend, hOverlays, fFeatures, decors, hStyle, eyeColour });
@@ -495,7 +500,7 @@ namespace BlaineRP.Server
 
                     cmd.CommandText = "SELECT * FROM gifts;";
 
-                    var allGifts = new Dictionary<Game.Items.Gift, uint>();
+                    var allGifts = new Dictionary<Gift, uint>();
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -507,14 +512,14 @@ namespace BlaineRP.Server
 
                                 var cid = Convert.ToUInt32(reader["CID"]);
                                 var gid = reader["GID"] is DBNull ? null : (string)reader["GID"];
-                                var reason = (Game.Items.Gift.SourceTypes)(int)reader["Reason"];
-                                var type = (Game.Items.Gift.Types)(int)reader["Type"];
+                                var reason = (GiftSourceTypes)(int)reader["Reason"];
+                                var type = (GiftTypes)(int)reader["Type"];
                                 int variation = (int)reader["Variation"];
                                 int amount = (int)reader["Amount"];
 
-                                var gift = new Game.Items.Gift(id, reason, type, gid, variation, amount);
+                                var gift = new Gift(id, reason, type, gid, variation, amount);
 
-                                Game.Items.Gift.AddOnLoad(gift);
+                                Gift.AddOnLoad(gift);
 
                                 allGifts.Add(gift, cid);
                             }
@@ -695,7 +700,7 @@ namespace BlaineRP.Server
 
                                 var phoneNumber = Convert.ToUInt32(reader["PhoneNumber"]);
 
-                                Game.Management.Phone.Numbers.SetNumberAsUsed(phoneNumber);
+                                Numbers.SetNumberAsUsed(phoneNumber);
 
                                 var phoneBalance = Convert.ToUInt32(reader["PhoneBalance"]);
 
@@ -703,7 +708,7 @@ namespace BlaineRP.Server
 
                                 var contacts = ((string)reader["Contacts"]).DeserializeFromJson<Dictionary<uint, string>>();
 
-                                var phoneBlacklist = ((string)reader["PhoneBL"]).DeserializeFromJson<List<uint>>();
+                                var phoneBlacklist = ((string)reader["PhoneBL"]).DeserializeFromJson<HashSet<uint>>();
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<LastPlayerData>();
 
@@ -728,77 +733,43 @@ namespace BlaineRP.Server
                                 foreach (var x in quests.Values)
                                     allQuests.Remove(x);
 
-                                var pInfo = new PlayerInfo()
-                                {
-                                    CID = cid,
-
-                                    AID = aid,
-
-                                    CreationDate = creationDate,
-
-                                    AdminLevel = aLvl,
-
-                                    LastJoinDate = lastJoinDate,
-
-                                    TimePlayed = timePlayed,
-
-                                    Name = name,
-
-                                    Surname = surname,
-
-                                    Sex = sex,
-
-                                    BirthDate = birthDate,
-
-                                    Licenses = licenses,
-
-                                    MedicalCard = medCard,
-
-                                    LosSantosAllowed = lsa,
-
-                                    Fraction = fractionInfo == null ? Game.Fractions.FractionType.None : (Game.Fractions.FractionType)int.Parse(fractionInfo[0]),
-
-                                    FractionRank = fractionInfo == null ? (byte)0 : byte.Parse(fractionInfo[1]),
-
-                                    OrganisationID = orgId,
-
-                                    Cash = cash,
-
-                                    PhoneNumber = phoneNumber,
-
-                                    PhoneBalance = phoneBalance,
-
-                                    Contacts = contacts,
-
-                                    PhoneBlacklist = phoneBlacklist,
-
-                                    LastData = lastData,
-
-                                    Familiars = familiars,
-
-                                    Skills = skills,
-
-                                    Punishments = punishments,
-
-                                    CasinoChips = casinoChips,
-
-                                    HeadBlend = (Game.Data.Customization.HeadBlend)customizations[cid][0],
-                                    HeadOverlays = (Dictionary<int, Game.Data.Customization.HeadOverlay>)customizations[cid][1],
-                                    FaceFeatures = (float[])customizations[cid][2],
-                                    Decorations = (List<int>)customizations[cid][3],
-                                    HairStyle = (Game.Data.Customization.HairStyle)customizations[cid][4],
-                                    EyeColor = (byte)customizations[cid][5],
-
-                                    Gifts = gifts,
-
-                                    Achievements = achievements,
-
-                                    Quests = quests,
-
-                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<uint, Cooldown>(),
-                                };
-
-                                PlayerInfo.AddOnLoad(pInfo);
+                                var pInfo = PlayerInfo.CreateExisting(cid: cid,
+                                    aid: aid,
+                                    creationDate: creationDate,
+                                    adminLevel: aLvl,
+                                    lastJoinDate: lastJoinDate,
+                                    timePlayed: timePlayed,
+                                    name: name,
+                                    surname: surname,
+                                    sex: sex,
+                                    birthDate: birthDate,
+                                    licenses: licenses,
+                                    medicalCard: medCard,
+                                    losSantosAllowed: lsa,
+                                    fraction: fractionInfo == null ? Game.Fractions.FractionType.None : (Game.Fractions.FractionType)int.Parse(fractionInfo[0]),
+                                    fractionRank: fractionInfo == null ? (byte)0 : byte.Parse(fractionInfo[1]),
+                                    organisationId: orgId,
+                                    cash: cash,
+                                    phoneNumber: phoneNumber,
+                                    phoneBalance: phoneBalance,
+                                    contacts: contacts,
+                                    phoneBlacklist: phoneBlacklist,
+                                    lastData: lastData,
+                                    familiars: familiars,
+                                    skills: skills,
+                                    punishments: punishments,
+                                    casinoChips: casinoChips,
+                                    headBlend: (Game.EntitiesData.Players.Customization.HeadBlend)customizations[cid][0],
+                                    headOverlays: (Dictionary<int, Game.EntitiesData.Players.Customization.HeadOverlay>)customizations[cid][1],
+                                    faceFeatures: (float[])customizations[cid][2],
+                                    decorations: (List<int>)customizations[cid][3],
+                                    hairStyle: (HairStyle)customizations[cid][4],
+                                    eyeColor: (byte)customizations[cid][5],
+                                    gifts: gifts,
+                                    achievements: achievements,
+                                    quests: quests,
+                                    cooldowns: allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<uint, Cooldown>()
+                                );
                             }
                         }
                     }
@@ -1238,18 +1209,18 @@ namespace BlaineRP.Server
                     VehicleInfo.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = 1; i <= Game.Items.Container.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = 1; i <= Container.UidHandler.LastAddedMaxUid; i++)
             {
-                if (Game.Items.Container.Get(i) == null)
-                    Game.Items.Container.UidHandler.SetUidAsFree(i);
+                if (Container.Get(i) == null)
+                    Container.UidHandler.SetUidAsFree(i);
             }
 
-            var allGifts = PlayerInfo.All.SelectMany(x => x.Value.Gifts.Select(x => x.ID)).ToHashSet();
+            var allGifts = PlayerInfo.All.Values.SelectMany(x => x.Gifts.Select(x => x.ID)).ToHashSet();
 
-            for (uint i = 1; i <= Game.Items.Gift.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = 1; i <= Gift.UidHandler.LastAddedMaxUid; i++)
             {
                 if (!allGifts.Contains(i))
-                    Game.Items.Gift.UidHandler.SetUidAsFree(i);
+                    Gift.UidHandler.SetUidAsFree(i);
             }
 
             for (uint i = 1; i <= Game.Estates.Furniture.UidHandler.LastAddedMaxUid; i++)

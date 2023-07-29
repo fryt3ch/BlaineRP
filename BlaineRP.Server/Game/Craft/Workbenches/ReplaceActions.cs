@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Items;
 
-namespace BlaineRP.Server.Game.Craft
+namespace BlaineRP.Server.Game.Craft.Workbenches
 {
     public abstract partial class Workbench
     {

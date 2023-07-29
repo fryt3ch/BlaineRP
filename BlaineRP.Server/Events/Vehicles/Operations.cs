@@ -1,10 +1,13 @@
 ﻿using GTANetworkAPI;
 using System;
 using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Vehicles;
-using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using BlaineRP.Server.Game.Management.AntiCheat;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Management.Audio;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Sync;
 
@@ -15,7 +18,7 @@ namespace BlaineRP.Server.Events.Vehicles
         private static TimeSpan VehicleLockAnimationTime { get; } = TimeSpan.FromMilliseconds(1_500);
 
         [RemoteProc("Vehicles::ET")]
-        private static byte ToggleEngineRemote(Player player, Vehicle veh, byte state)
+        private static byte ToggleEngineRemote(Player player, GTANetworkAPI.Vehicle veh, byte state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -111,7 +114,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::TDL")]
-        public static byte ToggleDoorsLock(Player player, Vehicle veh, bool state)
+        public static byte ToggleDoorsLock(Player player, GTANetworkAPI.Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -139,7 +142,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
+                player.AttachObject(Game.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
                 pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
@@ -161,7 +164,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::TIND")]
-        public static byte ToggleIndicatorsState(Player player, Vehicle veh, byte state)
+        public static byte ToggleIndicatorsState(Player player, GTANetworkAPI.Vehicle veh, byte state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -178,7 +181,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vData == null)
                 return 0;
 
-            if (player.Vehicle != veh || player.VehicleSeat != 0 || state < 0 || state > 3 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
+            if (player.Vehicle != veh || player.VehicleSeat != 0 || state < 0 || state > 3 || (vData.Data.Type != VehicleTypes.Car && vData.Data.Type != VehicleTypes.Motorcycle))
                 return 0;
 
             var oldState = vData.IndicatorsState;
@@ -192,7 +195,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::TLI")]
-        public static byte ToggleLights(Player player, Vehicle veh, bool state)
+        public static byte ToggleLights(Player player, GTANetworkAPI.Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -209,7 +212,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vData == null)
                 return 0;
 
-            if (player.Vehicle != veh || player.VehicleSeat != 0 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
+            if (player.Vehicle != veh || player.VehicleSeat != 0 || (vData.Data.Type != VehicleTypes.Car && vData.Data.Type != VehicleTypes.Motorcycle))
                 return 0;
 
             if (vData.LightsOn == state)
@@ -265,7 +268,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::TTL")]
-        public static byte ToggleTrunk(Player player, Vehicle veh, bool state)
+        public static byte ToggleTrunk(Player player, GTANetworkAPI.Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -293,7 +296,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
+                player.AttachObject(Game.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
                 pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
@@ -302,7 +305,7 @@ namespace BlaineRP.Server.Events.Vehicles
             {
                 vData.TrunkLocked = true;
 
-                var cont = Game.Items.Container.Get(vData.TID);
+                var cont = Container.Get(vData.TID);
 
                 if (cont != null)
                 {
@@ -322,7 +325,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::THL")]
-        public static byte ToggleHood(Player player, Vehicle veh, bool state)
+        public static byte ToggleHood(Player player, GTANetworkAPI.Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -350,7 +353,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && !pData.HasAnyActiveWeapon())
             {
-                player.AttachObject(Game.Management.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
+                player.AttachObject(Game.Attachments.Service.Models.VehicleRemoteFob, AttachmentType.VehKey, 1250, null);
 
                 pData.PlayAnim(FastType.VehLocking, VehicleLockAnimationTime);
             }
@@ -459,7 +462,7 @@ namespace BlaineRP.Server.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat || vData.ForcedSpeed != 0f)
+            if (vData.Data.Type != VehicleTypes.Boat || vData.ForcedSpeed != 0f)
                 return;
 
             if (state == vData.IsAnchored)
@@ -483,7 +486,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             var vData = player.Vehicle?.GetMainData();
 
-            if (vData == null || vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Plane || pData.VehicleSeat != 0)
+            if (vData == null || vData.Data.Type != VehicleTypes.Plane || pData.VehicleSeat != 0)
                 return 0;
 
             if (state == vData.IsPlaneChassisOff)

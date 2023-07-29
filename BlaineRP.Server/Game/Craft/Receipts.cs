@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Server.Game.Items;
 
-namespace BlaineRP.Server.Game.Items.Craft
+namespace BlaineRP.Server.Game.Craft
 {
-    public partial class Craft
+    public partial class Service
     {
         private static ItemPrototype FireStaticPrototype { get; set; } = new ItemPrototype("wbi_0", 0);
         private static ItemPrototype WaterStaticPrototype { get; set; } = new ItemPrototype("wbi_1", 0);

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace BlaineRP.Server.Game.Management.Attachments
+namespace BlaineRP.Server.Game.Attachments
 {
     public class AttachmentObjectNet
     {

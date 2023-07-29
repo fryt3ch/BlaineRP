@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.NPCs.Dialogues;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
@@ -198,13 +199,13 @@ namespace BlaineRP.Client.Game.NPCs
                 {
                     Ped.SetData("CurrentAnim", value);
                     if (IsStreamed)
-                        Management.Animations.Core.Play(Ped, value, -1);
+                        Service.Play(Ped, value, -1);
                 }
                 else
                 {
                     Ped.ResetData("CurrentAnim");
                     if (IsStreamed)
-                        Management.Animations.Core.Stop(Ped);
+                        Service.Stop(Ped);
                 }
             }
         }
@@ -305,7 +306,7 @@ namespace BlaineRP.Client.Game.NPCs
             data.Ped.SetHeading(data.DefaultHeading);
 
             if (data.CurrentAnimation is Animation curAnim)
-                Management.Animations.Core.Play(ped, curAnim, -1);
+                Service.Play(ped, curAnim, -1);
         }
 
         public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
@@ -384,7 +385,7 @@ namespace BlaineRP.Client.Game.NPCs
 
                 Player.LocalPlayer.SetVisible(false, false);
 
-                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.NpcTalk,
+                Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.NpcTalk,
                     Ped,
                     Ped,
                     -1,
@@ -393,7 +394,7 @@ namespace BlaineRP.Client.Game.NPCs
                     new Vector3(0f, 0f, Ped.GetBoneCoords(31086, 0f, 0f, 0f).Z - pedPos.Z)
                 );
 
-                Vector3 playerHeadCoord = Management.Camera.Core.Position;
+                Vector3 playerHeadCoord = Management.Camera.Service.Position;
 
                 playerHeadCoord.Z -= 0.1f;
 
@@ -419,7 +420,7 @@ namespace BlaineRP.Client.Game.NPCs
 
                 UnbindEsc();
 
-                Management.Camera.Core.Disable(750);
+                Management.Camera.Service.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, false);
 

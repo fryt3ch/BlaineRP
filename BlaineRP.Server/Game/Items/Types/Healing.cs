@@ -1,17 +1,17 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Healing : StatusChanger, IStackable
+    public partial class Healing : StatusChanger, IStackable
     {
-        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+        public new class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
         {
             public int MaxAmount { get; set; }
 
@@ -29,31 +29,23 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Health}, {MaxAmount}";
 
-            public ItemData(string Name, float Weight, string Model, int Health, bool ClearWoundedState, double ResurrectiondChance, int MaxAmount, TimeSpan UsageTime, FastType Animation, AttachmentType AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
+            public ItemData(string name, float weight, string model, int health, bool clearWoundedState, double resurrectiondChance, int maxAmount, TimeSpan usageTime, FastType animation, AttachmentType attachType) : base(name, weight, new string[] { model }, 0, 0, health)
             {
-                this.MaxAmount = MaxAmount;
+                MaxAmount = maxAmount;
 
-                this.Animation = Animation;
+                Animation = animation;
 
-                this.AttachType = AttachType;
+                AttachType = attachType;
 
-                this.ClearWoundedState = ClearWoundedState;
-                this.ResurrectionChance = ResurrectiondChance;
+                ClearWoundedState = clearWoundedState;
+                ResurrectionChance = resurrectiondChance;
 
-                this.UsageTime = UsageTime;
+                UsageTime = usageTime;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, -1.0d, 64, TimeSpan.FromMilliseconds(4_000), FastType.ItemBandage, AttachmentType.ItemBandage) },
-
-            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, 0.50d, 3, TimeSpan.FromMilliseconds(7_000), FastType.ItemMedKit, AttachmentType.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(10), } },
-            { "med_kit_ems_0", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", Properties.Settings.Static.PlayerMaxHealth, true, 0.75d, 64, TimeSpan.FromMilliseconds(7_000), FastType.ItemMedKit, AttachmentType.ItemMedKit) { ResurrectionTime = TimeSpan.FromSeconds(8), } },
-        };
-
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; }
+        public new ItemData Data { get => (ItemData)base.Data; }
 
         [JsonIgnore]
         public int MaxAmount => Data.MaxAmount;
@@ -100,7 +92,7 @@ namespace BlaineRP.Server.Game.Items
             pData.Player.AttachEntity(tData.Player, AttachmentType.PlayerResurrect, $"{(int)data.ResurrectionTime.TotalMilliseconds}_{(result ? 1 : 0)}_{0}");
         }
 
-        public Healing(string ID) : base(ID, IDList[ID], typeof(Healing))
+        public Healing(string id) : base(id, IdList[id], typeof(Healing))
         {
 
         }

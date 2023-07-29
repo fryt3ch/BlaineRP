@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class OfferAttribute : Attribute

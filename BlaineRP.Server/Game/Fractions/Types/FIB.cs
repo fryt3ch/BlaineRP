@@ -1,9 +1,9 @@
-﻿using BlaineRP.Server.Game.Data;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
 
 namespace BlaineRP.Server.Game.Fractions
 {
@@ -16,7 +16,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         public override string ClientData => $"FractionTypes.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", {(uint)MetaFlags}";
 
-        public List<Customization.UniformTypes> UniformTypes { get; set; }
+        public List<UniformTypes> UniformTypes { get; set; }
 
         public Vector3[] LockerRoomPositions { get; set; }
 

@@ -3,11 +3,10 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.Management.Radio.Enums;
-using BlaineRP.Client.Game.Scripts.Sync;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.EntitiesData
+namespace BlaineRP.Client.Game.EntitiesData.Vehicles
 {
     public class VehicleData
     {
@@ -110,7 +109,7 @@ namespace BlaineRP.Client.Game.EntitiesData
             if (Vehicle == null)
                 return;
 
-            Vehicles.ControlledVehicles.Remove(Vehicle);
+            Scripts.Sync.Vehicles.ControlledVehicles.Remove(Vehicle);
 
             Vehicle.ResetData();
         }

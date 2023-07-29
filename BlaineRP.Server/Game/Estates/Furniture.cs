@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using BlaineRP.Server.Game.Craft;
+using BlaineRP.Server.Game.Craft.Workbenches;
 using BlaineRP.Server.UtilsT;
 using BlaineRP.Server.UtilsT.UidHandlers;
 
@@ -62,7 +64,7 @@ namespace BlaineRP.Server.Game.Estates
         public ItemData FurnitureData => ItemData.Get(ID);
 
         [JsonIgnore]
-        public Game.Items.Craft.FurnitureWorkbench WorkbenchInstance => Game.Items.Craft.FurnitureWorkbench.Get(UID);
+        public FurnitureWorkbench WorkbenchInstance => FurnitureWorkbench.Get(UID);
 
         public Furniture(uint UID, string ID, Vector4 Data)
         {
@@ -84,20 +86,20 @@ namespace BlaineRP.Server.Game.Estates
 
         public void Setup(Game.Estates.HouseBase houseBase)
         {
-            if (FurnitureData.WorkbenchType is Items.Craft.Workbench.WorkbenchTypes wbType)
+            if (FurnitureData.WorkbenchType is WorkbenchTypes wbType)
             {
                 if (WorkbenchInstance != null)
                     return;
 
-                var wb = new Game.Items.Craft.FurnitureWorkbench(UID, houseBase, wbType);
+                var wb = new FurnitureWorkbench(UID, houseBase, wbType);
             }
         }
 
         public void Delete(Game.Estates.HouseBase houseBase)
         {
-            if (FurnitureData.WorkbenchType is Items.Craft.Workbench.WorkbenchTypes wbType)
+            if (FurnitureData.WorkbenchType is WorkbenchTypes wbType)
             {
-                if (WorkbenchInstance is Game.Items.Craft.FurnitureWorkbench furnWb)
+                if (WorkbenchInstance is FurnitureWorkbench furnWb)
                 {
                     furnWb.DropAllItemsToGround(Data.Position, Utils.ZeroVector, houseBase.Dimension);
 

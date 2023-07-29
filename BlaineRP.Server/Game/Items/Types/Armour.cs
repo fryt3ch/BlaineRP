@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Armour : Clothes
+    public partial class Armour : Clothes
     {
-        new public class ItemData : Clothes.ItemData
+        public new class ItemData : Clothes.ItemData
         {
             /// <summary>ID текстуры разных цветов</summary>
             /// <remarks>Работает только для Drawable 28!</remarks>
@@ -29,28 +29,23 @@ namespace BlaineRP.Server.Game.Items
 
             public int DrawableTop { get; set; }
 
-            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {MaxStrength}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {MaxStrength}, {(SexAlternativeId == null ? "null" : $"\"{SexAlternativeId}\"")}";
 
-            public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, int DrawableTop, int MaxStrength, string SexAlternativeID = null) : base(Name, Weight, "prop_armour_pickup", Sex, Drawable, Textures, SexAlternativeID)
+            public ItemData(string name, float weight, bool sex, int drawable, int[] textures, int drawableTop, int maxStrength, string sexAlternativeId = null) : base(name, weight, "prop_armour_pickup", sex, drawable, textures, sexAlternativeId)
             {
-                this.DrawableTop = DrawableTop;
+                DrawableTop = drawableTop;
 
-                this.MaxStrength = MaxStrength;
+                MaxStrength = maxStrength;
             }
 
-            public ItemData(string Name, float Weight, bool Sex, int Drawable, Colours[] Colours, int DrawableTop, int MaxStrength, string SexAlternativeID = null) : this(Name, Weight, Sex, Drawable, Colours.Select(x => (int)x).ToArray(), DrawableTop, MaxStrength, SexAlternativeID) { }
+            public ItemData(string name, float weight, bool sex, int drawable, Colours[] colours, int drawableTop, int maxStrength, string sexAlternativeId = null) : this(name, weight, sex, drawable, colours.Select(x => (int)x).ToArray(), drawableTop, maxStrength, sexAlternativeId) { }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "arm_m_s", new ItemData("Обычный бронежилет", 0.5f, true, 28, new ItemData.Colours[] { ItemData.Colours.White }, 19, 100, "arm_m_s") },
-        };
+        [JsonIgnore]
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
-
-        [JsonIgnore]
-        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
+        public new ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
 
         public int Strength { get; set; }
 
@@ -95,7 +90,7 @@ namespace BlaineRP.Server.Game.Items
             {
                 Strength = value;
 
-                this.Update();
+                Update();
             }
 
             player.SetClothes(Slot, 0, 0);
@@ -103,9 +98,9 @@ namespace BlaineRP.Server.Game.Items
             player.SetArmour(0);
         }
 
-        public Armour(string ID, int Var = 0) : base(ID, IDList[ID], typeof(Armour), Var)
+        public Armour(string id, int var = 0) : base(id, IdList[id], typeof(Armour), var)
         {
-            this.Strength = Data.MaxStrength;
+            Strength = Data.MaxStrength;
         }
     }
 }

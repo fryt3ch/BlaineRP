@@ -1,7 +1,7 @@
 ﻿using System;
 using RAGE;
 
-namespace BlaineRP.Client.Game.Management.Attachments
+namespace BlaineRP.Client.Game.Attachments
 {
     public class AttachmentData
     {

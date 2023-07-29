@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace BlaineRP.Server.Game.Management.DoorSystem
+namespace BlaineRP.Server.Game.DoorSystem
 {
     public static partial class Service
     {

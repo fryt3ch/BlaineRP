@@ -53,6 +53,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Game\Data\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	<PropertyGroup>
 		<RAGEResourceOutputPath>C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\dotnet\resources\BlaineRP\</RAGEResourceOutputPath>

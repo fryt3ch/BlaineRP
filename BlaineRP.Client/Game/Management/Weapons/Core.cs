@@ -6,6 +6,8 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -579,9 +581,9 @@ namespace BlaineRP.Client.Game.Management.Weapons
             {
                 LastWeaponShot = World.Core.ServerTime;
 
-                if (AntiCheat.Core.LastAllowedAmmo > 0)
+                if (AntiCheat.Service.LastAllowedAmmo > 0)
                 {
-                    AntiCheat.Core.LastAllowedAmmo--;
+                    AntiCheat.Service.LastAllowedAmmo--;
 
                     Events.CallRemote("opws");
                 }
@@ -759,11 +761,11 @@ namespace BlaineRP.Client.Game.Management.Weapons
         {
             uint weapon = Player.LocalPlayer.GetSelectedWeapon();
 
-            int curAmmo = AntiCheat.Core.LastAllowedAmmo;
+            int curAmmo = AntiCheat.Service.LastAllowedAmmo;
 
             HUD.SetAmmo(curAmmo);
 
-            Player.LocalPlayer.SetAmmo(weapon, curAmmo < 0 ? 9999 : AntiCheat.Core.LastAllowedAmmo, 1);
+            Player.LocalPlayer.SetAmmo(weapon, curAmmo < 0 ? 9999 : AntiCheat.Service.LastAllowedAmmo, 1);
 
             // AutoReload
             if (curAmmo == 0 &&
@@ -802,7 +804,7 @@ namespace BlaineRP.Client.Game.Management.Weapons
 
         public static void ReloadWeapon()
         {
-            if (AntiCheat.Core.LastAllowedAmmo < 0)
+            if (AntiCheat.Service.LastAllowedAmmo < 0)
                 return;
 
             uint curWeapon = Player.LocalPlayer.GetSelectedWeapon();

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino.Games;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -68,12 +68,12 @@ namespace BlaineRP.Client.Game.Casino
                                 return;
 
                             if (animType == 1)
-                                Core.Play(player,
+                                Service.Play(player,
                                     new Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false),
                                     -1
                                 );
                             else if (animType == 2)
-                                Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                                Service.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                         else if (type == 1) // chip add
                         {
@@ -96,7 +96,7 @@ namespace BlaineRP.Client.Game.Casino
                             Player player = Entities.Players.GetAtRemote(Convert.ToUInt16(args[5]));
 
                             if (player?.Exists == true)
-                                Core.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                                Service.Play(player, new Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
 
                             if (Blackjack.CurrentTable == table && Blackjack.CurrentSeatIdx == seatIdx)
                                 if (CasinoMinigames.CurrentType == CasinoMinigames.Types.Blackjack)

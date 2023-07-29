@@ -1,5 +1,5 @@
-﻿using BlaineRP.Client.Game.Input.Enums;
-using BlaineRP.Client.Game.Management.Animations;
+﻿using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;
@@ -62,7 +62,7 @@ namespace BlaineRP.Client.Game.Input
                     () =>
                     {
                         if (Utils.Misc.CanShowCEF(false, true))
-                            Management.Microphone.Core.Start();
+                            Management.Microphone.Service.Start();
                     },
                     true,
                     true
@@ -76,7 +76,7 @@ namespace BlaineRP.Client.Game.Input
             Add(new ExtraBind(BindTypes.MicrophoneOff,
                     () =>
                     {
-                        Management.Microphone.Core.Stop();
+                        Management.Microphone.Service.Stop();
                     },
                     false,
                     false,
@@ -348,7 +348,7 @@ namespace BlaineRP.Client.Game.Input
                     () =>
                     {
                         if (Utils.Misc.CanShowCEF(false, true))
-                            Management.Microphone.Core.Reload();
+                            Management.Microphone.Service.Reload();
                     },
                     true,
                     true
@@ -413,7 +413,7 @@ namespace BlaineRP.Client.Game.Input
                     () =>
                     {
                         if (Utils.Misc.CanShowCEF(true, true))
-                            Management.Animations.Core.PlayFastSync(FastType.Whistle);
+                            Service.PlayFastSync(FastType.Whistle);
                     },
                     true,
                     true

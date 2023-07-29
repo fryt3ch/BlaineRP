@@ -1,7 +1,8 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Tattoos;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
@@ -792,16 +793,16 @@ namespace BlaineRP.Server.Game.Businesses
             {
                 int zTypeNum;
 
-                if (!int.TryParse(iData[2], out zTypeNum) || !Enum.IsDefined(typeof(Data.Customization.TattooData.ZoneTypes), zTypeNum))
+                if (!int.TryParse(iData[2], out zTypeNum) || !Enum.IsDefined(typeof(ZoneTypes), zTypeNum))
                     return false;
 
-                var zType = (Data.Customization.TattooData.ZoneTypes)zTypeNum;
+                var zType = (ZoneTypes)zTypeNum;
 
                 var tattooIdx = -1;
 
                 foreach (var x in pData.Info.Decorations)
                 {
-                    var data = Data.Customization.GetTattooData(x);
+                    var data = Service.GetTattooData(x);
 
                     if (data?.ZoneType == zType)
                     {
@@ -821,7 +822,7 @@ namespace BlaineRP.Server.Game.Businesses
                 if (!int.TryParse(iData[1], out tattooIdx))
                     return false;
 
-                var tattooData = Data.Customization.GetTattooData(tattooIdx);
+                var tattooData = Service.GetTattooData(tattooIdx);
 
                 if (tattooData == null)
                     return false;
@@ -830,7 +831,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 foreach (var x in pData.Info.Decorations)
                 {
-                    var data = Data.Customization.GetTattooData(x);
+                    var data = Service.GetTattooData(x);
 
                     if (data?.ZoneType == tattooData.ZoneType)
                     {

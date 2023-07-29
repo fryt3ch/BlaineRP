@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Settings.User

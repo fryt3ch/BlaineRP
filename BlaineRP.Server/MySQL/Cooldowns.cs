@@ -1,6 +1,6 @@
 ﻿using MySqlConnector;
 using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Cooldowns;
 

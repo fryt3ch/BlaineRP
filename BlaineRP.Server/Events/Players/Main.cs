@@ -6,17 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Management;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Game.Management.Misc;
-using BlaineRP.Server.Game.Management.Offers;
-using BlaineRP.Server.Game.Management.Phone;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.Game.Management.Reports;
+using BlaineRP.Server.Game.Offers;
+using BlaineRP.Server.Game.Phone;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.UtilsT;
 
@@ -24,520 +26,6 @@ namespace BlaineRP.Server.Events.Players
 {
     class Main : Script
     {
-        [ServerEvent(Event.PlayerWeaponSwitch)]
-        private static void OnPlayerWeaponSwitch(Player player, uint oldWeapon, uint newWeapon)
-        {
-            if (oldWeapon == 2725352035 && newWeapon == oldWeapon)
-                return;
-
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (pData.WeaponComponents != null)
-                player.TriggerEventToStreamed("Players::WCD::U", player);
-        }
-
-        [ServerEvent(Event.IncomingConnection)]
-        private static void OnIncomingConnection(string ip, string serial, string rgscName, ulong rgscId, GameTypes gameType, CancelEventArgs cancel)
-        {
-            if (Server.Main.IsRestarting)
-                cancel.Cancel = true;
-        }
-
-        [ServerEvent(Event.PlayerConnected)]
-        private static async Task OnPlayerConnected(Player player)
-        {
-            if (player?.Exists != true || player.GetTempData() != null || player.GetMainData() != null)
-                return;
-
-            var scid = player.SocialClubId;
-            var ip = player.Address;
-            var hwid = player.Serial;
-
-            AccountData.GlobalBan globalBan;
-
-            using (var cts = new CancellationTokenSource(2_500))
-            {
-                try
-                {
-                    globalBan = await Web.SocketIO.Methods.Misc.GetPlayerGlobalBan(cts.Token, hwid, scid);
-                }
-                catch (Exception ex)
-                {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-                    });
-
-                    return;
-                }
-            }
-
-            NAPI.Task.Run(async () =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (globalBan != null)
-                {
-                    Utils.Kick(player, "todo");
-
-                    return;
-                }
-
-                var tData = new TempData(player);
-
-                player.SetTempData(tData);
-
-                player.SetAlpha(0);
-                player.Teleport(new Vector3(-749.78f, 5818.21f, 0), false, Utils.GetPrivateDimension(player));
-                player.Name = player.SocialClubName;
-
-                player.SkyCameraMove(SkyCamera.SwitchType.OutFromPlayer, true, "FadeScreen", false);
-
-                uint aid;
-
-                using (var cts = new CancellationTokenSource(2_500))
-                {
-                    try
-                    {
-                        aid = await Web.SocketIO.Methods.Account.GetIdBySCID(cts.Token, scid);
-                    }
-                    catch (Exception ex)
-                    {
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            //tData.BlockRemoteCalls = false;
-                        });
-
-                        return;
-                    }
-                }
-
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    tData.BlockRemoteCalls = false;
-
-                    if (aid == 0)
-                    {
-                        tData.StepType = TempData.StepTypes.AuthRegistration;
-
-                        player.TriggerEvent("Auth::Start::Show", JObject.FromObject(new { Type = 1, SCName = player.SocialClubName, }));
-                    }
-                    else
-                    {
-                        tData.StepType = TempData.StepTypes.AuthLogin;
-
-                        player.TriggerEvent("Auth::Start::Show", JObject.FromObject(new { Type = 0, SCName = player.SocialClubName, }));
-                    }
-                });
-            });
-        }
-
-        [ServerEvent(Event.PlayerDisconnected)]
-        private static void OnPlayerDisconnected(Player player, DisconnectionType type, string reason)
-        {
-            if (player?.Exists != true)
-                return;
-
-            var tData = player.GetTempData();
-
-            if (tData != null)
-            {
-                if (tData.PlayerData != null)
-                {
-                    tData.PlayerData.Remove();
-                }
-
-                tData.Delete();
-            }
-            else
-            {
-                var pData = player.GetMainData();
-
-                if (pData == null)
-                    return;
-
-                pData.StopUpdateTimer();
-
-                if (pData.CurrentBusiness != null)
-                    Sync.Players.ExitFromBusiness(pData, false);
-
-                pData.ActiveOffer?.Cancel(false, true, ReplyTypes.AutoCancel, false);
-
-                pData.ActiveCall?.Cancel(Call.CancelTypes.ServerAuto);
-
-                var policeCall = Game.Fractions.Police.GetCallByCaller(player.Id);
-
-                if (policeCall != null)
-                    Game.Fractions.Police.RemoveCall(player.Id, policeCall, 0, null);
-
-                Report.GetByStarterPlayer(pData.Info)?.Close(pData);
-
-                var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
-
-                if (currentTaxiOrder.Value != null)
-                    Game.Jobs.Cabbie.RemoveOrder(currentTaxiOrder.Key, currentTaxiOrder.Value, false);
-
-                if (pData.CurrentJob is Game.Jobs.Job curJob)
-                    curJob.OnWorkerExit(pData);
-
-                int rentedMarketStallIdx;
-
-                var rentedMarketStall = Game.Misc.MarketStall.GetByRenter(player.Id, out rentedMarketStallIdx);
-
-                if (rentedMarketStall != null)
-                {
-                    rentedMarketStall.SetCurrentRenter(rentedMarketStallIdx, null);
-                }
-
-                var attachedObjects = pData.AttachedObjects;
-
-                var cuffsAttachment = attachedObjects.Where(x => x.Type == AttachmentType.Cuffs).FirstOrDefault();
-
-                if (cuffsAttachment != null)
-                {
-                    pData.Info.GetTempData<Timer>("CuffedQuitTimer")?.Dispose();
-
-                    pData.Info.SetTempData("CuffedQuitTimer", new Timer((obj) =>
-                    {
-                        NAPI.Task.Run(() =>
-                        {
-                            var activePunishment = pData.Info.Punishments.Where(x => x.Type == PunishmentType.Arrest || x.Type == PunishmentType.FederalPrison || x.Type == PunishmentType.NRPPrison).FirstOrDefault();
-
-                            if (activePunishment != null)
-                                return;
-
-
-                        });
-                    }, null, 300_000, Timeout.Infinite));
-                }
-
-                player.DetachAllObjects();
-
-                player.DetachAllEntities();
-
-                pData.IsAttachedToEntity?.DetachEntity(player);
-
-                if (player.Vehicle is Vehicle veh)
-                {
-                    var vData = VehicleData.GetData(veh);
-
-                    if (vData != null)
-                        Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
-                }
-
-                if (pData.Info.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest driveSchoolQuest && driveSchoolQuest.Step > 0)
-                    driveSchoolQuest.Cancel(pData.Info);
-
-                #region Check&Start Deletion of Owned Vehicles
-
-                var vehsToStartDeletion = pData.OwnedVehicles.Where(x => x.VehicleData != null).ToList();
-
-                for (int i = 0; i < pData.Items.Length; i++)
-                {
-                    if (pData.Items[i] is Game.Items.VehicleKey vKey)
-                    {
-                        var vInfo = vKey.VehicleInfo;
-
-                        if (vInfo?.VehicleData == null)
-                            continue;
-
-                        if (vehsToStartDeletion.Contains(vInfo))
-                            continue;
-
-                        if (vKey.IsKeyValid(vInfo))
-                            vehsToStartDeletion.Add(vInfo);
-                    }
-                }
-
-                foreach (var x in PlayerData.All.Values)
-                {
-                    if (x == pData)
-                        continue;
-
-                    for (int i = 0; i < x.Items.Length; i++)
-                    {
-                        if (x.Items[i] is Game.Items.VehicleKey vKey)
-                        {
-                            var vInfo = vehsToStartDeletion.Where(x => x.VID == vKey.VID).FirstOrDefault();
-
-                            if (vKey.IsKeyValid(vInfo))
-                                vehsToStartDeletion.Remove(vInfo);
-                        }
-                    }
-                }
-
-                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask(Properties.Settings.Static.OWNED_VEHICLE_TIME_TO_AUTODELETE));
-                #endregion
-
-                if (pData.Armour != null)
-                {
-                    var arm = player.Armor;
-
-                    if (arm < 0)
-                        arm = 0;
-
-                    if (arm < pData.Armour.Strength)
-                    {
-                        pData.Armour.Strength = arm;
-
-                        if (pData.Armour.Strength == 0)
-                        {
-                            pData.Armour.Delete();
-
-                            pData.Armour = null;
-                        }
-                        else
-                            pData.Armour.Update();
-                    }
-                }
-
-                Game.Items.Weapon activeWeapon;
-
-                if (pData.TryGetActiveWeapon(out activeWeapon, out _, out _))
-                    activeWeapon.Unequip(pData, false);
-
-                for (int i = 0; i < pData.Items.Length; i++)
-                {
-                    var item = pData.Items[i];
-
-                    if (item is Game.Items.IUsable ciiu)
-                        if (ciiu.InUse)
-                            ciiu.InUse = false;
-                }
-
-                foreach (var x in pData.Weapons)
-                {
-                    if (x == null)
-                        continue;
-
-                    if (x.AttachType != null)
-                        x.AttachType = null;
-                }
-
-                pData.Info.LastData.Health = player.Health;
-
-                if (pData.Info.LastData.Health < 0 || pData.IsKnocked)
-                    pData.Info.LastData.Health = 0;
-
-                pData.Info.LastData.UpdatePosition(new Vector4(player.Position, player.Heading), player.Dimension, false);
-
-                MySQL.CharacterSaveOnExit(pData.Info);
-
-                pData.Remove();
-            }
-        }
-
-        [RemoteEvent("Players::ArmourBroken")]
-        private static void ArmourBroken(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var arm = pData.Armour;
-
-            if (arm == null)
-                return;
-
-            pData.Armour = null;
-
-            arm.Unwear(pData);
-
-            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Armour, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Armour));
-
-            MySQL.CharacterArmourUpdate(pData.Info);
-
-            arm.Delete();
-        }
-
-        [RemoteEvent("Players::OnDeath")]
-        private static void OnPlayerDeath(Player player, Player attacker)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            pData.StopAllAnims();
-
-            player.DetachAllObjectsInHand();
-
-            pData.StopUseCurrentItem();
-
-            foreach (var x in pData.Punishments)
-            {
-                if (x.Type == PunishmentType.NRPPrison)
-                {
-                    if (!x.IsActive())
-                        continue;
-
-                    if (pData.IsKnocked)
-                    {
-                        pData.SetAsNotKnocked();
-                    }
-
-                    var pos = Utils.Demorgan.GetNextPos();
-
-                    player.Teleport(pos, false, null, null, false);
-
-                    NAPI.Player.SpawnPlayer(player, pos, player.Heading);
-
-                    player.SetHealth(50);
-
-                    return;
-                }
-                else if (x.Type == PunishmentType.Arrest)
-                {
-                    if (!x.IsActive())
-                        continue;
-
-                    if (pData.IsKnocked)
-                    {
-                        pData.SetAsNotKnocked();
-                    }
-
-                    var fData = Game.Fractions.Fraction.Get((Game.Fractions.FractionType)int.Parse(x.AdditionalData.Split('_')[1])) as Game.Fractions.Police;
-
-                    if (fData != null)
-                    {
-                        var pos = fData.GetNextArrestCellPosition();
-
-                        player.Teleport(pos, false, null, null, false);
-
-                        NAPI.Player.SpawnPlayer(player, pos, player.Heading);
-
-                        player.SetHealth(50);
-                    }
-
-                    return;
-                }
-                else if (x.Type == PunishmentType.FederalPrison)
-                {
-                    if (!x.IsActive())
-                        continue;
-
-                    if (pData.IsKnocked)
-                    {
-                        pData.SetAsNotKnocked();
-                    }
-
-                    return;
-                }
-            }
-
-            var pDim = player.Dimension;
-
-            /*            if (pDim == Utils.GetPrivateDimension(player))
-                        {
-                            Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pData.LastData.Position.Position);
-
-                            return;
-                        }*/
-
-            if (pData.IsKnocked)
-            {
-                var pos = player.Position;
-
-                if (pDim >= Properties.Settings.Profile.Current.Game.HouseDimensionBaseOffset)
-                {
-                    if (pDim < Properties.Settings.Profile.Current.Game.ApartmentsDimensionBaseOffset)
-                    {
-                        var house = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.House;
-
-                        if (house != null)
-                            pos = house.PositionParams.Position;
-                    }
-                    else if (pDim < Properties.Settings.Profile.Current.Game.ApartmentsRootDimensionBaseOffset)
-                    {
-                        var aps = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.Apartments;
-
-                        if (aps != null)
-                            pos = aps.Root.EnterParams.Position;
-                    }
-                    else if (pDim < Properties.Settings.Profile.Current.Game.GarageDimensionBaseOffset)
-                    {
-                        var apsRoot = Utils.GetApartmentsRootByDimension(pDim);
-
-                        if (apsRoot != null)
-                            pos = apsRoot.EnterParams.Position;
-                    }
-                    else
-                    {
-                        var garage = Utils.GetGarageByDimension(pDim);
-
-                        if (garage != null)
-                            pos = garage.Root.EnterPosition.Position;
-                    }
-                }
-
-                Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pos);
-            }
-            else
-            {
-                player.Teleport(null, false, null, null, false);
-
-                pData.ActiveCall?.Cancel(Call.CancelTypes.ServerAuto);
-
-                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
-
-                pData.SetAsKnocked(attacker);
-
-                player.SetHealth(50);
-
-                if (Properties.Settings.Profile.Current.Game.KnockedDropWeaponsEnabled)
-                {
-                    for (int i = 0; i < pData.Weapons.Length; i++)
-                        if (pData.Weapons[i] != null)
-                            pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Weapons, i, 1);
-                }
-
-                if (pData.Holster?.Items[0] != null)
-                    pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Holster, 0, 1);
-
-                if (Properties.Settings.Profile.Current.Game.KnockedDropAmmoTotalPercentage > 0f && Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount > 0)
-                {
-                    int droppedAmmo = 0;
-
-                    for (int i = 0; i < pData.Items.Length; i++)
-                        if (pData.Items[i] is Game.Items.Ammo)
-                        {
-                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Properties.Settings.Profile.Current.Game.KnockedDropAmmoTotalPercentage);
-
-                            if (ammoToDrop + droppedAmmo > Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount)
-                                ammoToDrop = Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount - droppedAmmo;
-
-                            if (ammoToDrop == 0)
-                                break;
-
-                            pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Items, i, ammoToDrop);
-
-                            droppedAmmo += ammoToDrop;
-
-                            if (droppedAmmo == Properties.Settings.Profile.Current.Game.KnockedDropAmmoMaxAmount)
-                                break;
-                        }
-                }
-            }
-        }
-
         [RemoteProc("Players::CRI")]
         public static bool CharacterReadyIndicate(Player player, bool isInvalid, int emotion, int walkstyle)
         {
@@ -577,16 +65,6 @@ namespace BlaineRP.Server.Events.Players
                 fData?.OnMemberJoined(pData);
             }
 
-            //var ped = new PedData((uint)PedHash.Hooker03SFY, new Utils.Vector4(player.Position, player.Heading), player.Dimension, null);
-
-            //ped.IsInvincible = true;
-
-            //ped.AttachObject(Sync.AttachSystem.Models.Cuffs, AttachSystem.Types.Cuffs, -1, null);
-
-            //player.AttachEntity(ped.Ped, AttachSystem.Types.PoliceEscort);
-
-            //player.AttachEntity(ped, AttachSystem.Types.Carry);
-
             return true;
         }
 
@@ -598,7 +76,7 @@ namespace BlaineRP.Server.Events.Players
         }
 
         [RemoteEvent("Players::FingerPoint::Vehicle")]
-        public static void PointAtVehicle(Player player, Vehicle veh)
+        public static void PointAtVehicle(Player player, GTANetworkAPI.Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -695,7 +173,7 @@ namespace BlaineRP.Server.Events.Players
 
         #region Push Vehicle
         [RemoteEvent("Players::StartPushingVehicleSync")]
-        public static void StartPushingVehicle(Player player, Vehicle veh, bool isInFront)
+        public static void StartPushingVehicle(Player player, GTANetworkAPI.Vehicle veh, bool isInFront)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -737,7 +215,7 @@ namespace BlaineRP.Server.Events.Players
 
             var pData = sRes.Data;
 
-            var atVeh = pData.IsAttachedToEntity as Vehicle;
+            var atVeh = pData.IsAttachedToEntity as GTANetworkAPI.Vehicle;
 
             if (atVeh?.Exists != true)
                 return;
@@ -781,7 +259,7 @@ namespace BlaineRP.Server.Events.Players
                 if (vData == null)
                     return;
 
-                if (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car)
+                if (vData.Data.Type != VehicleTypes.Car)
                     return;
             }
 
@@ -837,7 +315,7 @@ namespace BlaineRP.Server.Events.Players
             if (vData == null)
                 return;
 
-            if (vData.Data.HasCruiseControl || vData.IsAnchored)
+            if (!vData.Data.HasCruiseControl || vData.IsAnchored)
                 return;
 
             if (vData.ForcedSpeed >= Properties.Settings.Static.MIN_CRUISE_CONTROL_SPEED)
@@ -846,49 +324,7 @@ namespace BlaineRP.Server.Events.Players
                 vData.ForcedSpeed = speed > Properties.Settings.Static.MAX_CRUISE_CONTROL_SPEED ? Properties.Settings.Static.MAX_CRUISE_CONTROL_SPEED : speed;
         }
         #endregion
-
-        #region Phone
-        [RemoteEvent("Players::SPST")]
-        public static void SetPhoneStateType(Player player, byte stateNum)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(PlayerPhoneState), stateNum))
-                return;
-
-            var stateType = (PlayerPhoneState)stateNum;
-
-            var curStateType = pData.PhoneStateType;
-
-            if (curStateType == stateType)
-                return;
-
-            if (stateType != PlayerPhoneState.Off)
-            {
-                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                    return;
-
-                pData.PhoneStateType = stateType;
-
-                if (curStateType == PlayerPhoneState.Off)
-                {
-                    Game.Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
-
-                    player.AttachObject(Game.Management.Attachments.Service.Models.Phone, AttachmentType.PhoneSync, -1, null);
-                }
-            }
-            else
-            {
-                Sync.Players.StopUsePhone(pData);
-            }
-        }
-        #endregion
-
+        
         [RemoteEvent("Players::SetIsInvalid")]
         private static void SetIsInvalid(Player player, bool state)
         {
@@ -900,99 +336,6 @@ namespace BlaineRP.Server.Events.Players
             var pData = sRes.Data;
 
             pData.IsInvalid = state;
-        }
-
-        [RemoteEvent("Players::PFA")]
-        public static void PlayFastAnim(Player player, int anim)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(FastType), anim))
-                return;
-
-            var aType = (FastType)anim;
-
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
-                return;
-
-            if (aType == FastType.Whistle)
-            {
-                pData.PlayAnim(aType, Properties.Settings.Static.WhistleAnimationTime);
-            }
-        }
-
-        [RemoteEvent("Players::SFTA")]
-        public static void StopFastTimeoutedAnim(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            pData.StopFastAnim();
-        }
-
-        [RemoteEvent("Players::SetWalkstyle")]
-        public static void SetWalkstyle(Player player, int walkstyle)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(WalkstyleType), walkstyle))
-                return;
-
-            pData.SetWalkstyle((WalkstyleType)walkstyle);
-        }
-
-        [RemoteEvent("Players::SetEmotion")]
-        public static void SetEmotion(Player player, int emotion)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(EmotionType), emotion))
-                return;
-
-            pData.SetEmotion((EmotionType)emotion);
-        }
-
-        [RemoteEvent("Players::SetAnim")]
-        public static void SetAnim(Player player, int anim)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(OtherType), anim))
-                return;
-
-            var aType = (OtherType)anim;
-
-            if (pData.OtherAnim == aType)
-                return;
-
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.GeneralAnim != GeneralType.None || pData.FastAnim != FastType.None)
-                return;
-
-            pData.PlayAnim((OtherType)anim);
         }
 
         /*        [RemoteEvent("atsdme")]
@@ -1011,67 +354,5 @@ namespace BlaineRP.Server.Events.Players
                             entity.DetachEntity(player);
                     }
                 }*/
-
-        [RemoteEvent("dmswme")]
-        private static void DamageSystemWoundMe(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (pData.IsWounded || pData.IsKnocked)
-                return;
-
-            pData.IsWounded = true;
-        }
-
-        [RemoteEvent("Player::UnpunishMe")]
-        private static void UnpunishMe(Player player, uint punishmentId)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var punishment = pData.Punishments.Where(x => x.Id == punishmentId).FirstOrDefault();
-
-            if (punishment == null)
-                return;
-
-            if (punishment.IsActive())
-                return;
-
-            if (punishment.Type == PunishmentType.Mute)
-            {
-                pData.IsMuted = false;
-
-                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
-
-                punishment.AmnestyInfo = new Punishment.Amnesty();
-
-                MySQL.UpdatePunishmentAmnesty(punishment);
-            }
-            else if (punishment.Type == PunishmentType.Warn)
-            {
-                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
-
-                punishment.AmnestyInfo = new Punishment.Amnesty();
-
-                MySQL.UpdatePunishmentAmnesty(punishment);
-            }
-            else if (punishment.Type == PunishmentType.FractionMute)
-            {
-                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
-
-                punishment.AmnestyInfo = new Punishment.Amnesty();
-
-                MySQL.UpdatePunishmentAmnesty(punishment);
-            }
-        }
     }
 }

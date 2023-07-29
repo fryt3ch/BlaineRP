@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Server.Game.EntitiesData.Players.Static.Customization.Clothes;
-using BlaineRP.Server.Game.EntitiesData.Players.Static.Customization.Clothes.Uniforms;
-using BlaineRP.Server.Game.EntitiesData.Players.Static.Customization.Tattoos;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes;
 
-namespace BlaineRP.Server.Game.EntitiesData.Players.Static.Customization
+namespace BlaineRP.Server.Game.EntitiesData.Players.Customization
 {
     public static partial class Service
     {
-        private static Dictionary<Type, int> ClothesTypesDict = new Dictionary<Type, int>()
+        private static readonly Dictionary<Type, int> _clothesTypesDict = new Dictionary<Type, int>()
         {
             { typeof(Items.Top), (int)ClothesTypes.Top },
             { typeof(Items.Under), (int)ClothesTypes.Under },
@@ -28,55 +26,54 @@ namespace BlaineRP.Server.Game.EntitiesData.Players.Static.Customization
             { typeof(Items.Bracelet), (int)AccessoryTypes.Bracelet },
         };
 
-        public static int GetClothesIdxByType(Type type) => ClothesTypesDict.GetValueOrDefault(type);
+        public static int GetClothesIdxByType(Type type) => _clothesTypesDict.GetValueOrDefault(type);
 
-        private static Dictionary<bool, Dictionary<ClothesTypes, int>> NudeClothes = new Dictionary<bool, Dictionary<ClothesTypes, int>>()
+        private static readonly Dictionary<ClothesTypes, int> _maleNudeDrawables = new Dictionary<ClothesTypes, int>()
         {
-            {
-                true,
+            { ClothesTypes.Top, 15 },
+            { ClothesTypes.Under, 15 },
+            { ClothesTypes.Gloves, 15 },
+            { ClothesTypes.Pants, 21 },
+            { ClothesTypes.Shoes, 34 },
+            { ClothesTypes.Accessory, 0 },
+            { ClothesTypes.Mask, 0 },
+            { ClothesTypes.Bag, 0 },
+        };
 
-                new Dictionary<ClothesTypes, int>()
-                {
-                    { ClothesTypes.Top, 15 },
-                    { ClothesTypes.Under, 15 },
-                    { ClothesTypes.Gloves, 15 },
-                    { ClothesTypes.Pants, 21 },
-                    { ClothesTypes.Shoes, 34 },
-                    { ClothesTypes.Accessory, 0 },
-                    { ClothesTypes.Mask, 0 },
-                    { ClothesTypes.Bag, 0 },
-                }
-            },
-
-            {
-                false,
-
-                new Dictionary<ClothesTypes, int>()
-                {
-                    { ClothesTypes.Top, 15 },
-                    { ClothesTypes.Under, 15 },
-                    { ClothesTypes.Gloves, 15 },
-                    { ClothesTypes.Pants, 15 },
-                    { ClothesTypes.Shoes, 35 },
-                    { ClothesTypes.Accessory, 0 },
-                    { ClothesTypes.Mask, 0 },
-                    { ClothesTypes.Bag, 0 }
-                }
-            },
+        private static readonly Dictionary<ClothesTypes, int> _femaleNudeDrawables = new Dictionary<ClothesTypes, int>()
+        {
+            { ClothesTypes.Top, 15 },
+            { ClothesTypes.Under, 15 },
+            { ClothesTypes.Gloves, 15 },
+            { ClothesTypes.Pants, 15 },
+            { ClothesTypes.Shoes, 35 },
+            { ClothesTypes.Accessory, 0 },
+            { ClothesTypes.Mask, 0 },
+            { ClothesTypes.Bag, 0 }
         };
 
         public static int GetHair(bool sex, int id)
         {
             if (sex)
             {
-                return MaleHairs.GetValueOrDefault(id);
+                return _maleHairs.GetValueOrDefault(id);
             }
             else
             {
-                return FemaleHairs.GetValueOrDefault(id);
+                return _femaleHairs.GetValueOrDefault(id);
             }
         }
 
-        public static int GetNudeDrawable(ClothesTypes cType, bool sex) => NudeClothes[sex].GetValueOrDefault(cType);
+        public static int GetNudeDrawable(ClothesTypes cType, bool sex)
+        {
+            if (sex)
+            {
+                return _maleNudeDrawables.GetValueOrDefault(cType);
+            }
+            else
+            {
+                return _femaleNudeDrawables.GetValueOrDefault(cType);
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Management.Animations;
-using BlaineRP.Client.Game.Management.Attachments;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Attachments;
 
 namespace BlaineRP.Client.Game.Items
 {

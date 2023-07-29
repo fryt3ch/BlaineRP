@@ -16,13 +16,13 @@ namespace BlaineRP.Client.Game.UI.CEF
     {
         public static DateTime LastSent;
 
-        private static Management.Camera.Core.StateTypes[] AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+        private static Management.Camera.Service.StateTypes[] AllowedCameraStates = new Management.Camera.Service.StateTypes[]
         {
-            Management.Camera.Core.StateTypes.Head,
-            Management.Camera.Core.StateTypes.Body,
-            Management.Camera.Core.StateTypes.Legs,
-            Management.Camera.Core.StateTypes.Foots,
-            Management.Camera.Core.StateTypes.WholePed,
+            Management.Camera.Service.StateTypes.Head,
+            Management.Camera.Service.StateTypes.Body,
+            Management.Camera.Service.StateTypes.Legs,
+            Management.Camera.Service.StateTypes.Foots,
+            Management.Camera.Service.StateTypes.WholePed,
         };
 
         private static Customization.HeadBlend _headBlend;
@@ -570,7 +570,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Main.Render -= ClearTasksRender;
 
-            Management.Camera.Core.Disable();
+            Management.Camera.Service.Disable();
 
             Player.LocalPlayer.ResetData("TempClothes::Under");
             Player.LocalPlayer.ResetData("TempClothes::Hat");
@@ -683,7 +683,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             await Show();
 
-            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
             _tempBinds.Add(Input.Core.Bind(RAGE.Ui.VirtualKeys.Control,
                     true,
@@ -731,7 +731,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Player.LocalPlayer.SetHeading(_defaultHeading);
 
-            Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+            Management.Camera.Service.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
 
             _currentCameraStateNum = camStateNum;
         }
@@ -764,9 +764,9 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
 
             if (RAGE.Game.Pad.GetDisabledControlNormal(0, 241) == 1f)
-                Management.Camera.Core.Fov -= 1;
+                Management.Camera.Service.Fov -= 1;
             else if (RAGE.Game.Pad.GetDisabledControlNormal(0, 242) == 1f)
-                Management.Camera.Core.Fov += 1;
+                Management.Camera.Service.Fov += 1;
 
             if (newHeading > 360f)
                 newHeading = 0f;

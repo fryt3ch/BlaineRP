@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Misc
@@ -276,7 +277,7 @@ namespace BlaineRP.Server.Game.Misc
 
                 if (sItem.ItemRoot is Game.Items.IUsable usable && usable.InUse)
                 {
-                    usable.StopUse(rData, Game.Items.Inventory.GroupTypes.Items, rItemIdx, false);
+                    usable.StopUse(rData, GroupTypes.Items, rItemIdx, false);
                 }
 
                 if (!pData.TryGiveExistingItem(sItem.ItemRoot, amount, true, true))
@@ -309,7 +310,7 @@ namespace BlaineRP.Server.Game.Misc
                     stall.Items.RemoveAt(itemIdx);
                 }
 
-                rData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], Game.Items.Inventory.GroupTypes.Items));
+                rData.Player.InventoryUpdate(GroupTypes.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], GroupTypes.Items));
 
                 rData.Player.TriggerEvent("MarketStall::ATBH", itemUid, sItem.ItemRoot.ID, amount, totalMoney);
 

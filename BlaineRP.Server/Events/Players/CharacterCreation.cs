@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization;
 using BlaineRP.Server.Game.Management.Misc;
 
 namespace BlaineRP.Server.Events.Players
@@ -26,7 +27,7 @@ namespace BlaineRP.Server.Events.Players
         public static void StartNew(Player player)
         {
             player.SetSkin(PedHash.FreemodeMale01);
-            player.SetCustomization(true, Game.Data.Customization.Defaults.HeadBlend, Game.Data.Customization.Defaults.EyeColor, Game.Data.Customization.Defaults.HairStyle.Color, Game.Data.Customization.Defaults.HairStyle.Color2, Game.Data.Customization.Defaults.FaceFeatures, Game.Data.Customization.Defaults.HeadOverlays, Game.Data.Customization.Defaults.Decorations);
+            player.SetCustomization(true, Defaults.HeadBlend, Defaults.EyeColor, Defaults.HairStyle.Color, Defaults.HairStyle.Color2, Defaults.FaceFeatures, Defaults.HeadOverlays, Defaults.Decorations);
             player.SetHair(0);
 
             Undress(player, true);
@@ -51,7 +52,7 @@ namespace BlaineRP.Server.Events.Players
                 return 0;
 
             player.SetSkin(sex ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01);
-            player.SetCustomization(sex, Game.Data.Customization.Defaults.HeadBlend, Game.Data.Customization.Defaults.EyeColor, Game.Data.Customization.Defaults.HairStyle.Color, Game.Data.Customization.Defaults.HairStyle.Color2, Game.Data.Customization.Defaults.FaceFeatures, Game.Data.Customization.Defaults.HeadOverlays, Game.Data.Customization.Defaults.Decorations);
+            player.SetCustomization(sex, Defaults.HeadBlend, Defaults.EyeColor, Defaults.HairStyle.Color, Defaults.HairStyle.Color2, Defaults.FaceFeatures, Defaults.HeadOverlays, Defaults.Decorations);
 
             if (!sex)
                 player.UpdateHeadBlend(0f, 0.5f, 0f);
@@ -102,13 +103,13 @@ namespace BlaineRP.Server.Events.Players
                 if (name == null || surname == null || !CharacterNameRegex.IsMatch(name) || !CharacterSurnameRegex.IsMatch(surname))
                     return 0;
 
-                if (PlayerInfo.All.Where(x => x.Value.Name == name && x.Value.Surname == surname).Any())
+                if (PlayerInfo.All.Values.Where(x => x.Name == name && x.Surname == surname).Any())
                     return 3;
 
-                var hBlend = NAPI.Util.FromJson<Game.Data.Customization.HeadBlend>(hBlendData);
+                var hBlend = NAPI.Util.FromJson<Game.EntitiesData.Players.Customization.HeadBlend>(hBlendData);
                 var fFeatures = NAPI.Util.FromJson<float[]>(fFeaturesData);
-                var hOverlays = NAPI.Util.FromJson<Dictionary<int, Game.Data.Customization.HeadOverlay>>(hOverlaysData);
-                var hStyle = NAPI.Util.FromJson<Game.Data.Customization.HairStyle>(hStyleData);
+                var hOverlays = NAPI.Util.FromJson<Dictionary<int, Game.EntitiesData.Players.Customization.HeadOverlay>>(hOverlaysData);
+                var hStyle = NAPI.Util.FromJson<HairStyle>(hStyleData);
                 var clothes = NAPI.Util.FromJson<string[]>(clothesData);
 
                 if (clothes.Length != 4 || !IsCustomizationValid(hBlend, hOverlays, fFeatures, hStyle, eyeColor))
@@ -136,7 +137,30 @@ namespace BlaineRP.Server.Events.Players
                 if (clothes[3] != null)
                     newClothes[4] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[3], 0, 1);
 
-                var pData = new PlayerData(player, tData.AccountData.ID, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
+                var time = Utils.GetCurrentTime();
+
+                var pInfo = PlayerInfo.CreateNew(aid: tData.AccountData.ID,
+                    name: name,
+                    surname: surname,
+                    currentDate: time,
+                    birthDate: time.Subtract(new TimeSpan(365 * age, 0, 0, 0, 0)),
+                    sex: sex,
+                    lastData: new LastPlayerData()
+                    {
+                        Dimension = Properties.Settings.Static.MainDimension,
+                        Position = new UtilsT.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading),
+                        Health = 100,
+                    },
+                    headBlend: hBlend,
+                    headOverlays: hOverlays,
+                    faceFeatures: fFeatures,
+                    decorations: new List<int>(),
+                    hairStyle: hStyle,
+                    eyeColor: eyeColor,
+                    clothes: newClothes
+                );
+
+                var pData = new PlayerData(player, pInfo);
 
                 tData.Delete();
 
@@ -175,7 +199,7 @@ namespace BlaineRP.Server.Events.Players
         }
 
         #region Validation
-        public static bool IsCustomizationValid(Game.Data.Customization.HeadBlend hBlend, Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays, float[] fFeatures, Game.Data.Customization.HairStyle hStyle, byte eyeColor)
+        public static bool IsCustomizationValid(Game.EntitiesData.Players.Customization.HeadBlend hBlend, Dictionary<int, Game.EntitiesData.Players.Customization.HeadOverlay> hOverlays, float[] fFeatures, HairStyle hStyle, byte eyeColor)
         {
             if (hBlend.ShapeFirst < 21 || hBlend.ShapeFirst > 45 || hBlend.ShapeFirst == 42 || hBlend.ShapeFirst == 43 || hBlend.ShapeFirst == 44)
                 return false;

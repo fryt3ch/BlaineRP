@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.Management.Offers
+﻿namespace BlaineRP.Server.Game.Offers
 {
     public partial class Trade
     {

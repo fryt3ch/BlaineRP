@@ -4,7 +4,7 @@ using BlaineRP.Client.Utils;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("fontsize", false, "Задать размер шрифта в чате", "fsize")]
         public static void FontSize(int value)

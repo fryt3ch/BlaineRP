@@ -6,10 +6,11 @@ using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Management.Commands;
+using BlaineRP.Client.Game.Management.Punishments;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -88,7 +89,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             #region Send
 
-            Events.Add("Chat::Send",
+            RAGE.Events.Add("Chat::Send",
                 async (args) =>
                 {
                     if (!IsActive)
@@ -114,7 +115,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         if (endOfCmd == -1 || endOfCmd + 1 == msg.Length)
                         {
-                            Core.Execute(msg.Substring(1));
+                            Service.Execute(msg.Substring(1));
                         }
                         else
                         {
@@ -173,9 +174,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             //Utils.ConsoleOutput($"Cmd: {cmd}, Params: {string.Join(" | ", parameters)}");
 
                             if (parameters.Count > 0)
-                                Core.Execute(cmd, parameters.ToArray());
+                                Service.Execute(cmd, parameters.ToArray());
                             else
-                                Core.Execute(cmd);
+                                Service.Execute(cmd);
                         }
 
                         return;
@@ -193,8 +194,8 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
 
                     Punishment mute = type == MessageTypes.Fraction
-                        ? Punishment.All.Where(x => x.Type == Punishment.Types.Mute || x.Type == Punishment.Types.FractionMute).FirstOrDefault()
-                        : Punishment.All.Where(x => x.Type == Punishment.Types.Mute).FirstOrDefault();
+                        ? Punishment.All.Where(x => x.Type == PunishmentType.Mute || x.Type == PunishmentType.FractionMute).FirstOrDefault()
+                        : Punishment.All.Where(x => x.Type == PunishmentType.Mute).FirstOrDefault();
                     ;
 
                     if (mute != null)
@@ -204,7 +205,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         return;
                     }
 
-                    var res = (int)await Events.CallRemoteProc("Chat::Send", (int)type, msg);
+                    var res = (int)await RAGE.Events.CallRemoteProc("Chat::Send", (int)type, msg);
 
                     if (res == 255)
                         return;
@@ -215,7 +216,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             #region Show Casual Message
 
-            Events.Add("Chat::SCM",
+            RAGE.Events.Add("Chat::SCM",
                 (object[] args) =>
                 {
                     if (!Browser.IsRendered(Browser.IntTypes.Chat))
@@ -284,7 +285,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             #endregion
 
-            Events.Add("Chat::SFM",
+            RAGE.Events.Add("Chat::SFM",
                 (args) =>
                 {
                     if (!Browser.IsRendered(Browser.IntTypes.Chat))
@@ -332,7 +333,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
             );
 
-            Events.Add("Chat::SDM",
+            RAGE.Events.Add("Chat::SDM",
                 (args) =>
                 {
                     if (!Browser.IsRendered(Browser.IntTypes.Chat))
@@ -386,7 +387,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             #region Show Global Message
 
-            Events.Add("Chat::ShowGlobalMessage",
+            RAGE.Events.Add("Chat::ShowGlobalMessage",
                 (object[] args) =>
                 {
                     if (!Browser.IsRendered(Browser.IntTypes.Chat))
@@ -486,7 +487,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             #region Show Server Message
 
-            Events.Add("Chat::ShowServerMessage",
+            RAGE.Events.Add("Chat::ShowServerMessage",
                 (object[] args) =>
                 {
                     if (!Browser.IsRendered(Browser.IntTypes.Chat))

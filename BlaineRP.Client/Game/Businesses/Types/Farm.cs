@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes;
@@ -11,8 +14,6 @@ using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Jobs;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Animations;
-using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
@@ -1812,7 +1813,7 @@ namespace BlaineRP.Client.Game.Businesses
 
                     Player.LocalPlayer.Position = pPos;
 
-                    Management.Animations.Core.Play(Player.LocalPlayer, GeneralType.MilkCow0);
+                    Animations.Service.Play(Player.LocalPlayer, GeneralType.MilkCow0);
 
                     Player.LocalPlayer.SetHeading(Geometry.RadiansToDegrees((float)System.Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
 

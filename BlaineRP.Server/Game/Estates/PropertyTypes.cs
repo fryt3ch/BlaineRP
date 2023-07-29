@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.EntitiesData.Players
+﻿namespace BlaineRP.Server.Game.Estates
 {
     public enum PropertyTypes
     {

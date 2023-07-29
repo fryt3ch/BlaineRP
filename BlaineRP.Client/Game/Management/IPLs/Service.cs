@@ -6,11 +6,11 @@ using RAGE;
 namespace BlaineRP.Client.Game.Management.IPLs
 {
     [Script(int.MaxValue)]
-    public class Core
+    public class Service
     {
         private static List<IPLInfo> _all;
 
-        public Core()
+        public Service()
         {
             _all = new List<IPLInfo>()
             {

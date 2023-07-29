@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.SellBusiness)]
     internal class SellBusiness : OfferBase

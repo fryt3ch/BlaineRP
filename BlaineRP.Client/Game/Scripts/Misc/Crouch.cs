@@ -1,8 +1,9 @@
 ﻿using System;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
 using RAGE.Elements;
@@ -107,7 +108,7 @@ namespace BlaineRP.Client.Game.Scripts.Misc
                     return;
 
                 if (pData.Walkstyle != WalkstyleType.None)
-                    Core.Set(player, pData.Walkstyle);
+                    Service.Set(player, pData.Walkstyle);
             }
         }
 

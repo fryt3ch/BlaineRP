@@ -6,8 +6,7 @@ using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Items.Craft;
@@ -270,9 +269,9 @@ namespace BlaineRP.Client.Game.UI.CEF
     
                                                                 ammoUpdated = true;
                                                             }*/
-                                if ((int)WeaponsData[activeWeapon][3] != Management.AntiCheat.Core.LastAllowedAmmo)
+                                if ((int)WeaponsData[activeWeapon][3] != Management.AntiCheat.Service.LastAllowedAmmo)
                                 {
-                                    WeaponsData[activeWeapon][3] = Management.AntiCheat.Core.LastAllowedAmmo;
+                                    WeaponsData[activeWeapon][3] = Management.AntiCheat.Service.LastAllowedAmmo;
 
                                     ammoUpdated = true;
                                 }
@@ -1941,7 +1940,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             else if (callRemote && CurrentType == Types.Workbench)
                 Events.CallRemote("Workbench::Close");
             else if (callRemote && CurrentType == Types.Trade)
-                Offers.Reply(Offers.ReplyTypes.AutoCancel);
+                Offers.Service.Reply(Offers.Service.ReplyTypes.AutoCancel);
 
             Browser.Switch(Browser.IntTypes.Inventory, false);
             Browser.Switch(Browser.IntTypes.CratesInventory, false);
@@ -2162,8 +2161,8 @@ namespace BlaineRP.Client.Game.UI.CEF
                 }
             );
 
-            if (inUse && Management.AntiCheat.Core.LastAllowedAmmo < ammo)
-                ammo = Management.AntiCheat.Core.LastAllowedAmmo;
+            if (inUse && Management.AntiCheat.Service.LastAllowedAmmo < ammo)
+                ammo = Management.AntiCheat.Service.LastAllowedAmmo;
 
             return new object[]
             {

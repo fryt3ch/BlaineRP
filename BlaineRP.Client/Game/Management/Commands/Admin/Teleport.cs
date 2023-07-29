@@ -5,7 +5,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("teleportmarker", true, "Телепорт по метке", "tpmarker", "tpm")]
         public static void TeleportMarker()

@@ -1,11 +1,11 @@
-﻿using BlaineRP.Server.Game.Data;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.UtilsT;
@@ -108,7 +108,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         private List<FineInfo> Fines { get; set; } = new List<FineInfo>();
 
-        public List<Customization.UniformTypes> UniformTypes { get; set; }
+        public List<UniformTypes> UniformTypes { get; set; }
 
         public Vector3[] LockerRoomPositions { get; set; }
 
@@ -425,9 +425,7 @@ namespace BlaineRP.Server.Game.Fractions
         {
             base.PostInitialize();
 
-            var allPunishments = PlayerInfo.All.Values.ToDictionary(x => x, x => x.Punishments.Where(x => x.Type == PunishmentType.Arrest && x.IsActive())).ToList();
-
-            foreach (var y in allPunishments)
+            foreach (var y in PlayerInfo.All.Values.ToDictionary(x => x, x => x.Punishments.Where(x => x.Type == PunishmentType.Arrest && x.IsActive())))
             {
                 foreach (var x in y.Value)
                 {

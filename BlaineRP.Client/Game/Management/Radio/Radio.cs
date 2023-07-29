@@ -2,6 +2,7 @@
 using System.Linq;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.Management.Radio.Enums;
 using BlaineRP.Client.Game.Scripts.Sync;
 using BlaineRP.Client.Game.UI.CEF;

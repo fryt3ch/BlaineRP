@@ -1,6 +1,6 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.Exchange)]
     internal class Exchange : OfferBase

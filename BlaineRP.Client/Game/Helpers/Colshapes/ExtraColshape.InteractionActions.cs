@@ -7,7 +7,7 @@ using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Casino;
 using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
@@ -641,7 +641,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (baseVeh == null)
                         return;
 
-                    var bVehData = EntitiesData.VehicleData.GetData(baseVeh);
+                    var bVehData = EntitiesData.Vehicles.VehicleData.GetData(baseVeh);
 
                     if (bVehData == null)
                         return;
@@ -651,7 +651,7 @@ namespace BlaineRP.Client.Game.Helpers.Colshapes
                     if (trailerVehHandle > 0 && Utils.Game.Misc.GetVehicleByHandle(trailerVehHandle, false) is Vehicle trailerVeh)
                         if (trailerVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
                         {
-                            var boatData = EntitiesData.VehicleData.GetData(boat);
+                            var boatData = EntitiesData.Vehicles.VehicleData.GetData(boat);
 
                             if (boatData == null)
                                 return;

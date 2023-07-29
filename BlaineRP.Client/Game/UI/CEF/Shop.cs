@@ -6,13 +6,15 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.RAGE.Ui.Cursor;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -80,7 +82,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             Components,
         }
 
-        private static Management.Camera.Core.StateTypes[] AllowedCameraStates;
+        private static Management.Camera.Service.StateTypes[] AllowedCameraStates;
 
         public static DateTime LastSent;
 
@@ -490,7 +492,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         Player.LocalPlayer.SetVisible(true, false);
 
-                        Management.Camera.Core.Disable(750);
+                        Management.Camera.Service.Disable(750);
 
                         HUD.ShowHUD(true);
 
@@ -823,15 +825,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         var t = new float[]
                         {
-                            (Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f,
+                            (Management.Camera.Service.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f,
                             TempVehicle.GetModelRange(),
                         };
 
-                        Vector3 pDef = Management.Camera.Core.States[AllowedCameraStates[CurrentCameraStateNum]].Position;
+                        Vector3 pDef = Management.Camera.Service.States[AllowedCameraStates[CurrentCameraStateNum]].Position;
 
                         var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
 
-                        Management.Camera.Core.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                        Management.Camera.Service.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
 
                         TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -973,11 +975,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (data[0] != CurrentItem)
                         {
                             if (data[0] == "spoiler")
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BackVehicleUpAngle));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.BackVehicleUpAngle));
                             else if (data[0] == "fbump" || data[0] == "xenon")
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.FrontVehicle));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.FrontVehicle));
                             else if (data[0] == "rbump" || data[0] == "exh")
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BackVehicle));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.BackVehicle));
                             else
                                 ChangeView(0);
                         }
@@ -1002,27 +1004,27 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (isLeft)
                             {
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
-                                    Management.Camera.Core.StateTypes.Body,
-                                    Management.Camera.Core.StateTypes.LeftHandFingers,
-                                    Management.Camera.Core.StateTypes.WholePed,
+                                    Management.Camera.Service.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Body,
+                                    Management.Camera.Service.StateTypes.LeftHandFingers,
+                                    Management.Camera.Service.StateTypes.WholePed,
                                 };
 
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHandFingers));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.LeftHandFingers));
                             }
                             else
                             {
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
-                                    Management.Camera.Core.StateTypes.Body,
-                                    Management.Camera.Core.StateTypes.RightHandFingers,
-                                    Management.Camera.Core.StateTypes.WholePed,
+                                    Management.Camera.Service.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Body,
+                                    Management.Camera.Service.StateTypes.RightHandFingers,
+                                    Management.Camera.Service.StateTypes.WholePed,
                                 };
 
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHandFingers));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.RightHandFingers));
                             }
 
                             Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", isLeft);
@@ -1050,48 +1052,48 @@ namespace BlaineRP.Client.Game.UI.CEF
                     if (CurrentType >= Game.Businesses.BusinessType.ClothesShop1 && CurrentType <= Game.Businesses.BusinessType.ClothesShop3)
                     {
                         if (id == 0 || id == 1)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Head));
                         else if (id == 2 || id == 3 || id == 4)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Body));
                         else if (id == 6 || id == 5)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Legs));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Legs));
                         else if (id == 7)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Foots));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Foots));
                         else if (id == 8)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHand));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.LeftHand));
                         else if (id == 9)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHand));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.RightHand));
                     }
                     else if (CurrentType == Game.Businesses.BusinessType.JewelleryShop)
                     {
                         if (id == 0)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Body));
                         else if (id == 1)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Head));
                         else if (id == 2)
                             ChangeView(Array.IndexOf(AllowedCameraStates,
                                     Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft")
-                                        ? Management.Camera.Core.StateTypes.LeftHandFingers
-                                        : Management.Camera.Core.StateTypes.RightHandFingers
+                                        ? Management.Camera.Service.StateTypes.LeftHandFingers
+                                        : Management.Camera.Service.StateTypes.RightHandFingers
                                 )
                             );
                     }
                     else if (CurrentType == Game.Businesses.BusinessType.TattooShop)
                     {
                         if (id >= 0 && id <= 3)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Head));
                         else if (id >= 4 && id <= 5)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BodyUpper));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.BodyUpper));
                         else if (id == 6)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.BodyBackUpper));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.BodyBackUpper));
                         else if (id == 7)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftHandUpper));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.LeftHandUpper));
                         else if (id == 8)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightHandUpper));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.RightHandUpper));
                         else if (id == 9)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.LeftLeg));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.LeftLeg));
                         else if (id == 10)
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.RightLeg));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.RightLeg));
                     }
                     else if (CurrentType == Game.Businesses.BusinessType.BarberShop)
                     {
@@ -1099,7 +1101,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             if (id == 3)
                             {
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Body));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Body));
 
                                 if (RealClothes != null)
                                 {
@@ -1114,7 +1116,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else
                             {
-                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                                ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Head));
 
                                 if (RealClothes != null)
                                 {
@@ -1130,7 +1132,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         }
                         else
                         {
-                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Core.StateTypes.Head));
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Management.Camera.Service.StateTypes.Head));
                         }
                     }
                 }
@@ -1575,9 +1577,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                         StartRetailPreview(mapObj,
                             194.5612f + 180f,
                             1,
-                            Management.Camera.Core.StateTypes.WholeFurniture,
-                            Management.Camera.Core.StateTypes.FrontFurniture,
-                            Management.Camera.Core.StateTypes.TopFurniture
+                            Management.Camera.Service.StateTypes.WholeFurniture,
+                            Management.Camera.Service.StateTypes.FrontFurniture,
+                            Management.Camera.Service.StateTypes.TopFurniture
                         );
                     }
                 }
@@ -1683,10 +1685,10 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             if (pData.Sex)
                             {
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
-                                    Management.Camera.Core.StateTypes.Body,
+                                    Management.Camera.Service.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Body,
                                 };
 
                                 shopData.Add(new object[]
@@ -1717,9 +1719,9 @@ namespace BlaineRP.Client.Game.UI.CEF
                             }
                             else
                             {
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Head,
                                 };
 
                                 shopData.Add(new object[]
@@ -1900,25 +1902,25 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 }
                             );
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
                         }
                         else if (type == Game.Businesses.BusinessType.TattooShop)
                         {
                             Dictionary<string, uint> prices = GetPrices(type);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.Head,
-                                Management.Camera.Core.StateTypes.BodyUpper,
-                                Management.Camera.Core.StateTypes.RightHandUpper,
-                                Management.Camera.Core.StateTypes.LeftHandUpper,
-                                Management.Camera.Core.StateTypes.LeftLeg,
-                                Management.Camera.Core.StateTypes.RightLeg,
-                                Management.Camera.Core.StateTypes.BodyBackUpper,
-                                Management.Camera.Core.StateTypes.WholePed,
+                                Management.Camera.Service.StateTypes.Head,
+                                Management.Camera.Service.StateTypes.BodyUpper,
+                                Management.Camera.Service.StateTypes.RightHandUpper,
+                                Management.Camera.Service.StateTypes.LeftHandUpper,
+                                Management.Camera.Service.StateTypes.LeftLeg,
+                                Management.Camera.Service.StateTypes.RightLeg,
+                                Management.Camera.Service.StateTypes.BodyBackUpper,
+                                Management.Camera.Service.StateTypes.WholePed,
                             };
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                             await Browser.Render(Browser.IntTypes.TattooSalon, true);
 
@@ -1989,19 +1991,19 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                             Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.WholePed,
-                                Management.Camera.Core.StateTypes.Head,
-                                Management.Camera.Core.StateTypes.Body,
-                                Management.Camera.Core.StateTypes.RightHand,
-                                Management.Camera.Core.StateTypes.LeftHand,
-                                Management.Camera.Core.StateTypes.Legs,
-                                Management.Camera.Core.StateTypes.Foots,
+                                Management.Camera.Service.StateTypes.WholePed,
+                                Management.Camera.Service.StateTypes.Head,
+                                Management.Camera.Service.StateTypes.Body,
+                                Management.Camera.Service.StateTypes.RightHand,
+                                Management.Camera.Service.StateTypes.LeftHand,
+                                Management.Camera.Service.StateTypes.Legs,
+                                Management.Camera.Service.StateTypes.Foots,
                             };
 
                             RealClothes = Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
@@ -2154,15 +2156,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                             Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.Body,
-                                Management.Camera.Core.StateTypes.BodyBack,
-                                Management.Camera.Core.StateTypes.WholePed,
+                                Management.Camera.Service.StateTypes.Body,
+                                Management.Camera.Service.StateTypes.BodyBack,
+                                Management.Camera.Service.StateTypes.WholePed,
                             };
 
                             RealClothes = Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
@@ -2207,7 +2209,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                             Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
@@ -2217,20 +2219,20 @@ namespace BlaineRP.Client.Game.UI.CEF
                                 Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", false);
 
                             if (Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft"))
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
-                                    Management.Camera.Core.StateTypes.Body,
-                                    Management.Camera.Core.StateTypes.LeftHandFingers,
-                                    Management.Camera.Core.StateTypes.WholePed,
+                                    Management.Camera.Service.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Body,
+                                    Management.Camera.Service.StateTypes.LeftHandFingers,
+                                    Management.Camera.Service.StateTypes.WholePed,
                                 };
                             else
-                                AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                                AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                                 {
-                                    Management.Camera.Core.StateTypes.Head,
-                                    Management.Camera.Core.StateTypes.Body,
-                                    Management.Camera.Core.StateTypes.RightHandFingers,
-                                    Management.Camera.Core.StateTypes.WholePed,
+                                    Management.Camera.Service.StateTypes.Head,
+                                    Management.Camera.Service.StateTypes.Body,
+                                    Management.Camera.Service.StateTypes.RightHandFingers,
+                                    Management.Camera.Service.StateTypes.WholePed,
                                 };
 
                             RealClothes = Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
@@ -2312,15 +2314,15 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                             Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.Head,
-                                Management.Camera.Core.StateTypes.Body,
-                                Management.Camera.Core.StateTypes.WholePed,
+                                Management.Camera.Service.StateTypes.Head,
+                                Management.Camera.Service.StateTypes.Body,
+                                Management.Camera.Service.StateTypes.WholePed,
                             };
 
                             RealClothes = Data.Customization.Clothes.GetAllRealClothes(Player.LocalPlayer);
@@ -2373,18 +2375,18 @@ namespace BlaineRP.Client.Game.UI.CEF
                             CurrentColor1 = new Colour(255, 255, 255, 255);
                             CurrentColor2 = new Colour(255, 255, 255, 255);
 
-                            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+                            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.WholeVehicle,
-                                Management.Camera.Core.StateTypes.WholeVehicleOpen,
-                                Management.Camera.Core.StateTypes.FrontVehicle,
-                                Management.Camera.Core.StateTypes.FrontVehicleOpenHood,
-                                Management.Camera.Core.StateTypes.RightVehicle,
-                                Management.Camera.Core.StateTypes.BackVehicle,
-                                Management.Camera.Core.StateTypes.BackVehicleOpenTrunk,
-                                Management.Camera.Core.StateTypes.TopVehicle,
+                                Management.Camera.Service.StateTypes.WholeVehicle,
+                                Management.Camera.Service.StateTypes.WholeVehicleOpen,
+                                Management.Camera.Service.StateTypes.FrontVehicle,
+                                Management.Camera.Service.StateTypes.FrontVehicleOpenHood,
+                                Management.Camera.Service.StateTypes.RightVehicle,
+                                Management.Camera.Service.StateTypes.BackVehicle,
+                                Management.Camera.Service.StateTypes.BackVehicleOpenTrunk,
+                                Management.Camera.Service.StateTypes.TopVehicle,
                             };
 
                             Browser.Switch(Browser.IntTypes.Shop, true);
@@ -2894,13 +2896,13 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             Player.LocalPlayer.SetVisible(false, false);
 
-                            AllowedCameraStates = new Management.Camera.Core.StateTypes[]
+                            AllowedCameraStates = new Management.Camera.Service.StateTypes[]
                             {
-                                Management.Camera.Core.StateTypes.WholeVehicle,
-                                Management.Camera.Core.StateTypes.FrontVehicle,
-                                Management.Camera.Core.StateTypes.BackVehicleUpAngle,
-                                Management.Camera.Core.StateTypes.BackVehicle,
-                                Management.Camera.Core.StateTypes.TopVehicle,
+                                Management.Camera.Service.StateTypes.WholeVehicle,
+                                Management.Camera.Service.StateTypes.FrontVehicle,
+                                Management.Camera.Service.StateTypes.BackVehicleUpAngle,
+                                Management.Camera.Service.StateTypes.BackVehicle,
+                                Management.Camera.Service.StateTypes.TopVehicle,
                             };
 
                             ChangeView(0);
@@ -3223,7 +3225,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     Input.Core.EnableAll();
 
-                    Management.Camera.Core.Disable();
+                    Management.Camera.Service.Disable();
                 }
                 else if (Browser.IsRendered(Browser.IntTypes.Retail))
                 {
@@ -3297,9 +3299,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Player.LocalPlayer.SetVisible(false, false);
 
-            Management.AntiCheat.Core.LastPosition = DefaultPosition;
+            Management.AntiCheat.Service.LastPosition = DefaultPosition;
 
-            Player.LocalPlayer.Position = Management.AntiCheat.Core.LastPosition;
+            Player.LocalPlayer.Position = Management.AntiCheat.Service.LastPosition;
 
             Player.LocalPlayer.SetHeading(DefaultHeading);
 
@@ -3320,19 +3322,19 @@ namespace BlaineRP.Client.Game.UI.CEF
                     await RAGE.Game.Invoker.WaitAsync(25);
                 }
 
-                Management.Camera.Core.StateTypes cs = Management.Camera.Core.StateTypes.WholeVehicle;
+                Management.Camera.Service.StateTypes cs = Management.Camera.Service.StateTypes.WholeVehicle;
 
                 var t = new float[]
                 {
-                    (Management.Camera.Core.States[cs].SourceParams as float[])?[0] ?? 0f,
+                    (Management.Camera.Service.States[cs].SourceParams as float[])?[0] ?? 0f,
                     TempVehicle.GetModelRange(),
                 };
 
-                Vector3 pDef = Management.Camera.Core.States[cs].Position;
+                Vector3 pDef = Management.Camera.Service.States[cs].Position;
 
                 var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
 
-                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null, pOff);
+                Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null, pOff);
 
                 TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -3354,7 +3356,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else
             {
-                Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+                Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
             }
 
             Cursor.Show(true, true);
@@ -3416,9 +3418,9 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
 
             if (RAGE.Game.Pad.GetDisabledControlNormal(0, 241) == 1f)
-                Management.Camera.Core.Fov -= 1;
+                Management.Camera.Service.Fov -= 1;
             else if (RAGE.Game.Pad.GetDisabledControlNormal(0, 242) == 1f)
-                Management.Camera.Core.Fov += 1;
+                Management.Camera.Service.Fov += 1;
 
             if (TempEntity != null)
                 RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, RAGE.Game.Entity.GetEntityHeading(TempEntity.Handle) + newHeading);
@@ -3460,13 +3462,13 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                     RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempEntity, TempEntity, -1);
+                    Management.Camera.Service.FromState(AllowedCameraStates[camStateNum], TempEntity, TempEntity, -1);
                 }
                 else
                 {
                     Player.LocalPlayer.SetHeading(DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                    Management.Camera.Service.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
                 }
             }
             else
@@ -3478,27 +3480,27 @@ namespace BlaineRP.Client.Game.UI.CEF
                     //var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
                     var t = new float[]
                     {
-                        (Management.Camera.Core.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f,
+                        (Management.Camera.Service.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f,
                         5f,
                     };
 
-                    Vector3 pDef = Management.Camera.Core.States[AllowedCameraStates[camStateNum]].Position;
+                    Vector3 pDef = Management.Camera.Service.States[AllowedCameraStates[camStateNum]].Position;
 
                     //var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
                     var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * 1.5f);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                    Management.Camera.Service.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
                 }
                 else
                 {
                     Player.LocalPlayer.SetHeading(DefaultHeading);
 
-                    Management.Camera.Core.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                    Management.Camera.Service.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
                 }
             }
         }
 
-        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, byte renderType, params Management.Camera.Core.StateTypes[] cameraStates)
+        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, byte renderType, params Management.Camera.Service.StateTypes[] cameraStates)
         {
             if (RetailPreviewActive)
                 return;
@@ -3551,7 +3553,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             AllowedCameraStates = null;
 
-            Management.Camera.Core.Disable(0);
+            Management.Camera.Service.Disable(0);
 
             Main.DisableAllControls(false);
 

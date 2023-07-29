@@ -5,7 +5,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("clearitems", true, "Удалить все выброшенные предметы", "cleariog", "ciog")]
         public static void ClearItems(uint delay = 30)

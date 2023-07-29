@@ -1,17 +1,18 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class FishingRod : Item, IUsable
+    public partial class FishingRod : Item, IUsable
     {
-        new public class ItemData : Item.ItemData
+        public new class ItemData : Item.ItemData
         {
             public static uint FakeFishModel { get; } = NAPI.Util.GetHashKey("prop_starfish_01");
 
@@ -22,9 +23,9 @@ namespace BlaineRP.Server.Game.Items
             {
                 public string UsedBaitId { get; private set; }
 
-                public FishingData(string UsedBaitId)
+                public FishingData(string usedBaitId)
                 {
-                    this.UsedBaitId = UsedBaitId;
+                    UsedBaitId = usedBaitId;
                 }
             }
 
@@ -36,11 +37,11 @@ namespace BlaineRP.Server.Game.Items
 
                 public int MaxAmount { get; set; }
 
-                public RandomItem(string Id, int MinAmount = 1, int MaxAmount = 1)
+                public RandomItem(string id, int minAmount = 1, int maxAmount = 1)
                 {
-                    this.Id = Id;
-                    this.MinAmount = MinAmount;
-                    this.MaxAmount = MaxAmount;
+                    Id = id;
+                    MinAmount = minAmount;
+                    MaxAmount = maxAmount;
                 }
             }
 
@@ -68,25 +69,19 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f";
 
-            public ItemData(string Name, string Model, float Weight) : base(Name, Weight, Model)
+            public ItemData(string name, string model, float weight) : base(name, weight, model)
             {
 
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "rod_0", new ItemData("Удочка (обычн.)", "prop_fishing_rod_02", 1f) },
-            { "rod_1", new ItemData("Удочка (улучш.)", "prop_fishing_rod_02", 1f) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data => (ItemData)base.Data;
+        public new ItemData Data => (ItemData)base.Data;
 
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public bool StartUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
                 return false;
@@ -112,7 +107,7 @@ namespace BlaineRP.Server.Game.Items
                 return false;
             }
 
-            var bait = pData.Items[baitIdx] as Game.Items.MiscStackable;
+            var bait = pData.Items[baitIdx] as MiscStackable;
 
             if (bait == null)
                 return false;
@@ -140,13 +135,13 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group), Inventory.GroupTypes.Items, baitIdx, Game.Items.Item.ToClientJson(pData.Items[baitIdx], Inventory.GroupTypes.Items));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group), GroupTypes.Items, baitIdx, ToClientJson(pData.Items[baitIdx], GroupTypes.Items));
             }
 
             return true;
         }
 
-        public bool StopUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
                 return false;
@@ -160,7 +155,7 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group));
             }
 
             return true;
@@ -180,7 +175,7 @@ namespace BlaineRP.Server.Game.Items
             pData.PlayAnim(GeneralType.FishingProcess0);
         }
 
-        public FishingRod(string ID) : base(ID, IDList[ID], typeof(FishingRod))
+        public FishingRod(string id) : base(id, IdList[id], typeof(FishingRod))
         {
 
         }

@@ -1,6 +1,6 @@
 ﻿using BlaineRP.Server.Game.Gifts;
 
-namespace BlaineRP.Server.Game.Management.Achievements
+namespace BlaineRP.Server.Game.Achievements
 {
     public partial class Achievement
     {

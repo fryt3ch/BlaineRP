@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Achievements;
 using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.Businesses;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Items;
@@ -15,7 +14,7 @@ using BlaineRP.Client.Game.UI.CEF.Phone.Apps;
 using Newtonsoft.Json.Linq;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.EntitiesData
+namespace BlaineRP.Client.Game.EntitiesData.Players
 {
     public class PlayerData
     {
@@ -315,8 +314,8 @@ namespace BlaineRP.Client.Game.EntitiesData
 
             Player.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
 
-            Management.Microphone.Core.RemoveTalker(Player);
-            Management.Microphone.Core.RemoveListener(Player, false);
+            Management.Microphone.Service.RemoveTalker(Player);
+            Management.Microphone.Service.RemoveListener(Player, false);
 
             Player.ResetData();
         }

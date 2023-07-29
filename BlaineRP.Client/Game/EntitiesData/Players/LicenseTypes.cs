@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.EntitiesData.Enums
+﻿namespace BlaineRP.Client.Game.EntitiesData.Players
 {
     public enum LicenseTypes
     {

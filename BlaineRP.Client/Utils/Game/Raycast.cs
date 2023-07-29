@@ -106,7 +106,7 @@ namespace BlaineRP.Client.Utils.Game
             {
                 for (var j = 1; j < c; j++)
                 {
-                    Vector3 endPos = Core.GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
+                    Vector3 endPos = Service.GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
 
                     endPos.Z += offsetZ;
 

@@ -1,17 +1,17 @@
 ﻿using BlaineRP.Server.Game.Casino;
 using BlaineRP.Server.Game.EntitiesData.Players;
 
-namespace BlaineRP.Server.Events.NPC
+namespace BlaineRP.Server.Game.NPCs.Types
 {
     internal class Casino
     {
-        [NPC.Action("Casino::GCBD", "Casino@Cashier_0_0")]
+        [RemoteAction("Casino::GCBD", "Casino@Cashier_0_0")]
         private static object CasinoGetChipsBalanceData(PlayerData pData, string npcId, string[] data)
         {
             return $"{pData.Info.CasinoChips}";
         }
 
-        [NPC.Action("Casino::C", "Casino@Cashier_0_0")]
+        [RemoteAction("Casino::C", "Casino@Cashier_0_0")]
         private static object CasinoChips(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 2)

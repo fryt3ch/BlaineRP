@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Misc;
 using BlaineRP.Server.Game.Management.Punishments;
@@ -16,10 +16,6 @@ namespace BlaineRP.Server.Events.Players
 {
     class Auth : Script
     {
-        public static Regex MailRegex { get; } = new Regex(@"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$", RegexOptions.Compiled);
-        public static Regex LoginRegex { get; } = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,12}$", RegexOptions.Compiled);
-        public static Regex PasswordRegex { get; } = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,64}$", RegexOptions.Compiled);
-
         [RemoteEvent("Auth::OnRegistrationAttempt")]
         private static async Task OnRegistrationAttempt(Player player, string login, string mail, string password)
         {
@@ -38,7 +34,7 @@ namespace BlaineRP.Server.Events.Players
 
             mail = mail.ToLower();
 
-            if (!MailRegex.IsMatch(mail) || !LoginRegex.IsMatch(login) || !PasswordRegex.IsMatch(password))
+            if (!Properties.Settings.Static.AuthMailRegex.IsMatch(mail) || !Properties.Settings.Static.AuthLoginRegex.IsMatch(login) || !Properties.Settings.Static.AuthPasswordRegex.IsMatch(password))
                 return;
 
             tData.BlockRemoteCalls = true;
@@ -243,7 +239,7 @@ namespace BlaineRP.Server.Events.Players
 
                 int idx = 0;
 
-                foreach (var pInfo in PlayerInfo.GetAllByAID(aData.ID))
+                foreach (var pInfo in PlayerInfo.All.Values.Where(x => aData.ID == x.AID))
                 {
                     if (idx >= tData.Characters.Length)
                         break;

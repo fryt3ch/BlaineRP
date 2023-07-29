@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Phone;
 
 namespace BlaineRP.Server.Game.Quests.Types
 {
@@ -110,7 +110,7 @@ namespace BlaineRP.Server.Game.Quests.Types
 
                                 var sms = new SMS((uint)DefaultNumbers.Delivery, activeOrder.TargetBusiness.Owner, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderFinish), orderId));
 
-                                SMS.Add(activeOrder.TargetBusiness.Owner, sms, true);
+                                activeOrder.TargetBusiness.Owner.AddSms(sms, true);
                             }
                         }
                         else

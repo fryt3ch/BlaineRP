@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Input.Enums;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Utils.Game;
 using RAGE;
@@ -196,7 +197,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
             var pData = PlayerData.GetData(Player.LocalPlayer);
 
             if (pData != null)
-                Management.Animations.Core.Set(Player.LocalPlayer, pData.Emotion);
+                Service.Set(Player.LocalPlayer, pData.Emotion);
 
             if (_currentAnimationDict.Length > 0)
             {
@@ -405,7 +406,7 @@ namespace BlaineRP.Client.Game.UI.CEF.Phone.Apps
 
                     _currentCameraEmotion = (EmotionType)curCamEmotionNum;
 
-                    Management.Animations.Core.Set(Player.LocalPlayer, _currentCameraEmotion);
+                    Service.Set(Player.LocalPlayer, _currentCameraEmotion);
 
                     UpdateInstructionButtons();
 

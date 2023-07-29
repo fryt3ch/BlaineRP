@@ -1,5 +1,6 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Businesses
@@ -9,7 +10,7 @@ namespace BlaineRP.Server.Game.Businesses
         internal class RemoteEvents : Script
         {
             [RemoteProc("GasStation::Enter")]
-            public static object GasStationEnter(Player player, Vehicle vehicle, int id)
+            public static object GasStationEnter(Player player, GTANetworkAPI.Vehicle vehicle, int id)
             {
                 (bool IsSpammer, PlayerData Data) sRes = player.CheckSpamAttack();
 
@@ -39,7 +40,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 if (vData.FuelLevel == vData.Data.Tank)
                 {
-                    player.Notify(vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
+                    player.Notify(vData.Data.FuelType == EntitiesData.Vehicles.Static.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
 
                     return null;
                 }

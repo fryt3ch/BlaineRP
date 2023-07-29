@@ -4,14 +4,15 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.Data.Vehicles;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Input.Enums;
-using BlaineRP.Client.Game.Management.Attachments;
 using BlaineRP.Client.Game.Misc;
+using BlaineRP.Client.Game.Offers;
 using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.Scripts.Sync;
@@ -189,9 +190,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                     if (Player.LocalPlayer.Vehicle != veh)
                     {
-                        AttachmentEntity trunkAttach = Management.Attachments.Core.GetEntityEntityAttachments(veh)
-                                                                ?.Where(x => x.Type == AttachmentType.VehicleTrunk)
-                                                                 .FirstOrDefault();
+                        AttachmentEntity trunkAttach = Attachments.Service.GetEntityEntityAttachments(veh)
+                                                                 ?.Where(x => x.Type == AttachmentType.VehicleTrunk)
+                                                                  .FirstOrDefault();
 
                         if (trunkAttach == null && veh.DoesHaveDoor(5) > 0)
                             freeSeats.Add((int.MaxValue, Locale.Get("POLICE_PTOVEH_L_1")));
@@ -406,7 +407,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var player = entity as Player;
                     if (player == null)
                         return;
-                    Offers.Request(player, OfferTypes.HeadsOrTails, null);
+                    Offers.Service.Request(player, OfferTypes.HeadsOrTails, null);
                 }
             );
             CharacterInteractionInfo.AddAction("interact",
@@ -416,7 +417,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var player = entity as Player;
                     if (player == null)
                         return;
-                    Offers.Request(player, OfferTypes.Handshake, null);
+                    Offers.Service.Request(player, OfferTypes.Handshake, null);
                 }
             );
             CharacterInteractionInfo.AddAction("interact",
@@ -426,7 +427,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var player = entity as Player;
                     if (player == null)
                         return;
-                    Offers.Request(player, OfferTypes.Carry, null);
+                    Offers.Service.Request(player, OfferTypes.Carry, null);
                 }
             );
 
@@ -488,7 +489,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     var player = entity as Player;
                     if (player == null)
                         return;
-                    Offers.Request(player, OfferTypes.Exchange, null);
+                    Offers.Service.Request(player, OfferTypes.Exchange, null);
                 }
             );
 
@@ -1570,7 +1571,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                         if (rType == ActionBox.ReplyTypes.OK)
                             if (player is Player targetPlayer)
-                                Offers.Request(targetPlayer,
+                                Offers.Service.Request(targetPlayer,
                                     OfferTypes.Cash,
                                     new
                                     {
@@ -1590,7 +1591,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
                 }
 
-                Offers.Request(player,
+                Offers.Service.Request(player,
                     OfferTypes.Cash,
                     new
                     {
@@ -1623,7 +1624,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            Offers.Request(player, OfferTypes.Settle, null);
+            Offers.Service.Request(player, OfferTypes.Settle, null);
         }
 
         public static void PlayerSellPropertyRequest(Player player, byte type)
@@ -1684,11 +1685,11 @@ namespace BlaineRP.Client.Game.UI.CEF
                     return;
                 }
 
-                Offers.Request(player, OfferTypes.ShowMedicalCard, null);
+                Offers.Service.Request(player, OfferTypes.ShowMedicalCard, null);
             }
             else if (type == 1)
             {
-                Offers.Request(player, OfferTypes.ShowPassport, null);
+                Offers.Service.Request(player, OfferTypes.ShowPassport, null);
             }
             else if (type == 2)
             {
@@ -1738,7 +1739,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                             ActionBox.Close(true);
 
-                            Offers.Request(player,
+                            Offers.Service.Request(player,
                                 OfferTypes.ShowVehiclePassport,
                                 new
                                 {
@@ -1760,7 +1761,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             }
             else if (type == 3)
             {
-                Offers.Request(player, OfferTypes.ShowLicenses, null);
+                Offers.Service.Request(player, OfferTypes.ShowLicenses, null);
             }
         }
 
@@ -1852,7 +1853,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 return;
             }
 
-            Offers.Request(player,
+            Offers.Service.Request(player,
                 OfferTypes.GiveHealingItem,
                 new
                 {

@@ -2,21 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.BankSystem;
 using BlaineRP.Server.Game.Containers;
-using BlaineRP.Server.Game.Craft;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Estates;
 using BlaineRP.Server.Game.Gifts;
 using BlaineRP.Server.Game.Inventory;
-using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.Game.Offers;
 using BlaineRP.Server.Game.Phone;
-using BlaineRP.Server.Game.World;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
     public partial class PlayerData
     {
@@ -28,9 +26,6 @@ namespace BlaineRP.Server.EntitiesData.Players
 
         /// <summary>Информация об игроке с момента последнего захода на сервер</summary>
         public LastPlayerData LastData { get => Info.LastData; set => Info.LastData = value; }
-
-        /// <summary>Дата последнего захода игрока на сервер</summary>
-        public DateTime LastJoinDate { get => Info.LastJoinDate; set => Info.LastJoinDate = value; }
 
         private Timer UpdateTimer { get; set; }
 
@@ -78,7 +73,7 @@ namespace BlaineRP.Server.EntitiesData.Players
         public int FreeGaragesSlots => Properties.Settings.Static.MAX_GARAGES - OwnedGarages.Count;
         public int FreeBusinessesSlots => Properties.Settings.Static.MAX_BUSINESSES - OwnedBusinesses.Count;
 
-        public Game.Data.Customization.UniformTypes CurrentUniform { get => Player.GetData<Game.Data.Customization.UniformTypes?>("CUNIF") ?? Game.Data.Customization.UniformTypes.None; set { if (value == Game.Data.Customization.UniformTypes.None) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
+        public UniformTypes CurrentUniform { get => Player.GetData<UniformTypes?>("CUNIF") ?? UniformTypes.None; set { if (value == UniformTypes.None) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
 
         public Game.Items.Item[] Items => Info.Items;
 

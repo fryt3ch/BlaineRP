@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Game.Management.Punishments;

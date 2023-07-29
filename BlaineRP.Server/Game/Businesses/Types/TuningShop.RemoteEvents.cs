@@ -1,8 +1,8 @@
 ﻿using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Management.AntiCheat;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;

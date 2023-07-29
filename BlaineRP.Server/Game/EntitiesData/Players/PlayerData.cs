@@ -2,34 +2,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Extensions.System.Collections.Generic;
 using BlaineRP.Server.Game.Achievements;
 using BlaineRP.Server.Game.Animations;
 using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Estates;
 using BlaineRP.Server.Game.Gifts;
 using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Items;
-using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.Game.Phone;
 using BlaineRP.Server.Game.Quests;
-using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
     public partial class PlayerData
     {
-        public static Dictionary<Player, PlayerData> All { get; } = new Dictionary<Player, PlayerData>();
+        private static readonly Dictionary<Player, PlayerData> _all = new Dictionary<Player, PlayerData>();
+
+        public static IReadOnlyDictionary<Player, PlayerData> All => _all.AsReadOnly();
 
         /// <summary>Получить PlayerData игрока</summary>
         /// <returns>Объект класса PlayerData если существует, иначе - null</returns>
         public static PlayerData Get(Player player)
         {
-            return player == null ? null : All.GetValueOrDefault(player);
+            return player == null ? null : _all.GetValueOrDefault(player);
         }
 
         /// <summary>Назначить объект класса PlayerData игроку</summary>
@@ -38,7 +41,7 @@ namespace BlaineRP.Server.EntitiesData.Players
             if (player == null)
                 return;
 
-            All.Add(player, data);
+            _all.Add(player, data);
         }
 
         public void Remove()
@@ -48,75 +51,13 @@ namespace BlaineRP.Server.EntitiesData.Players
 
             Info.PlayerData = null;
 
-            All.Remove(Player);
+            _all.Remove(Player);
 
             Player.ResetData();
         }
 
         /// <summary>Сущность игрока</summary>
         public Player Player { get; set; }
-
-        public void AddFamiliar(PlayerInfo tInfo)
-        {
-            uint tCid = tInfo.CID;
-
-            if (Info.Familiars.Add(tCid))
-            {
-                Player.TriggerEvent("Player::Familiars::Update", true, tCid);
-
-                MySQL.CharacterFamiliarsUpdate(Info);
-            }
-        }
-
-        public void RemoveFamiliar(PlayerInfo tInfo)
-        {
-            uint tCid = tInfo.CID;
-
-            if (Info.Familiars.Remove(tCid))
-            {
-                Player.TriggerEvent("Player::Familiars::Update", false, tCid);
-
-                MySQL.CharacterFamiliarsUpdate(Info);
-            }
-        }
-
-        public void AddLicense(LicenseType lType)
-        {
-            if (!Info.Licenses.Add(lType))
-                return;
-
-            Player.TriggerEvent("Player::Licenses::Update", true, lType);
-
-            MySQL.CharacterLicensesUpdate(Info);
-        }
-
-        public void RemoveLicense(LicenseType lType)
-        {
-            if (!Info.Licenses.Remove(lType))
-                return;
-
-            Player.TriggerEvent("Player::Licenses::Update", false, lType);
-
-            MySQL.CharacterLicensesUpdate(Info);
-        }
-
-        public void UpdateSkill(SkillTypes sType, int updValue)
-        {
-            updValue = Info.Skills[sType] + updValue;
-
-            int maxSkillValue = Properties.Settings.Static.PlayerMaxSkills.GetValueOrDefault(sType);
-
-            if (updValue > maxSkillValue)
-                updValue = maxSkillValue;
-            else if (updValue < 0)
-                updValue = 0;
-
-            Info.Skills[sType] = updValue;
-
-            Player.TriggerEvent("Player::Skills::Update", sType, updValue);
-
-            MySQL.CharacterSkillsUpdate(Info);
-        }
 
         public void AddRentedVehicle(VehicleData vData, int timeDel)
         {
@@ -340,116 +281,19 @@ namespace BlaineRP.Server.EntitiesData.Players
             Satiety = Info.LastData.Satiety;
             Mood = Info.LastData.Mood;
 
-            LastJoinDate = Utils.GetCurrentTime();
+            Info.LastJoinDate = Utils.GetCurrentTime();
 
-            OwnedHouses = Info.OwnedHouses;
-            OwnedGarages = Info.OwnedGarages;
-            OwnedVehicles = Info.OwnedVehicles;
-            OwnedApartments = Info.OwnedApartments;
-            OwnedBusinesses = Info.OwnedBusinesses;
+            OwnedHouses = Info.OwnedHouses.ToList();
+            OwnedGarages = Info.OwnedGarages.ToList();
+            OwnedVehicles = Info.OwnedVehicles.ToList();
+            OwnedApartments = Info.OwnedApartments.ToList();
+            OwnedBusinesses = Info.OwnedBusinesses.ToList();
 
             SettledHouseBase = Info.SettledHouseBase;
 
             BankBalance = Info.BankAccount?.Balance ?? 0;
 
             Info.PlayerData = this;
-        }
-
-        public PlayerData(Player Player,
-                          uint aid,
-                          string name,
-                          string surname,
-                          int age,
-                          bool sex,
-                          Game.Data.Customization.HeadBlend hBlend,
-                          Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays,
-                          float[] faceFeatures,
-                          byte eyeColor,
-                          Game.Data.Customization.HairStyle hStyle,
-                          Clothes[] clothes) : this(Player)
-        {
-            Info = new PlayerInfo()
-            {
-                AID = aid,
-            };
-
-            LastData = new LastPlayerData()
-            {
-                Dimension = Properties.Settings.Static.MainDimension,
-                Position = new Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading),
-                Health = 100,
-            };
-
-            Info.Name = name;
-            Info.Surname = surname;
-            Info.BirthDate = Utils.GetCurrentTime().Subtract(new TimeSpan(365 * age, 0, 0, 0, 0));
-            Sex = sex;
-
-            AdminLevel = -1;
-            Fraction = Game.Fractions.FractionType.None;
-            OrganisationID = -1;
-            BankAccount = null;
-            LastJoinDate = Utils.GetCurrentTime();
-            Info.CreationDate = LastJoinDate;
-            Info.TimePlayed = TimeSpan.Zero;
-
-            OwnedVehicles = new List<VehicleInfo>();
-
-            Cash = Properties.Settings.Static.CHARACTER_DEFAULT_MONEY_CASH;
-            Satiety = Properties.Settings.Static.CHARACTER_DEFAULT_SATIETY;
-            Mood = Properties.Settings.Static.CHARACTER_DEFAULT_MOOD;
-
-            Info.Skills = Properties.Settings.Static.CharacterDefaultSkills;
-            Info.Licenses = Properties.Settings.Static.CharacterDefaultLicenses;
-
-            Info.Gifts = new List<Gift>();
-
-            Info.HeadBlend = hBlend;
-            Info.HeadOverlays = hOverlays;
-            Info.FaceFeatures = faceFeatures;
-            Info.EyeColor = eyeColor;
-            Info.HairStyle = hStyle;
-            Info.Decorations = new List<int>();
-
-            Info.Items = new Item[20];
-            Info.Clothes = clothes;
-            Info.Accessories = new Clothes[8];
-            Info.Weapons = new Weapon[2];
-            Info.Bag = null;
-            Info.Holster = null;
-            Info.Armour = null;
-
-            Info.PhoneNumber = Numbers.GenerateNewPhoneNumber();
-            Info.PhoneBalance = 0;
-
-            Info.Contacts = new Dictionary<uint, string>();
-            Info.PhoneBlacklist = new List<uint>();
-
-            Info.Furniture = new List<Game.Estates.Furniture>();
-
-            Info.WeaponSkins = new List<WeaponSkin>();
-
-            Info.Familiars = new HashSet<uint>();
-
-            Info.Punishments = new List<Punishment>();
-
-            Info.PlayerData = this;
-
-            Info.Achievements = Achievement.GetNewDict();
-
-            Info.Quests = Quest.GetNewDict();
-
-            BankBalance = 0;
-
-            OwnedHouses = new List<Game.Estates.House>();
-            OwnedGarages = new List<Game.Estates.Garage>();
-            OwnedVehicles = new List<VehicleInfo>();
-            OwnedApartments = new List<Game.Estates.Apartments>();
-            OwnedBusinesses = new List<Game.Businesses.Business>();
-
-            PlayerInfo.Add(Info);
-
-            CID = Info.CID;
         }
 
         /// <summary>Метод обозначает готовность персонажа к игре</summary>
@@ -614,10 +458,10 @@ namespace BlaineRP.Server.EntitiesData.Players
                 Info.HairStyle.Color2,
                 Info.FaceFeatures,
                 Info.HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay),
-                Game.Data.Customization.Defaults.Decorations
+                Defaults.Decorations
             );
 
-            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, Info.HairStyle.Id), 0);
+            Player.SetClothes(2, Customization.Service.GetHair(Sex, Info.HairStyle.Id), 0);
 
             UpdateHairOverlay();
 

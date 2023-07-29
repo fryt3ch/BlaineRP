@@ -5,6 +5,8 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Jobs;
@@ -20,7 +22,7 @@ using RAGE.Ui;
 namespace BlaineRP.Client.Game.Attachments
 {
     [Script(int.MaxValue)]
-    public class Core
+    public class Service
     {
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
@@ -379,10 +381,10 @@ namespace BlaineRP.Client.Game.Attachments
                             veh.HasCollidedWithAnything() ||
                             Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.App.Static.EntityInteractionMaxDistance)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             PushVehicle.Off(false);
                         }
@@ -428,10 +430,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (root?.Exists != true || !isForced && bind.IsPressed)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Players::StopInTrunk");
                         }
@@ -478,10 +480,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (root?.Exists != true || !isForced && bind.IsJustPressed)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Players::StopCarry");
                         }
@@ -540,7 +542,7 @@ namespace BlaineRP.Client.Game.Attachments
                     {
                         float heading = rootPlayer.GetHeading();
 
-                        Vector3 pos = Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, heading, 1f);
+                        Vector3 pos = Management.Camera.Service.GetFrontOf(Player.LocalPlayer.Position, heading, 1f);
 
                         Player.LocalPlayer.TaskGoStraightToCoord(pos.X, pos.Y, pos.Z, speed * 0.5f, -1, heading, 0f);
 
@@ -572,10 +574,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (target?.Exists != true || bind.IsJustPressed)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Players::StopCarry");
                         }
@@ -621,10 +623,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (bind.IsJustPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Players::Smoke::Stop");
                         }
@@ -711,10 +713,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (bind.IsJustPressed || Player.LocalPlayer.IsInWater())
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Players::Smoke::Stop");
                         }
@@ -775,10 +777,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (bind.IsJustPressed)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, true))
+                            if (Animations.Service.LastSent.IsSpam(500, false, true))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Job::FARM::SCP");
                         }
@@ -807,10 +809,10 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (bind.IsJustPressed)
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Events.CallRemote("Job::FARM::SOTP");
                         }
@@ -897,10 +899,10 @@ namespace BlaineRP.Client.Game.Attachments
                                 PlayerActions.Types.MeleeCombat
                             ))
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Notification.ShowError("Вы уронили коробку с апельсинами!");
 
@@ -973,10 +975,10 @@ namespace BlaineRP.Client.Game.Attachments
                                 PlayerActions.Types.MeleeCombat
                             ))
                         {
-                            if (Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (Animations.Service.LastSent.IsSpam(500, false, false))
                                 return;
 
-                            Management.Animations.Core.LastSent = World.Core.ServerTime;
+                            Animations.Service.LastSent = World.Core.ServerTime;
 
                             Notification.ShowError("Вы уронили ведро с молоком!");
 
@@ -1008,9 +1010,9 @@ namespace BlaineRP.Client.Game.Attachments
 
                         if (Utils.Misc.CanShowCEF(true, true))
                             if (bind.IsJustPressed)
-                                if (!Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                                if (!Animations.Service.LastSent.IsSpam(500, false, false))
                                 {
-                                    Management.Animations.Core.LastSent = World.Core.ServerTime;
+                                    Animations.Service.LastSent = World.Core.ServerTime;
 
                                     Events.CallRemote("EMS::BedFree");
                                 }
@@ -1066,9 +1068,9 @@ namespace BlaineRP.Client.Game.Attachments
                             );
 
                             if (Input.Core.IsJustDown(key))
-                                if (!Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                                if (!Animations.Service.LastSent.IsSpam(500, false, false))
                                 {
-                                    Management.Animations.Core.LastSent = World.Core.ServerTime;
+                                    Animations.Service.LastSent = World.Core.ServerTime;
 
                                     LockPicking.Show("POLICE_CUFFS_LOCKPICK",
                                         LockPicking.DurabilityDefault,
@@ -1125,9 +1127,9 @@ namespace BlaineRP.Client.Game.Attachments
 
                     if (Utils.Misc.CanShowCEF(true, true))
                         if (bind.IsJustPressed)
-                            if (!Management.Animations.Core.LastSent.IsSpam(500, false, false))
+                            if (!Animations.Service.LastSent.IsSpam(500, false, false))
                             {
-                                Management.Animations.Core.LastSent = World.Core.ServerTime;
+                                Animations.Service.LastSent = World.Core.ServerTime;
 
                                 await Events.CallRemoteProc("Police::Escort", null, false);
                             }
@@ -1156,7 +1158,7 @@ namespace BlaineRP.Client.Game.Attachments
                     {
                         Vector3 targetPos = RAGE.Game.Entity.GetEntityCoords(targetEntity.Handle, false);
 
-                        Vector3 pos = Management.Camera.Core.GetFrontOf(RAGE.Game.Entity.GetEntityCoords(targetEntity.Handle, false), 90f, 0.5f);
+                        Vector3 pos = Management.Camera.Service.GetFrontOf(RAGE.Game.Entity.GetEntityCoords(targetEntity.Handle, false), 90f, 0.5f);
 
                         if (Player.LocalPlayer.GetCoords(false).DistanceTo(pos) < 10f)
                             Player.LocalPlayer.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
@@ -1197,7 +1199,7 @@ namespace BlaineRP.Client.Game.Attachments
             },
         };
 
-        public Core()
+        public Service()
         {
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());

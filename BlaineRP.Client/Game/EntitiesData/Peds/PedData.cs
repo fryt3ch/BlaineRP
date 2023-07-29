@@ -1,7 +1,7 @@
 ﻿using BlaineRP.Client.Extensions.RAGE.Elements;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.EntitiesData
+namespace BlaineRP.Client.Game.EntitiesData.Peds
 {
     public class PedData
     {

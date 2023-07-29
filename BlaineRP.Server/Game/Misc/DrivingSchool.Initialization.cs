@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -16,7 +16,7 @@ namespace BlaineRP.Server.Game.Misc
             var col1 = new Colour(0, 0, 255, 255);
             var col2 = new Colour(0, 0, 255, 255);
 
-            var vehicle1 = Game.Data.Vehicles.GetData("intruder");
+            var vehicle1 = EntitiesData.Vehicles.Static.Service.GetData("intruder");
 
             new DrivingSchool(new Vector3(208.6196f, -1382.992f, 29.58354f))
             {

@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Server.Game.Management.Attachments;
-using BlaineRP.Server.Game.Management.Offers;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Offers;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Management.AntiCheat
 {
     public static partial class Service
     {
-        public static void TeleportVehicle(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportType tpType = VehicleTeleportType.Default, bool toGround = false)
+        public static void TeleportVehicle(GTANetworkAPI.Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportType tpType = VehicleTeleportType.Default, bool toGround = false)
         {
             veh.DetachAllEntities();
 
@@ -58,7 +59,7 @@ namespace BlaineRP.Server.Game.Management.AntiCheat
                     veh.SetHeading(headingF);
 
                 if (wasOnTrailer)
-                    veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
+                    veh.AttachObject(EntitiesData.Vehicles.Static.Service.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
             }
             else if (tpType == VehicleTeleportType.OnlyDriver)
             {
@@ -100,7 +101,7 @@ namespace BlaineRP.Server.Game.Management.AntiCheat
                         veh.SetHeading(headingF);
 
                     if (wasOnTrailer)
-                        veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
+                        veh.AttachObject(EntitiesData.Vehicles.Static.Service.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
                 }
             }
             else if (tpType == VehicleTeleportType.All)
@@ -126,7 +127,7 @@ namespace BlaineRP.Server.Game.Management.AntiCheat
                         veh.SetHeading(headingF);
 
                     if (wasOnTrailer)
-                        veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
+                        veh.AttachObject(EntitiesData.Vehicles.Static.Service.GetData("boattrailer").Model, AttachmentType.TrailerObjOnBoat, -1, null);
                 }
                 else
                 {

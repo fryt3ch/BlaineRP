@@ -1,8 +1,8 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.DoorSystem
+namespace BlaineRP.Server.Game.DoorSystem
 {
     public class Door
     {

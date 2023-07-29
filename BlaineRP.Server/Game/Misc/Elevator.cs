@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 

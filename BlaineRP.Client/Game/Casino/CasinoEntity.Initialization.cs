@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.Animations;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Casino
@@ -15,7 +15,7 @@ namespace BlaineRP.Client.Game.Casino
 
                 #endregion
                 
-                Animation casinoSlotMachineIdle0Anim = Core.GeneralAnimsList.GetValueOrDefault(GeneralType.CasinoSlotMachineIdle0);
+                Animation casinoSlotMachineIdle0Anim = Service.GeneralAnimsList.GetValueOrDefault(GeneralType.CasinoSlotMachineIdle0);
 
                 if (casinoSlotMachineIdle0Anim != null)
                 {

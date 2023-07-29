@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.DoorSystem;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
@@ -311,7 +313,7 @@ namespace BlaineRP.Client.Game.Estates
 
                                 t.SetCoordsNoOffset(coords.X, coords.Y, coords.Z, false, false, false);
 
-                                Management.Doors.Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
+                                Service.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
 
                                 Doors.Add(i, t);
 
@@ -476,7 +478,7 @@ namespace BlaineRP.Client.Game.Estates
 
                     door.SetData("DoorState", state);
 
-                    Management.Doors.Core.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
+                    Service.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
                 }
             );
 

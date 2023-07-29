@@ -1,9 +1,9 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.EmsDrugHeal)]
     internal class EmsDrugHeal : OfferBase

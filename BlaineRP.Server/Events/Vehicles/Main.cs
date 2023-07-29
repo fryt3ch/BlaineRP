@@ -3,9 +3,11 @@ using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Misc;
 using BlaineRP.Server.Game.Quests;
 
@@ -15,7 +17,7 @@ namespace BlaineRP.Server.Events.Vehicles
     {
         #region Player Enter Vehicle
         [ServerEvent(Event.PlayerEnterVehicle)]
-        private static void PlayerEntered(Player player, Vehicle veh, sbyte seatId)
+        private static void PlayerEntered(Player player, GTANetworkAPI.Vehicle veh, sbyte seatId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -44,7 +46,7 @@ namespace BlaineRP.Server.Events.Vehicles
             }
 
             Game.Items.Weapon activeWeapon;
-            Game.Items.Inventory.GroupTypes activeWeaponGroup;
+            GroupTypes activeWeaponGroup;
             int activeWeaponSlot;
 
             if (pData.TryGetActiveWeapon(out activeWeapon, out activeWeaponGroup, out activeWeaponSlot))
@@ -126,7 +128,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
         #region Player Exit Vehicle
         [ServerEvent(Event.PlayerExitVehicle)]
-        private static void PlayerExited(Player player, Vehicle veh)
+        private static void PlayerExited(Player player, GTANetworkAPI.Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -145,7 +147,7 @@ namespace BlaineRP.Server.Events.Vehicles
         #endregion
 
         [ServerEvent(Event.VehicleDeath)]
-        private static void VehicleDeath(Vehicle veh)
+        private static void VehicleDeath(GTANetworkAPI.Vehicle veh)
         {
             if (veh?.Exists != true)
                 return;
@@ -169,7 +171,7 @@ namespace BlaineRP.Server.Events.Vehicles
         }
 
         [RemoteEvent("votc")]
-        private static void VehicleTrailerChange(Player player, Vehicle veh, Vehicle trailer)
+        private static void VehicleTrailerChange(Player player, GTANetworkAPI.Vehicle veh, GTANetworkAPI.Vehicle trailer)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -188,7 +190,7 @@ namespace BlaineRP.Server.Events.Vehicles
 
             if (trailer == null)
             {
-                var atVeh = vData.IsAttachedTo as Vehicle;
+                var atVeh = vData.IsAttachedTo as GTANetworkAPI.Vehicle;
 
                 if (atVeh?.Exists != true)
                     return;
@@ -214,7 +216,7 @@ namespace BlaineRP.Server.Events.Vehicles
                 if (atData != null)
                     return;
 
-                if (tData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
+                if (tData.Data.Type == VehicleTypes.Boat)
                 {
                     if (tData.AttachedObjects.Where(x => x.Type == AttachmentType.TrailerObjOnBoat).Any())
                     {

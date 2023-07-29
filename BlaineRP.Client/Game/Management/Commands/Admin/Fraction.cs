@@ -6,7 +6,7 @@ using BlaineRP.Client.Game.UI.CEF;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("fraction_observe", true, "Удалить все выброшенные предметы")]
         public static void FractionObserve(string fractionType)

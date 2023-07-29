@@ -3,9 +3,10 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Management;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.UtilsT;
@@ -34,7 +35,7 @@ namespace BlaineRP.Server.Game.Fractions
 
         public uint ContainerId { get; set; }
 
-        public Game.Items.Container Container => Game.Items.Container.Get(ContainerId);
+        public Container Container => Container.Get(ContainerId);
 
         public Vector4[] ContainerPositions { get; set; }
 
@@ -194,7 +195,7 @@ namespace BlaineRP.Server.Game.Fractions
 
             if (state)
             {
-                var cont = Game.Items.Container.Get(ContainerId);
+                var cont = Container.Get(ContainerId);
 
                 if (cont != null)
                 {

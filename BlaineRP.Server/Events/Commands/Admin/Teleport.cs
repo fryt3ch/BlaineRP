@@ -1,5 +1,5 @@
 ﻿using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management.AntiCheat;
 using GTANetworkAPI;
 

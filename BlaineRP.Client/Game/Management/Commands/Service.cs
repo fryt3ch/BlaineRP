@@ -12,13 +12,13 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Management.Commands
 {
     [Script(int.MaxValue)]
-    public partial class Core
+    public partial class Service
     {
         private static DateTime LastSent;
 
-        public Core()
+        public Service()
         {
-            foreach (MethodInfo method in typeof(Core).GetMethods().Where(x => x.IsStatic))
+            foreach (MethodInfo method in typeof(Service).GetMethods().Where(x => x.IsStatic))
             {
                 CommandAttribute attr = method.GetCustomAttribute<CommandAttribute>();
 

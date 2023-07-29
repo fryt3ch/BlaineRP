@@ -1,11 +1,12 @@
 ﻿using MySqlConnector;
 using System.Linq;
+using BlaineRP.Server.Game.Containers;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void ContainerUpdate(Game.Items.Container cont)
+        public static void ContainerUpdate(Container cont)
         {
             var cmd = new MySqlCommand();
 
@@ -17,7 +18,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void ContainerAdd(Game.Items.Container cont)
+        public static void ContainerAdd(Container cont)
         {
             var cmd = new MySqlCommand();
 
@@ -31,7 +32,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void ContainerDelete(Game.Items.Container cont)
+        public static void ContainerDelete(Container cont)
         {
             var cmd = new MySqlCommand();
 

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
+using BlaineRP.Client.Game.Attachments;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Management.Attachments;
 using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Data.Customization
@@ -105,7 +106,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                             atObj.Object.Destroy();
                         }
 
-                    GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
+                    GameEntity ringObj = await Attachments.Service.AttachObjectSimpleLocal(ringData.Model,
                         Player.LocalPlayer,
                         args[0] as bool? ?? false ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3
                     );
@@ -309,7 +310,7 @@ namespace BlaineRP.Client.Game.Data.Customization
                             atObj.Object.Destroy();
                         }
 
-                    GameEntity ringObj = await Management.Attachments.Core.AttachObjectSimpleLocal(ringData.Model,
+                    GameEntity ringObj = await Attachments.Service.AttachObjectSimpleLocal(ringData.Model,
                         Player.LocalPlayer,
                         args[0] as bool? ?? false ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3
                     );

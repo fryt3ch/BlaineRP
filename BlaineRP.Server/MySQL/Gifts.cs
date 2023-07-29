@@ -1,11 +1,12 @@
 ﻿using MySqlConnector;
 using System;
+using BlaineRP.Server.Game.Gifts;
 
 namespace BlaineRP.Server
 {
     public static partial class MySQL
     {
-        public static void GiftAdd(Game.Items.Gift gift, uint cid)
+        public static void GiftAdd(Gift gift, uint cid)
         {
             var cmd = new MySqlCommand();
 
@@ -23,7 +24,7 @@ namespace BlaineRP.Server
             PushQuery(cmd);
         }
 
-        public static void GiftDelete(Game.Items.Gift gift)
+        public static void GiftDelete(Gift gift)
         {
             var cmd = new MySqlCommand();
 

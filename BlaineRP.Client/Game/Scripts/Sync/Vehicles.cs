@@ -4,14 +4,15 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
+using BlaineRP.Client.Game.EntitiesData.Vehicles;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Items;
 using BlaineRP.Client.Game.Management;
 using BlaineRP.Client.Game.Management.Misc;
 using BlaineRP.Client.Game.Management.Radio.Enums;
+using BlaineRP.Client.Game.Offers;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -1377,7 +1378,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 return;
             }
 
-            Offers.Request(driver,
+            Offers.Service.Request(driver,
                 OfferTypes.WaypointShare,
                 new
                 {

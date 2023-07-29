@@ -1,8 +1,7 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Phone;
-using BlaineRP.Server.Sync;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Phone;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     public abstract class OfferBase
     {

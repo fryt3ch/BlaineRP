@@ -2,17 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Shovel : Item, IUsable
+    public partial class Shovel : Item, IUsable
     {
-        new public class ItemData : Item.ItemData
+        public new class ItemData : Item.ItemData
         {
             public class RandomItem
             {
@@ -22,15 +23,15 @@ namespace BlaineRP.Server.Game.Items
 
                 public int MaxAmount { get; set; }
 
-                public RandomItem(string Id, int MinAmount = 1, int MaxAmount = 1)
+                public RandomItem(string id, int minAmount = 1, int maxAmount = 1)
                 {
-                    this.Id = Id;
-                    this.MinAmount = MinAmount;
-                    this.MaxAmount = MaxAmount;
+                    Id = id;
+                    MinAmount = minAmount;
+                    MaxAmount = maxAmount;
                 }
             }
 
-            private static Dictionary<float, List<RandomItem>> AllRandomItems = new Dictionary<float, List<RandomItem>>()
+            private static Dictionary<float, List<RandomItem>> _allRandomItems = new Dictionary<float, List<RandomItem>>()
             {
                 {
                     0.9f,
@@ -46,7 +47,7 @@ namespace BlaineRP.Server.Game.Items
             {
                 var rProb = SRandom.NextDouble();
 
-                var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
+                var rItems = _allRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
 
                 var rItem = rItems.Value[SRandom.NextInt32(0, rItems.Value.Count)];
 
@@ -62,24 +63,19 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f";
 
-            public ItemData(string Name, string Model, float Weight) : base(Name, Weight, Model)
+            public ItemData(string name, string model, float weight) : base(name, weight, model)
             {
 
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "shovel_0", new ItemData("Лопата", "prop_tool_shovel2", 1.5f) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data => (ItemData)base.Data;
+        public new ItemData Data => (ItemData)base.Data;
 
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public bool StartUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
                 return false;
@@ -92,13 +88,13 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group));
             }
 
             return true;
         }
 
-        public bool StopUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
                 return false;
@@ -111,13 +107,13 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group));
             }
 
             return true;
         }
 
-        public Shovel(string ID) : base(ID, IDList[ID], typeof(Shovel))
+        public Shovel(string id) : base(id, IdList[id], typeof(Shovel))
         {
 
         }

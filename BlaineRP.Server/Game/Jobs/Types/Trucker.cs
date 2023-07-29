@@ -1,9 +1,9 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
-using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Phone;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
@@ -111,7 +111,7 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 var sms = new SMS((uint)DefaultNumbers.Delivery, pInfo, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderTaken), orderId));
 
-                SMS.Add(pInfo, sms, true);
+                pData.Info.AddSms(sms, true);
             }
         }
 
@@ -125,7 +125,7 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 var sms = new SMS((uint)DefaultNumbers.Delivery, pInfo, string.Format(SMS.GetDefaultSmsMessage(SMS.PredefinedTypes.DeliveryBusinessOrderDelay), orderId));
 
-                SMS.Add(pInfo, sms, true);
+                pInfo.AddSms(sms, true);
             }
         }
 

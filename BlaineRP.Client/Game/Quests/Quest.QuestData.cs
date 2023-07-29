@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 
 namespace BlaineRP.Client.Game.Quests
 {

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Achievements;
+using BlaineRP.Server.Game.Achievements;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -108,7 +109,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                         weapon.Delete();
 
-                        Items.Inventory.ClearSlot(pData, Items.Inventory.GroupTypes.Weapons, 0);
+                        Inventory.Service.ClearSlot(pData, GroupTypes.Weapons, 0);
                     }
 
                 pData.GiveTakenItems();
@@ -124,7 +125,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 currentSkill += diff;
 
-                pData.UpdateSkill(SkillTypes.Shooting, diff);
+                pData.Info.UpdateSkill(SkillTypes.Shooting, diff);
 
                 pData.Info.Achievements[AchievementType.SR1].UpdateProgress(pData.Info, (uint)currentSkill);
 

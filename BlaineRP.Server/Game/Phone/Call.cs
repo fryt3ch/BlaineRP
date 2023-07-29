@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Phone
+namespace BlaineRP.Server.Game.Phone
 {
     public partial class Call
     {

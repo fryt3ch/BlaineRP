@@ -1,7 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses

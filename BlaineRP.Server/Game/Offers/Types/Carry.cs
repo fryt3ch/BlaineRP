@@ -1,7 +1,7 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Attachments;
+﻿using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.Carry)]
     internal class Carry : OfferBase

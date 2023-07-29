@@ -1,37 +1,28 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Ring : Clothes, Clothes.IToggleable, Clothes.IProp
+    public partial class Ring : Clothes, Clothes.IToggleable, Clothes.IProp
     {
-        new public class ItemData : Clothes.ItemData
+        public new class ItemData : Clothes.ItemData
         {
-            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Model}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Model}, {(SexAlternativeId == null ? "null" : $"\"{SexAlternativeId}\"")}";
 
-            public ItemData(string Name, bool Sex, string Model, string SexAlternativeID = null) : base(Name, 0.01f, Model, Sex, 1, new int[] { 0 }, SexAlternativeID)
+            public ItemData(string name, bool sex, string model, string sexAlternativeId = null) : base(name, 0.01f, model, sex, 1, new int[] { 0 }, sexAlternativeId)
             {
 
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "ring_m_0", new ItemData("Золотое кольцо с бриллиантами", true, "brp_p_ring_0_0", "ring_f_0") },
-            { "ring_m_1", new ItemData("Золотое кольцо с красным камнем", true, "brp_p_ring_1_0", "ring_f_1") },
-
-            { "ring_f_0", new ItemData("Золотое кольцо с бриллиантами", false, "brp_p_ring_0_0", "ring_m_0") },
-            { "ring_f_1", new ItemData("Золотое кольцо с красным камнем", false, "brp_p_ring_1_0", "ring_m_1") },
-        };
+        [JsonIgnore]
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
-
-        [JsonIgnore]
-        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
+        public new ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
 
         public bool Toggled { get; set; }
 
@@ -58,7 +49,7 @@ namespace BlaineRP.Server.Game.Items
             player.DetachObject(Toggled ? AttachmentType.PedRingLeft3 : AttachmentType.PedRingRight3);
         }
 
-        public Ring(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Ring), Variation)
+        public Ring(string id, int variation = 0) : base(id, IdList[id], typeof(Ring), variation)
         {
 
         }

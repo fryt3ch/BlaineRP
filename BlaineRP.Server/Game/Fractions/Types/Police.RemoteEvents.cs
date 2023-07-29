@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.Containers;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Management;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
 using BlaineRP.Server.Game.Management.Punishments;
 using BlaineRP.Server.Sync;
@@ -60,7 +62,7 @@ namespace BlaineRP.Server.Game.Fractions
                             return 3;
                     }
 
-                    tData.Player.AttachObject(Management.Attachments.Service.Models.Cuffs, AttachmentType.Cuffs, -1, null);
+                    tData.Player.AttachObject(Attachments.Service.Models.Cuffs, AttachmentType.Cuffs, -1, null);
 
                     tData.Player.NotifyWithPlayer("Cuffs::0_0", player);
 
@@ -341,7 +343,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                 currentMask.Delete();
 
-                tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Accessories, 1, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Accessories));
+                tData.Player.InventoryUpdate(GroupTypes.Accessories, 1, Game.Items.Item.ToClientJson(null, GroupTypes.Accessories));
 
                 Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_MASKOFF_0"), target);
 
@@ -530,7 +532,7 @@ namespace BlaineRP.Server.Game.Fractions
                     { "LA", tInfo.LosSantosAllowed },
                     { "PN", tInfo.PhoneNumber },
 
-                    { "V", JArray.FromObject(tInfo.OwnedVehicles.Select(x => $"{x.ID}&{x.RegisteredNumberplate ?? string.Empty}&{x.Tuning.Colour1.HEX}").ToList()) },
+                    { "V", JArray.FromObject(tInfo.OwnedVehicles.Select(x => $"{x.ID}&{x.RegisteredNumberplate ?? string.Empty}&{x.Tuning.Colour1.HEX}")) },
                 };
 
                 var tFData = Game.Fractions.Fraction.Get(tInfo.Fraction);
@@ -863,7 +865,7 @@ namespace BlaineRP.Server.Game.Fractions
                     gpsTracker = null;
                 }
 
-                player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, slot, Game.Items.Item.ToClientJson(gpsTracker, Game.Items.Inventory.GroupTypes.Items));
+                player.InventoryUpdate(GroupTypes.Items, slot, Game.Items.Item.ToClientJson(gpsTracker, GroupTypes.Items));
 
                 var id = Game.Fractions.Police.AddGPSTracker(new Game.Fractions.Police.GPSTrackerInfo() { VID = vData.VID, FractionType = allDepsSee ? Game.Fractions.FractionType.None : fData.Type, InstallerStr = $"{pData.Player.Name}", VehicleStr = $"{vData.Data.Name} [{vData.Info.RegisteredNumberplate ?? string.Empty}]" });
 
@@ -1197,7 +1199,7 @@ namespace BlaineRP.Server.Game.Fractions
                     if (!Game.Fractions.Police.AllowedLicenceTypesToRemove.Contains(licType))
                         return 0;
 
-                    tData.RemoveLicense(licType);
+                    tData.Info.RemoveLicense(licType);
 
                     return 255;
                 }
@@ -1401,7 +1403,7 @@ namespace BlaineRP.Server.Game.Fractions
                 {
                     tData.ShowPassport(pData.Player);
 
-                    pData.AddFamiliar(tData.Info);
+                    pData.Info.AddFamiliar(tData.Info);
 
                     Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_0"), target);
 
@@ -1411,7 +1413,7 @@ namespace BlaineRP.Server.Game.Fractions
                 {
                     tData.ShowLicences(pData.Player);
 
-                    pData.AddFamiliar(tData.Info);
+                    pData.Info.AddFamiliar(tData.Info);
 
                     Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_1"), target);
 
@@ -1424,7 +1426,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                     tData.Info.MedicalCard.Show(pData.Player, tData.Info);
 
-                    pData.AddFamiliar(tData.Info);
+                    pData.Info.AddFamiliar(tData.Info);
 
                     Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_2"), target);
 
@@ -1445,7 +1447,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                     tData.ShowFractionDocs(player, tFData, tData.Info.FractionRank);
 
-                    pData.AddFamiliar(tData.Info);
+                    pData.Info.AddFamiliar(tData.Info);
 
                     Management.Chat.Service.SendLocal(MessageType.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_4"), target);
 
@@ -1490,7 +1492,7 @@ namespace BlaineRP.Server.Game.Fractions
                 Game.Items.Item item = null;
                 int itemIdx = -1;
 
-                var gType = Game.Items.Inventory.GroupTypes.Items;
+                var gType = GroupTypes.Items;
 
                 if (cType == 1)
                 {
@@ -1500,7 +1502,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                         item = tData.Armour;
 
-                        gType = Game.Items.Inventory.GroupTypes.Armour;
+                        gType = GroupTypes.Armour;
                     }
                     else
                     {
@@ -1512,7 +1514,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                                 itemIdx = i;
 
-                                gType = Game.Items.Inventory.GroupTypes.Weapons;
+                                gType = GroupTypes.Weapons;
 
                                 break;
                             }
@@ -1521,7 +1523,7 @@ namespace BlaineRP.Server.Game.Fractions
                 }
                 else if (cType == 2)
                 {
-                    gType = Game.Items.Inventory.GroupTypes.Items;
+                    gType = GroupTypes.Items;
 
                     for (int i = 0; i < tData.Items.Length; i++)
                     {
@@ -1537,7 +1539,7 @@ namespace BlaineRP.Server.Game.Fractions
                 }
                 else if (cType == 3)
                 {
-                    gType = Game.Items.Inventory.GroupTypes.Bag;
+                    gType = GroupTypes.Bag;
 
                     if (tData.Bag == null)
                         return 2;
@@ -1556,7 +1558,7 @@ namespace BlaineRP.Server.Game.Fractions
                 }
                 else if (cType == 4)
                 {
-                    gType = Game.Items.Inventory.GroupTypes.Holster;
+                    gType = GroupTypes.Holster;
 
                     if (tData.Holster == null)
                         return 2;
@@ -1582,7 +1584,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                 if (cType == 1)
                 {
-                    if (gType == Game.Items.Inventory.GroupTypes.Weapons)
+                    if (gType == GroupTypes.Weapons)
                     {
                         tData.Weapons[itemIdx] = null;
 
@@ -1590,7 +1592,7 @@ namespace BlaineRP.Server.Game.Fractions
 
                         target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Weapons[itemIdx], gType));
                     }
-                    else if (gType == Game.Items.Inventory.GroupTypes.Armour)
+                    else if (gType == GroupTypes.Armour)
                     {
                         tData.Armour = null;
 
@@ -1672,7 +1674,7 @@ namespace BlaineRP.Server.Game.Fractions
                     if (tData.Info.TID == 0)
                         return 0;
 
-                    var trunk = Game.Items.Container.Get(tData.Info.TID);
+                    var trunk = Container.Get(tData.Info.TID);
 
                     if (trunk == null)
                         return null;
@@ -1729,7 +1731,7 @@ namespace BlaineRP.Server.Game.Fractions
                 if (tData.Info.TID == 0)
                     return 0;
 
-                var trunk = Game.Items.Container.Get(tData.Info.TID);
+                var trunk = Container.Get(tData.Info.TID);
 
                 if (trunk == null)
                     return 0;
@@ -1775,7 +1777,7 @@ namespace BlaineRP.Server.Game.Fractions
                     var players = trunk.GetPlayersObservingArray();
 
                     if (players.Length > 0)
-                        Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.Container, itemIdx, Game.Items.Item.ToClientJson(trunk.Items[itemIdx], Game.Items.Inventory.GroupTypes.Container), players);
+                        Utils.InventoryUpdate(GroupTypes.Container, itemIdx, Game.Items.Item.ToClientJson(trunk.Items[itemIdx], GroupTypes.Container), players);
                 }
 
                 Management.Chat.Service.SendLocal(MessageType.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));

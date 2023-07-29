@@ -1,4 +1,4 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.World;
 
 namespace BlaineRP.Server.Events.Commands

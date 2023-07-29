@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 
@@ -599,16 +600,16 @@ namespace BlaineRP.Server.Game.Fractions
 
                     if (uniformIdx < 0)
                     {
-                        Game.Data.Customization.SetNoUniform(pData);
+                        Service.SetNoUniform(pData);
                     }
                     else
                     {
                         if (uniformIdx >= fDataUnif.UniformTypes.Count)
                             return;
 
-                        Game.Data.Customization.SetNoUniform(pData);
+                        Service.SetNoUniform(pData);
 
-                        Game.Data.Customization.ApplyUniform(pData, fDataUnif.UniformTypes[uniformIdx]);
+                        Service.ApplyUniform(pData, fDataUnif.UniformTypes[uniformIdx]);
                     }
                 }
             }

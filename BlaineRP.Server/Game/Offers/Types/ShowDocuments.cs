@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.ShowPassport)]
     internal class ShowPassport : OfferBase
@@ -27,7 +27,7 @@ namespace BlaineRP.Server.Game.Management.Offers
 
             pData.ShowPassport(tPlayer);
 
-            tData.AddFamiliar(pData.Info);
+            tData.Info.AddFamiliar(pData.Info);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -71,7 +71,7 @@ namespace BlaineRP.Server.Game.Management.Offers
 
             pData.ShowLicences(tPlayer);
 
-            tData.AddFamiliar(pData.Info);
+            tData.Info.AddFamiliar(pData.Info);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -118,7 +118,7 @@ namespace BlaineRP.Server.Game.Management.Offers
 
             pData.Info.MedicalCard.Show(tPlayer, pData.Info);
 
-            tData.AddFamiliar(pData.Info);
+            tData.Info.AddFamiliar(pData.Info);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)
@@ -239,7 +239,7 @@ namespace BlaineRP.Server.Game.Management.Offers
 
             pData.ShowFractionDocs(tPlayer, fData, pData.Info.FractionRank);
 
-            tData.AddFamiliar(pData.Info);
+            tData.Info.AddFamiliar(pData.Info);
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)

@@ -1,6 +1,6 @@
 ﻿using System;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
 using BlaineRP.Server.Sync;
 using GTANetworkAPI;
 

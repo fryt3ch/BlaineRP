@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Inventory;
 using BlaineRP.Server.Game.Items;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Craft
+namespace BlaineRP.Server.Game.Craft.Workbenches
 {
     public abstract partial class Workbench
     {

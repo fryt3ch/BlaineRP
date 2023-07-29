@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.Animations;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Helpers.Colshapes.Enums;
 using BlaineRP.Client.Game.Helpers.Colshapes.Types;
 using BlaineRP.Client.Game.Management;
-using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.Offers;
 using BlaineRP.Client.Game.Scripts;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
@@ -310,32 +310,32 @@ namespace BlaineRP.Client.Game.Fractions
 
         private void PlayerHeal(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsHeal, null);
+            Offers.Service.Request(player, OfferTypes.EmsHeal, null);
         }
 
         private void PlayerDiagnostics(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsDiagnostics, null);
+            Offers.Service.Request(player, OfferTypes.EmsDiagnostics, null);
         }
 
         private void PlayerMedicalCard(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsMedicalCard, null);
+            Offers.Service.Request(player, OfferTypes.EmsMedicalCard, null);
         }
 
         private void PlayerDrugHeal(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsDrugHeal, null);
+            Offers.Service.Request(player, OfferTypes.EmsDrugHeal, null);
         }
 
         private void PlayerPsychHeal(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsPsychHeal, null);
+            Offers.Service.Request(player, OfferTypes.EmsPsychHeal, null);
         }
 
         private void PlayerSellMask(Player player)
         {
-            Offers.Request(player, OfferTypes.EmsSellMask, null);
+            Offers.Service.Request(player, OfferTypes.EmsSellMask, null);
         }
 
         private static async void OnHealingBedPress(MapObject obj)
@@ -380,13 +380,13 @@ namespace BlaineRP.Client.Game.Fractions
                 return;
             }
 
-            if (Management.Animations.Core.LastSent.IsSpam(500, false, true))
+            if (Animations.Service.LastSent.IsSpam(500, false, true))
                 return;
 
             float heading = obj.GetHeading();
             Vector3 pos = obj.GetCoords(false);
 
-            Management.Animations.Core.LastSent = World.Core.ServerTime;
+            Animations.Service.LastSent = World.Core.ServerTime;
 
             var res = (bool)await RAGE.Events.CallRemoteProc("EMS::BedOcc", fTypeNum, bedIdx);
 
@@ -396,7 +396,7 @@ namespace BlaineRP.Client.Game.Fractions
 
                 Player.LocalPlayer.SetHeading(heading + 240f);
 
-                Management.Animations.Core.Play(Player.LocalPlayer, GeneralType.BedLie0);
+                Animations.Service.Play(Player.LocalPlayer, GeneralType.BedLie0);
 
                 ExtraColshape cs = null;
 

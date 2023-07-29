@@ -3,7 +3,7 @@ using BlaineRP.Client.Utils;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("kick", true, "Кикнуть игрока")]
         public static void Kick(uint pid, string reason)

@@ -4,6 +4,7 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Jobs;
@@ -653,7 +654,7 @@ namespace BlaineRP.Client.Game.UI.CEF
             if (veh?.Exists != true)
                 return;
 
-            var data = EntitiesData.VehicleData.GetData(veh);
+            var data = EntitiesData.Vehicles.VehicleData.GetData(veh);
 
             if (data == null)
             {
@@ -706,7 +707,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
         private static async void StartUpdateSpeedometerInfo()
         {
-            var data = EntitiesData.VehicleData.GetData(Player.LocalPlayer.Vehicle);
+            var data = EntitiesData.Vehicles.VehicleData.GetData(Player.LocalPlayer.Vehicle);
 
             while (Player.LocalPlayer.Vehicle != null)
             {

@@ -11,7 +11,7 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Offers
 {
     [Script(int.MaxValue)]
-    public class Offers
+    public class Service
     {
         public enum ReplyTypes
         {
@@ -49,7 +49,7 @@ namespace BlaineRP.Client.Game.Offers
 
         private static List<int> _tempBinds;
 
-        public Offers()
+        public Service()
         {
             Events.Add("Offer::Show",
                 (args) =>

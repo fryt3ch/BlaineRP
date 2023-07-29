@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Extensions.System;
+﻿using BlaineRP.Server.Extensions.System;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Phone
+namespace BlaineRP.Server.Game.Phone
 {
     public partial class SMS
     {
@@ -34,24 +33,6 @@ namespace BlaineRP.Server.Game.Management.Phone
         public static void TriggerRemove(Player player, int idx) => player.TriggerEvent("Phone::CSMS", idx);
 
         public void TriggerAdd(Player player) => player.TriggerEvent("Phone::CSMS", Data);
-
-        public static void Add(PlayerInfo pInfo, SMS sms, bool triggerAdd)
-        {
-            if (pInfo.AllSMS.Count >= Properties.Settings.Static.PHONE_SMS_MAX_COUNT)
-            {
-                pInfo.AllSMS.RemoveAt(0);
-
-                if (pInfo.PlayerData != null)
-                    TriggerRemove(pInfo.PlayerData.Player, 0);
-            }
-
-            pInfo.AllSMS.Add(sms);
-
-            if (triggerAdd && pInfo.PlayerData != null)
-            {
-                sms.TriggerAdd(pInfo.PlayerData.Player);
-            }
-        }
     }
 }
 

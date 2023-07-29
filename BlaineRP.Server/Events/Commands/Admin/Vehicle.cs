@@ -1,5 +1,5 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Events.Commands
@@ -19,7 +19,7 @@ namespace BlaineRP.Server.Events.Commands
             if (!uint.TryParse(args[0], out pid))
                 return;
 
-            var vType = Game.Data.Vehicles.GetData(id);
+            var vType = Game.EntitiesData.Vehicles.Static.Service.GetData(id);
 
             if (vType == null)
             {
@@ -61,7 +61,7 @@ namespace BlaineRP.Server.Events.Commands
             if (!uint.TryParse(args[0], out pid))
                 return;
 
-            var vType = Game.Data.Vehicles.GetData(id);
+            var vType = Game.EntitiesData.Vehicles.Static.Service.GetData(id);
 
             if (vType == null)
             {

@@ -1,5 +1,6 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -43,7 +44,7 @@ namespace BlaineRP.Server.Game.Businesses
             uint newMats;
             ulong newBalance, newPlayerBalance;
 
-            var vType = Data.Vehicles.GetData(iData[0]);
+            var vType = Service.GetData(iData[0]);
 
             if (vType == null)
                 return false;

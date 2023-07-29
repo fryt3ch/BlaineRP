@@ -3,7 +3,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("tempvehicle", true, "Выдать себе транспорт (временный)", "tveh", "tvehicle")]
         public static void TempVehicle(string id)

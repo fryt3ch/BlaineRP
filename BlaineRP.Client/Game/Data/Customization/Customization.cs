@@ -2,6 +2,7 @@
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using Newtonsoft.Json;
 using RAGE.Elements;
 

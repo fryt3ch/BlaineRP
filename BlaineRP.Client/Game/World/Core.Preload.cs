@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.Businesses;
+using BlaineRP.Client.Game.DoorSystem;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
 using RAGE;
@@ -138,7 +139,7 @@ namespace BlaineRP.Client.Game.World
 
             Gang.GangZone.PostInitialize();
 
-            Management.Doors.Core.Door.PostInitializeAll();
+            Door.PostInitializeAll();
 
             foreach (KeyValuePair<FractionTypes, Fraction> x in Fraction.All)
             {

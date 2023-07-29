@@ -12,7 +12,7 @@ using RAGE.Elements;
 
 namespace BlaineRP.Client.Game.Management.Commands
 {
-    partial class Core
+    partial class Service
     {
         [Command("colshape_delete", true, "Удалить колшейп", "cs_del")]
         public static void ColshapeDelete(uint id)

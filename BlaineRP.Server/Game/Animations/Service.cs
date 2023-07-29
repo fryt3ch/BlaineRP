@@ -1,7 +1,7 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
-namespace BlaineRP.Server.Game.Management.Animations
+namespace BlaineRP.Server.Game.Animations
 {
     public static class Service
     {

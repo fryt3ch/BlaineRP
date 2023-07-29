@@ -8,12 +8,8 @@ using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.NPCs
 {
-    public class NPC : Script
+    public partial class Service : Script
     {
-        internal class RemoteEvents
-        {
-            
-        }
         private static Dictionary<string, Vector3> Positions = new Dictionary<string, Vector3>()
         {
             { "vpound_w_0", new Vector3(485.6506f, -54.18661f, 78.30058f) },

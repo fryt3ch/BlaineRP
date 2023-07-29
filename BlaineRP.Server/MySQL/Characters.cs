@@ -2,8 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Achievements;
+using BlaineRP.Server.Game.Achievements;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Sync;
 

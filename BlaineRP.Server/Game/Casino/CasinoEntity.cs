@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Extensions.System;
 using BlaineRP.Server.Game.Casino.Games;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Casino
 {

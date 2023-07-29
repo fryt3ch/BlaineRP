@@ -1,4 +1,4 @@
-﻿using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs
@@ -11,7 +11,7 @@ namespace BlaineRP.Server.Game.Jobs
 
             var subId = SubId;
 
-            var vType = Game.Data.Vehicles.GetData("stockade");
+            var vType = EntitiesData.Vehicles.Static.Service.GetData("stockade");
 
             if (subId == 0)
             {

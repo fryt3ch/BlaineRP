@@ -1,7 +1,8 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Businesses
@@ -29,7 +30,7 @@ namespace BlaineRP.Server.Game.Businesses
             this.GasolinesPosition = GasolinesPosition;
         }
 
-        public static string GetGasBuyIdByFuelType(Data.Vehicles.Vehicle.FuelTypes fType) => fType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
+        public static string GetGasBuyIdByFuelType(EntitiesData.Vehicles.Static.Vehicle.FuelTypes fType) => fType == EntitiesData.Vehicles.Static.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
 
         public bool IsPlayerNearGasolinesPosition(PlayerData pData) => pData.Player.Dimension == Properties.Settings.Static.MainDimension && pData.Player.Position.DistanceTo(GasolinesPosition.Position) <= GasolinesPosition.RotationZ + 2.5f;
 
@@ -74,7 +75,7 @@ namespace BlaineRP.Server.Game.Businesses
 
                 if (amount == 0)
                 {
-                    pData.Player.Notify(vFuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
+                    pData.Player.Notify(vFuelType == EntitiesData.Vehicles.Static.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
 
                     return false;
                 }

@@ -1,6 +1,6 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 
 namespace BlaineRP.Server.Game.Misc
 {

@@ -1,16 +1,16 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Sync;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Food : StatusChanger, IStackable
+    public partial class Food : StatusChanger, IStackable
     {
-        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+        public new class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
         {
             public int MaxAmount { get; set; }
 
@@ -22,36 +22,20 @@ namespace BlaineRP.Server.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Satiety}, {Mood}, {Health}, {MaxAmount}";
 
-            public ItemData(string Name, float Weight, string Model, int Satiety, int Mood, int Health, int MaxAmount, TimeSpan UsageTime, FastType Animation, AttachmentType AttachType) : base(Name, Weight, new string[] { Model }, Satiety, Mood, Health)
+            public ItemData(string name, float weight, string model, int satiety, int mood, int health, int maxAmount, TimeSpan usageTime, FastType animation, AttachmentType attachType) : base(name, weight, new string[] { model }, satiety, mood, health)
             {
-                this.MaxAmount = MaxAmount;
+                MaxAmount = maxAmount;
 
-                this.Animation = Animation;
+                Animation = animation;
 
-                this.AttachType = AttachType;
+                AttachType = attachType;
 
-                this.UsageTime = UsageTime;
+                UsageTime = usageTime;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "f_burger", new ItemData("Бургер", 0.15f, "prop_cs_burger_01", 25, 0, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemBurger, AttachmentType.ItemBurger) },
-            { "f_chips", new ItemData("Чипсы",0.15f, "prop_food_bs_chips", 15, 0, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemChips, AttachmentType.ItemChips) },
-            { "f_pizza", new ItemData("Пицца", 0.15f, "v_res_tt_pizzaplate", 50, 15, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemPizza, AttachmentType.ItemPizza) },
-            { "f_chocolate", new ItemData("Шоколадка", 0.15f,  "prop_candy_pqs", 10, 20, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemChocolate, AttachmentType.ItemChocolate) },
-            { "f_hotdog", new ItemData("Хот-дог", 0.15f, "prop_cs_hotdog_01", 10, 20, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemChocolate, AttachmentType.ItemChocolate) },
-
-            { "f_cola", new ItemData("Кола", 0.15f, "prop_food_juice01", 5, 20, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemCola, AttachmentType.ItemCola) },
-
-            { "f_beer", new ItemData("Пиво", 0.15f, "prop_sh_beer_pissh_01", 5, 50, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemBeer, AttachmentType.ItemBeer) },
-
-            { "f_acod_f", new ItemData("Антарктический тунец (ж.)", 0.1f, "brp_p_fish_meat_c_0", 25, 15, 0, 128, TimeSpan.FromMilliseconds(6_000), FastType.ItemBurger, AttachmentType.ItemBurger) },
-            { "f_acod", new ItemData("Антарктический тунец", 0.15f, "brp_p_fish_acod_0", 5, 0, 0, 64, TimeSpan.FromMilliseconds(6_000), FastType.ItemBurger, AttachmentType.ItemBurger) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data => (ItemData)base.Data;
+        public new ItemData Data => (ItemData)base.Data;
 
         [JsonIgnore]
         public int MaxAmount => Data.MaxAmount;
@@ -93,14 +77,14 @@ namespace BlaineRP.Server.Game.Items
         }
 
         [JsonConstructor]
-        public Food(string ID) : base(ID, IDList[ID], typeof(Food))
+        public Food(string id) : base(id, IdList[id], typeof(Food))
         {
-            this.Amount = MaxAmount;
+            Amount = MaxAmount;
         }
 
-        public Food(string ID, Item.ItemData ItemData, System.Type Type) : base(ID, ItemData, Type)
+        public Food(string id, Item.ItemData itemData, Type type) : base(id, itemData, type)
         {
-            this.Amount = MaxAmount;
+            Amount = MaxAmount;
         }
     }
 }

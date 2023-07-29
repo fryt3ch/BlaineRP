@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Helpers;
-using BlaineRP.Client.Game.Management.Animations;
 using BlaineRP.Client.Game.UI.CEF;
 using BlaineRP.Client.Utils;
 using BlaineRP.Client.Utils.Game;
@@ -311,7 +311,7 @@ namespace BlaineRP.Client.Game.Casino.Games
                 ped.SetComponentVariation(11, 0, 0, 0);
             }
 
-            Core.Play(ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+            Service.Play(ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
         }
 
         public void Spin(int casinoId, int rouletteId, byte targetNumber)
@@ -337,13 +337,13 @@ namespace BlaineRP.Client.Game.Casino.Games
 
                     Vector3 wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
 
-                    Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Service.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                     await RAGE.Game.Invoker.WaitAsync(1_500);
 
                     BallObject?.Destroy();
 
-                    Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Service.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                     await RAGE.Game.Invoker.WaitAsync(3_000);
 
@@ -429,7 +429,7 @@ namespace BlaineRP.Client.Game.Casino.Games
                         1
                     );
 
-                    Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Service.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                     await RAGE.Game.Invoker.WaitAsync(1_500);
 
@@ -438,7 +438,7 @@ namespace BlaineRP.Client.Game.Casino.Games
 
                     NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                    Core.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                    Service.Play(NPC.Ped, new Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                     AsyncTask.Methods.CancelPendingTask(taskKey);
                 },
@@ -467,9 +467,9 @@ namespace BlaineRP.Client.Game.Casino.Games
 
             float tableHeading = TableObject.GetHeading();
 
-            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.CasinoRouletteGame, TableObject, null, 500, null, null, null);
+            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.CasinoRouletteGame, TableObject, null, 500, null, null, null);
 
-            Management.Camera.Core.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
+            Management.Camera.Service.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
 
             HoverDatas = new Dictionary<BetType, HoverData>();
 
@@ -871,7 +871,7 @@ namespace BlaineRP.Client.Game.Casino.Games
                 TextLabel.Color = color;
             }
 
-            Management.Camera.Core.Disable(750);
+            Management.Camera.Service.Disable(750);
 
             CurrentRoulette = null;
 

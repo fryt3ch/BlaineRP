@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.EntitiesData.Players
+﻿namespace BlaineRP.Client.Game.Offers
 {
     public enum OfferTypes
     {

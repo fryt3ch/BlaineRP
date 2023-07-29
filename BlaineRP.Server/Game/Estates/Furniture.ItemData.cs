@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using BlaineRP.Server.Game.Craft;
+using BlaineRP.Server.Game.Craft.Workbenches;
 using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.Estates
@@ -10,9 +12,9 @@ namespace BlaineRP.Server.Game.Estates
         {
             public static Dictionary<string, ItemData> AllData { get; private set; } = new Dictionary<string, ItemData>();
 
-            private static Dictionary<Types, Game.Items.Craft.Workbench.WorkbenchTypes?> WorkbenchTypes { get; set; } = new Dictionary<Types, Items.Craft.Workbench.WorkbenchTypes?>()
+            private static Dictionary<Types, WorkbenchTypes?> WorkbenchTypes { get; set; } = new Dictionary<Types, WorkbenchTypes?>()
             {
-                { Types.KitchenSet, Game.Items.Craft.Workbench.WorkbenchTypes.KitchenSet },
+                { Types.KitchenSet, Craft.Workbenches.WorkbenchTypes.KitchenSet },
             };
 
             public Types Type { get; private set; }
@@ -23,7 +25,7 @@ namespace BlaineRP.Server.Game.Estates
 
             public string ModelStr { get; }
 
-            public Game.Items.Craft.Workbench.WorkbenchTypes? WorkbenchType => WorkbenchTypes.GetValueOrDefault(Type);
+            public WorkbenchTypes? WorkbenchType => WorkbenchTypes.GetValueOrDefault(Type);
 
             public ItemData(string Id, Types Type, string Name, string Model)
             {

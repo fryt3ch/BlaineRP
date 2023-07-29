@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.Management.Audio;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Vehicles
+namespace BlaineRP.Server.Game.EntitiesData.Vehicles
 {
     public partial class VehicleData
     {
@@ -91,12 +92,12 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
         /// <summary>Прикрепленные объекты к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<AttachmentObjectNet> AttachedObjects { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Service.AttachedObjectsKey).ToObject<List<AttachmentObjectNet>>(); set { Vehicle.SetSharedData(Service.AttachedObjectsKey, value); } }
+        public List<AttachmentObjectNet> AttachedObjects { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Attachments.Service.AttachedObjectsKey).ToObject<List<AttachmentObjectNet>>(); set { Vehicle.SetSharedData(Attachments.Service.AttachedObjectsKey, value); } }
 
         /// <summary>Прикрепленные сущности к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<AttachmentEntityNet> AttachedEntities { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Service.AttachedEntitiesKey).ToObject<List<AttachmentEntityNet>>(); set { Vehicle.SetSharedData(Service.AttachedEntitiesKey, value); } }
+        public List<AttachmentEntityNet> AttachedEntities { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Attachments.Service.AttachedEntitiesKey).ToObject<List<AttachmentEntityNet>>(); set { Vehicle.SetSharedData(Attachments.Service.AttachedEntitiesKey, value); } }
 
         public Entity IsAttachedTo => Vehicle.GetEntityIsAttachedTo();
     }

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Input;
 using Newtonsoft.Json.Linq;
@@ -62,7 +63,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         if (vData == null)
                             return;
 
-                        if (EntitiesData.VehicleData.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                        if (EntitiesData.Vehicles.VehicleData.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                         {
                             Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 

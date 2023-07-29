@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Helpers.Colshapes;
@@ -177,7 +178,7 @@ namespace BlaineRP.Client
 
                     RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0); // SetPedCanLosePropsOnDamage
 
-                    Game.Management.Attachments.Core.ReattachObjects(Player.LocalPlayer);
+                    Game.Attachments.Service.ReattachObjects(Player.LocalPlayer);
 
                     Player.LocalPlayer.SetFlashLightEnabled(true);
 
@@ -235,7 +236,7 @@ namespace BlaineRP.Client
                     if (gEntity == null || !await Streaming.WaitIsLoaded(gEntity))
                         return;
 
-                    await Game.Management.Attachments.Core.OnEntityStreamIn(entity);
+                    await Game.Attachments.Service.OnEntityStreamIn(entity);
 
                     if (entity is Vehicle veh)
                         await Game.Scripts.Sync.Vehicles.OnVehicleStreamIn(veh);
@@ -259,7 +260,7 @@ namespace BlaineRP.Client
 
                 Events.OnEntityStreamOut += async (entity) =>
                 {
-                    await Game.Management.Attachments.Core.OnEntityStreamOut(entity);
+                    await Game.Attachments.Service.OnEntityStreamOut(entity);
 
                     if (entity is Vehicle veh)
                         await Game.Scripts.Sync.Vehicles.OnVehicleStreamOut(veh);
@@ -354,7 +355,7 @@ namespace BlaineRP.Client
                         return;
 
                     if (pData.AdminLevel > -1 && Settings.User.Other.AutoTeleportMarker)
-                        Game.Management.Commands.Core.TeleportMarker();
+                        Game.Management.Commands.Service.TeleportMarker();
                 };
 
                 WaypointDeleted += () =>
@@ -418,7 +419,7 @@ namespace BlaineRP.Client
             Player.LocalPlayer.SetArmour(0);
             Player.LocalPlayer.RemoveAllWeapons(true);
 
-            Game.Management.AntiCheat.Core.Enable();
+            Game.Management.AntiCheat.Service.Enable();
 
             Game.Input.Core.LoadMain();
 

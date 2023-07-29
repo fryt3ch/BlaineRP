@@ -4,18 +4,19 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Achievements;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Businesses;
 using BlaineRP.Client.Game.Data.Customization;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.EntitiesData.Components;
-using BlaineRP.Client.Game.EntitiesData.Enums;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Fractions;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Colshapes;
 using BlaineRP.Client.Game.Input.Enums;
 using BlaineRP.Client.Game.Items;
-using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.Management.Punishments;
 using BlaineRP.Client.Game.Quests;
 using BlaineRP.Client.Game.Scripts.Misc;
 using BlaineRP.Client.Game.UI.CEF;
@@ -71,7 +72,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                         if (pData.ActualAnimation is Animation anim)
                             if (!pData.Player.IsPlayingAnim(anim.Dict, anim.Name, 3))
-                                Management.Animations.Core.Play(pData.Player, anim);
+                                Service.Play(pData.Player, anim);
 
                         if (players[i].GetData<Action>("AttachMethod") is Action act)
                             act.Invoke();
@@ -81,14 +82,14 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 true
             ).Run();
 
-            Events.Add("Players::CloseAuth",
+            RAGE.Events.Add("Players::CloseAuth",
                 async args =>
                 {
                     Auth.CloseAll();
                 }
             );
 
-            Events.Add("Players::CharacterPreload",
+            RAGE.Events.Add("Players::CharacterPreload",
                 async args =>
                 {
                     if (CharacterLoaded)
@@ -141,7 +142,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                             Punishment.AddPunishment(new Punishment
                                 {
                                     Id = uint.Parse(t[0]),
-                                    Type = (Punishment.Types)int.Parse(t[1]),
+                                    Type = (PunishmentType)int.Parse(t[1]),
                                     EndDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(t[2])).DateTime,
                                     AdditionalData = t[3].Length > 0 ? t[3] : null,
                                 }
@@ -333,7 +334,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                     await UI.CEF.Animations.Load();
 
-                    await Events.CallRemoteProc("Players::CRI", data.IsInvalid, Other.CurrentEmotion, Other.CurrentWalkstyle);
+                    await RAGE.Events.CallRemoteProc("Players::CRI", data.IsInvalid, Other.CurrentEmotion, Other.CurrentWalkstyle);
 
                     CharacterLoaded = true;
 
@@ -399,11 +400,11 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         x.Initialize();
                     }
 
-                    Management.Attachments.Core.ReattachObjects(RAGE.Elements.Player.LocalPlayer);
+                    Attachments.Service.ReattachObjects(RAGE.Elements.Player.LocalPlayer);
                 }
             );
 
-            Events.Add("Player::Knocked",
+            RAGE.Events.Add("Player::Knocked",
                 args =>
                 {
                     var state = (bool)args[0];
@@ -438,19 +439,19 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("opday",
+            RAGE.Events.Add("opday",
                 args =>
                 {
                     if (args == null || args.Length == 0)
                     {
-                        Events.CallLocal("Chat::ShowServerMessage", "Время зарплаты | Вы ничего не получаете, так как у Вас нет банковского счёта!");
+                        RAGE.Events.CallLocal("Chat::ShowServerMessage", "Время зарплаты | Вы ничего не получаете, так как у Вас нет банковского счёта!");
                     }
                     else if (args.Length == 1)
                     {
                         var playedTime = TimeSpan.FromSeconds(Utils.Convert.ToInt64(args[0]));
                         var minTimeToGetPayday = TimeSpan.FromSeconds(Utils.Convert.ToInt64(args[1]));
 
-                        Events.CallLocal("Chat::ShowServerMessage",
+                        RAGE.Events.CallLocal("Chat::ShowServerMessage",
                             $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime.GetBeautyString()} (необходимо - {minTimeToGetPayday.GetBeautyString()})!"
                         );
                     }
@@ -462,22 +463,22 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                         if (joblessBenefit > 0)
                         {
-                            Events.CallLocal("Chat::ShowServerMessage",
+                            RAGE.Events.CallLocal("Chat::ShowServerMessage",
                                 $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", joblessBenefit)} (пособие по безработице) на свой счёт!"
                             );
                         }
                         else
                         {
                             if (organisationSalary == 0)
-                                Events.CallLocal("Chat::ShowServerMessage",
+                                RAGE.Events.CallLocal("Chat::ShowServerMessage",
                                     $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от фракции) на свой счёт!"
                                 );
                             else if (fractionSalary != 0)
-                                Events.CallLocal("Chat::ShowServerMessage",
+                                RAGE.Events.CallLocal("Chat::ShowServerMessage",
                                     $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от фракции) и {Locale.Get("GEN_MONEY_0", organisationSalary)} (от организации) на свой счёт!"
                                 );
                             else
-                                Events.CallLocal("Chat::ShowServerMessage",
+                                RAGE.Events.CallLocal("Chat::ShowServerMessage",
                                     $"Время зарплаты | Вы получаете {Locale.Get("GEN_MONEY_0", fractionSalary)} (от организации) на свой счёт!"
                                 );
                         }
@@ -485,7 +486,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::ParachuteS",
+            RAGE.Events.Add("Player::ParachuteS",
                 args =>
                 {
                     uint parachuteWeaponHash = Joaat.Hash("gadget_parachute");
@@ -531,7 +532,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                                     {
                                         if (lastSentState != -1)
                                         {
-                                            Events.CallRemote("Player::ParachuteS", false);
+                                            RAGE.Events.CallRemote("Player::ParachuteS", false);
 
                                             if (lastSentState == 1 || lastSentState == 2)
                                                 task?.Cancel();
@@ -545,7 +546,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                                     {
                                         if (lastSentState != 1)
                                         {
-                                            Events.CallRemote("Player::ParachuteS", true);
+                                            RAGE.Events.CallRemote("Player::ParachuteS", true);
 
                                             Notification.ShowHint("Используйте F, чтобы открепиться от парашюта", true);
 
@@ -581,7 +582,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::RVehs::U",
+            RAGE.Events.Add("Player::RVehs::U",
                 args =>
                 {
                     var rId = (ushort)(int)args[0];
@@ -625,7 +626,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Waypoint::Set",
+            RAGE.Events.Add("Player::Waypoint::Set",
                 args =>
                 {
                     var x = (float)args[0];
@@ -635,18 +636,18 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Smoke::Start",
+            RAGE.Events.Add("Player::Smoke::Start",
                 args =>
                 {
                     var maxTime = (int)args[0];
                     var maxPuffs = (int)args[1];
 
                     RAGE.Elements.Player.LocalPlayer.SetData("Smoke::Data::Puffs", maxPuffs);
-                    RAGE.Elements.Player.LocalPlayer.SetData("Smoke::Data::CTask", new AsyncTask(() => Events.CallRemote("Players::Smoke::Stop"), maxTime));
+                    RAGE.Elements.Player.LocalPlayer.SetData("Smoke::Data::CTask", new AsyncTask(() => RAGE.Events.CallRemote("Players::Smoke::Stop"), maxTime));
                 }
             );
 
-            Events.Add("Player::Smoke::Stop",
+            RAGE.Events.Add("Player::Smoke::Stop",
                 args =>
                 {
                     RAGE.Elements.Player.LocalPlayer.ResetData("Smoke::Data::Puffs");
@@ -661,7 +662,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Smoke::Puff",
+            RAGE.Events.Add("Player::Smoke::Puff",
                 args =>
                 {
                     var task1 = new AsyncTask(async () =>
@@ -708,9 +709,9 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::CloseAll", args => CloseAll((bool)args[0]));
+            RAGE.Events.Add("Player::CloseAll", args => CloseAll((bool)args[0]));
 
-            Events.Add("Player::Quest::Upd",
+            RAGE.Events.Add("Player::Quest::Upd",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -756,7 +757,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Achievements::Update",
+            RAGE.Events.Add("Player::Achievements::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -777,7 +778,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Skills::Update",
+            RAGE.Events.Add("Player::Skills::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -808,7 +809,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::WSkins::Update",
+            RAGE.Events.Add("Player::WSkins::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -842,7 +843,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::MedCard::Update",
+            RAGE.Events.Add("Player::MedCard::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -857,7 +858,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Licenses::Update",
+            RAGE.Events.Add("Player::Licenses::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -883,7 +884,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Familiars::Update",
+            RAGE.Events.Add("Player::Familiars::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -901,7 +902,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::SettledHB",
+            RAGE.Events.Add("Player::SettledHB",
                 args =>
                 {
                     var pType = (Estates.HouseBase.Types)(int)args[0];
@@ -959,7 +960,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Properties::Update",
+            RAGE.Events.Add("Player::Properties::Update",
                 args =>
                 {
                     var data = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -1072,7 +1073,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Player::Furniture::Update",
+            RAGE.Events.Add("Player::Furniture::Update",
                 args =>
                 {
                     var pData = PlayerData.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -1293,7 +1294,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                 }
             );
 
-            Events.Add("Players::WCD::U",
+            RAGE.Events.Add("Players::WCD::U",
                 args =>
                 {
                     var player = (RAGE.Elements.Player)args[0];
@@ -1403,7 +1404,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         UI.CEF.Animations.ToggleAnim("e-" + emotion, true);
                     }
 
-                    Management.Animations.Core.Set(player, emotion);
+                    Service.Set(player, emotion);
                 }
             );
 
@@ -1422,7 +1423,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                     }
 
                     if (!pData.CrouchOn)
-                        Management.Animations.Core.Set(player, wStyle);
+                        Service.Set(player, wStyle);
                 }
             );
 
@@ -1455,15 +1456,15 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                     if (anim == OtherType.None)
                     {
-                        Management.Animations.Core.Stop(player);
+                        Service.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        Animation animData = Management.Animations.Core.OtherAnimsList[anim];
+                        Animation animData = Service.OtherAnimsList[anim];
 
-                        Management.Animations.Core.Play(player, animData);
+                        Service.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1479,15 +1480,15 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                     if (anim == GeneralType.None)
                     {
-                        Management.Animations.Core.Stop(player);
+                        Service.Stop(player);
 
                         pData.ActualAnimation = null;
                     }
                     else
                     {
-                        Animation animData = Management.Animations.Core.GeneralAnimsList[anim];
+                        Animation animData = Service.GeneralAnimsList[anim];
 
-                        Management.Animations.Core.Play(player, animData);
+                        Service.Play(player, animData);
 
                         pData.ActualAnimation = animData;
                     }
@@ -1663,25 +1664,25 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                             HUD.SwitchMicroIcon(true);
 
-                            Main.Update -= Management.Microphone.Core.OnTick;
-                            Main.Update += Management.Microphone.Core.OnTick;
+                            Main.Update -= Management.Microphone.Service.OnTick;
+                            Main.Update += Management.Microphone.Service.OnTick;
 
-                            Management.Microphone.Core.StartUpdateListeners();
+                            Management.Microphone.Service.StartUpdateListeners();
 
-                            Management.Microphone.Core.SetTalkingAnim(RAGE.Elements.Player.LocalPlayer, true);
+                            Management.Microphone.Service.SetTalkingAnim(RAGE.Elements.Player.LocalPlayer, true);
                         }
                         // Voice On / Muted
                         else if (vRange <= 0f)
                         {
-                            Management.Microphone.Core.StopUpdateListeners();
+                            Management.Microphone.Service.StopUpdateListeners();
 
                             Voice.Muted = true;
 
                             HUD.SwitchMicroIcon(false);
 
-                            Management.Microphone.Core.SetTalkingAnim(RAGE.Elements.Player.LocalPlayer, false);
+                            Management.Microphone.Service.SetTalkingAnim(RAGE.Elements.Player.LocalPlayer, false);
 
-                            Main.Update -= Management.Microphone.Core.OnTick;
+                            Main.Update -= Management.Microphone.Service.OnTick;
 
                             if (vRange < 0f)
                                 HUD.SwitchMicroIcon(null);
@@ -1690,9 +1691,9 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                     else
                     {
                         if (vRange > 0f)
-                            Management.Microphone.Core.AddTalker(player);
+                            Management.Microphone.Service.AddTalker(player);
                         else
-                            Management.Microphone.Core.RemoveTalker(player);
+                            Management.Microphone.Service.RemoveTalker(player);
                     }
                 }
             );
@@ -1724,11 +1725,11 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                             {
                                 RAGE.Elements.Vehicle veh = RAGE.Elements.Player.LocalPlayer.Vehicle;
 
-                                EntitiesData.VehicleData vData = null;
+                                EntitiesData.Vehicles.VehicleData vData = null;
 
                                 do
                                 {
-                                    vData = EntitiesData.VehicleData.GetData(veh);
+                                    vData = EntitiesData.Vehicles.VehicleData.GetData(veh);
 
                                     if (vData == null)
                                     {
@@ -1779,7 +1780,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
         private static void AddDataHandler(string dataKey, Action<PlayerData, object, object> action)
         {
-            Events.AddDataHandler(dataKey,
+            RAGE.Events.AddDataHandler(dataKey,
                 async (entity, value, oldValue) =>
                 {
                     if (entity is RAGE.Elements.Player player)
@@ -1833,7 +1834,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
             InvokeHandler("WCD", data, data.WeaponComponents);
 
             if (data.VoiceRange > 0f)
-                Management.Microphone.Core.AddTalker(player);
+                Management.Microphone.Service.AddTalker(player);
 
             if (data.CrouchOn)
                 Crouch.On(true, player);
@@ -1981,7 +1982,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
                         if (ActionBox.LastSent.IsSpam(500, false, true))
                             return;
 
-                        if ((bool)await Events.CallRemoteProc("WSkins::Rm", id))
+                        if ((bool)await RAGE.Events.CallRemoteProc("WSkins::Rm", id))
                             ActionBox.Close();
                     }
                     else if (rType == ActionBox.ReplyTypes.Cancel)
@@ -2055,7 +2056,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
             }
             else
             {
-                RAGE.Elements.Player.LocalPlayer.SetData("ADMIN::BINDS::FLY", Input.Core.Bind(VirtualKeys.F5, true, () => Management.Commands.Core.Fly()));
+                RAGE.Elements.Player.LocalPlayer.SetData("ADMIN::BINDS::FLY", Input.Core.Bind(VirtualKeys.F5, true, () => Management.Commands.Service.Fly()));
             }
         }
 

@@ -1,15 +1,14 @@
-﻿using BlaineRP.Server;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Inventory;
 
-namespace BlaineRP.Server.Events.NPC.Types
+namespace BlaineRP.Server.Game.NPCs.Types
 {
     internal class Police
     {
-        [NPC.Action("cop_np_buy", "cop0_1")]
+        [RemoteAction("cop_np_buy", "cop0_1")]
         private static object PoliceNumberplateBuy(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 3)
@@ -99,7 +98,7 @@ namespace BlaineRP.Server.Events.NPC.Types
             return tag;
         }
 
-        [NPC.Action("cop_np_vreg_p", "cop0_1")]
+        [RemoteAction("cop_np_vreg_p", "cop0_1")]
         private static object PoliceVehicleRegistrationGetPrice(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 1)
@@ -108,7 +107,7 @@ namespace BlaineRP.Server.Events.NPC.Types
             return data[0] == "1" ? Game.Fractions.Police.VehicleNumberplateRegPrice : Game.Fractions.Police.VehicleNumberplateUnRegPrice;
         }
 
-        [NPC.Action("cop_np_vreg_g", "cop0_1")]
+        [RemoteAction("cop_np_vreg_g", "cop0_1")]
         private static object PoliceVehicleRegistrationGetData(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 1)
@@ -117,7 +116,7 @@ namespace BlaineRP.Server.Events.NPC.Types
             return data[0] == "1" ? pData.OwnedVehicles.Where(x => x.RegisteredNumberplate == null && x.Numberplate != null).Select(x => $"{x.VID}&{x.Numberplate.Tag}").ToList() : pData.OwnedVehicles.Where(x => x.RegisteredNumberplate != null).Select(x => $"{x.VID}&{x.RegisteredNumberplate}").ToList();
         }
 
-        [NPC.Action("cop_np_vreg", "cop0_1")]
+        [RemoteAction("cop_np_vreg", "cop0_1")]
         private static object PoliceVehicleRegistration(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 2)
@@ -180,7 +179,7 @@ namespace BlaineRP.Server.Events.NPC.Types
             return npTag;
         }
 
-        [NPC.Action("cop_np_vunreg", "cop0_1")]
+        [RemoteAction("cop_np_vunreg", "cop0_1")]
         private static object PoliceVehicleUnRegistration(PlayerData pData, string npcId, string[] data)
         {
             if (data.Length != 2)

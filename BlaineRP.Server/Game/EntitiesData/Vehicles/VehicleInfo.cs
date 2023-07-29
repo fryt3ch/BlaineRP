@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+
+using BlaineRP.Server.Extensions.System.Collections.Generic;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Vehicles.Static;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Vehicles
+namespace BlaineRP.Server.Game.EntitiesData.Vehicles
 {
     public class VehicleInfo
     {
-            public static Dictionary<uint, VehicleInfo> All { get; private set; } = new Dictionary<uint, VehicleInfo>();
+            public static Dictionary<uint, VehicleInfo> _all { get; private set; } = new Dictionary<uint, VehicleInfo>();
+
+            public static IReadOnlyDictionary<uint, VehicleInfo> All => _all.AsReadOnly();
 
             public static UtilsT.UidHandlers.UInt32 UidHandler { get; private set; } = new UtilsT.UidHandlers.UInt32(Properties.Settings.Profile.Current.Game.VIDBaseOffset);
 
@@ -19,7 +24,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
                 UidHandler.TryUpdateLastAddedMaxUid(vInfo.VID);
 
-                All.Add(vInfo.VID, vInfo);
+                _all.Add(vInfo.VID, vInfo);
             }
 
             public static void Add(VehicleInfo vInfo)
@@ -29,7 +34,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
                 vInfo.VID = UidHandler.MoveNextUid();
 
-                All.Add(vInfo.VID, vInfo);
+                _all.Add(vInfo.VID, vInfo);
 
                 MySQL.VehicleAdd(vInfo);
             }
@@ -43,7 +48,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
                 UidHandler.SetUidAsFree(vid);
 
-                All.Remove(vid);
+                _all.Remove(vid);
 
                 if (vid > 0)
                     MySQL.VehicleDelete(vInfo);
@@ -51,11 +56,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
             public static VehicleInfo Get(uint id) => All.GetValueOrDefault(id);
 
-            public static List<VehicleInfo> GetAllByCID(uint cid) => All.Values.Where(x => x != null && (x.OwnerType == OwnerTypes.Player && x.OwnerID == cid)).ToList();
-
             public VehicleData VehicleData { get; set; }
 
-            public Game.Data.Vehicles.Vehicle Data { get; set; }
+            public Static.Vehicle Data { get; set; }
 
             public PlayerInfo FullOwnerPlayer => OwnerType == OwnerTypes.Player ? PlayerInfo.Get(OwnerID) : null;
 
@@ -77,7 +80,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
             public Game.Items.Numberplate Numberplate { get; set; }
 
-            public Game.Data.Vehicles.Tuning Tuning { get; set; }
+            public Tuning Tuning { get; set; }
 
             public LastVehicleData LastData { get; set; }
 
@@ -88,9 +91,9 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
             public VehicleInfo() { }
 
-            public Vehicle CreateVehicle()
+            public GTANetworkAPI.Vehicle CreateVehicle()
             {
-                var data = Game.Data.Vehicles.All[ID];
+                var data = Static.Service.All[ID];
 
                 var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Properties.Settings.Static.StuffDimension);
 
@@ -113,7 +116,7 @@ namespace BlaineRP.Server.EntitiesData.Vehicles
 
                     var owner = FullOwnerPlayer;
 
-                    var freeGarageSlots = owner.PlayerData.FreeVehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
+                    var freeGarageSlots = owner.PlayerData.FreeVehicleSlots - owner.PlayerData.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.PlayerData.OwnedVehicles.Count;
 
                     if (LastData.Dimension != Properties.Settings.Static.MainDimension && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                     {

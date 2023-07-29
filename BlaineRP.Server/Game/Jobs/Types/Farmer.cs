@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.EntitiesData.Vehicles;
-using BlaineRP.Server.Game.Management.Animations;
-using BlaineRP.Server.Game.Management.Attachments;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization.Clothes.Uniforms;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.Game.Quests;
 using BlaineRP.Server.Sync;
 
@@ -29,8 +30,8 @@ namespace BlaineRP.Server.Game.Jobs
         public static uint EmptyBucketModel => NAPI.Util.GetHashKey("brp_p_farm_bucket_0");
         public static uint MilkBucketModel => NAPI.Util.GetHashKey("brp_p_farm_bucket_1");
 
-        public static Game.Data.Vehicles.Vehicle TractorVehicleData => Game.Data.Vehicles.GetData("tractor2");
-        public static Game.Data.Vehicles.Vehicle PlaneVehicleData => Game.Data.Vehicles.GetData("duster");
+        public static EntitiesData.Vehicles.Static.Vehicle TractorVehicleData => EntitiesData.Vehicles.Static.Service.GetData("tractor2");
+        public static EntitiesData.Vehicles.Static.Vehicle PlaneVehicleData => EntitiesData.Vehicles.Static.Service.GetData("duster");
 
         public const byte ORANGES_ON_TREE_MIN_AMOUNT = 3;
         public const byte ORANGES_ON_TREE_MAX_AMOUNT = 12;
@@ -66,7 +67,7 @@ namespace BlaineRP.Server.Game.Jobs
 
             pData.Player.TriggerEvent("Player::SCJ", Id);
 
-            Data.Customization.ApplyUniform(pData, Data.Customization.UniformTypes.Farmer);
+            EntitiesData.Players.Customization.Clothes.Uniforms.Service.ApplyUniform(pData, UniformTypes.Farmer);
 
             SetPlayerTotalCashSalary(pData, 0, false);
         }
@@ -127,7 +128,7 @@ namespace BlaineRP.Server.Game.Jobs
 
                 ResetPlayerFieldsIrrigationData(pInfo.PlayerData);
 
-                Data.Customization.SetNoUniform(pInfo.PlayerData);
+                EntitiesData.Players.Customization.Clothes.Uniforms.Service.SetNoUniform(pInfo.PlayerData);
             }
 
             pInfo.Quests.GetValueOrDefault(QuestType.JFRM1)?.Cancel(pInfo);
@@ -319,7 +320,7 @@ namespace BlaineRP.Server.Game.Jobs
 
         public static bool AttachHarvTrailOnTractor(VehicleData vData)
         {
-            return vData.Vehicle.AttachObject(Game.Data.Vehicles.GetData("raketrailer").Model, AttachmentType.TractorTrailFarmHarv, -1, null);
+            return vData.Vehicle.AttachObject(EntitiesData.Vehicles.Static.Service.GetData("raketrailer").Model, AttachmentType.TractorTrailFarmHarv, -1, null);
         }
 
         public void SetPlayerAsTractorTaker(PlayerData pData, VehicleData vData)

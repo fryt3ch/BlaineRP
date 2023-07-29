@@ -1,38 +1,33 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Holster : Clothes, IContainer
+    public partial class Holster : Clothes, IContainer
     {
-        new public class ItemData : Clothes.ItemData
+        public new class ItemData : Clothes.ItemData, Item.ItemData.IContainer
         {
             public int DrawableWeapon { get; set; }
 
-            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+            public byte MaxSlots { get; } = 1;
 
-            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, int DrawableWeapon, string SexAlternativeID = null) : base(Name, 0.15f, "prop_holster_01", Sex, Drawable, Textures, SexAlternativeID)
+            public float MaxWeight { get; } = float.MaxValue;
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeId == null ? "null" : $"\"{SexAlternativeId}\"")}";
+
+            public ItemData(string name, bool sex, int drawable, int[] textures, int drawableWeapon, string sexAlternativeId = null) : base(name, 0.15f, "prop_holster_01", sex, drawable, textures, sexAlternativeId)
             {
-                this.DrawableWeapon = DrawableWeapon;
+                DrawableWeapon = drawableWeapon;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "hl_m_0", new ItemData("Кобура на ногу", true, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 2, new int[] { 0 }, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 0, "hl_f_0") },
-            { "hl_m_1", new ItemData("Кобура простая", true, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 3, new int[] { 0 }, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 1, "hl_f_1") },
-
-            { "hl_f_0", new ItemData("Кобура на ногу", false, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 2, new int[] { 0 }, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 0, "hl_m_0") },
-            { "hl_f_1", new ItemData("Кобура простая", false, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 3, new int[] { 0 }, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 1, "hl_m_1") },
-        };
+        [JsonIgnore]
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
-
-        [JsonIgnore]
-        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
+        public new ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
 
         [JsonIgnore]
         public Item[] Items { get; set; }
@@ -116,9 +111,9 @@ namespace BlaineRP.Server.Game.Items
         [JsonIgnore]
         public override float Weight { get => BaseWeight + Items.Sum(x => x?.Weight ?? 0f); }
 
-        public Holster(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Holster), Variation)
+        public Holster(string id, int variation = 0) : base(id, IdList[id], typeof(Holster), variation)
         {
-            this.Items = new Item[1];
+            Items = new Item[Data.MaxSlots];
         }
     }
 }

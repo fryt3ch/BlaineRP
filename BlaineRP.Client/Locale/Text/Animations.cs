@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.Animations;
 
 namespace BlaineRP.Client
 {

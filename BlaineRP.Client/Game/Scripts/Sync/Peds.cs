@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Peds;
 using BlaineRP.Client.Game.NPCs;
 using RAGE;
 using RAGE.Elements;

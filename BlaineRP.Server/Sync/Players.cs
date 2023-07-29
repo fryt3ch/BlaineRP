@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using BlaineRP.Server.Additional;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Attachments;
 using BlaineRP.Server.Game.Businesses;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management.AntiCheat;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
-using BlaineRP.Server.Game.Management.Phone;
+using BlaineRP.Server.Game.Phone;
 
 namespace BlaineRP.Server.Sync
 {

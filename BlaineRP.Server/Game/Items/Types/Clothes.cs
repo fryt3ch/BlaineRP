@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players.Customization;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -19,7 +20,7 @@ namespace BlaineRP.Server.Game.Items
 
         }
 
-        new public abstract class ItemData : Item.ItemData
+        public new abstract class ItemData : Item.ItemData
         {
             public class ExtraData
             {
@@ -27,11 +28,11 @@ namespace BlaineRP.Server.Game.Items
 
                 public int BestTorso { get; set; }
 
-                public ExtraData(int Drawable, int BestTorso)
+                public ExtraData(int drawable, int bestTorso)
                 {
-                    this.Drawable = Drawable;
+                    Drawable = drawable;
 
-                    this.BestTorso = BestTorso;
+                    BestTorso = bestTorso;
                 }
             }
 
@@ -46,16 +47,16 @@ namespace BlaineRP.Server.Game.Items
 
             public int[] Textures { get; set; }
 
-            public string SexAlternativeID { get; set; }
+            public string SexAlternativeId { get; set; }
 
-            public ItemData(string Name, float Weight, string Model, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Model)
+            public ItemData(string name, float weight, string model, bool sex, int drawable, int[] textures, string sexAlternativeId = null) : base(name, weight, model)
             {
-                this.Drawable = Drawable;
-                this.Textures = Textures;
+                Drawable = drawable;
+                Textures = textures;
 
-                this.Sex = Sex;
+                Sex = sex;
 
-                this.SexAlternativeID = SexAlternativeID;
+                SexAlternativeId = sexAlternativeId;
             }
         }
 
@@ -64,21 +65,21 @@ namespace BlaineRP.Server.Game.Items
         public abstract void Unwear(PlayerData pData);
 
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        public ItemData SexAlternativeData => Data.SexAlternativeID is string str ? (ItemData)Stuff.GetData(str, Type) : null;
+        public ItemData SexAlternativeData => Data.SexAlternativeId is string str ? (ItemData)Stuff.GetData(str, Type) : null;
 
         [JsonIgnore]
-        public int Slot => Game.Data.Customization.GetClothesIdxByType(Type);
+        public int Slot => Service.GetClothesIdxByType(Type);
 
         [JsonProperty(PropertyName = "V")]
         /// <summary>Вариация одежды</summary>
         public int Var { get; set; }
 
-        public Clothes(string ID, Item.ItemData Data, Type Type, int Var) : base(ID, Data, Type)
+        public Clothes(string id, Item.ItemData data, Type type, int var) : base(id, data, type)
         {
-            this.Var = Var >= this.Data.Textures.Length ? this.Data.Textures.Length - 1 : (Var < 0 ? 0 : Var);
+            Var = var >= Data.Textures.Length ? Data.Textures.Length - 1 : (var < 0 ? 0 : var);
         }
     }
 }

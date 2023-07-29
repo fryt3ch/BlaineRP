@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.Sync;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Attachments
+namespace BlaineRP.Server.Game.Attachments
 {
     public partial class Service
     {

@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Client.Game.Management.Animations
+﻿namespace BlaineRP.Client.Game.Animations
 {
     public enum ScenarioType
     {

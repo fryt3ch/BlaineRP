@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
 using BlaineRP.Server.Game.Animations;
-using BlaineRP.Server.Sync;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.Game.Management.Attachments
+namespace BlaineRP.Server.Game.Attachments
 {
     public partial class Service
     {

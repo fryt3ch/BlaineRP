@@ -1,4 +1,4 @@
-﻿using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs
@@ -11,7 +11,7 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 var numberplateText = "BUSBC";
 
-                var vType = Game.Data.Vehicles.GetData("coach");
+                var vType = EntitiesData.Vehicles.Static.Service.GetData("coach");
 
                 var colour1 = new Colour(255, 255, 255, 255);
                 var colour2 = new Colour(255, 0, 0, 255);
@@ -75,7 +75,7 @@ namespace BlaineRP.Server.Game.Jobs
             {
                 var numberplateText = "BUSLS";
 
-                var vType = Game.Data.Vehicles.GetData("bus");
+                var vType = EntitiesData.Vehicles.Static.Service.GetData("bus");
             }
         }
     }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.Attachments;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Items;
-using BlaineRP.Server.Game.Management.Attachments;
 using BlaineRP.Server.Game.Management.Chat;
 
 namespace BlaineRP.Server.Game.Inventory
@@ -459,7 +459,7 @@ namespace BlaineRP.Server.Game.Inventory
                             {
                                 if (item is Game.Items.Clothes.IToggleable tItem)
                                 {
-                                    if (Game.Data.Customization.IsUniformElementActive(pData, clothes is Game.Items.Clothes.IProp ? 1000 + clothes.Slot : clothes.Slot, true))
+                                    if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, clothes is Game.Items.Clothes.IProp ? 1000 + clothes.Slot : clothes.Slot, true))
                                         return ResultTypes.Error;
 
                                     tItem.Action(pData);

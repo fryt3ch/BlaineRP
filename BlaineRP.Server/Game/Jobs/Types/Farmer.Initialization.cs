@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs

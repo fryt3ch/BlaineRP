@@ -15,7 +15,7 @@ using RAGE.Elements;
 namespace BlaineRP.Client.Game.Management.Microphone
 {
     [Script(int.MaxValue)]
-    public class Core
+    public class Service
     {
         private const string AnimDict = "mp_facial";
         private const string AnimDictNormal = "facials@gen_male@variations@normal";
@@ -33,7 +33,7 @@ namespace BlaineRP.Client.Game.Management.Microphone
 
         private static AsyncTask _updateListenersTask;
 
-        public Core()
+        public Service()
         {
             // Changing Volume Of Talkers
             new AsyncTask(() =>

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 
 namespace BlaineRP.Server.Game.Items
 {
@@ -104,7 +105,7 @@ namespace BlaineRP.Server.Game.Items
 
                         pData.Items[x.Slot].Update();
 
-                        player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
+                        player.InventoryUpdate(GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], GroupTypes.Items));
                     });
 
                     if (amountExceed > 0)
@@ -115,7 +116,7 @@ namespace BlaineRP.Server.Game.Items
 
                             pData.Items[freeIdx] = item;
 
-                            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
+                            player.InventoryUpdate(GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, GroupTypes.Items));
 
                             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -168,7 +169,7 @@ namespace BlaineRP.Server.Game.Items
                 {
                     pData.Items[freeIdx] = item;
 
-                    player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
+                    player.InventoryUpdate(GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, GroupTypes.Items));
 
                     MySQL.CharacterItemsUpdate(pData.Info);
                 }
@@ -277,7 +278,7 @@ namespace BlaineRP.Server.Game.Items
 
                     pData.Items[x.Slot].Update();
 
-                    player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
+                    player.InventoryUpdate(GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], GroupTypes.Items));
                 });
 
                 if (amountExceed <= 0)
@@ -336,7 +337,7 @@ namespace BlaineRP.Server.Game.Items
             if (notifyOnSuccess)
                 player.TriggerEvent("Item::Added", item.ID, amountInFact);
 
-            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
+            player.InventoryUpdate(GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, GroupTypes.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -437,7 +438,7 @@ namespace BlaineRP.Server.Game.Items
 
                     pData.Items[x.Slot].Update();
 
-                    player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
+                    player.InventoryUpdate(GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], GroupTypes.Items));
                 });
 
                 if (amountExceed <= 0)
@@ -500,7 +501,7 @@ namespace BlaineRP.Server.Game.Items
             if (notifyOnSuccess)
                 player.TriggerEvent("Item::Added", item.ID, amountInFact);
 
-            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
+            player.InventoryUpdate(GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, GroupTypes.Items));
 
             return true;
         }
@@ -598,12 +599,12 @@ namespace BlaineRP.Server.Game.Items
                 }
             }
 
-            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], Inventory.GroupTypes.Items);
+            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], GroupTypes.Items);
 
             if (notifyOnSuccess)
                 pData.Player.TriggerEvent("Item::Added", item.ID, amount);
 
-            pData.Player.InventoryUpdate(Inventory.GroupTypes.Items, freeIdx, upd);
+            pData.Player.InventoryUpdate(GroupTypes.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -768,7 +769,7 @@ namespace BlaineRP.Server.Game.Items
                 lines.Add($"dict.Add(typeof({x.Name}), new Dictionary<string, Item.ItemData>() {{ {string.Join(',', tempLines)} }});");
             }
 
-            foreach (var x in Craft.Craft.AllReceipts)
+            foreach (var x in Craft.Service.AllReceipts)
             {
                 lines.Add($"Craft.Craft.AllReceipts.Add(new Craft.Craft.Receipt(new Craft.Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
             }

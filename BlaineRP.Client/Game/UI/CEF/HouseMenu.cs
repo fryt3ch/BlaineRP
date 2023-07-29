@@ -5,6 +5,7 @@ using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
 using BlaineRP.Client.Game.EntitiesData;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Estates;
 using BlaineRP.Client.Game.Helpers.Blips;
 using BlaineRP.Client.Game.Input.Enums;
@@ -118,7 +119,7 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                                 if (furn == null)
                                 {
-                                    Vector3 pos = Management.Camera.Core.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+                                    Vector3 pos = Management.Camera.Service.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
                                     furn = Streaming.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 

@@ -1,4 +1,4 @@
-﻿using BlaineRP.Server.EntitiesData.Vehicles;
+﻿using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Jobs
@@ -7,7 +7,7 @@ namespace BlaineRP.Server.Game.Jobs
     {
         public override void Initialize()
         {
-            var taxiVehData = Data.Vehicles.GetData("taxi");
+            var taxiVehData = EntitiesData.Vehicles.Static.Service.GetData("taxi");
 
             var subId = SubId;
 

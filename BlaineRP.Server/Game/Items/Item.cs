@@ -1,15 +1,14 @@
-﻿using GTANetworkAPI;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlaineRP.Server.Game.Inventory;
 
 namespace BlaineRP.Server.Game.Items
 {
     [JsonConverter(typeof(ItemConverter))]
-    public abstract class Item
+    public abstract partial class Item
     {
         public static UtilsT.UidHandlers.UInt32 UidHandler { get; private set; } = new UtilsT.UidHandlers.UInt32(1);
 
@@ -48,22 +47,22 @@ namespace BlaineRP.Server.Game.Items
             }
         }
 
-        private static Dictionary<Game.Items.Inventory.GroupTypes, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.GroupTypes, Func<Item, string>>()
+        private static Dictionary<GroupTypes, Func<Item, string>> ClientJsonFuncs = new Dictionary<GroupTypes, Func<Item, string>>()
         {
-            { Game.Items.Inventory.GroupTypes.Items, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}&{((item is IUsable itemU && itemU.InUse) ? 1 : 0)}" },
+            { GroupTypes.Items, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}&{((item is IUsable itemU && itemU.InUse) ? 1 : 0)}" },
 
-            { Game.Items.Inventory.GroupTypes.Bag, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { GroupTypes.Bag, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.GroupTypes.Container, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { GroupTypes.Container, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.GroupTypes.CraftItems, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { GroupTypes.CraftItems, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.GroupTypes.CraftTools, (item) => $"{item.ID}" },
+            { GroupTypes.CraftTools, (item) => $"{item.ID}" },
 
-            { Game.Items.Inventory.GroupTypes.CraftResult, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { GroupTypes.CraftResult, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
             {
-                Game.Items.Inventory.GroupTypes.Weapons,
+                GroupTypes.Weapons,
 
                 (item) =>
                 {
@@ -74,7 +73,7 @@ namespace BlaineRP.Server.Game.Items
             },
 
             {
-                Game.Items.Inventory.GroupTypes.Holster,
+                GroupTypes.Holster,
 
                 (item) =>
                 {
@@ -84,92 +83,34 @@ namespace BlaineRP.Server.Game.Items
                 }
             },
 
-            { Game.Items.Inventory.GroupTypes.Armour, (item) => $"{item.ID}&{((Armour)item).Strength}" },
+            { GroupTypes.Armour, (item) => $"{item.ID}&{((Armour)item).Strength}" },
 
             {
-                Game.Items.Inventory.GroupTypes.BagItem,
+                GroupTypes.BagItem,
 
                 (item) =>
                 {
                     var bag = (Bag)item;
 
-                    return $"{item.ID}&{bag.Data.MaxWeight}|{string.Join('|', bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.GroupTypes.Bag)))}";
+                    return $"{item.ID}&{bag.Data.MaxWeight}|{string.Join('|', bag.Items.Select(x => ToClientJson(x, GroupTypes.Bag)))}";
                 }
             },
 
-            { Game.Items.Inventory.GroupTypes.Clothes, (item) => $"{item.ID}" },
+            { GroupTypes.Clothes, (item) => $"{item.ID}" },
 
-            { Game.Items.Inventory.GroupTypes.Accessories, (item) => $"{item.ID}" },
+            { GroupTypes.Accessories, (item) => $"{item.ID}" },
 
             {
-                Game.Items.Inventory.GroupTypes.HolsterItem,
+                GroupTypes.HolsterItem,
 
                 (item) =>
                 {
                     var holster = (Holster)item;
 
-                    return $"{item.ID}|{ToClientJson(holster.Items[0], Game.Items.Inventory.GroupTypes.Holster)}";
+                    return $"{item.ID}|{ToClientJson(holster.Items[0], GroupTypes.Holster)}";
                 }
             },
         };
-
-        public abstract class ItemData
-        {
-            /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>
-            public interface IContainer
-            {
-                public float MaxWeight { get; }
-            }
-
-            /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны стакаться</summary>
-            public interface IStackable
-            {
-                /// <summary>Максимальное кол-во единиц предмета в стаке</summary>
-                public int MaxAmount { get; set; }
-            }
-
-            /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
-            /// <remarks>Не использовать одновременно с IStackable!</remarks>
-            public interface IConsumable
-            {
-                public int MaxAmount { get; set; }
-            }
-
-            public interface ICraftIngredient
-            {
-
-            }
-
-            /// <summary>Стандартная модель</summary>
-            public static uint DefaultModel => NAPI.Util.GetHashKey("prop_drug_package_02");
-
-            /// <summary>Название предмета</summary>
-            public string Name { get; set; }
-
-            /// <summary>Вес единицы предмета</summary>
-            public float Weight { get; set; }
-
-            /// <summary>Основная модель</summary>
-            public uint Model { get => Models[0]; }
-
-            /// <summary>Все модели</summary>
-            private uint[] Models { get; set; }
-
-            public abstract string ClientData { get; }
-
-            public ItemData(string Name, float Weight, params uint[] Models)
-            {
-                this.Name = Name;
-
-                this.Weight = Weight;
-
-                this.Models = Models.Length > 0 ? Models : new uint[] { DefaultModel };
-            }
-
-            public ItemData(string Name, float Weight, params string[] Models) : this(Name, Weight, Models.Select(x => NAPI.Util.GetHashKey(x)).ToArray()) { }
-
-            public uint GetModelAt(int idx) => idx < 0 || idx >= Models.Length ? Model : Models[idx];
-        }
 
         [JsonIgnore]
         public World.Service.ItemOnGround OnGroundInstance => World.Service.GetItemOnGround(UID);
@@ -229,7 +170,7 @@ namespace BlaineRP.Server.Game.Items
             MySQL.ItemUpdate(this);
         }
 
-        public string ToClientJson(Game.Items.Inventory.GroupTypes group)
+        public string ToClientJson(GroupTypes group)
         {
             var func = ClientJsonFuncs.GetValueOrDefault(group);
 
@@ -239,7 +180,7 @@ namespace BlaineRP.Server.Game.Items
             return func.Invoke(this);
         }
 
-        public static string ToClientJson(Item item, Game.Items.Inventory.GroupTypes group) => item == null ? "" : item.ToClientJson(group);
+        public static string ToClientJson(Item item, GroupTypes group) => item == null ? "" : item.ToClientJson(group);
 
         public Item(string ID, ItemData Data, Type Type)
         {
@@ -247,41 +188,5 @@ namespace BlaineRP.Server.Game.Items
             this.Data = Data;
             this.Type = Type;
         }
-    }
-    
-    public class BaseSpecifiedConcreteClassConverter : DefaultContractResolver
-    {
-        protected override JsonConverter ResolveContractConverter(Type objectType)
-        {
-            if (typeof(Item).IsAssignableFrom(objectType) && !objectType.IsAbstract)
-                return null; // pretend TableSortRuleConvert is not specified (thus avoiding a stack overflow)
-            return base.ResolveContractConverter(objectType);
-        }
-    }
-
-    public class ItemConverter : JsonConverter
-    {
-        static JsonSerializerSettings SpecifiedSubclassConversion = new JsonSerializerSettings() { ContractResolver = new BaseSpecifiedConcreteClassConverter() };
-
-        public override bool CanConvert(Type objectType) => objectType == typeof(Item);
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.TokenType == JsonToken.Null)
-                return null;
-
-            JObject jo = JObject.Load(reader);
-
-            var type = Stuff.GetType(jo["I"].Value<string>());
-
-            if (type == null)
-                return null;
-
-            return JsonConvert.DeserializeObject(jo.ToString(), type, SpecifiedSubclassConversion);
-        }
-
-        public override bool CanWrite => false;
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) { }
     }
 }

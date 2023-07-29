@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.EntitiesData.Vehicles
+﻿namespace BlaineRP.Server.Game.Management.Audio
 {
     public enum RadioStationTypes : byte
     {

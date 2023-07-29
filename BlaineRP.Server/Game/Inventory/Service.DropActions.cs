@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Inventory
 {
@@ -184,7 +184,7 @@ namespace BlaineRP.Server.Game.Inventory
                     if (item == null)
                         return null;
 
-                    if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
+                    if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
                         return null;
 
                     player.InventoryUpdate(GroupTypes.Clothes, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Clothes));
@@ -214,7 +214,7 @@ namespace BlaineRP.Server.Game.Inventory
                     if (item == null)
                         return null;
 
-                    if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
+                    if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
                         return null;
 
                     player.InventoryUpdate(GroupTypes.Accessories, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Accessories));

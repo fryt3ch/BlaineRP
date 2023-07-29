@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.Management.Phone
+﻿namespace BlaineRP.Server.Game.Phone
 {
     public partial class SMS
     {

@@ -1,4 +1,4 @@
-﻿namespace BlaineRP.Server.Game.Management.Achievements
+﻿namespace BlaineRP.Server.Game.Achievements
 {
     public enum AchievementType
     {

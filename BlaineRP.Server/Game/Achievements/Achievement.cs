@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Gifts;
-using BlaineRP.Server.Game.Items;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.Game.Management.Achievements
+namespace BlaineRP.Server.Game.Achievements
 {
     public partial class Achievement
     {

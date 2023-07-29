@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RAGE;
 
-namespace BlaineRP.Client.Game.Management.DoorSystem
+namespace BlaineRP.Client.Game.DoorSystem
 {
     [Script(int.MaxValue)]
     public class Service

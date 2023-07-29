@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Inventory
 {
@@ -526,7 +526,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
@@ -575,7 +575,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
@@ -1243,7 +1243,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
@@ -1295,7 +1295,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
@@ -2202,7 +2202,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
@@ -2255,7 +2255,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
@@ -2312,7 +2312,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Properties.Settings.Static.MAX_INVENTORY_WEIGHT)
@@ -2365,7 +2365,7 @@ namespace BlaineRP.Server.Game.Inventory
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return ResultTypes.Error;
 
-                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                            if (EntitiesData.Players.Customization.Clothes.Uniforms.Service.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return ResultTypes.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;

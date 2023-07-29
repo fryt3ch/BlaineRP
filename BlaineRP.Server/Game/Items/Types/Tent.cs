@@ -1,31 +1,24 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Tent : PlaceableItem
+    public partial class Tent : PlaceableItem
     {
-        new public class ItemData : PlaceableItem.ItemData
+        public new class ItemData : PlaceableItem.ItemData
         {
             public override string ClientData => $"\"{Name}\", {Weight}f, {Model}";
 
-            public ItemData(string Name, float Weight, string Model) : base(Name, Weight, Model)
+            public ItemData(string name, float weight, string model) : base(name, weight, model)
             {
 
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "tent_0", new ItemData("Палатка (серая)", 2f, "brp_p_tent_0_grey") },
-            { "tent_1", new ItemData("Палатка (синяя)", 2f, "brp_p_tent_0_blue") },
-            { "tent_2", new ItemData("Палатка (жёлтая)", 2f, "brp_p_tent_0_yellow") },
-        };
-
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         public override void Delete()
         {
@@ -46,7 +39,7 @@ namespace BlaineRP.Server.Game.Items
             return true;
         }
 
-        public Tent(string ID) : base(ID, IDList[ID], typeof(Tent))
+        public Tent(string id) : base(id, IdList[id], typeof(Tent))
         {
 
         }

@@ -2,10 +2,18 @@
 using GTANetworkAPI;
 using Newtonsoft.Json;
 
-namespace BlaineRP.Server.EntitiesData.Players
+namespace BlaineRP.Server.Game.EntitiesData.Players
 {
-    public partial class MedicalCard
+    public class MedicalCard
     {
+        public enum DiagnoseTypes
+        {
+            Healthy = 0,
+            DrugAddicted1,
+            DrugAddicted2,
+            DrugAddicted3,
+        }
+        
         [JsonProperty(PropertyName = "I")]
         public DateTime IssueDate { get; set; }
 

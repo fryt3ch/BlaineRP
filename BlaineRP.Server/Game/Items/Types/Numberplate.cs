@@ -2,42 +2,32 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using BlaineRP.Server.EntitiesData.Vehicles;
+using BlaineRP.Server.Game.EntitiesData.Vehicles;
 using BlaineRP.Server.UtilsT;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Numberplate : Item, ITaggedFull
+    public partial class Numberplate : Item, ITaggedFull
     {
         public static HashSet<string>[] UsedTags { get; private set; } = new HashSet<string>[]
         {
             new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(),
         };
 
-        new public class ItemData : Item.ItemData
+        public new class ItemData : Item.ItemData
         {
             public int Variation { get; set; }
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Variation}";
 
-            public ItemData(string Name, string Model, int Number) : base(Name, 0.15f, Model)
+            public ItemData(string name, string model, int number) : base(name, 0.15f, model)
             {
-                this.Variation = Number;
+                Variation = number;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "np_0", new ItemData("Номерной знак", "p_num_plate_01", 0) },
-            { "np_1", new ItemData("Номерной знак", "p_num_plate_04", 1) },
-            { "np_2", new ItemData("Номерной знак", "p_num_plate_02", 2) },
-            { "np_3", new ItemData("Номерной знак", "p_num_plate_02", 3) },
-            { "np_4", new ItemData("Номерной знак", "p_num_plate_01", 4) },
-            { "np_5", new ItemData("Номерной знак", "p_num_plate_01", 5) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+        public new ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         public string Tag { get; set; }
 
@@ -57,7 +47,7 @@ namespace BlaineRP.Server.Game.Items
             veh.NumberPlate = "";
         }
 
-        private static char[] Chars = new char[]
+        private static char[] _chars = new char[]
         {
             'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z', 'X', 'C', 'V', 'B', 'N', 'M',
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
@@ -74,13 +64,13 @@ namespace BlaineRP.Server.Game.Items
 
             var hashSet = UsedTags[length - 1];
 
-            if (hashSet.Count >= Math.Pow(Chars.Length, length))
+            if (hashSet.Count >= Math.Pow(_chars.Length, length))
                 return null;
 
             while (true)
             {
                 for (int i = 0; i < length; i++)
-                    strBuilder.Append(Chars[SRandom.NextInt32(0, Chars.Length)]);
+                    strBuilder.Append(_chars[SRandom.NextInt32(0, _chars.Length)]);
 
                 var retStr = strBuilder.ToString();
 
@@ -109,7 +99,7 @@ namespace BlaineRP.Server.Game.Items
             UsedTags[Tag.Length - 1].Add(Tag);
         }
 
-        public Numberplate(string ID) : base(ID, IDList[ID], typeof(Numberplate))
+        public Numberplate(string id) : base(id, IdList[id], typeof(Numberplate))
         {
 
         }

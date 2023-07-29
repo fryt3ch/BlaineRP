@@ -1,9 +1,8 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Management.Chat;
-using BlaineRP.Server.Sync;
 using BlaineRP.Server.UtilsT;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.HeadsOrTails)]
     internal class HeadsOrTails : OfferBase
@@ -24,11 +23,11 @@ namespace BlaineRP.Server.Game.Management.Offers
             if (!sPlayer.IsNearToEntity(tPlayer, Properties.Settings.Static.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            Chat.Service.SendLocal(MessageType.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
+            Management.Chat.Service.SendLocal(MessageType.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
 
             var res = SRandom.NextInt32(0, 2) == 0;
 
-            Chat.Service.SendLocal(MessageType.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
+            Management.Chat.Service.SendLocal(MessageType.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
         }
 
         public override void OnCancel(PlayerData pData, PlayerData tData, Offer offer)

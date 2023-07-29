@@ -1,33 +1,29 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Inventory;
 
 namespace BlaineRP.Server.Game.Items
 {
-    public class Parachute : Item, IUsable
+    public partial class Parachute : Item, IUsable
     {
-        new public class ItemData : Item.ItemData
+        public new class ItemData : Item.ItemData
         {
             public override string ClientData => $"\"{Name}\", {Weight}f";
 
-            public ItemData(string Name, string Model, float Weight) : base(Name, Weight, Model)
+            public ItemData(string name, string model, float weight) : base(name, weight, model)
             {
 
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "parachute_0", new ItemData("Парашют", "p_parachute_s_shop", 0.35f) },
-        };
-
         [JsonIgnore]
-        new public ItemData Data => (ItemData)base.Data;
+        public new ItemData Data => (ItemData)base.Data;
 
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public bool StartUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
                 return false;
@@ -46,13 +42,13 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group));
             }
 
             return true;
         }
 
-        public bool StopUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
                 return false;
@@ -67,7 +63,7 @@ namespace BlaineRP.Server.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, ToClientJson(group));
             }
 
             return true;
@@ -101,7 +97,7 @@ namespace BlaineRP.Server.Game.Items
                 pData.Player.SetClothes(5, 0, 0);
         }
 
-        public Parachute(string ID) : base(ID, IDList[ID], typeof(Parachute))
+        public Parachute(string id) : base(id, IdList[id], typeof(Parachute))
         {
 
         }

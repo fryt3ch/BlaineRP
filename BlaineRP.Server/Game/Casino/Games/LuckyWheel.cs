@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BlaineRP.Server.EntitiesData.Players;
-using BlaineRP.Server.Game.Management.Animations;
+using BlaineRP.Server.Game.Animations;
+using BlaineRP.Server.Game.EntitiesData.Players;
+using BlaineRP.Server.Game.Gifts;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -37,15 +38,15 @@ namespace BlaineRP.Server.Game.Casino.Games
 
             List<ZoneTypes> zones = null;
 
-            if (itemPrototype.Type == Items.Gift.Types.Money)
+            if (itemPrototype.Type == GiftTypes.Money)
             {
                 zones = zoneTypesList.Where(x => x.ToString().StartsWith("Cash")).ToList();
             }
-            else if (itemPrototype.Type == Items.Gift.Types.CasinoChips)
+            else if (itemPrototype.Type == GiftTypes.CasinoChips)
             {
                 zones = zoneTypesList.Where(x => x.ToString().StartsWith("Chips")).ToList();
             }
-            else if (itemPrototype.Type == Items.Gift.Types.Vehicle)
+            else if (itemPrototype.Type == GiftTypes.Vehicle)
             {
                 zones = zoneTypesList.Where(x => x.ToString().StartsWith("Vehicle")).ToList();
             }
@@ -77,7 +78,7 @@ namespace BlaineRP.Server.Game.Casino.Games
                         return;
                     }
 
-                    Items.Gift.Give(pInfo, itemPrototype, true);
+                    Gift.Give(pInfo, itemPrototype, true);
 
                     CurrentCID = 0;
                 });

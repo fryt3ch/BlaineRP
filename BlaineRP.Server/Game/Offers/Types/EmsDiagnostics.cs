@@ -1,7 +1,7 @@
-﻿using BlaineRP.Server.EntitiesData.Players;
+﻿using BlaineRP.Server.Game.EntitiesData.Players;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.EmsDiagnostics)]
     internal class EmsDiagnostics : OfferBase

@@ -1,10 +1,9 @@
 ﻿using System;
-using BlaineRP.Server.EntitiesData.Players;
+using BlaineRP.Server.Game.EntitiesData.Players;
 using BlaineRP.Server.Game.Inventory;
-using BlaineRP.Server.Game.Items;
 using Newtonsoft.Json.Linq;
 
-namespace BlaineRP.Server.Game.Management.Offers
+namespace BlaineRP.Server.Game.Offers
 {
     [Offer(OfferType.GiveHealingItem)]
     internal class GiveHealingItem : OfferBase

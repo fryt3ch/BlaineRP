@@ -1,7 +1,7 @@
 ﻿using System;
 using RAGE.Elements;
 
-namespace BlaineRP.Client.Game.Management.Animations
+namespace BlaineRP.Client.Game.Animations
 {
     /// <summary>Класс анимации</summary>
     public class Animation

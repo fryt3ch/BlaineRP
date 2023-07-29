@@ -4,10 +4,11 @@ using System.Linq;
 using BlaineRP.Client.Extensions.RAGE.Elements;
 using BlaineRP.Client.Extensions.RAGE.Ui;
 using BlaineRP.Client.Extensions.System;
+using BlaineRP.Client.Game.Animations;
 using BlaineRP.Client.Game.Casino;
 using BlaineRP.Client.Game.Casino.Games;
 using BlaineRP.Client.Game.EntitiesData;
-using BlaineRP.Client.Game.Management.Animations;
+using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Utils;
 using RAGE;
 using RAGE.Elements;
@@ -296,12 +297,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             SlotMachine.CurrentMachine = slotMachine;
 
-            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 0, null, null, null);
+            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 0, null, null, null);
 
-            Management.Camera.Core.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.5f);
-            Management.Camera.Core.PointAtPos(RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, 0f, 0.04f, 1.1f));
+            Management.Camera.Service.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.5f);
+            Management.Camera.Service.PointAtPos(RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, 0f, 0.04f, 1.1f));
 
-            Management.Camera.Core.Fov = 50;
+            Management.Camera.Service.Fov = 50;
 
             Player.LocalPlayer.SetVisible(false, false);
 
@@ -360,9 +361,9 @@ namespace BlaineRP.Client.Game.UI.CEF
 
                 if (actAnim != null)
                 {
-                    Core.Stop(Player.LocalPlayer);
+                    Service.Stop(Player.LocalPlayer);
 
-                    Core.Play(Player.LocalPlayer, actAnim);
+                    Service.Play(Player.LocalPlayer, actAnim);
                 }
             }
 
@@ -370,12 +371,12 @@ namespace BlaineRP.Client.Game.UI.CEF
 
             Player.LocalPlayer.SetVisible(false, false);
 
-            Management.Camera.Core.Enable(Management.Camera.Core.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 750, null, null, null);
+            Management.Camera.Service.Enable(Management.Camera.Service.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 750, null, null, null);
 
-            Management.Camera.Core.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.75f);
+            Management.Camera.Service.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.75f);
             //Additional.Camera.PointAtPos(blackJack.TableObject.GetOffsetFromInWorldCoords(-0.2246f, 0.21305f, 0.957f));
-            Management.Camera.Core.PointAtPos(blackJack.NPC.Ped.GetOffsetFromInWorldCoords(0.25f, 0.35f, -0.15f));
-            Management.Camera.Core.Fov = 70;
+            Management.Camera.Service.PointAtPos(blackJack.NPC.Ped.GetOffsetFromInWorldCoords(0.25f, 0.35f, -0.15f));
+            Management.Camera.Service.Fov = 70;
 
             blackJack.StartGame(seatIdx);
 
@@ -468,7 +469,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                 }
 
-                Management.Camera.Core.Disable(0);
+                Management.Camera.Service.Disable(0);
 
                 Player.LocalPlayer.SetVisible(true, true);
 
@@ -505,7 +506,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                 {
                 }
 
-                Management.Camera.Core.Disable(750);
+                Management.Camera.Service.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, true);
 

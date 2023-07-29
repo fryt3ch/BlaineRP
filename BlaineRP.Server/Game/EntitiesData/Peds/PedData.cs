@@ -5,7 +5,7 @@ using BlaineRP.Server.Game.Attachments;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
-namespace BlaineRP.Server.EntitiesData.Peds
+namespace BlaineRP.Server.Game.EntitiesData.Peds
 {
     public class PedData
     {

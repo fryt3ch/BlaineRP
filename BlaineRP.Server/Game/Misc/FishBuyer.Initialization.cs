@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using BlaineRP.Server.Game.NPCs;
 using BlaineRP.Server.UtilsT;
 using GTANetworkAPI;
 
@@ -14,7 +15,7 @@ namespace BlaineRP.Server.Game.Misc
 
             var pos1 = new Vector4(-55.288f, 1897.339f, 195.3613f, 68.66809f);
 
-            Events.NPC.NPC.AddNpc("fishbuyer_0", new Vector3(pos1.X, pos1.Y, pos1.Z));
+            Service.AddNpc("fishbuyer_0", new Vector3(pos1.X, pos1.Y, pos1.Z));
 
             All = new List<FishBuyer>()
             {
