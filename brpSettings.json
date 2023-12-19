@@ -1,0 +1,35 @@
+{
+    "general": {
+        "cultureInfo": "ru-RU",
+        "serverId": "brp-server-1",
+        "playerMaxLoginAttempts": 4,
+        "playerAuthTimeoutTime": "00:10:00",
+        "timeUtcOffset": "03:00:00"
+    },
+    "game": {
+        "streamDistance": 300.0,
+        "playerPrivateDimensionBaseOffset": 1000,
+        "houseDimensionBaseOffset": 10000,
+        "apartmentsDimensionBaseOffset": 20000,
+        "apartmentsRootDimensionBaseOffset": 30000,
+        "garageDimensionBaseOffset": 50000,
+        "CIDBaseOffset": 3000,
+        "VIDBaseOffset": 100000,
+        "knockedDropWeaponsEnabled": true,
+        "knockedDropAmmoMaxAmount": 250,
+        "knockedDropAmmoTotalPercentage": 0.5,
+        "payDayMinimalSessionTimeToReceive": "00:10:00",
+        "inventoryMaxWeight": 15.0
+    },
+    "dataBase": {
+        "ownDbHost": "localhost",
+        "ownDbUser": "root",
+        "ownDbPassword": "root",
+        "ownDbName": "blainerp_server_1"
+    },
+    "web": {
+        "socketIOHost": "http://localhost:7777",
+        "socketIOUser": "brp-server-1",
+        "socketIOPassword": "63c209c3-3505-443a-b234-91e3046e2894"
+    }
+}
