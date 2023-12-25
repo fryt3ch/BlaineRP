@@ -718,7 +718,7 @@ namespace BlaineRP.Server.Game.Estates
                     lines.Add($"new Furniture(\"{x.Key}\", Types.{x.Value.Type}, \"{x.Value.Name}\", {x.Value.Model});");
                 }
 
-                Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Houses\Furniture.cs",
+                Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Estates\Furniture.Initialization.cs",
                     "TO_REPLACE_FURN_LIST",
                     lines
                 );

@@ -6,7 +6,7 @@ namespace BlaineRP.Server.Game.Items
 {
     public partial class WeaponSkin
     {
-        internal class RemoteEvents
+        internal class RemoteEvents : Script
         {
             [RemoteProc("WSkins::Rm")]
             private static bool WeaponSkinsRemove(Player player, int wSkinTypeNum)

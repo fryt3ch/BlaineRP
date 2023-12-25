@@ -6,7 +6,7 @@ namespace BlaineRP.Server.Game.Items
 {
     public partial class Parachute
     {
-        internal class RemoteEvents
+        internal class RemoteEvents : Script
         {
             [RemoteEvent("Player::ParachuteS")]
             private static void ParachuteState(Player player, bool state)

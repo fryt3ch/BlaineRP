@@ -7,7 +7,7 @@ using GTANetworkAPI;
 
 namespace BlaineRP.Server.Game.EntitiesData.Players
 {
-    internal partial class RemoteEvents
+    internal partial class RemoteEvents : Script
     {
         [RemoteEvent("Players::OnDeath")]
         private static void OnPlayerDeath(Player player, Player attacker)

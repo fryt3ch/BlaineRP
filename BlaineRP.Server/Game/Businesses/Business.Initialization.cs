@@ -32,7 +32,7 @@ namespace BlaineRP.Server.Game.Businesses
 
             foreach (var x in Shop.AllPrices)
             {
-                lines.Add($"Prices.Add(Types.{x.Key}, new Dictionary<string, uint>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
+                lines.Add($"Prices.Add(Game.Businesses.BusinessType.{x.Key}, new Dictionary<string, uint>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
             }
 
             Utils.FillFileToReplaceRegion(Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\UI\CEF\Shop.cs", "TO_REPLACE", lines);

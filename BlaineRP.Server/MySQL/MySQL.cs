@@ -177,7 +177,7 @@ namespace BlaineRP.Server
         public static bool InitConnection()
         {
             MySqlConnection localConnection = new MySqlConnection(_localConnectionCredentials.ConnectionString);
-
+            
             _localConnectionSemaphore = new SemaphoreSlim(1, 1);
 
             try
@@ -1179,7 +1179,7 @@ namespace BlaineRP.Server
             {
                 var updCmd = new MySqlCommand();
 
-                updCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({CreateParametersSubstringIN("@ID", notUsedItems.Count)});";
+                updCmd.CommandText = $"DELETE FROM items WHERE ID IN ({CreateParametersSubstringIN("@ID", notUsedItems.Count)});";
 
                 int counter = 0;
 
@@ -1253,7 +1253,7 @@ namespace BlaineRP.Server
             {
                 var apbUpdCmd = new MySqlCommand();
 
-                apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({CreateParametersSubstringIN("@ID", apbsToDel.Count)});";
+                apbUpdCmd.CommandText = $"DELETE FROM items WHERE ID IN ({CreateParametersSubstringIN("@ID", apbsToDel.Count)});";
 
                 int counter = 0;
 

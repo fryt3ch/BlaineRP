@@ -56,7 +56,7 @@ namespace BlaineRP.Server.Web.SocketIO.Methods
             }
             else
             {
-                var errorMsg = (string)data.GetValue("error");
+                var errorMsg = data.GetValue("error").ToString();
 
                 throw new Web.SocketIO.Exceptions.SocketIOResultException(result, resp, errorMsg);
             }

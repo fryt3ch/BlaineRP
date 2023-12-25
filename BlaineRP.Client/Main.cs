@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using BlaineRP.Client.Extensions.RAGE.Elements;
-using BlaineRP.Client.Game.EntitiesData;
 using BlaineRP.Client.Game.EntitiesData.Players;
 using BlaineRP.Client.Game.Helpers;
 using BlaineRP.Client.Game.Helpers.Blips;

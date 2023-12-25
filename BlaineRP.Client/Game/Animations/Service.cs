@@ -38,6 +38,8 @@ namespace BlaineRP.Client.Game.Animations
 
                     if (player == Player.LocalPlayer)
                     {
+                        Play(player, data, (int)timeout.TotalMilliseconds);
+
                         var pData = PlayerData.GetData(player);
 
                         if (pData != null)
@@ -63,8 +65,10 @@ namespace BlaineRP.Client.Game.Animations
 
                         AsyncTask.Methods.SetAsPending(task, "LPFATT");
                     }
-
-                    Play(player, data, (int)timeout.TotalMilliseconds);
+                    else
+                    {
+                        Play(player, data, (int)timeout.TotalMilliseconds);
+                    }
                 }
             );
 

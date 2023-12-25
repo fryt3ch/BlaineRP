@@ -5,7 +5,7 @@ namespace BlaineRP.Server.Game.Items
 {
     public partial interface IUsable
     {
-        internal class RemoteEvents
+        internal class RemoteEvents : Script
         {
             [RemoteEvent("Player::SUCI")]
             private static void StopUseCurrentItem(Player player)

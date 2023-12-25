@@ -135,6 +135,9 @@ namespace BlaineRP.Client.Game.Management
             if (!EnabledVisual)
                 return;
 
+            if (CurrentEntity == Player.LocalPlayer.Vehicle)
+                return;
+
             Graphics.DrawText(Input.Core.Get(BindTypes.Interaction).GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
         }
 

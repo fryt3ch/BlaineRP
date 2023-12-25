@@ -745,7 +745,7 @@ namespace BlaineRP.Server.Game.Items
 
             foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Item).IsAssignableFrom(t)))
             {
-                var idList = (Dictionary<string, Item.ItemData>)x.GetField("IDList")?.GetValue(null);
+                var idList = (Dictionary<string, Item.ItemData>)x.GetField("IdList")?.GetValue(null);
 
                 if (idList == null)
                     continue;

@@ -143,6 +143,9 @@ namespace BlaineRP.Client.Utils
                 if (!PendingTasksDict.TryAdd(key, asyncTask))
                     PendingTasksDict[key] = asyncTask;
 
+
+                Utils.Console.Output($"Start {key}");
+
                 asyncTask.Run();
             }
 
@@ -150,6 +153,8 @@ namespace BlaineRP.Client.Utils
             {
                 if (!PendingTasksDict.Remove(key, out AsyncTask aTask))
                     return false;
+
+                Utils.Console.Output($"Cancel {key}");
 
                 aTask.Cancel();
 

@@ -84,6 +84,9 @@ namespace BlaineRP.Client.Utils.Game
 
         public static MapObject GetMapObjectByHandle(int handle, bool streamedOnly)
         {
+            return Entities.Objects.All.Where(x => x.Handle == handle).FirstOrDefault();
+
+            // doesn't work anymore, ragemp bug?
             return (streamedOnly ? Entities.Objects.Streamed : Entities.Objects.All).Where(x => x.Handle == handle).FirstOrDefault();
         }
 

@@ -155,7 +155,7 @@ namespace BlaineRP.Server.Game.Casino
                 }
             }
 
-            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Casino\Casino.Initialization.cs",
+            Utils.FillFileToReplaceRegion(System.IO.Directory.GetCurrentDirectory() + Properties.Settings.Static.ClientScriptsTargetPath + @"\Game\Casino\CasinoEntity.Initialization.cs",
                 "TO_REPLACE",
                 lines
             );

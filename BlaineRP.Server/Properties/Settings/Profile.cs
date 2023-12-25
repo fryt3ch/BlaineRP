@@ -115,10 +115,10 @@ namespace BlaineRP.Server.Properties.Settings
             public string OwnDbUser { get; private set; } = "root";
 
             [JsonProperty(PropertyName = "ownDbPassword")]
-            public string OwnDbPassword { get; private set; } = "";
+            public string OwnDbPassword { get; private set; } = "root";
 
             [JsonProperty(PropertyName = "ownDbName")]
-            public string OwnDbName { get; private set; } = "bcrp-1";
+            public string OwnDbName { get; private set; } = "blainerp_server_1";
         }
 
         [SettingsSection]

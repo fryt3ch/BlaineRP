@@ -6,7 +6,7 @@ namespace BlaineRP.Server.Game.Items
 {
     public partial class Weapon
     {
-        internal class RemoteEvents
+        internal class RemoteEvents : Script
         {
             [RemoteEvent("Weapon::Reload")]
             public static void WeaponReload(Player player)

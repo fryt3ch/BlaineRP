@@ -1,0 +1,18 @@
+{
+  "name": "appsample",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Learning Node",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.5.1",
+    "socket.io": "^4.7.1"
+  },
+  "author": "Chikeluba Anusionwu",
+  "license": "ISC"
+}

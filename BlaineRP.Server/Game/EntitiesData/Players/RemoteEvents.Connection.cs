@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 namespace BlaineRP.Server.Game.EntitiesData.Players
 {
-    internal partial class RemoteEvents
+    internal partial class RemoteEvents : Script
     {
         [ServerEvent(Event.IncomingConnection)]
         private static void OnIncomingConnection(string ip, string serial, string rgscName, ulong rgscId, GameTypes gameType, CancelEventArgs cancel)

@@ -140,7 +140,14 @@ namespace BlaineRP.Server.Events.Players
 
             if (isPasswordToken)
             {
-                password = DecryptToken(password, hwid.ToString());
+                try
+                {
+                    password = DecryptToken(password, hwid.ToString());
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
             else
             {

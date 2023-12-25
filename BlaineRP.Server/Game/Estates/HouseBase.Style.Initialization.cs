@@ -20,7 +20,7 @@ namespace BlaineRP.Server.Game.Estates
                 new Style(Type: 0,
                     Position: new Vector3(-951.7298f, 3439.978f, -179f),
                     Heading: 271.0717f,
-                    InteriorPosition: new Vector4(-950f, 3440f, -180f, 10.3465f),
+                    InteriorPosition: new Vector4(-950f, 3440f, -180f, 12.3465f), // codewalker assumes it's 10.3465f but it's not
                     Doors: new DoorInfo[]
                     {
                         new DoorInfo("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),

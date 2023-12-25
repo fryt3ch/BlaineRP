@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
+
 using BlaineRP.Client.Extensions.RAGE;
 using BlaineRP.Client.Game.Management.Camera;
 using RAGE;
 using RAGE.Elements;
+using RAGE.Util;
 
 namespace BlaineRP.Client.Utils.Game
 {
@@ -157,7 +160,9 @@ namespace BlaineRP.Client.Utils.Game
             Vector3 screenCenterCoord = headCoord.MinimizeDistance(Graphics.GetWorldCoordFromScreenCoord(0.5f, 0.5f), distance);
 
             if (Settings.User.Other.RaytraceEnabled)
+            {
                 RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
+            }
 
             return GetEntityByRaycast(headCoord, screenCenterCoord, ped.Handle, 31);
         }
