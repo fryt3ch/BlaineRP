@@ -1,0 +1,2 @@
+When major GTA5 update happens - gameconfig.xml update might be needed in order to keep all custom DLCs alive
+The updated ones can be found here https://www.gta5-mods.com/misc/gta-5-gameconfig-300-cars
