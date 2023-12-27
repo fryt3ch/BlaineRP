@@ -209,139 +209,152 @@ namespace BlaineRP.Server.Game.EntitiesData.Vehicles
             }
             else
             {
-                if (OwnerType == OwnerTypes.Player)
+                switch (OwnerType)
                 {
-                    if (IsDead)
-                    {
-                        Info.IsOnVehiclePound = true;
-                    }
-                    else
-                    {
-                        if (LastData.GarageSlot < 0)
+                    case OwnerTypes.Player:
                         {
-                            LastData.Position = Vehicle.Position;
-                            LastData.Heading = Vehicle.Heading;
-                            LastData.Dimension = Vehicle.Dimension;
+                            if (IsDead)
+                            {
+                                Info.IsOnVehiclePound = true;
+                            }
+                            else
+                            {
+                                if (LastData.GarageSlot < 0)
+                                {
+                                    LastData.Position = Vehicle.Position;
+                                    LastData.Heading = Vehicle.Heading;
+                                    LastData.Dimension = Vehicle.Dimension;
+                                }
+                            }
+
+                            Remove(this);
+
+                            MySQL.VehicleDeletionUpdate(Info);
+
+                            Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
                         }
-                    }
+                        break;
 
-                    Remove(this);
-
-                    MySQL.VehicleDeletionUpdate(Info);
-
-                    Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
-                }
-                else if (OwnerType == OwnerTypes.PlayerRent)
-                {
-                    var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
-
-                    OwnerID = 0;
-
-                    if (owner != null)
-                    {
-                        if (owner.PlayerData != null)
+                    case OwnerTypes.PlayerRent:
                         {
-                            owner.PlayerData.RemoveRentedVehicle(this);
+                            var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
+
+                            OwnerID = 0;
+
+                            if (owner != null)
+                            {
+                                if (owner.PlayerData != null)
+                                {
+                                    owner.PlayerData.RemoveRentedVehicle(this);
+                                }
+                            }
+
+                            if (LastData.GarageSlot == int.MinValue)
+                            {
+                                Remove(this);
+                            }
+                            else
+                            {
+                                var numberplate = Vehicle.NumberPlate;
+                                var numberplateStyle = Vehicle.NumberPlateStyle;
+
+                                Remove(this);
+
+                                var data = Data;
+
+                                Info.LastData.Fuel = data.Tank;
+
+                                var vData = Info.Spawn();
+
+                                if (vData != null)
+                                {
+                                    vData.Vehicle.NumberPlate = numberplate;
+                                    vData.Vehicle.NumberPlateStyle = numberplateStyle;
+                                }
+                            }
                         }
-                    }
+                        break;
 
-                    if (LastData.GarageSlot == int.MinValue)
-                    {
-                        Remove(this);
-                    }
-                    else
-                    {
-                        var numberplate = Vehicle.NumberPlate;
-                        var numberplateS = Vehicle.NumberPlateStyle;
-
-                        Remove(this);
-
-                        var data = Data;
-
-                        Info.LastData.Fuel = data.Tank;
-
-                        var vData = Info.Spawn();
-
-                        if (vData != null)
+                    case OwnerTypes.PlayerRentJob:
                         {
-                            vData.Vehicle.NumberPlate = numberplate;
-                            vData.Vehicle.NumberPlateStyle = numberplateS;
+                            var jobData = Job;
+
+                            var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
+
+                            OwnerID = 0;
+
+                            if (owner != null)
+                            {
+                                if (owner.PlayerData != null)
+                                {
+                                    owner.PlayerData.RemoveRentedVehicle(this);
+                                }
+                            }
+
+                            var numberplate = Vehicle.NumberPlate;
+                            var numberplateStyle = Vehicle.NumberPlateStyle;
+
+                            Remove(this);
+
+                            Info.LastData.Fuel = Data.Tank;
+
+                            var vData = Info.Spawn();
+
+                            if (vData != null)
+                            {
+                                vData.Job = jobData;
+
+                                vData.Vehicle.NumberPlate = numberplate;
+                                vData.Vehicle.NumberPlateStyle = numberplateStyle;
+                            }
+
+                            if (jobData is Game.Jobs.IVehicleRelated jobDataV)
+                            {
+                                jobDataV.OnVehicleRespawned(Info, owner);
+                            }
                         }
-                    }
-                }
-                else if (OwnerType == OwnerTypes.PlayerRentJob)
-                {
-                    var jobData = Job;
+                        break;
 
-                    var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
-
-                    OwnerID = 0;
-
-                    if (owner != null)
-                    {
-                        if (owner.PlayerData != null)
+                    case OwnerTypes.PlayerDrivingSchool:
                         {
-                            owner.PlayerData.RemoveRentedVehicle(this);
+                            var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
+
+                            OwnerID = 0;
+
+                            if (owner != null)
+                            {
+                                if (owner.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest quest)
+                                {
+                                    quest.Cancel(owner, false);
+
+                                    if (owner.PlayerData != null)
+                                        owner.PlayerData.Player.Notify("DriveS::PEF0");
+                                }
+                            }
+
+                            var numberplate = Vehicle.NumberPlate;
+                            var numberplateStyle = Vehicle.NumberPlateStyle;
+
+                            Remove(this);
+
+                            Info.LastData.Fuel = Data.Tank;
+
+                            var vData = Info.Spawn();
+
+                            if (vData != null)
+                            {
+                                vData.Vehicle.NumberPlate = numberplate;
+                                vData.Vehicle.NumberPlateStyle = numberplateStyle;
+                            }
                         }
-                    }
+                        break;
 
-                    var numberplate = Vehicle.NumberPlate;
-                    var numberplateS = Vehicle.NumberPlateStyle;
-
-                    Remove(this);
-
-                    Info.LastData.Fuel = Data.Tank;
-
-                    var vData = Info.Spawn();
-
-                    if (vData != null)
-                    {
-                        vData.Job = jobData;
-
-                        vData.Vehicle.NumberPlate = numberplate;
-                        vData.Vehicle.NumberPlateStyle = numberplateS;
-                    }
-
-                    if (jobData is Game.Jobs.IVehicleRelated jobDataV)
-                    {
-                        jobDataV.OnVehicleRespawned(Info, owner);
-                    }
-                }
-                else if (OwnerType == OwnerTypes.Fraction)
-                {
-                    Remove(this);
-                }
-                else if (OwnerType == OwnerTypes.PlayerDrivingSchool)
-                {
-                    var owner = OwnerID > 0 ? PlayerInfo.Get(OwnerID) : null;
-
-                    OwnerID = 0;
-
-                    if (owner != null)
-                    {
-                        if (owner.Quests.GetValueOrDefault(QuestType.DRSCHOOL0) is Quest quest)
+                    case OwnerTypes.Fraction:
+                    default:
                         {
-                            quest.Cancel(owner, false);
-
-                            if (owner.PlayerData != null)
-                                owner.PlayerData.Player.Notify("DriveS::PEF0");
+                            Remove(this);
                         }
-                    }
-
-                    var numberplate = Vehicle.NumberPlate;
-                    var numberplateS = Vehicle.NumberPlateStyle;
-
-                    Remove(this);
-
-                    Info.LastData.Fuel = Data.Tank;
-
-                    var vData = Info.Spawn();
-
-                    if (vData != null)
-                    {
-                        vData.Vehicle.NumberPlate = numberplate;
-                        vData.Vehicle.NumberPlateStyle = numberplateS;
-                    }
+                        break;
                 }
             }
         }

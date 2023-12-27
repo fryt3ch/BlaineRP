@@ -239,7 +239,6 @@ namespace BlaineRP.Client.Game.UI.CEF
                         {
                             "med_b_0",
                             "med_kit_0",
-                            "med_kit_1",
                         }
                     },
                     {
@@ -2989,6 +2988,7 @@ namespace BlaineRP.Client.Game.UI.CEF
                         sections.Select(x => x.Value.Select(y =>
                                 {
                                     Item.ItemData itemData = Items.Core.GetData(y);
+
                                     return new object[]
                                     {
                                         y,

@@ -37,7 +37,7 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                     //Utils.ConsoleOutput($"{RAGE.Util.Json.Serialize(curPos)}, {RAGE.Util.Json.Serialize(LastPosition)}");
                     Events.CallRemote("AC::Detect::TP", diff);
             }
-            else
+/*            else
             {
                 if ((LastTeleportWasGround ? curPos.DistanceIgnoreZ(LastAllowedPos) : Vector3.Distance(curPos, LastAllowedPos)) >= 50f)
                 {
@@ -45,7 +45,7 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
 
                     curPos = LastAllowedPos;
                 }
-            }
+            }*/
 
             LastPosition = curPos;
 

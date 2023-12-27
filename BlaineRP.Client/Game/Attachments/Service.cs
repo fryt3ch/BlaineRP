@@ -54,7 +54,7 @@ namespace BlaineRP.Client.Game.Attachments
 
         public static Dictionary<AttachmentType, AttachmentData> Attachments = new Dictionary<AttachmentType, AttachmentData>()
         {
-            { AttachmentType.PushVehicle, new AttachmentData(6286, new Vector3(0f, 0f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
+            { AttachmentType.PushVehicle, new AttachmentData(6286, new Vector3(0f, 0f, 0.35f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
             { AttachmentType.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
             { AttachmentType.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
             { AttachmentType.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
@@ -1484,7 +1484,7 @@ namespace BlaineRP.Client.Game.Attachments
                         if (attachmentNet.SyncData == "1")
                         {
                             positionBase.Y = max.Y;
-                            positionBase.Z = min.Z;
+                            //positionBase.Z = min.Z;
 
                             props.PositionOffset.Y = 0.35f;
                             props.Rotation.Z = 180f;
@@ -1492,7 +1492,7 @@ namespace BlaineRP.Client.Game.Attachments
                         else
                         {
                             positionBase.Y = min.Y;
-                            positionBase.Z = max.Z;
+                            //positionBase.Z = max.Z;
 
                             props.PositionOffset.Y = -0.6f;
                             props.Rotation.Z = 0f;

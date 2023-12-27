@@ -75,6 +75,8 @@ namespace BlaineRP.Client.Game.Management.Misc
 
         public static void FadeScreen(bool state, int speed, int inTime = -1)
         {
+            Utils.Console.Output(state);
+
             if (state)
             {
                 if (IsFadedOut)

@@ -193,9 +193,9 @@ namespace BlaineRP.Client.Game.Estates
 
                     void onStopTask()
                     {
-                        SkyCamera.FadeScreen(false, 500, -1);
+/*                        SkyCamera.FadeScreen(false, 500, -1);
 
-                        Main.DisableAllControls(false);
+                        Main.DisableAllControls(false);*/
                     }
 
                     task = new AsyncTask(async () =>
@@ -223,9 +223,9 @@ namespace BlaineRP.Client.Game.Estates
                             if (!AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                                 return;
 
-                            SkyCamera.FadeScreen(true, 0, -1);
+/*                            SkyCamera.FadeScreen(true, 0, -1);
 
-                            Main.DisableAllControls(true);
+                            Main.DisableAllControls(true);*/
 
                             int interior = RAGE.Game.Interior.GetInteriorAtCoords(style.InteriorPosition.X, style.InteriorPosition.Y, style.InteriorPosition.Z);
 
@@ -235,6 +235,60 @@ namespace BlaineRP.Client.Game.Estates
 
                                 return;
                             }
+
+                            var exitCs = new Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue);
+
+                            exitCs.InteractionType = InteractionTypes.HouseExit;
+
+                            TempColshapes.Add(exitCs);
+
+                            if (house is House rHouse)
+                            {
+                                if (rHouse.GarageType is Garage.Types grType)
+                                {
+                                    var gData = Garage.Style.Get(grType, 0);
+
+                                    var gExitCs = new Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f),
+                                        1f,
+                                        2f,
+                                        false,
+                                        Utils.Misc.RedColor,
+                                        uint.MaxValue,
+                                        null
+                                    )
+                                    {
+                                        InteractionType = InteractionTypes.GarageExit,
+                                    };
+
+                                    TempColshapes.Add(gExitCs);
+                                }
+
+                                HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_House);
+                            }
+                            else if (house is Apartments rApartments)
+                            {
+                                HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_Apartments);
+                            }
+
+                            TempBlips.Add(new ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
+
+                            Player.LocalPlayer.SetData("House::CurrentHouse::WI", (uint)data["WI"]);
+                            Player.LocalPlayer.SetData("House::CurrentHouse::LI", (uint)data["LI"]);
+                            Player.LocalPlayer.SetData("House::CurrentHouse::FI", (uint)data["FI"]);
+
+                            foreach (JObject x in RAGE.Util.Json.Deserialize<List<JObject>>((string)data["F"]))
+                            {
+                                var fData = Estates.Furniture.GetData((string)x["I"]);
+                                var fUid = (uint)x["U"];
+
+                                Vector4 fProps = x["D"].ToObject<Vector4>();
+
+                                CreateObject(fUid, fData, fProps);
+                            }
+
+                            Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
+
+                            Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
                             while (!RAGE.Game.Interior.IsInteriorReady(interior) && AsyncTask.Methods.IsTaskStillPending(taskKey, task))
                             {
@@ -254,24 +308,6 @@ namespace BlaineRP.Client.Game.Estates
                                 return;
 
                             Scripts.Sync.Players.CloseAll(false);
-
-                            Player.LocalPlayer.SetData("House::CurrentHouse::WI", (uint)data["WI"]);
-                            Player.LocalPlayer.SetData("House::CurrentHouse::LI", (uint)data["LI"]);
-                            Player.LocalPlayer.SetData("House::CurrentHouse::FI", (uint)data["FI"]);
-
-                            foreach (JObject x in RAGE.Util.Json.Deserialize<List<JObject>>((string)data["F"]))
-                            {
-                                var fData = Estates.Furniture.GetData((string)x["I"]);
-                                var fUid = (uint)x["U"];
-
-                                Vector4 fProps = x["D"].ToObject<Vector4>();
-
-                                CreateObject(fUid, fData, fProps);
-                            }
-
-                            Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
-
-                            Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
                             string doorLockedStr = Locale.Get("HOUSE_DOOR_LOCKED_L");
                             string doorNotLockedStr = Locale.Get("HOUSE_DOOR_NOTLOCKED_L");
@@ -412,47 +448,9 @@ namespace BlaineRP.Client.Game.Estates
                                 }
                             }
 
-                            var exitCs = new Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.Misc.RedColor, uint.MaxValue);
-
-                            exitCs.InteractionType = InteractionTypes.HouseExit;
-
-                            TempColshapes.Add(exitCs);
-
-                            if (house is House rHouse)
-                            {
-                                if (rHouse.GarageType is Garage.Types grType)
-                                {
-                                    var gData = Garage.Style.Get(grType, 0);
-
-                                    var gExitCs = new Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f),
-                                        1f,
-                                        2f,
-                                        false,
-                                        Utils.Misc.RedColor,
-                                        uint.MaxValue,
-                                        null
-                                    )
-                                    {
-                                        InteractionType = InteractionTypes.GarageExit,
-                                    };
-
-                                    TempColshapes.Add(gExitCs);
-                                }
-
-                                HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_House);
-                            }
-                            else if (house is Apartments rApartments)
-                            {
-                                HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu_Apartments);
-                            }
-
-                            TempBlips.Add(new ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
-
                             AsyncTask.Methods.CancelPendingTask(taskKey);
 
-                            Main.DisableAllControls(false);
-
-                            SkyCamera.FadeScreen(false, 500, -1);
+                            onStopTask();
                         },
                         0,
                         false,

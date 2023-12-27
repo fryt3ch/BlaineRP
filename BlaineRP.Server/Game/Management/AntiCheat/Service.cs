@@ -66,32 +66,29 @@ namespace BlaineRP.Server.Game.Management.AntiCheat
                 if (dimension is uint dim)
                     veh.Dimension = dim;
 
-                var wasDriver = false;
+                Player driver = null;
 
                 veh.Occupants.ForEach(x =>
                 {
                     if (x is Player player)
                     {
-                        if (!wasDriver && player.VehicleSeat == 0)
+                        if (driver == null && player.VehicleSeat == 0)
                         {
                             TeleportPlayers(pos, toGround, dimension, heading, fade, true, lastDim, player);
 
-                            wasDriver = true;
+                            driver = player;
 
                             return;
                         }
                     }
 
-                    if (x is Entity entity)
-                    {
-                        entity.Position = entity.Position;
+                    x.Position = x.Position;
 
-                        if (entity.Dimension != lastDim)
-                            entity.Dimension = lastDim;
-                    }
+                    if (x.Dimension != lastDim)
+                        x.Dimension = lastDim;
                 });
 
-                if (!wasDriver)
+                if (driver == null)
                 {
                     var wasOnTrailer = veh.DetachObject(AttachmentType.TrailerObjOnBoat);
 

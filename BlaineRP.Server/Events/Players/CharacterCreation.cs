@@ -79,6 +79,7 @@ namespace BlaineRP.Server.Events.Players
 
             player.SetAlpha(0);
 
+            player.TriggerEvent("CharacterCreation::Close");
             player.SkyCameraMove(SkyCamera.SwitchType.Move, true, "Auth::CharSelect::Show", false);
         }
 

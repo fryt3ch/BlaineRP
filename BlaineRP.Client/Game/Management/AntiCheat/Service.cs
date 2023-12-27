@@ -239,6 +239,8 @@ namespace BlaineRP.Client.Game.Management.AntiCheat
                                 }
                             }
 
+                            Console.Output("re-enable");
+
                             Main.DisableAllControls(false);
                             Input.Core.EnableAll();
 

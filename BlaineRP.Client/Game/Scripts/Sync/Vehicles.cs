@@ -1021,7 +1021,7 @@ namespace BlaineRP.Client.Game.Scripts.Sync
 
                             if (!veh.GetIsEngineRunning())
                             {
-                                var res = (int)await Events.CallRemoteProc("Vehicles::ET", (byte)2);
+                                var res = (int)await Events.CallRemoteProc("Vehicles::ET", veh, (byte)2);
 
                                 if (res == 255)
                                 {
