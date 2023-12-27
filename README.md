@@ -15,7 +15,7 @@
 </p>
 <p align="center">
   <a>
-    <img src="https://skillicons.dev/icons?i=js,vuejs,html,css,figma" />
+    <img src="https://skillicons.dev/icons?i=js,html,vuejs,css,figma" />
   </a>
 </p>
 
@@ -72,30 +72,33 @@
   + Roulette
   + Slots
 
-# Some gameplay snippets
-## Game entering
-https://github.com/fryt3ch/BlaineRP/assets/37770139/5497d057-ccf6-48f1-a418-7f58455ddefe
+## Gameplay
 
-## House/apartments furnishing
-https://github.com/fryt3ch/BlaineRP/assets/37770139/9ae5a132-de62-4ff9-bdef-bed75fdb4431
+### Gameplay video
+[![BlaineRP | Gameplay](https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fyoutu.be%2F7sSpyguyPiU)](https://youtu.be/7sSpyguyPiU)
 
-## Casino - blackjack minigame
-https://github.com/fryt3ch/BlaineRP/assets/37770139/815c25a1-45f0-42de-8055-606e355a2f5f
 
-## Barbershop
-https://github.com/fryt3ch/BlaineRP/assets/37770139/1140a1a9-1fe1-4058-a39b-f873ddc237c7
-
-## Vehicle tuning
-https://github.com/fryt3ch/BlaineRP/assets/37770139/b7e90561-0388-4127-9576-8cb39951a413
-
-## Bank system
-https://github.com/fryt3ch/BlaineRP/assets/37770139/8203ffb6-4c88-41c9-8063-aac96d7b9551
-
-## Shooting range
-https://github.com/fryt3ch/BlaineRP/assets/37770139/42663e0c-33a3-4d3c-b846-ae019a716551
-
-## Menu
-https://github.com/fryt3ch/BlaineRP/assets/37770139/c19103c3-5145-45dc-b1c3-ca8da5f6cb71
-
-## Other
-+ [Inventory](https://imgur.com/a/uxUP2nG)
+### Snippets from gameplay video
+<table>
+  <tr>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/5497d057-ccf6-48f1-a418-7f58455ddefe"></video></td>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/9ae5a132-de62-4ff9-bdef-bed75fdb4431"></video></td>
+  </tr>
+  <tr>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/815c25a1-45f0-42de-8055-606e355a2f5f"></video></td>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/1140a1a9-1fe1-4058-a39b-f873ddc237c7"></video></td>
+  </tr>
+  <tr>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/b7e90561-0388-4127-9576-8cb39951a413"></video></td>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/8203ffb6-4c88-41c9-8063-aac96d7b9551"></video></td>
+  </tr>
+  <tr>
+    <td valign="top"><video src="https://github.com/fryt3ch/BlaineRP/assets/37770139/c19103c3-5145-45dc-b1c3-ca8da5f6cb71"></video></td>
+    <td>
+      <p>Screenshots</p>
+      <ul>
+        <li><a href="https://imgur.com/a/uxUP2nG">Inventory</li>
+      </ul>
+    </td>
+  </tr>
+</table>
